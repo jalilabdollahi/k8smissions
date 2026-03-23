@@ -1,30 +1,22 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "port-binder",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "binder",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "nc -l -p 80 || echo 'FAILED to bind port 80'"
-        ],
-        "securityContext": {
-          "runAsNonRoot": true,
-          "runAsUser": 1000,
-          "capabilities": {
-            "drop": [
-              "ALL"
-            ]
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: port-binder
+  namespace: k8smissions
+spec:
+  containers:
+  - name: binder
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - nc -l -p 80 || echo 'FAILED to bind port 80'
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      capabilities:
+        drop:
+        - ALL          # ❌ BUG: ALL capabilities are dropped, including NET_BIND_SERVICE.
+                       # A non-root process needs NET_BIND_SERVICE to bind ports < 1024.
+                       # Without it, binding port 80 returns: "permission denied".
+                       # Fix: add NET_BIND_SERVICE back under capabilities.add.

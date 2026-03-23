@@ -1,9 +1,8 @@
-{
-  "apiVersion": "resource.k8s.io/v1alpha2",
-  "kind": "ResourceClass",
-  "metadata": {
-    "name": "fpga-class"
-  },
-  "driverName": "fpga.example.com",
-  "parametersRef": null
-}
+# ✅ FIX: Created the missing ResourceClass 'fpga-class' that the ResourceClaim
+# references. The driverName must match a registered DRA device driver DaemonSet.
+apiVersion: resource.k8s.io/v1alpha2
+kind: ResourceClass
+metadata:
+  name: fpga-class
+driverName: fpga.example.com
+parametersRef: null

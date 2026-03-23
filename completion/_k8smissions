@@ -1,0 +1,62 @@
+#compdef k8sm k8smissions play.sh
+# K8sMissions completion function — placed in oh-my-zsh completions dir
+# Symlink: ln -sf /path/to/k8smissions/completion/_k8smissions ~/.oh-my-zsh/completions/_k8smissions
+
+_k8smissions_cmds=(
+    'check:Run the validator — confirm your fix works'
+    '1:Shortcut \u2192 check'
+    'check-dry:Dry-run validator (shows result, no XP awarded)'
+    'd:Shortcut \u2192 check-dry'
+    'watch:Auto-run validator every 5s until it passes'
+    'w:Shortcut \u2192 watch'
+    'hint:Reveal the next progressive hint (up to 3)'
+    '2:Shortcut \u2192 hint'
+    'guide:Show the full walkthrough / solution.yaml'
+    '3:Shortcut \u2192 guide'
+    'debrief:Re-read the lesson for this level'
+    '4:Shortcut \u2192 debrief'
+    'reset:Rebuild the broken scenario from scratch'
+    '6:Shortcut \u2192 reset'
+    'status:Show XP progress across all worlds'
+    '7:Shortcut \u2192 status'
+    'skip:Advance to next level (no XP awarded)'
+    '8:Shortcut \u2192 skip'
+    'quit:Save progress and exit'
+    '9:Shortcut \u2192 quit'
+    'reset-progress:Wipe all XP and restart from World 1 Level 1'
+    '0:Shortcut \u2192 reset-progress'
+    'safety:Show kubectl safety guard rules'
+    'help:Show command reference'
+    'kubectl:Pass a kubectl command through safety guards'
+)
+
+_k8smissions() {
+    local curcontext="$curcontext" state state_descr line
+    typeset -A opt_args
+
+    _arguments -C \
+        '(- *)--reset[Reset all progress and start over]' \
+        '1: :->cmd' \
+        '*:: :->args'
+
+    case $state in
+        cmd)
+            _describe -t commands 'k8smissions command' _k8smissions_cmds
+            ;;
+        args)
+            case $line[1] in
+                kubectl)
+                    if (( $+functions[_kubectl] )); then
+                        words=(kubectl "${words[@]:1}")
+                        (( CURRENT++ ))
+                        _kubectl
+                    else
+                        _message 'kubectl arguments'
+                    fi
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+_k8smissions "$@"

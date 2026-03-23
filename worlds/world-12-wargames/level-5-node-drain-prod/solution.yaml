@@ -1,54 +1,37 @@
-[
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "critical-app",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 2,
-      "selector": {
-        "matchLabels": {
-          "app": "critical-app"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "critical-app"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "critical-app",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ]
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "policy/v1",
-    "kind": "PodDisruptionBudget",
-    "metadata": {
-      "name": "critical-pdb",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "minAvailable": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "critical-app"
-        }
-      }
-    }
-  }
-]
+---
+# ✅ FIX: minAvailable must be strictly less than replicas to allow at least one eviction.
+# With replicas=2 and minAvailable=1, drain can evict one pod while keeping one running.
+# This satisfies both the drain requirement AND maintains minimum availability SLA.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: critical-app
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: critical-app
+  template:
+    metadata:
+      labels:
+        app: critical-app
+    spec:
+      containers:
+      - name: critical-app
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: critical-pdb
+  namespace: k8smissions
+spec:
+  minAvailable: 1  # ✅ FIX: minAvailable (1) < replicas (2) — drain can evict one pod safely
+  selector:
+    matchLabels:
+      app: critical-app

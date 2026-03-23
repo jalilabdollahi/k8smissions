@@ -1,71 +1,47 @@
-[
-  {
-    "apiVersion": "v1",
-    "kind": "Secret",
-    "metadata": {
-      "name": "db-credentials",
-      "namespace": "k8smissions"
-    },
-    "type": "Opaque",
-    "stringData": {
-      "username": "appuser",
-      "password": "securepass123"
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "secret-app",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 2,
-      "selector": {
-        "matchLabels": {
-          "app": "secret-app"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "secret-app"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "secret-app",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ],
-              "env": [
-                {
-                  "name": "DB_USER",
-                  "valueFrom": {
-                    "secretKeyRef": {
-                      "name": "db-credentials",
-                      "key": "username"
-                    }
-                  }
-                },
-                {
-                  "name": "DB_PASS",
-                  "valueFrom": {
-                    "secretKeyRef": {
-                      "name": "db-credentials",
-                      "key": "password"
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      }
-    }
-  }
-]
+---
+# ✅ FIX: Recreate the deleted Secret with the correct keys and values.
+# Once the Secret exists, Kubernetes can populate the container env vars
+# and both pods will transition from CreateContainerConfigError → Running.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-credentials   # ✅ FIX: Recreate the Secret that was accidentally deleted
+  namespace: k8smissions
+type: Opaque
+stringData:
+  username: appuser        # ✅ FIX: Key name must match secretKeyRef key: username
+  password: securepass123  # ✅ FIX: Key name must match secretKeyRef key: password
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-app
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: secret-app
+  template:
+    metadata:
+      labels:
+        app: secret-app
+    spec:
+      containers:
+      - name: secret-app
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials
+              key: password

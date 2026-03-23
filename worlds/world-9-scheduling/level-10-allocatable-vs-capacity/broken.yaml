@@ -1,31 +1,23 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "mem-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "requests": {
-            "cpu": "100m",
-            "memory": "5Gi"
-          },
-          "limits": {
-            "cpu": "200m",
-            "memory": "6Gi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mem-pod
+  namespace: k8smissions
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    resources:
+      requests:
+        cpu: 100m
+        # ❌ BUG: Memory request of 5Gi is close to the node's total capacity (6Gi)
+        # but exceeds the allocatable memory (capacity minus kubelet/system reserves).
+        # The scheduler sees Insufficient memory even though the node looks available.
+        memory: 5Gi
+      limits:
+        cpu: 200m
+        memory: 6Gi

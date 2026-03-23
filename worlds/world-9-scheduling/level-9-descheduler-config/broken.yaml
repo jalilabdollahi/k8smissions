@@ -1,23 +1,18 @@
-{
-  "apiVersion": "policy/v1alpha1",
-  "kind": "DeschedulerPolicy",
-  "strategies": {
-    "LowNodeUtilization": {
-      "enabled": false,
-      "params": {
-        "nodeResourceUtilizationThresholds": {
-          "thresholds": {
-            "cpu": 20,
-            "memory": 20,
-            "pods": 20
-          },
-          "targetThresholds": {
-            "cpu": 50,
-            "memory": 50,
-            "pods": 50
-          }
-        }
-      }
-    }
-  }
-}
+apiVersion: policy/v1alpha1
+kind: DeschedulerPolicy
+strategies:
+  LowNodeUtilization:
+    # ❌ BUG: enabled: false disables the LowNodeUtilization strategy entirely.
+    # The descheduler never evicts pods from overloaded nodes, so cluster
+    # imbalance persists indefinitely.
+    enabled: false
+    params:
+      nodeResourceUtilizationThresholds:
+        thresholds:
+          cpu: 20
+          memory: 20
+          pods: 20
+        targetThresholds:
+          cpu: 50
+          memory: 50
+          pods: 50

@@ -2,8 +2,8 @@
 # values.yaml — FIXED
 replicaCount: 3
 image:
-  tag: v2.0.0
-  repository: nginx
+  tag: v2.0.0        # ✅ FIX: 'tag' is now indented 2 spaces under 'image:' — Helm resolves it as image.tag
+  repository: nginx  # ✅ FIX: 'repository' is also properly nested under 'image:' — consistent 2-space indentation
 resources:
   limits:
     cpu: 500m

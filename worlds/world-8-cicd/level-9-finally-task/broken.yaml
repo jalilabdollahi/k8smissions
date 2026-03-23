@@ -1,28 +1,16 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Pipeline",
-  "metadata": {
-    "name": "build-and-clean",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "tasks": [
-      {
-        "name": "build",
-        "taskRef": {
-          "name": "build-task"
-        }
-      },
-      {
-        "name": "cleanup",
-        "taskRef": {
-          "name": "cleanup-task"
-        },
-        "runAfter": [
-          "build"
-        ]
-      }
-    ],
-    "finally": []
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-clean
+  namespace: k8smissions
+spec:
+  tasks:
+  - name: build
+    taskRef:
+      name: build-task
+  - name: cleanup       # ❌ BUG: cleanup is in spec.tasks with runAfter: [build] — if build fails, cleanup is skipped (runAfter dependency not met)
+    taskRef:
+      name: cleanup-task
+    runAfter:
+    - build             # ❌ BUG: runAfter means cleanup only runs when build succeeds — temporary resources accumulate on failures
+  finally: []           # ❌ BUG: finally is empty — cleanup should be here to guarantee it always runs

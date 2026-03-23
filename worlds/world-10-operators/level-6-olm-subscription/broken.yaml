@@ -1,14 +1,10 @@
-{
-  "apiVersion": "operators.coreos.com/v1alpha1",
-  "kind": "Subscription",
-  "metadata": {
-    "name": "my-operator-sub",
-    "namespace": "operators"
-  },
-  "spec": {
-    "channel": "stable",
-    "name": "my-operator",
-    "source": "non-existent-catalog",
-    "sourceNamespace": "olm"
-  }
-}
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: my-operator-sub
+  namespace: operators
+spec:
+  channel: stable
+  name: my-operator
+  source: non-existent-catalog
+  sourceNamespace: olm

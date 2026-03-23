@@ -1,35 +1,18 @@
-{
-  "apiVersion": "networking.k8s.io/v1",
-  "kind": "NetworkPolicy",
-  "metadata": {
-    "name": "deny-all-egress",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "podSelector": {},
-    "policyTypes": [
-      "Egress"
-    ],
-    "egress": [
-      {
-        "ports": [
-          {
-            "protocol": "UDP",
-            "port": 53
-          },
-          {
-            "protocol": "TCP",
-            "port": 53
-          }
-        ]
-      },
-      {
-        "to": [
-          {
-            "podSelector": {}
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: deny-all-egress
+  namespace: k8smissions
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  # ✅ FIX: allow DNS resolution (UDP+TCP port 53) and intra-namespace traffic
+  - ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  - to:
+    - podSelector: {}

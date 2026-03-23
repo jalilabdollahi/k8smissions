@@ -1,20 +1,13 @@
-{
-  "apiVersion": "v1",
-  "kind": "PersistentVolume",
-  "metadata": {
-    "name": "db-data-pv"
-  },
-  "spec": {
-    "capacity": {
-      "storage": "5Gi"
-    },
-    "accessModes": [
-      "ReadWriteOnce"
-    ],
-    "persistentVolumeReclaimPolicy": "Delete",
-    "storageClassName": "standard",
-    "hostPath": {
-      "path": "/data/db"
-    }
-  }
-}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: db-data-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete  # ❌ BUG: Delete destroys the volume data when PVC is removed
+  storageClassName: standard
+  hostPath:
+    path: /data/db

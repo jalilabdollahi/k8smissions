@@ -1,44 +1,27 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "ReplicaSet",
-  "metadata": {
-    "name": "legacy-app-7d8f9",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "legacy-app"
-    }
-  },
-  "spec": {
-    "replicas": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "legacy-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "legacy-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "legacy",
-            "image": "nginx:1.20",
-            "resources": {
-              "requests": {
-                "cpu": "100m",
-                "memory": "64Mi"
-              },
-              "limits": {
-                "cpu": "200m",
-                "memory": "128Mi"
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: legacy-app-7d8f9
+  namespace: k8smissions
+  labels:
+    app: legacy-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: legacy-app
+  template:
+    metadata:
+      labels:
+        app: legacy-app
+    spec:
+      containers:
+      - name: legacy
+        image: nginx:1.20
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi

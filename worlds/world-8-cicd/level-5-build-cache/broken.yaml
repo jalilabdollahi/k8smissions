@@ -1,19 +1,13 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "TaskRun",
-  "metadata": {
-    "name": "build-cache-run",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "taskRef": {
-      "name": "maven-build"
-    },
-    "workspaces": [
-      {
-        "name": "source",
-        "emptyDir": {}
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: build-cache-run
+  namespace: k8smissions
+spec:
+  taskRef:
+    name: maven-build
+  workspaces:
+  - name: source
+    emptyDir: {}
+  # ❌ BUG: 'cache' workspace is declared by the maven-build Task but not bound here
+  # Maven downloads all dependencies from the internet on every run — builds take 15+ minutes

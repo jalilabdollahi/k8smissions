@@ -1,31 +1,22 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "large-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "requests": {
-            "cpu": "1000m",
-            "memory": "100Gi"
-          },
-          "limits": {
-            "cpu": "2000m",
-            "memory": "200Gi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: large-pod
+  namespace: k8smissions
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    resources:
+      requests:
+        cpu: 1000m
+        # ❌ BUG: Memory request of 100Gi exceeds any node's allocatable memory.
+        # The scheduler finds Insufficient memory on every node → pod stuck Pending.
+        memory: 100Gi
+      limits:
+        cpu: 2000m
+        memory: 200Gi

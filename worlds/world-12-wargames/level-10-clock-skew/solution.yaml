@@ -1,14 +1,18 @@
-{
-  "apiVersion": "v1",
-  "kind": "ConfigMap",
-  "metadata": {
-    "name": "node-clock-status",
-    "namespace": "k8smissions"
-  },
-  "data": {
-    "node": "kind-worker",
-    "ntp_sync": "true",
-    "skew_seconds": "0",
-    "status": "ok"
-  }
-}
+# ✅ FIX: Resync NTP on the affected node to correct the 10-minute clock skew.
+# In a real cluster, run on the affected node:
+#   sudo systemctl restart systemd-timesyncd
+#   # or: sudo ntpdate pool.ntp.org
+#   timedatectl status  # verify sync
+#
+# Then update this ConfigMap to reflect the corrected clock state.
+# Once skew is 0 and ntp_sync is true, JWT validation resumes normally.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: node-clock-status
+  namespace: k8smissions
+data:
+  node: kind-worker
+  ntp_sync: 'true'    # ✅ FIX: NTP is now syncing — clock will stay accurate
+  skew_seconds: '0'   # ✅ FIX: Clock drift corrected — JWT tokens validate correctly again
+  status: ok

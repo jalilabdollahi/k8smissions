@@ -1,40 +1,22 @@
-{
-  "apiVersion": "argoproj.io/v1alpha1",
-  "kind": "Rollout",
-  "metadata": {
-    "name": "web-rollout",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 3,
-    "strategy": {
-      "canary": {
-        "steps": [
-          {
-            "setWeight": 50
-          }
-        ]
-      }
-    },
-    "selector": {
-      "matchLabels": {
-        "app": "web"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "web"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "web",
-            "image": "nginx:bad-tag"
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: web-rollout
+  namespace: k8smissions
+spec:
+  replicas: 3
+  strategy:
+    canary:
+      steps:
+      - setWeight: 50
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: web
+        image: nginx:bad-tag  # ❌ BUG: 'bad-tag' does not exist — canary pods fail with ErrImagePull; analysis detects high error rate and aborts rollout; Rollout enters Degraded state

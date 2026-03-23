@@ -1,28 +1,18 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "TaskRun",
-  "metadata": {
-    "name": "approval-gate",
-    "namespace": "k8smissions",
-    "annotations": {
-      "awaiting-approval": "true"
-    }
-  },
-  "spec": {
-    "taskSpec": {
-      "steps": [
-        {
-          "name": "wait",
-          "image": "busybox:1.36",
-          "script": "#!/bin/sh\nwhile [ ! -f /approval/approved ]; do sleep 5; done"
-        }
-      ]
-    },
-    "workspaces": [
-      {
-        "name": "approval",
-        "emptyDir": {}
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: approval-gate
+  namespace: k8smissions
+  annotations:
+    awaiting-approval: "true"  # ❌ BUG: annotation marks this as awaiting approval — the step loops forever waiting for /approval/approved file
+spec:
+  taskSpec:
+    steps:
+    - name: wait
+      image: busybox:1.36
+      script: |
+        #!/bin/sh
+        while [ ! -f /approval/approved ]; do sleep 5; done  # ❌ BUG: infinite polling loop — blocks pipeline indefinitely; approver is unavailable
+  workspaces:
+  - name: approval
+    emptyDir: {}

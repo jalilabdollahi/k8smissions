@@ -1,33 +1,23 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "port-binder",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "binder",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "nc -l -p 80 || echo 'FAILED to bind port 80'"
-        ],
-        "securityContext": {
-          "runAsNonRoot": true,
-          "runAsUser": 1000,
-          "capabilities": {
-            "drop": [
-              "ALL"
-            ],
-            "add": [
-              "NET_BIND_SERVICE"
-            ]
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: port-binder
+  namespace: k8smissions
+spec:
+  containers:
+  - name: binder
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - nc -l -p 80 || echo 'FAILED to bind port 80'
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      capabilities:
+        drop:
+        - ALL                # Keep: drop all capabilities for least privilege.
+        add:
+        - NET_BIND_SERVICE   # ✅ FIX: Re-add only the capability needed to bind ports < 1024.
+                             # This grants minimal privilege: the process can bind port 80
+                             # without being root and without any other elevated capability.

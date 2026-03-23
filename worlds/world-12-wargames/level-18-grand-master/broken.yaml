@@ -1,253 +1,229 @@
-[
-  {
-    "apiVersion": "v1",
-    "kind": "Pod",
-    "metadata": {
-      "name": "w1-pod",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "containers": [
-        {
-          "name": "w1",
-          "image": "nginx:doesnotexist99"
-        }
-      ]
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "w2-deploy",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 0,
-      "selector": {
-        "matchLabels": {
-          "app": "w2"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "w2"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "w2",
-              "image": "nginx:1.27.4"
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "name": "w3-svc",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "selector": {
-        "app": "wrong-label"
-      },
-      "ports": [
-        {
-          "port": 80,
-          "targetPort": 80
-        }
-      ]
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "PersistentVolumeClaim",
-    "metadata": {
-      "name": "w4-pvc",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "accessModes": [
-        "ReadWriteOnce"
-      ],
-      "resources": {
-        "requests": {
-          "storage": "500Ti"
-        }
-      },
-      "storageClassName": "standard"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ServiceAccount",
-    "metadata": {
-      "name": "w5-sa",
-      "namespace": "k8smissions"
-    }
-  },
-  {
-    "apiVersion": "rbac.authorization.k8s.io/v1",
-    "kind": "Role",
-    "metadata": {
-      "name": "w5-role",
-      "namespace": "k8smissions"
-    },
-    "rules": [
-      {
-        "apiGroups": [
-          ""
-        ],
-        "resources": [
-          "pods"
-        ],
-        "verbs": [
-          "get",
-          "list"
-        ]
-      }
-    ]
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "w6-monitored",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "w6"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "w6"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "w6",
-              "image": "nginx:1.27.4",
-              "ports": [
-                {
-                  "containerPort": 80
-                }
-              ]
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "w7-config",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "ENV": "",
-      "REGION": ""
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "w8-pipeline",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "w8"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "w8"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "w8",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ],
-              "env": [
-                {
-                  "name": "TOKEN",
-                  "valueFrom": {
-                    "secretKeyRef": {
-                      "name": "w8-secret",
-                      "key": "token"
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "w9-scheduled",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "w9"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "w9"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "w9",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ],
-              "resources": {
-                "limits": {
-                  "memory": "1Mi"
-                }
-              }
-            }
-          ]
-        }
-      }
-    }
-  }
-]
+# ❌ BUG: 12 simultaneous failures — one from each world.
+# This is the Grand Master challenge. Fix all 12 in dependency order.
+# W1=bad image, W2=0 replicas, W3=wrong selector, W4=impossible PVC,
+# W5=missing RoleBinding, W6=no readiness probe, W7=empty ConfigMap,
+# W8=missing Secret, W9=1Mi memory limit, W10=CrashLoop command,
+# W11=zero replicas PDB deadlock, W12=ConfigMap blocks failover
+---
+# W1 (World 1 - Foundations): Pod with non-existent image tag
+apiVersion: v1
+kind: Pod
+metadata:
+  name: w1-pod
+  namespace: k8smissions
+spec:
+  containers:
+  - name: w1
+    image: nginx:doesnotexist99  # ❌ BUG W1: Image tag does not exist — ImagePullBackOff
+---
+# W2 (World 2 - Workloads): Deployment scaled to zero
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: w2-deploy
+  namespace: k8smissions
+spec:
+  replicas: 0  # ❌ BUG W2: Zero replicas — no pods, no service
+  selector:
+    matchLabels:
+      app: w2
+  template:
+    metadata:
+      labels:
+        app: w2
+    spec:
+      containers:
+      - name: w2
+        image: nginx:1.27.4
+---
+# W3 (World 3 - Networking): Service selector points to wrong label
+apiVersion: v1
+kind: Service
+metadata:
+  name: w3-svc
+  namespace: k8smissions
+spec:
+  selector:
+    app: wrong-label  # ❌ BUG W3: No pod has this label — Service has zero endpoints
+  ports:
+  - port: 80
+    targetPort: 80
+---
+# W4 (World 4 - Storage): PVC requests impossible storage size
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: w4-pvc
+  namespace: k8smissions
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Ti  # ❌ BUG W4: Impossible storage request — PVC stuck Pending forever
+  storageClassName: standard
+---
+# W5 (World 5 - Security): ServiceAccount and Role exist but RoleBinding is missing
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: w5-sa
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: w5-role
+  namespace: k8smissions
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+# ❌ BUG W5: RoleBinding w5-rb is absent — w5-sa has zero permissions
+---
+# W6 (World 6 - Observability): Deployment without readiness probe
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: w6-monitored
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: w6
+  template:
+    metadata:
+      labels:
+        app: w6
+    spec:
+      containers:
+      - name: w6
+        image: nginx:1.27.4
+        ports:
+        - containerPort: 80
+        # ❌ BUG W6: No readinessProbe — zombie/hung pod would stay in Service endpoints
+---
+# W7 (World 7 - GitOps): ConfigMap with empty required values
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: w7-config
+  namespace: k8smissions
+data:
+  ENV: ""     # ❌ BUG W7: Empty ENV — app startup check fails
+  REGION: ""  # ❌ BUG W7: Empty REGION — app has no region context
+---
+# W8 (World 8 - CI/CD): Deployment references a non-existent Secret
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: w8-pipeline
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: w8
+  template:
+    metadata:
+      labels:
+        app: w8
+    spec:
+      containers:
+      - name: w8
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "sleep 3600"]
+        env:
+        - name: TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: w8-secret  # ❌ BUG W8: Secret w8-secret does not exist — CreateContainerConfigError
+              key: token
+---
+# W9 (World 9 - Scheduling): Deployment with dangerously low memory limit
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: w9-scheduled
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: w9
+  template:
+    metadata:
+      labels:
+        app: w9
+    spec:
+      containers:
+      - name: w9
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "sleep 3600"]
+        resources:
+          limits:
+            memory: "1Mi"  # ❌ BUG W9: 1Mi is far too low — OOMKilled immediately on start
+---
+# W10 (World 10 - Operators): Deployment with a command that always crashes
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: w10-operator
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: w10
+  template:
+    metadata:
+      labels:
+        app: w10
+    spec:
+      containers:
+      - name: w10
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "exit 1"]  # ❌ BUG W10: Always exits 1 — CrashLoopBackOff
+---
+# W11 (World 11 - Performance): PDB that prevents all eviction (drain blocker)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: w11-perf
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: w11
+  template:
+    metadata:
+      labels:
+        app: w11
+    spec:
+      containers:
+      - name: w11
+        image: busybox:1.36
+        command: ["/bin/sh", "-c", "sleep 3600"]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: w11-pdb
+  namespace: k8smissions
+spec:
+  minAvailable: 5  # ❌ BUG W11: minAvailable (5) > replicas (1) — drain permanently blocked
+  selector:
+    matchLabels:
+      app: w11
+---
+# W12 (World 12 - Wargames): ConfigMap showing failover is disabled and sync is stale
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: w12-failover
+  namespace: k8smissions
+data:
+  failover-enabled: "false"  # ❌ BUG W12: Failover disabled — cluster cannot self-recover
+  sync-status: "stale"       # ❌ BUG W12: Passive cluster is out of sync — failover would lose data

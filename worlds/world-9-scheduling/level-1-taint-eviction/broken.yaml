@@ -1,26 +1,18 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "critical-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "nginx:1.25",
-        "resources": {
-          "requests": {
-            "cpu": "50m",
-            "memory": "32Mi"
-          },
-          "limits": {
-            "cpu": "100m",
-            "memory": "64Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: critical-app
+  namespace: k8smissions
+spec:
+  # ❌ BUG: No tolerations defined — when a NoExecute taint is applied to the node,
+  # this pod will be immediately evicted with no grace window.
+  containers:
+  - name: app
+    image: nginx:1.25
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi

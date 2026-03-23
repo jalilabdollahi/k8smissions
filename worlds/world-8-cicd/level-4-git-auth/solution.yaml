@@ -1,13 +1,7 @@
-{
-  "apiVersion": "v1",
-  "kind": "ServiceAccount",
-  "metadata": {
-    "name": "pipeline-sa",
-    "namespace": "k8smissions"
-  },
-  "secrets": [
-    {
-      "name": "git-ssh-key"
-    }
-  ]
-}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pipeline-sa
+  namespace: k8smissions
+secrets:
+- name: git-ssh-key  # ✅ FIX: SSH key secret attached to SA — Tekton git-clone Task mounts SA secrets and uses kubernetes.io/ssh-auth type for git authentication

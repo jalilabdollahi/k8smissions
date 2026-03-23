@@ -1,26 +1,14 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Pipeline",
-  "metadata": {
-    "name": "build-and-clean",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "tasks": [
-      {
-        "name": "build",
-        "taskRef": {
-          "name": "build-task"
-        }
-      }
-    ],
-    "finally": [
-      {
-        "name": "cleanup",
-        "taskRef": {
-          "name": "cleanup-task"
-        }
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-and-clean
+  namespace: k8smissions
+spec:
+  tasks:
+  - name: build
+    taskRef:
+      name: build-task
+  finally:
+  - name: cleanup           # ✅ FIX: cleanup moved to spec.finally — Tekton runs finally tasks unconditionally after main DAG completes or fails
+    taskRef:
+      name: cleanup-task    # ✅ FIX: no runAfter needed in finally; finally tasks cannot have runAfter dependencies

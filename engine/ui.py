@@ -28,17 +28,17 @@ else:
 console = Console()
 
 WORLD_TOTAL_XP = {
-    "world-1-foundations": 2050,
-    "world-2-workloads": 2050,
-    "world-3-networking": 2350,
-    "world-4-storage": 2450,
-    "world-5-security": 3150,
-    "world-6-observability": 2900,
-    "world-7-gitops": 4050,
-    "world-8-cicd": 6200,
-    "world-9-scheduling": 6200,
-    "world-10-operators": 6200,
-    "world-11-performance": 6200,
+    "world-1-foundations": 3025,
+    "world-2-workloads": 2950,
+    "world-3-networking": 3275,
+    "world-4-storage": 3375,
+    "world-5-security": 4300,
+    "world-6-observability": 3800,
+    "world-7-gitops": 5100,
+    "world-8-cicd": 5425,
+    "world-9-scheduling": 5775,
+    "world-10-operators": 6225,
+    "world-11-performance": 6075,
     "world-12-wargames": 6600,
 }
 
@@ -82,20 +82,25 @@ _ASCII_LOGO = """\
  ╚═╝  ╚═╝ ╚════╝ ╚══════╝    ╚═╝     ╚═╝╚═╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝"""
 
 
-def welcome_panel(player_name: str, total_xp: int) -> Panel:
+def welcome_panel(player_name: str, total_xp: int, max_total_xp: int | None = None) -> Panel:
     logo = Text(_ASCII_LOGO, style="bold bright_cyan")
     subtitle = Text("  200 challenges  •  12 worlds  •  Real Kubernetes", style="grey70")
     agent = Text.assemble(
         ("  Agent: ", "grey70"),
         (player_name or "Unassigned", "bold bright_magenta"),
         ("    XP: ", "grey70"),
-        (f"{total_xp:,} / 50,200", "bold bright_magenta"),
+        (f"{total_xp:,} / {(max_total_xp or 55925):,}", "bold bright_magenta"),
     )
     body = Group(logo, Text(""), subtitle, Text(""), agent)
     return Panel(body, border_style="bright_cyan", box=box.ROUNDED, padding=(1, 2))
 
 
-def progress_rows(worlds: list[dict], completed_levels: set[str], total_xp_by_world: dict[str, int]) -> Table:
+def progress_rows(
+    worlds: list[dict],
+    completed_levels: set[str],
+    total_xp_by_world: dict[str, int],
+    max_xp_by_world: dict[str, int] | None = None,
+) -> Table:
     table = Table(box=box.SIMPLE_HEAVY, expand=True)
     table.add_column("World", style="bright_cyan", ratio=2)
     table.add_column("Progress", style="white", ratio=3)
@@ -105,17 +110,31 @@ def progress_rows(worlds: list[dict], completed_levels: set[str], total_xp_by_wo
         completed = len(level_ids & completed_levels)
         total = len(world["levels"])
         xp = total_xp_by_world.get(world["name"], 0)
+        # Use dynamic max XP if provided, fall back to hardcoded dict (#11)
+        if max_xp_by_world is not None:
+            max_xp = max_xp_by_world.get(world["name"], total_world_xp(world["name"]))
+        else:
+            max_xp = total_world_xp(world["name"])
         table.add_row(
             world_title(world["name"]),
             f"{completed}/{total}",
-            f"{xp:,} / {total_world_xp(world['name']):,}",
+            f"{xp:,} / {max_xp:,}",
         )
     return table
 
 
-def show_welcome(player_name: str, total_xp: int, worlds: list[dict], completed_levels: set[str], total_xp_by_world: dict[str, int]) -> None:
-    console.print(welcome_panel(player_name, total_xp))
-    console.print(progress_rows(worlds, completed_levels, total_xp_by_world))
+def show_welcome(
+    player_name: str,
+    total_xp: int,
+    worlds: list[dict],
+    completed_levels: set[str],
+    total_xp_by_world: dict[str, int],
+    max_xp_by_world: dict[str, int] | None = None,
+    max_total_xp: int | None = None,
+) -> None:
+    effective_max = max_total_xp or sum(WORLD_TOTAL_XP.values())
+    console.print(welcome_panel(player_name, total_xp, effective_max))
+    console.print(progress_rows(worlds, completed_levels, total_xp_by_world, max_xp_by_world))
 
 
 def show_mission_briefing(world_index: int, world_count: int, level_index: int, level_count: int, mission: dict) -> None:
@@ -150,25 +169,48 @@ def show_mission_briefing(world_index: int, world_count: int, level_index: int, 
     )
 
 
-def show_victory(world_name: str, level_name: str, xp_earned: int, total_xp: int, skipped: bool = False) -> None:
+def show_victory(
+    world_name: str,
+    level_name: str,
+    xp_earned: int,
+    total_xp: int,
+    skipped: bool = False,
+    elapsed_seconds: int | None = None,
+    expected_time: str | None = None,
+) -> None:
     status = "MISSION SKIPPED" if skipped else "MISSION ACCOMPLISHED"
     color = "bright_yellow" if skipped else "bright_green"
+    time_line: list[object] = []
+    if elapsed_seconds is not None and not skipped:
+        mins, secs = divmod(elapsed_seconds, 60)
+        actual_str = f"{mins}m {secs:02d}s" if mins else f"{secs}s"
+        time_line.append(Text(f"Time: {actual_str}" + (f"  (est. {expected_time})" if expected_time else ""), style="grey70"))
     body = Group(
         Text(status, style=f"bold {color}"),
         Text(f"{world_title(world_name)} • {level_name}", style="white"),
         Text(f"XP Earned: +{xp_earned}  |  Total: {total_xp}", style="bright_magenta"),
+        *time_line,
     )
     console.print(Panel(body, border_style=color, box=box.DOUBLE, padding=(1, 2)))
 
 
-def show_world_completion(certificate_text: str) -> None:
-    console.print(Panel(Markdown(certificate_text), border_style="bright_green", box=box.DOUBLE_EDGE))
+def show_world_completion(certificate_panel: object) -> None:
+    """Display the certificate panel returned by render_certificate_panel()."""
+    console.print(certificate_panel)
 
 
-def show_status(worlds: list[dict], completed_levels: set[str], total_xp_by_world: dict[str, int], total_xp: int) -> None:
+def show_status(
+    worlds: list[dict],
+    completed_levels: set[str],
+    total_xp_by_world: dict[str, int],
+    total_xp: int,
+    max_xp_by_world: dict[str, int] | None = None,
+    max_total_xp: int | None = None,
+) -> None:
+    effective_max = max_total_xp or sum(WORLD_TOTAL_XP.values())
     console.print(Rule("[bright_cyan]Mission Progress[/bright_cyan]"))
-    console.print(progress_rows(worlds, completed_levels, total_xp_by_world))
-    console.print(Panel(Text(f"Total XP: {total_xp:,} / 19,000", style="bold bright_magenta"), border_style="bright_magenta"))
+    console.print(progress_rows(worlds, completed_levels, total_xp_by_world, max_xp_by_world))
+    console.print(Panel(Text(f"Total XP: {total_xp:,} / {effective_max:,}", style="bold bright_magenta"), border_style="bright_magenta"))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -264,7 +306,7 @@ class PaginatedDisplay:
             parts.append("[dim](Enter to finish)[/dim]")
         console.print("  " + "  •  ".join(parts))
 
-    def show(self, text: str, title: str = "Content", border: str = "bright_green") -> None:
+    def show(self, text: str, title: str = "Content", border: str = "bright_green", clear_first: bool = True) -> None:
         lines = text.split("\n")
         ranges = self._page_ranges(lines)
         total = len(ranges)
@@ -272,7 +314,22 @@ class PaginatedDisplay:
         idx = 0
         while True:
             s, e = ranges[idx]
-            self._render("\n".join(lines[s:e]), title, border, idx + 1, total)
+            # Optionally skip clearing on the very first page so prior output
+            # (e.g. the victory panel) remains visible above the first page.
+            if idx == 0 and not clear_first:
+                page_tag = f"  [Page {idx + 1}/{total}]" if total > 1 else ""
+                console.print()
+                console.print(
+                    Panel(
+                        Markdown("\n".join(lines[s:e])),
+                        title=f"[bold {border}]{title}{page_tag}[/bold {border}]",
+                        border_style=border,
+                        box=box.DOUBLE,
+                        padding=(1, 2),
+                    )
+                )
+            else:
+                self._render("\n".join(lines[s:e]), title, border, idx + 1, total)
             console.print()
             self._nav_hint(idx + 1, total)
             key = self._getkey()
@@ -315,10 +372,12 @@ def show_help() -> None:
     diagnostic = _section(
         "DIAGNOSE",
         [
-            ("1", "check",         "Run the validator — confirm your fix works"),
-            ("2", "hint",          "Reveal the next hint  (up to 3)"),
-            ("3", "guide",         "Show the full walkthrough / solution.yaml"),
-            ("4", "debrief",       "Re-read the lesson for this level"),
+            ("1", "check",      "Run the validator — confirm your fix works"),
+            ("d", "check-dry",  "Dry-run validator (shows result, no XP)"),
+            ("w", "watch",      "Auto-run validator every 5s until pass"),
+            ("2", "hint",       "Reveal the next hint  (up to 3)"),
+            ("3", "guide",      "Show the full walkthrough / solution.yaml"),
+            ("4", "debrief",    "Re-read the lesson for this level"),
         ],
         "bright_cyan",
     )
@@ -365,7 +424,11 @@ def show_help() -> None:
 # Post-level debrief  (auto-shown on level completion)
 # ─────────────────────────────────────────────────────────────────────────────
 
-def show_post_level_debrief(level_path: Path) -> None:
+def show_post_level_debrief(
+    level_path: Path,
+    elapsed_seconds: int | None = None,
+    expected_time: str | None = None,
+) -> None:
     """Paginate debrief.md then common-mistakes.md after a level passes."""
     debrief = level_path / "debrief.md"
     mistakes = level_path / "common-mistakes.md"
@@ -376,25 +439,35 @@ def show_post_level_debrief(level_path: Path) -> None:
     if not has_debrief and not has_mistakes:
         return
 
+    # Build the intro line — include elapsed time so it's visible even after
+    # the victory panel scrolls away
+    time_suffix = ""
+    if elapsed_seconds is not None:
+        mins, secs = divmod(elapsed_seconds, 60)
+        actual = f"{mins}m {secs:02d}s" if mins else f"{secs}s"
+        time_suffix = f"  ·  ⏱ {actual}" + (f" (est. {expected_time})" if expected_time else "")
+
     console.print()
     console.print(
         Panel(
             Text.assemble(
-                ("  Level Complete — reading lesson  ", "bold bright_green"),
-                ("(q to skip)", "grey70"),
+                ("  Level Complete — reading lesson", "bold bright_green"),
+                (time_suffix, "bright_yellow"),
+                ("   (q to skip)", "grey70"),
             ),
             border_style="bright_green",
             box=box.HEAVY_EDGE,
             padding=(0, 1),
         )
     )
-    console.print()
 
     if has_debrief:
+        # clear_first=False keeps the victory panel + intro banner above the first page
         _pager.show(
             debrief.read_text(encoding="utf-8"),
             title="Mission Debrief",
             border="bright_green",
+            clear_first=False,
         )
 
     if has_mistakes:

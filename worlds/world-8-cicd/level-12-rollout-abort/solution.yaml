@@ -1,40 +1,22 @@
-{
-  "apiVersion": "argoproj.io/v1alpha1",
-  "kind": "Rollout",
-  "metadata": {
-    "name": "web-rollout",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 3,
-    "strategy": {
-      "canary": {
-        "steps": [
-          {
-            "setWeight": 50
-          }
-        ]
-      }
-    },
-    "selector": {
-      "matchLabels": {
-        "app": "web"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "web"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "web",
-            "image": "nginx:1.25"
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: web-rollout
+  namespace: k8smissions
+spec:
+  replicas: 3
+  strategy:
+    canary:
+      steps:
+      - setWeight: 50
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.25  # ✅ FIX: valid image tag — canary pods start successfully; retry rollout with kubectl argo rollouts retry rollout web-rollout

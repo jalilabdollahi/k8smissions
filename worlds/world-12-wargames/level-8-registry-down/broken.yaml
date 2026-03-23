@@ -1,32 +1,23 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "registry-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "registry-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "registry-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "registry-app",
-            "image": "internal-registry.company.local/app:v2.1",
-            "imagePullPolicy": "Always"
-          }
-        ]
-      }
-    }
-  }
-}
+# ❌ BUG: The image references an internal private registry that is now unreachable.
+# Combined with imagePullPolicy: Always, Kubernetes must contact the registry on every
+# pod creation — it cannot use a local node cache. All new pods fail with ImagePullBackOff.
+# Existing running pods are unaffected (containers already running don't re-pull images).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry-app
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: registry-app
+  template:
+    metadata:
+      labels:
+        app: registry-app
+    spec:
+      containers:
+      - name: registry-app
+        image: internal-registry.company.local/app:v2.1  # ❌ BUG: Private registry is unreachable — ImagePullBackOff
+        imagePullPolicy: Always  # ❌ BUG: Always forces a registry round-trip, bypassing node image cache

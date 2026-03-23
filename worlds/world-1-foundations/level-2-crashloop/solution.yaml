@@ -1,24 +1,15 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "crashloop-pod",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "crashloop-pod"
-    }
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "crashloop-pod",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ]
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: crashloop-pod
+  namespace: k8smissions
+  labels:
+    app: crashloop-pod
+spec:
+  containers:
+  - name: crashloop-pod
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600

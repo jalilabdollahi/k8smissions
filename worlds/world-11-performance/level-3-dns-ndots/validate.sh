@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 NS="k8smissions"
-if kubectl get pod dns-heavy-app -n k8smissions -o jsonpath='{.spec.dnsConfig}' 2>/dev/null | grep -q ndots || echo PASS; then
+if kubectl get pod dns-heavy-app -n k8smissions -o jsonpath='{.spec.dnsConfig}' 2>/dev/null | grep -q ndots; then
   echo "PASS: DNS Flood"
   exit 0
 fi

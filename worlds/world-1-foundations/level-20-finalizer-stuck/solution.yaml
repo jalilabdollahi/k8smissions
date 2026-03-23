@@ -1,12 +1,8 @@
-{
-  "apiVersion": "v1",
-  "kind": "ConfigMap",
-  "metadata": {
-    "name": "stuck-config",
-    "namespace": "k8smissions",
-    "finalizers": []
-  },
-  "data": {
-    "key": "value"
-  }
-}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stuck-config
+  namespace: k8smissions
+  finalizers: []
+data:
+  key: value

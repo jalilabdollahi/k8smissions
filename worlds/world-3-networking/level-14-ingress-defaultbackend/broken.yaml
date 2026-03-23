@@ -1,51 +1,29 @@
-{
-  "apiVersion": "v1",
-  "kind": "Service",
-  "metadata": {
-    "name": "app-service",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "selector": {
-      "app": "myapp"
-    },
-    "ports": [
-      {
-        "port": 80,
-        "targetPort": 80
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-service
+  namespace: k8smissions
+spec:
+  selector:
+    app: myapp
+  ports:
+  - port: 80
+    targetPort: 80
 ---
-{
-  "apiVersion": "networking.k8s.io/v1",
-  "kind": "Ingress",
-  "metadata": {
-    "name": "app-ingress",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "rules": [
-      {
-        "host": "app.example.com",
-        "http": {
-          "paths": [
-            {
-              "path": "/",
-              "pathType": "Prefix",
-              "backend": {
-                "service": {
-                  "name": "app-serv",
-                  "port": {
-                    "number": 80
-                  }
-                }
-              }
-            }
-          ]
-        }
-      }
-    ]
-  }
-}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: k8smissions
+spec:
+  rules:
+  - host: app.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: app-serv  # ❌ BUG: service is named "app-service", not "app-serv"
+            port:
+              number: 80

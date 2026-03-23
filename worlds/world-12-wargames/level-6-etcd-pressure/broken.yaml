@@ -1,242 +1,184 @@
-[
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0001",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "1",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0002",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "2",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0003",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "3",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0004",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "4",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0005",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "5",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0006",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "6",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0007",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "7",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0008",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "8",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0009",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "9",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0010",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "10",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0011",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "11",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0012",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "12",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0013",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "13",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0014",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "14",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0015",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "15",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0016",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "16",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0017",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "17",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0018",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "18",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0019",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "19",
-      "status": "completed"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "ci-run-0020",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "run_id": "20",
-      "status": "completed"
-    }
-  }
-]
+---
+# ❌ BUG: 20 stale ci-run-* ConfigMaps left behind by CI/CD pipelines.
+# In production this pattern scales to thousands of objects, approaching etcd's
+# 8GB storage limit. API server latency increases as etcd scan times grow.
+# These objects serve no purpose after the pipeline run completes.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0001  # ❌ BUG: Stale CI artifact — pipeline run #1, never cleaned up
+  namespace: k8smissions
+data:
+  run_id: "1"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0002
+  namespace: k8smissions
+data:
+  run_id: "2"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0003
+  namespace: k8smissions
+data:
+  run_id: "3"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0004
+  namespace: k8smissions
+data:
+  run_id: "4"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0005
+  namespace: k8smissions
+data:
+  run_id: "5"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0006
+  namespace: k8smissions
+data:
+  run_id: "6"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0007
+  namespace: k8smissions
+data:
+  run_id: "7"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0008
+  namespace: k8smissions
+data:
+  run_id: "8"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0009
+  namespace: k8smissions
+data:
+  run_id: "9"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0010
+  namespace: k8smissions
+data:
+  run_id: "10"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0011
+  namespace: k8smissions
+data:
+  run_id: "11"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0012
+  namespace: k8smissions
+data:
+  run_id: "12"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0013
+  namespace: k8smissions
+data:
+  run_id: "13"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0014
+  namespace: k8smissions
+data:
+  run_id: "14"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0015
+  namespace: k8smissions
+data:
+  run_id: "15"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0016
+  namespace: k8smissions
+data:
+  run_id: "16"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0017
+  namespace: k8smissions
+data:
+  run_id: "17"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0018
+  namespace: k8smissions
+data:
+  run_id: "18"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0019
+  namespace: k8smissions
+data:
+  run_id: "19"
+  status: completed
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-run-0020  # ❌ BUG: 20 stale ConfigMaps — in production this would be thousands
+  namespace: k8smissions
+data:
+  run_id: "20"
+  status: completed

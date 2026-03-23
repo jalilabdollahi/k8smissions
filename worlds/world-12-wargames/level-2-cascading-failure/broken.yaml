@@ -1,74 +1,50 @@
-[
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "auth-svc",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 0,
-      "selector": {
-        "matchLabels": {
-          "app": "auth-svc"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "auth-svc"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "auth-svc",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ]
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "api-gateway",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 2,
-      "selector": {
-        "matchLabels": {
-          "app": "api-gateway"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "api-gateway"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "api-gateway",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ]
-            }
-          ]
-        }
-      }
-    }
-  }
-]
+---
+# ❌ BUG: auth-svc scaled to 0 replicas — no pods exist to handle authentication.
+# All downstream services (api-gateway and others) call auth-svc on every request.
+# With 0 replicas, auth-svc has no endpoints → Service returns connection refused
+# → api-gateway and downstream callers time out → entire call chain fails.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-svc
+  namespace: k8smissions
+spec:
+  replicas: 0  # ❌ BUG: Scaled to zero — simulates accidental HPA scale-down or kubectl scale error
+  selector:
+    matchLabels:
+      app: auth-svc
+  template:
+    metadata:
+      labels:
+        app: auth-svc
+    spec:
+      containers:
+      - name: auth-svc
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600

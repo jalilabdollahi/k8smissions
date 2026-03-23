@@ -1,19 +1,13 @@
-{
-  "apiVersion": "example.com/v1alpha1",
-  "kind": "Database",
-  "metadata": {
-    "name": "prod-db",
-    "namespace": "k8smissions",
-    "finalizers": [
-      "database.example.com/cleanup"
-    ]
-  },
-  "spec": {
-    "engine": "postgres",
-    "storage": "10Gi"
-  },
-  "status": {
-    "phase": "Ready",
-    "endpoint": "prod-db.k8smissions.svc.cluster.local:5432"
-  }
-}
+apiVersion: example.com/v1alpha1
+kind: Database
+metadata:
+  name: prod-db
+  namespace: k8smissions
+  finalizers:
+  - database.example.com/cleanup
+spec:
+  engine: postgres
+  storage: 10Gi
+status:
+  phase: Ready
+  endpoint: prod-db.k8smissions.svc.cluster.local:5432

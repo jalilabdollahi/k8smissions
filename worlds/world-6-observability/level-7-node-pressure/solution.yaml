@@ -1,47 +1,29 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "memory-hog",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "memory-hog"
-    }
-  },
-  "spec": {
-    "replicas": 1,
-    "selector": {
-      "matchLabels": {
-        "app": "memory-hog"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "memory-hog"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "memory-hog",
-            "image": "busybox:1.36",
-            "command": [
-              "/bin/sh",
-              "-c",
-              "sleep 3600"
-            ],
-            "resources": {
-              "requests": {
-                "memory": "64Mi"
-              },
-              "limits": {
-                "memory": "128Mi"
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memory-hog
+  namespace: k8smissions
+  labels:
+    app: memory-hog
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memory-hog
+  template:
+    metadata:
+      labels:
+        app: memory-hog
+    spec:
+      containers:
+      - name: memory-hog
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+        resources:
+          requests:
+            memory: 64Mi
+          limits:
+            memory: 128Mi

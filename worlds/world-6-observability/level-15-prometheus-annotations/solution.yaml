@@ -1,35 +1,22 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "metrics-app",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "metrics-app"
-    },
-    "annotations": {
-      "prometheus.io/scrape": "true",
-      "prometheus.io/port": "9090",
-      "prometheus.io/path": "/metrics"
-    }
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "while true; do echo 'http_requests_total 42'; sleep 30; done"
-        ],
-        "ports": [
-          {
-            "name": "metrics",
-            "containerPort": 9090
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: metrics-app
+  namespace: k8smissions
+  labels:
+    app: metrics-app
+  annotations:
+    prometheus.io/scrape: 'true'    # ✅ FIX: Enables Prometheus pod discovery for this pod.
+    prometheus.io/port: '9090'      # ✅ FIX: Tells Prometheus which port to scrape metrics from.
+    prometheus.io/path: /metrics    # ✅ FIX: Specifies the HTTP path for the metrics endpoint.
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - while true; do echo 'http_requests_total 42'; sleep 30; done
+    ports:
+    - name: metrics
+      containerPort: 9090

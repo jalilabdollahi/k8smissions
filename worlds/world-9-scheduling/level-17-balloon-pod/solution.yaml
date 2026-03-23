@@ -1,27 +1,20 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "balloon-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "priorityClassName": "balloon-priority",
-    "containers": [
-      {
-        "name": "pause",
-        "image": "registry.k8s.io/pause:3.9",
-        "resources": {
-          "requests": {
-            "cpu": "100m",
-            "memory": "128Mi"
-          },
-          "limits": {
-            "cpu": "200m",
-            "memory": "256Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: balloon-pod
+  namespace: k8smissions
+spec:
+  priorityClassName: balloon-priority
+  containers:
+  - name: pause
+    image: registry.k8s.io/pause:3.9
+    resources:
+      requests:
+        # ✅ FIX: Reduced to minimal requests (100m CPU, 128Mi memory) — the pause
+        # container uses no real resources, so its scheduling footprint is minimal.
+        # Real workloads can now claim the freed capacity.
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi

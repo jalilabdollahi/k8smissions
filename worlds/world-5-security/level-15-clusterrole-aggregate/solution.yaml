@@ -1,43 +1,28 @@
-{
-  "apiVersion": "rbac.authorization.k8s.io/v1",
-  "kind": "ClusterRole",
-  "metadata": {
-    "name": "operator-role"
-  },
-  "aggregationRule": {
-    "clusterRoleSelectors": [
-      {
-        "matchLabels": {
-          "rbac.example.io/aggregate-to-operator": "true"
-        }
-      }
-    ]
-  },
-  "rules": []
-}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator-role
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.example.io/aggregate-to-operator: 'true'
+rules: []
 ---
-{
-  "apiVersion": "rbac.authorization.k8s.io/v1",
-  "kind": "ClusterRole",
-  "metadata": {
-    "name": "deployments-reader",
-    "labels": {
-      "rbac.example.io/aggregate-to-operator": "true"
-    }
-  },
-  "rules": [
-    {
-      "apiGroups": [
-        "apps"
-      ],
-      "resources": [
-        "deployments"
-      ],
-      "verbs": [
-        "get",
-        "list",
-        "watch"
-      ]
-    }
-  ]
-}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: deployments-reader
+  labels:
+    rbac.example.io/aggregate-to-operator: 'true'  # ✅ FIX: Label changed from 'aggregate-to-viewer' to
+                                                     # 'aggregate-to-operator' — now matches the selector
+                                                     # in operator-role's aggregationRule. Kubernetes will
+                                                     # automatically merge these rules into operator-role.
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch

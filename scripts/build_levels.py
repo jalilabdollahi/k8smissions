@@ -1135,9 +1135,51 @@ def build_all_levels() -> list[Path]:
     return created
 
 
+def generate_registry() -> Path:
+    """Scan all world/level directories and write levels.json (#12)."""
+    import re as _re
+    import yaml as _yaml
+    from datetime import datetime
+
+    def sort_key(name: str) -> tuple[int, str]:
+        m = _re.search(r"(\d+)", name)
+        return (int(m.group(1)) if m else 9999, name)
+
+    worlds_out = []
+    for world_dir in sorted((p for p in WORLDS_DIR.iterdir() if p.is_dir()), key=lambda p: sort_key(p.name)):
+        levels_out = []
+        for level_dir in sorted((p for p in world_dir.iterdir() if p.is_dir()), key=lambda p: sort_key(p.name)):
+            mission_file = level_dir / "mission.yaml"
+            if not mission_file.exists():
+                continue
+            try:
+                mission = _yaml.safe_load(mission_file.read_text(encoding="utf-8")) or {}
+            except Exception:
+                mission = {}
+            levels_out.append({
+                "id": f"{world_dir.name}/{level_dir.name}",
+                "name": level_dir.name,
+                "path": f"worlds/{world_dir.name}/{level_dir.name}",
+                "mission": mission,
+            })
+        if levels_out:
+            worlds_out.append({"name": world_dir.name, "levels": levels_out})
+
+    registry = {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "level_count": sum(len(w["levels"]) for w in worlds_out),
+        "worlds": worlds_out,
+    }
+    out_path = ROOT / "levels.json"
+    out_path.write_text(json.dumps(registry, indent=2), encoding="utf-8")
+    return out_path
+
+
 def main() -> int:
     created = build_all_levels()
     print(f"Generated {len(created)} levels under {WORLDS_DIR}")
+    registry_path = generate_registry()
+    print(f"Registry written to {registry_path}")
     return 0
 
 

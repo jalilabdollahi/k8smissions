@@ -1,27 +1,21 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Task",
-  "metadata": {
-    "name": "multi-task",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "params": [
-      {
-        "name": "git-url"
-      }
-    ],
-    "workspaces": [
-      {
-        "name": "output"
-      }
-    ],
-    "steps": [
-      {
-        "name": "clone",
-        "image": "alpine/git:999",
-        "script": "git clone $(params.git-url) /workspace/output"
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: multi-task
+  namespace: k8smissions
+spec:
+  params:
+  - name: git-url       # ❌ BUG 2: required param with no default — TaskRun fails at validation if git-url is not supplied
+  workspaces:
+  - name: output
+  steps:
+  - name: clone
+    image: alpine/git:999  # ❌ BUG 1: non-existent image tag '999' — pod fails with ErrImagePull; this is the first failure point
+    script: git clone $(params.git-url) /workspace/output
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: multi-sa
+  namespace: k8smissions
+  # ❌ BUG 3: ServiceAccount exists but has no Role or RoleBinding — pipeline SA cannot create TaskRuns; gets 403 Forbidden

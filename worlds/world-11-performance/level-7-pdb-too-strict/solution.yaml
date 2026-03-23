@@ -1,16 +1,10 @@
-{
-  "apiVersion": "policy/v1",
-  "kind": "PodDisruptionBudget",
-  "metadata": {
-    "name": "my-pdb",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "minAvailable": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "my-app"
-      }
-    }
-  }
-}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: my-pdb
+  namespace: k8smissions
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: my-app

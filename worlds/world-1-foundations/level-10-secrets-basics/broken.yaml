@@ -1,44 +1,26 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "secret-pod",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "secret-pod"
-    }
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "secret-pod",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "if [ -z \"$DB_USERNAME\" ] || [ -z \"$DB_PASSWORD\" ]; then exit 1; fi; sleep 3600"
-        ],
-        "env": [
-          {
-            "name": "DB_USERNAME",
-            "valueFrom": {
-              "secretKeyRef": {
-                "name": "db-credentials",
-                "key": "username"
-              }
-            }
-          },
-          {
-            "name": "DB_PASSWORD",
-            "valueFrom": {
-              "secretKeyRef": {
-                "name": "db-credentials",
-                "key": "password"
-              }
-            }
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-pod
+  namespace: k8smissions
+  labels:
+    app: secret-pod
+spec:
+  containers:
+  - name: secret-pod
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - if [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then exit 1; fi; sleep 3600
+    env:
+    - name: DB_USERNAME
+      valueFrom:
+        secretKeyRef:
+          name: db-credentials
+          key: username
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: db-credentials
+          key: password

@@ -1,34 +1,19 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Pipeline",
-  "metadata": {
-    "name": "build-deploy",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "tasks": [
-      {
-        "name": "build",
-        "taskRef": {
-          "name": "build-task"
-        },
-        "params": []
-      },
-      {
-        "name": "deploy",
-        "taskRef": {
-          "name": "deploy-task"
-        },
-        "runAfter": [
-          "build"
-        ],
-        "params": [
-          {
-            "name": "IMAGE_DIGEST",
-            "value": "$(tasks.build.results.imageDigest)"
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-deploy
+  namespace: k8smissions
+spec:
+  tasks:
+  - name: build
+    taskRef:
+      name: build-task
+    params: []
+  - name: deploy
+    taskRef:
+      name: deploy-task
+    runAfter:
+    - build
+    params:
+    - name: IMAGE_DIGEST
+      value: $(tasks.build.results.imageDigest)  # ✅ FIX: result name 'imageDigest' exactly matches the Task's spec.results declaration (camelCase, no hyphen)

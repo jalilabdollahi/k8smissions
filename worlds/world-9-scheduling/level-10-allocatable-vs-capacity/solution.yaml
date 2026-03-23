@@ -1,31 +1,23 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "mem-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "requests": {
-            "cpu": "100m",
-            "memory": "1Gi"
-          },
-          "limits": {
-            "cpu": "200m",
-            "memory": "2Gi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mem-pod
+  namespace: k8smissions
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    resources:
+      requests:
+        cpu: 100m
+        # ✅ FIX: Reduced memory request from 5Gi to 1Gi — sized against the
+        # node's allocatable memory (not raw capacity), leaving headroom for
+        # kubelet/system reserves and other pods.
+        memory: 1Gi
+      limits:
+        cpu: 200m
+        memory: 2Gi

@@ -1,39 +1,22 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "ghost-deployment",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "ghost-deployment"
-    }
-  },
-  "spec": {
-    "replicas": 0,
-    "selector": {
-      "matchLabels": {
-        "app": "ghost-deployment"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "ghost-deployment"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "ghost-deployment",
-            "image": "nginx:1.27.4",
-            "ports": [
-              {
-                "containerPort": 80
-              }
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ghost-deployment
+  namespace: k8smissions
+  labels:
+    app: ghost-deployment
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: ghost-deployment
+  template:
+    metadata:
+      labels:
+        app: ghost-deployment
+    spec:
+      containers:
+      - name: ghost-deployment
+        image: nginx:1.27.4
+        ports:
+        - containerPort: 80

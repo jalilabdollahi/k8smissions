@@ -1,8 +1,29 @@
-{
-  "apiVersion": "v1",
-  "kind": "ServiceAccount",
-  "metadata": {
-    "name": "trigger-sa",
-    "namespace": "k8smissions"
-  }
-}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: trigger-sa
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tekton-run-role
+  namespace: k8smissions
+rules:
+- apiGroups: ["tekton.dev"]             # ✅ FIX: Tekton resources are in the tekton.dev API group — not the core '' or 'apps' groups
+  resources: ["pipelineruns", "taskruns"]
+  verbs: ["create", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-run-rb
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: tekton-run-role
+subjects:
+- kind: ServiceAccount
+  name: trigger-sa               # ✅ FIX: EventListener's SA can now create PipelineRuns when webhooks fire
+  namespace: k8smissions

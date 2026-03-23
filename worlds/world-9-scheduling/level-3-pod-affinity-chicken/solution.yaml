@@ -1,43 +1,28 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "app-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "affinity": {
-      "podAffinity": {
-        "preferredDuringSchedulingIgnoredDuringExecution": [
-          {
-            "weight": 100,
-            "podAffinityTerm": {
-              "labelSelector": {
-                "matchLabels": {
-                  "tier": "cache"
-                }
-              },
-              "topologyKey": "kubernetes.io/hostname"
-            }
-          }
-        ]
-      }
-    },
-    "containers": [
-      {
-        "name": "app",
-        "image": "nginx:1.25",
-        "resources": {
-          "requests": {
-            "cpu": "50m",
-            "memory": "32Mi"
-          },
-          "limits": {
-            "cpu": "100m",
-            "memory": "64Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-pod
+  namespace: k8smissions
+spec:
+  affinity:
+    podAffinity:
+      # ✅ FIX: Changed to preferredDuringSchedulingIgnoredDuringExecution —
+      # this is a soft preference, so the pod can still schedule even if no
+      # 'tier: cache' pod exists yet, breaking the chicken-and-egg deadlock.
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              tier: cache
+          topologyKey: kubernetes.io/hostname
+  containers:
+  - name: app
+    image: nginx:1.25
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi

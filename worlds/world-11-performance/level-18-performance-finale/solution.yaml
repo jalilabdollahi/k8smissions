@@ -1,134 +1,82 @@
-{
-  "apiVersion": "v1",
-  "kind": "List",
-  "items": [
-    {
-      "apiVersion": "v1",
-      "kind": "Pod",
-      "metadata": {
-        "name": "dns-pod",
-        "namespace": "k8smissions"
-      },
-      "spec": {
-        "dnsConfig": {
-          "options": [
-            {
-              "name": "ndots",
-              "value": "2"
-            }
-          ]
-        },
-        "containers": [
-          {
-            "name": "app",
-            "image": "busybox:1.36",
-            "command": [
-              "/bin/sh",
-              "-c",
-              "while true; do nslookup api-svc.k8smissions.svc.cluster.local; sleep 1; done"
-            ],
-            "resources": {
-              "requests": {
-                "cpu": "50m",
-                "memory": "32Mi"
-              },
-              "limits": {
-                "cpu": "100m",
-                "memory": "64Mi"
-              }
-            }
-          }
-        ]
-      }
-    },
-    {
-      "apiVersion": "apps/v1",
-      "kind": "Deployment",
-      "metadata": {
-        "name": "throttled-api",
-        "namespace": "k8smissions"
-      },
-      "spec": {
-        "replicas": 3,
-        "selector": {
-          "matchLabels": {
-            "app": "tapi"
-          }
-        },
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "tapi"
-            }
-          },
-          "spec": {
-            "containers": [
-              {
-                "name": "api",
-                "image": "nginx:1.25",
-                "resources": {
-                  "requests": {
-                    "cpu": "200m",
-                    "memory": "256Mi"
-                  },
-                  "limits": {
-                    "cpu": "2000m",
-                    "memory": "512Mi"
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    },
-    {
-      "apiVersion": "apps/v1",
-      "kind": "Deployment",
-      "metadata": {
-        "name": "slow-rollout",
-        "namespace": "k8smissions"
-      },
-      "spec": {
-        "replicas": 50,
-        "selector": {
-          "matchLabels": {
-            "app": "sroll"
-          }
-        },
-        "strategy": {
-          "type": "RollingUpdate",
-          "rollingUpdate": {
-            "maxSurge": 10,
-            "maxUnavailable": 0
-          }
-        },
-        "template": {
-          "metadata": {
-            "labels": {
-              "app": "sroll"
-            }
-          },
-          "spec": {
-            "containers": [
-              {
-                "name": "app",
-                "image": "nginx:1.25",
-                "resources": {
-                  "requests": {
-                    "cpu": "50m",
-                    "memory": "32Mi"
-                  },
-                  "limits": {
-                    "cpu": "100m",
-                    "memory": "64Mi"
-                  }
-                }
-              }
-            ]
-          }
-        }
-      }
-    }
-  ]
-}
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: dns-pod
+    namespace: k8smissions
+  spec:
+    dnsConfig:
+      options:
+      - name: ndots
+        value: '2'
+    containers:
+    - name: app
+      image: busybox:1.36
+      command:
+      - /bin/sh
+      - -c
+      - while true; do nslookup api-svc.k8smissions.svc.cluster.local; sleep 1; done
+      resources:
+        requests:
+          cpu: 50m
+          memory: 32Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: throttled-api
+    namespace: k8smissions
+  spec:
+    replicas: 3
+    selector:
+      matchLabels:
+        app: tapi
+    template:
+      metadata:
+        labels:
+          app: tapi
+      spec:
+        containers:
+        - name: api
+          image: nginx:1.25
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 2000m
+              memory: 512Mi
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    name: slow-rollout
+    namespace: k8smissions
+  spec:
+    replicas: 50
+    selector:
+      matchLabels:
+        app: sroll
+    strategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 10
+        maxUnavailable: 0
+    template:
+      metadata:
+        labels:
+          app: sroll
+      spec:
+        containers:
+        - name: app
+          image: nginx:1.25
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi

@@ -1,25 +1,14 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "TaskRun",
-  "metadata": {
-    "name": "build-cache-run",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "taskRef": {
-      "name": "maven-build"
-    },
-    "workspaces": [
-      {
-        "name": "source",
-        "emptyDir": {}
-      },
-      {
-        "name": "cache",
-        "persistentVolumeClaim": {
-          "claimName": "maven-cache-pvc"
-        }
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: build-cache-run
+  namespace: k8smissions
+spec:
+  taskRef:
+    name: maven-build
+  workspaces:
+  - name: source
+    emptyDir: {}
+  - name: cache                          # ✅ FIX: 'cache' workspace is now bound to the maven-cache PVC
+    persistentVolumeClaim:
+      claimName: maven-cache-pvc         # ✅ FIX: PVC persists ~/.m2 between runs — dependencies are cached and builds are fast

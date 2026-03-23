@@ -1,2 +1,2 @@
-Run: kubectl get pv db-data-pv -o yaml | grep reclaimPolicy
-Delete means the PV (and its data) is removed when the PVC is deleted.
+A database PV was deleted along with its PVC during an upgrade. The team lost all data.
+Check what policy controls whether the underlying volume is preserved when a PVC is deleted.

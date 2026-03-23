@@ -1,32 +1,23 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "fragile-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "livenessProbe": {
-          "exec": {
-            "command": [
-              "ls",
-              "/"
-            ]
-          },
-          "initialDelaySeconds": 5,
-          "periodSeconds": 5,
-          "failureThreshold": 1
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fragile-app
+  namespace: k8smissions
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    livenessProbe:
+      exec:
+        command:
+        - ls
+        - /
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      failureThreshold: 1  # ❌ BUG: failureThreshold of 1 means a single probe miss triggers an immediate restart.
+                           # Any transient system load or scheduling delay causes the pod to restart.
+                           # The RESTARTS counter will keep climbing every few minutes.

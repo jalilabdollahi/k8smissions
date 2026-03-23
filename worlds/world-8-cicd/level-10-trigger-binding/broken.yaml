@@ -1,20 +1,11 @@
-{
-  "apiVersion": "triggers.tekton.dev/v1beta1",
-  "kind": "TriggerBinding",
-  "metadata": {
-    "name": "git-push-binding",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "params": [
-      {
-        "name": "git-revision",
-        "value": "$(body.commits[0].sha)"
-      },
-      {
-        "name": "git-repo-url",
-        "value": "$(body.repository.clone_url)"
-      }
-    ]
-  }
-}
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: git-push-binding
+  namespace: k8smissions
+spec:
+  params:
+  - name: git-revision
+    value: $(body.commits[0].sha)       # ❌ BUG: wrong GitHub webhook field — commits[0].sha is not the standard push event field; extracts empty string
+  - name: git-repo-url
+    value: $(body.repository.clone_url)

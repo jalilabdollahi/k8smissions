@@ -1,27 +1,19 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "critical-workload",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "priorityClassName": "low-priority",
-    "containers": [
-      {
-        "name": "app",
-        "image": "nginx:1.25",
-        "resources": {
-          "requests": {
-            "cpu": "500m",
-            "memory": "256Mi"
-          },
-          "limits": {
-            "cpu": "1",
-            "memory": "512Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: critical-workload
+  namespace: k8smissions
+spec:
+  # ❌ BUG: priorityClassName is set to 'low-priority' — this pod sits at the
+  # back of the queue and cannot preempt lower-priority pods consuming resources.
+  priorityClassName: low-priority
+  containers:
+  - name: app
+    image: nginx:1.25
+    resources:
+      requests:
+        cpu: 500m
+        memory: 256Mi
+      limits:
+        cpu: '1'
+        memory: 512Mi

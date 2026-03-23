@@ -1,56 +1,37 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "secret-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "secret-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "secret-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "secret-app",
-            "image": "busybox:1.36",
-            "command": [
-              "/bin/sh",
-              "-c",
-              "sleep 3600"
-            ],
-            "env": [
-              {
-                "name": "DB_USER",
-                "valueFrom": {
-                  "secretKeyRef": {
-                    "name": "db-credentials",
-                    "key": "username"
-                  }
-                }
-              },
-              {
-                "name": "DB_PASS",
-                "valueFrom": {
-                  "secretKeyRef": {
-                    "name": "db-credentials",
-                    "key": "password"
-                  }
-                }
-              }
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
+# ❌ BUG: The Secret 'db-credentials' has been deleted from the cluster.
+# This Deployment references it via secretKeyRef. Kubernetes cannot create
+# the container environment without the secret → pods show CreateContainerConfigError
+# and never start. Both replicas are permanently stuck.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secret-app
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: secret-app
+  template:
+    metadata:
+      labels:
+        app: secret-app
+    spec:
+      containers:
+      - name: secret-app
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials  # ❌ BUG: This Secret no longer exists — was deleted during rotation
+              key: username
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: db-credentials  # ❌ BUG: Same missing Secret — both vars fail together
+              key: password

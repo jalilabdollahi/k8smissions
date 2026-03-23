@@ -1,32 +1,23 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "ml-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "schedulerName": "ml-scheduler",
-    "containers": [
-      {
-        "name": "trainer",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "requests": {
-            "cpu": "100m",
-            "memory": "128Mi"
-          },
-          "limits": {
-            "cpu": "200m",
-            "memory": "256Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ml-pod
+  namespace: k8smissions
+spec:
+  # ✅ FIX: Added schedulerName: ml-scheduler — this pod will now be processed
+  # by the custom ML-aware scheduler instead of the default-scheduler.
+  schedulerName: ml-scheduler
+  containers:
+  - name: trainer
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi

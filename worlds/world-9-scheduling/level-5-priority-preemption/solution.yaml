@@ -1,27 +1,19 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "critical-workload",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "priorityClassName": "high-priority",
-    "containers": [
-      {
-        "name": "app",
-        "image": "nginx:1.25",
-        "resources": {
-          "requests": {
-            "cpu": "500m",
-            "memory": "256Mi"
-          },
-          "limits": {
-            "cpu": "1",
-            "memory": "512Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: critical-workload
+  namespace: k8smissions
+spec:
+  # ✅ FIX: Changed priorityClassName to 'high-priority' — the scheduler will
+  # now preempt lower-priority pods if needed to free resources for this pod.
+  priorityClassName: high-priority
+  containers:
+  - name: app
+    image: nginx:1.25
+    resources:
+      requests:
+        cpu: 500m
+        memory: 256Mi
+      limits:
+        cpu: '1'
+        memory: 512Mi

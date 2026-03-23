@@ -1,71 +1,45 @@
-[
-  {
-    "apiVersion": "v1",
-    "kind": "ServiceAccount",
-    "metadata": {
-      "name": "app-sa",
-      "namespace": "k8smissions"
-    }
-  },
-  {
-    "apiVersion": "rbac.authorization.k8s.io/v1",
-    "kind": "Role",
-    "metadata": {
-      "name": "app-role",
-      "namespace": "k8smissions"
-    },
-    "rules": [
-      {
-        "apiGroups": [
-          ""
-        ],
-        "resources": [
-          "pods",
-          "configmaps"
-        ],
-        "verbs": [
-          "get",
-          "list",
-          "watch"
-        ]
-      }
-    ]
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "api-app",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "api-app"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "api-app"
-          }
-        },
-        "spec": {
-          "serviceAccountName": "app-sa",
-          "containers": [
-            {
-              "name": "api-app",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ]
-            }
-          ]
-        }
-      }
-    }
-  }
-]
+# ❌ BUG: The RoleBinding connecting app-sa to app-role was deleted during a service
+# account rotation. The ServiceAccount exists, the Role exists, but without the binding
+# the ServiceAccount has ZERO permissions. Every API call from app-sa returns 403 Forbidden.
+# RBAC requires all three: ServiceAccount + Role + RoleBinding.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: app-sa
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: app-role
+  namespace: k8smissions
+rules:
+- apiGroups: [""]
+  resources: ["pods", "configmaps"]
+  verbs: ["get", "list", "watch"]
+---
+# ❌ BUG: RoleBinding 'app-rb' is missing — app-sa has no permissions despite Role existing.
+# kubectl get rolebinding -n k8smissions will show no binding for app-sa.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-app
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-app
+  template:
+    metadata:
+      labels:
+        app: api-app
+    spec:
+      serviceAccountName: app-sa  # ❌ BUG: Uses app-sa which has no RoleBinding — all API calls fail 403
+      containers:
+      - name: api-app
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600

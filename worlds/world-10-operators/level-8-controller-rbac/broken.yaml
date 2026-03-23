@@ -1,26 +1,17 @@
-{
-  "apiVersion": "rbac.authorization.k8s.io/v1",
-  "kind": "ClusterRole",
-  "metadata": {
-    "name": "my-operator-role"
-  },
-  "rules": [
-    {
-      "apiGroups": [
-        "example.com"
-      ],
-      "resources": [
-        "workloads"
-      ],
-      "verbs": [
-        "get",
-        "list",
-        "watch",
-        "create",
-        "update",
-        "patch",
-        "delete"
-      ]
-    }
-  ]
-}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: my-operator-role
+rules:
+- apiGroups:
+  - example.com
+  resources:
+  - workloads
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete

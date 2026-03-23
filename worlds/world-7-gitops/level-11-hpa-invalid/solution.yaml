@@ -1,29 +1,19 @@
-{
-  "apiVersion": "autoscaling/v2",
-  "kind": "HorizontalPodAutoscaler",
-  "metadata": {
-    "name": "api-hpa",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "scaleTargetRef": {
-      "apiVersion": "apps/v1",
-      "kind": "Deployment",
-      "name": "api"
-    },
-    "minReplicas": 2,
-    "maxReplicas": 10,
-    "metrics": [
-      {
-        "type": "Resource",
-        "resource": {
-          "name": "cpu",
-          "target": {
-            "type": "Utilization",
-            "averageUtilization": 70
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api-hpa
+  namespace: k8smissions
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: api
+  minReplicas: 2   # ✅ FIX: minReplicas (2) is now less than maxReplicas (10) — valid range
+  maxReplicas: 10  # ✅ FIX: maxReplicas >= minReplicas; HPA can now reconcile and scale normally
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

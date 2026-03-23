@@ -1,36 +1,26 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "api-watcher",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "api-watcher"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "api-watcher"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "api-watcher",
-            "image": "busybox:1.36",
-            "command": [
-              "/bin/sh",
-              "-c",
-              "while true; do sleep 1; done"
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
+# ✅ FIX: Scale api-watcher down from 50 to 2 replicas.
+# This immediately drops the API server watch connection count from 50 to 2,
+# relieving the connection pressure and restoring normal API server latency.
+# In production: set HPA maxReplicas to a sane limit and add ResourceQuota.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-watcher
+  namespace: k8smissions
+spec:
+  replicas: 2  # ✅ FIX: Scaled down from 50 to 2 — API server connections drop from 50 to 2
+  selector:
+    matchLabels:
+      app: api-watcher
+  template:
+    metadata:
+      labels:
+        app: api-watcher
+    spec:
+      containers:
+      - name: api-watcher
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - while true; do sleep 1; done

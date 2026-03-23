@@ -1,32 +1,20 @@
-{
-  "apiVersion": "batch/v1",
-  "kind": "CronJob",
-  "metadata": {
-    "name": "report-generator",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "schedule": "* * * * *",
-    "suspend": false,
-    "jobTemplate": {
-      "spec": {
-        "template": {
-          "spec": {
-            "restartPolicy": "Never",
-            "containers": [
-              {
-                "name": "report",
-                "image": "busybox:1.36",
-                "command": [
-                  "/bin/sh",
-                  "-c",
-                  "echo report generated"
-                ]
-              }
-            ]
-          }
-        }
-      }
-    }
-  }
-}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: report-generator
+  namespace: k8smissions
+spec:
+  schedule: '* * * * *'
+  suspend: false
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: report
+            image: busybox:1.36
+            command:
+            - /bin/sh
+            - -c
+            - echo report generated

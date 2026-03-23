@@ -1,57 +1,38 @@
-[
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "app-config",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "APP_MODE": "production",
-      "DB_HOST": "postgres.k8smissions.svc.cluster.local"
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "config-app",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 3,
-      "selector": {
-        "matchLabels": {
-          "app": "config-app"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "config-app"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "config-app",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "[ -n \"$APP_MODE\" ] && [ -n \"$DB_HOST\" ] && sleep 3600 || exit 1"
-              ],
-              "envFrom": [
-                {
-                  "configMapRef": {
-                    "name": "app-config"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      }
-    }
-  }
-]
+---
+# ✅ FIX: Restore ConfigMap with correct non-empty values.
+# After applying this fix, do: kubectl rollout restart deployment/config-app -n k8smissions
+# so pods pick up the updated ConfigMap values via envFrom.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: k8smissions
+data:
+  APP_MODE: "production"                              # ✅ FIX: Valid non-empty mode value
+  DB_HOST: "postgres.k8smissions.svc.cluster.local"  # ✅ FIX: Valid database hostname
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-app
+  namespace: k8smissions
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: config-app
+  template:
+    metadata:
+      labels:
+        app: config-app
+    spec:
+      containers:
+      - name: config-app
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - '[ -n "$APP_MODE" ] && [ -n "$DB_HOST" ] && sleep 3600 || exit 1'
+        envFrom:
+        - configMapRef:
+            name: app-config

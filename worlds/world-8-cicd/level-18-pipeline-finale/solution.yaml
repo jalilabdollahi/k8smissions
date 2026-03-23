@@ -1,28 +1,45 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Task",
-  "metadata": {
-    "name": "multi-task",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "params": [
-      {
-        "name": "git-url",
-        "default": "https://github.com/example/repo"
-      }
-    ],
-    "workspaces": [
-      {
-        "name": "output"
-      }
-    ],
-    "steps": [
-      {
-        "name": "clone",
-        "image": "alpine/git:latest",
-        "script": "git clone $(params.git-url) /workspace/output"
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: multi-task
+  namespace: k8smissions
+spec:
+  params:
+  - name: git-url
+    default: https://github.com/example/repo  # ✅ FIX 2: default value provided — param is now optional; TaskRun can run without supplying git-url
+  workspaces:
+  - name: output
+  steps:
+  - name: clone
+    image: alpine/git:latest  # ✅ FIX 1: valid published image tag — pod can pull successfully; first failure point resolved
+    script: git clone $(params.git-url) /workspace/output
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: multi-sa
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: multi-sa-role
+  namespace: k8smissions
+rules:
+- apiGroups: ["tekton.dev"]          # ✅ FIX 3: Role grants SA permission to create/get TaskRuns in the tekton.dev API group
+  resources: ["taskruns"]
+  verbs: ["create", "get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: multi-sa-rb
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: multi-sa-role
+subjects:
+- kind: ServiceAccount
+  name: multi-sa                     # ✅ FIX 3: bind Role to multi-sa — all three issues resolved; pipeline can now run end-to-end
+  namespace: k8smissions

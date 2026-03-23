@@ -1,40 +1,25 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "app-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "affinity": {
-      "podAffinity": {
-        "requiredDuringSchedulingIgnoredDuringExecution": [
-          {
-            "labelSelector": {
-              "matchLabels": {
-                "tier": "cache"
-              }
-            },
-            "topologyKey": "kubernetes.io/hostname"
-          }
-        ]
-      }
-    },
-    "containers": [
-      {
-        "name": "app",
-        "image": "nginx:1.25",
-        "resources": {
-          "requests": {
-            "cpu": "50m",
-            "memory": "32Mi"
-          },
-          "limits": {
-            "cpu": "100m",
-            "memory": "64Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-pod
+  namespace: k8smissions
+spec:
+  affinity:
+    podAffinity:
+      # ❌ BUG: requiredDuringSchedulingIgnoredDuringExecution is a hard constraint —
+      # if no pod with label 'tier: cache' exists, the scheduler cannot place this pod anywhere.
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchLabels:
+            tier: cache
+        topologyKey: kubernetes.io/hostname
+  containers:
+  - name: app
+    image: nginx:1.25
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi

@@ -1,57 +1,38 @@
-[
-  {
-    "apiVersion": "v1",
-    "kind": "ConfigMap",
-    "metadata": {
-      "name": "app-config",
-      "namespace": "k8smissions"
-    },
-    "data": {
-      "APP_MODE": "",
-      "DB_HOST": ""
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "config-app",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 3,
-      "selector": {
-        "matchLabels": {
-          "app": "config-app"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "config-app"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "config-app",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "[ -n \"$APP_MODE\" ] && [ -n \"$DB_HOST\" ] && sleep 3600 || exit 1"
-              ],
-              "envFrom": [
-                {
-                  "configMapRef": {
-                    "name": "app-config"
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      }
-    }
-  }
-]
+---
+# ❌ BUG: ConfigMap was pushed with empty values for APP_MODE and DB_HOST.
+# The container startup command checks both env vars and exits 1 if either is empty.
+# This causes all 3 replicas to immediately CrashLoopBackOff simultaneously.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: k8smissions
+data:
+  APP_MODE: ""    # ❌ BUG: Empty string — app startup check fails, pod exits 1
+  DB_HOST: ""     # ❌ BUG: Empty string — app has no database host to connect to
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-app
+  namespace: k8smissions
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: config-app
+  template:
+    metadata:
+      labels:
+        app: config-app
+    spec:
+      containers:
+      - name: config-app
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - '[ -n "$APP_MODE" ] && [ -n "$DB_HOST" ] && sleep 3600 || exit 1'
+        envFrom:
+        - configMapRef:
+            name: app-config

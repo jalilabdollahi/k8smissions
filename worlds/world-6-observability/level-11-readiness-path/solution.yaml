@@ -1,44 +1,27 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "web-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "web-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "web-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "web",
-            "image": "nginx:1.25",
-            "ports": [
-              {
-                "containerPort": 80
-              }
-            ],
-            "readinessProbe": {
-              "httpGet": {
-                "path": "/",
-                "port": 80
-              },
-              "initialDelaySeconds": 5,
-              "periodSeconds": 5
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /          # ✅ FIX: Changed from /healthz to / — nginx serves the default page at /.
+                             # The probe now receives HTTP 200, pods become Ready, and traffic flows.
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5

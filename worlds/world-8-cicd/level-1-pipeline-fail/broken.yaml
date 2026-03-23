@@ -1,17 +1,10 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Task",
-  "metadata": {
-    "name": "build-task",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "steps": [
-      {
-        "name": "build",
-        "image": "golang:99.9-nonexistent",
-        "script": "go build ./..."
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-task
+  namespace: k8smissions
+spec:
+  steps:
+  - name: build
+    image: golang:99.9-nonexistent  # ❌ BUG: tag '99.9-nonexistent' does not exist — pod fails with ErrImagePull before any step runs
+    script: go build ./...

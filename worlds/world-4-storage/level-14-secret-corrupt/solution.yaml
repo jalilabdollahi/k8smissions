@@ -1,12 +1,8 @@
-{
-  "apiVersion": "v1",
-  "kind": "Secret",
-  "type": "Opaque",
-  "metadata": {
-    "name": "api-secret",
-    "namespace": "k8smissions"
-  },
-  "data": {
-    "token": "c3VwZXJzZWNyZXQtYXBpLXRva2VuLTEyMzQ1"
-  }
-}
+apiVersion: v1
+kind: Secret
+type: Opaque
+metadata:
+  name: api-secret
+  namespace: k8smissions
+data:
+  token: c3VwZXJzZWNyZXQtYXBpLXRva2VuLTEyMzQ1  # ✅ FIX: single base64 encoding of "supersecret-api-token-12345"

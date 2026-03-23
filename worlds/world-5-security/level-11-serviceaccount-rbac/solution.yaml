@@ -1,76 +1,52 @@
-{
-  "apiVersion": "v1",
-  "kind": "ServiceAccount",
-  "metadata": {
-    "name": "config-reader-sa",
-    "namespace": "k8smissions"
-  }
-}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: config-reader-sa
+  namespace: k8smissions
 ---
-{
-  "apiVersion": "rbac.authorization.k8s.io/v1",
-  "kind": "Role",
-  "metadata": {
-    "name": "configmap-reader",
-    "namespace": "k8smissions"
-  },
-  "rules": [
-    {
-      "apiGroups": [
-        ""
-      ],
-      "resources": [
-        "configmaps"
-      ],
-      "verbs": [
-        "get",
-        "list",
-        "watch"
-      ]
-    }
-  ]
-}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: configmap-reader
+  namespace: k8smissions
+rules:
+- apiGroups:
+  - ''
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+# ✅ FIX: Role created — grants get/list/watch on configmaps in the k8smissions namespace.
 ---
-{
-  "apiVersion": "rbac.authorization.k8s.io/v1",
-  "kind": "RoleBinding",
-  "metadata": {
-    "name": "config-reader-binding",
-    "namespace": "k8smissions"
-  },
-  "roleRef": {
-    "apiGroup": "rbac.authorization.k8s.io",
-    "kind": "Role",
-    "name": "configmap-reader"
-  },
-  "subjects": [
-    {
-      "kind": "ServiceAccount",
-      "name": "config-reader-sa",
-      "namespace": "k8smissions"
-    }
-  ]
-}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: config-reader-binding
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: configmap-reader
+subjects:
+- kind: ServiceAccount
+  name: config-reader-sa
+  namespace: k8smissions
+# ✅ FIX: RoleBinding created — binds the Role to the config-reader-sa ServiceAccount.
+#         Now kubectl auth can-i list configmaps --as=system:serviceaccount:k8smissions:config-reader-sa returns 'yes'.
 ---
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "config-lister",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "serviceAccountName": "config-reader-sa",
-    "containers": [
-      {
-        "name": "lister",
-        "image": "bitnami/kubectl:latest",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "kubectl get configmaps -n k8smissions && echo SUCCESS || echo FORBIDDEN"
-        ]
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: config-lister
+  namespace: k8smissions
+spec:
+  serviceAccountName: config-reader-sa
+  containers:
+  - name: lister
+    image: bitnami/kubectl:latest
+    command:
+    - /bin/sh
+    - -c
+    - kubectl get configmaps -n k8smissions && echo SUCCESS || echo FORBIDDEN

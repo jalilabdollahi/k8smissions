@@ -8,43 +8,30 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: api-server
+        name: api-server  # ✅ FIX: patch body name now matches the actual Deployment name
       spec:
         replicas: 5
     target:
       kind: Deployment
-      name: api-server
+      name: api-server    # ✅ FIX: target selector now matches the real Deployment name; patch applies correctly
 
 ---
 # deployment.yaml
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "api-server",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 1,
-    "selector": {
-      "matchLabels": {
-        "app": "api"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "api"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "api",
-            "image": "nginx:1.25"
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server        # ✅ Deployment name — matches patch target above
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: nginx:1.25

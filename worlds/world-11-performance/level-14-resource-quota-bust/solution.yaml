@@ -1,16 +1,11 @@
-{
-  "apiVersion": "v1",
-  "kind": "ResourceQuota",
-  "metadata": {
-    "name": "compute-resources",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "hard": {
-      "requests.cpu": "8",
-      "requests.memory": "16Gi",
-      "limits.cpu": "16",
-      "limits.memory": "32Gi"
-    }
-  }
-}
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-resources
+  namespace: k8smissions
+spec:
+  hard:
+    requests.cpu: '8'
+    requests.memory: 16Gi
+    limits.cpu: '16'
+    limits.memory: 32Gi

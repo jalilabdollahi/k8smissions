@@ -1,29 +1,29 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Pipeline",
-  "metadata": {
-    "name": "ci-pipeline",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "workspaces": [
-      {
-        "name": "source"
-      }
-    ],
-    "tasks": [
-      {
-        "name": "build",
-        "taskRef": {
-          "name": "build-task"
-        },
-        "workspaces": [
-          {
-            "name": "source",
-            "workspace": "source"
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: ci-pipeline
+  namespace: k8smissions
+spec:
+  workspaces:
+  - name: source
+  tasks:
+  - name: build
+    taskRef:
+      name: build-task
+    workspaces:
+    - name: source
+      workspace: source
+---
+# PipelineRun — multiple concurrent instances reference the SAME shared PVC
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  name: ci-run-001
+  namespace: k8smissions
+spec:
+  pipelineRef:
+    name: ci-pipeline
+  workspaces:
+  - name: source
+    persistentVolumeClaim:
+      claimName: shared-build-pvc  # ❌ BUG: hardcoded shared PVC name — concurrent runs write to the same paths, corrupting each other's build artifacts

@@ -1,40 +1,27 @@
-{
-  "apiVersion": "admissionregistration.k8s.io/v1",
-  "kind": "ValidatingWebhookConfiguration",
-  "metadata": {
-    "name": "strict-validator"
-  },
-  "webhooks": [
-    {
-      "name": "validate.example.com",
-      "admissionReviewVersions": [
-        "v1"
-      ],
-      "clientConfig": {
-        "service": {
-          "name": "validator-svc",
-          "namespace": "kube-system",
-          "port": 443
-        }
-      },
-      "rules": [
-        {
-          "apiGroups": [
-            ""
-          ],
-          "apiVersions": [
-            "v1"
-          ],
-          "operations": [
-            "CREATE"
-          ],
-          "resources": [
-            "pods"
-          ]
-        }
-      ],
-      "failurePolicy": "Ignore",
-      "sideEffects": "None"
-    }
-  ]
-}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: strict-validator
+webhooks:
+- name: validate.example.com
+  admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: validator-svc
+      namespace: kube-system
+      port: 443
+  rules:
+  - apiGroups:
+    - ''
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  # ✅ FIX: Changed failurePolicy to Ignore — if the webhook service is down,
+  # pod creation proceeds without validation instead of blocking the entire cluster.
+  # Fix the webhook service properly and revert to Fail once it's stable.
+  failurePolicy: Ignore
+  sideEffects: None

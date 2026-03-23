@@ -1,44 +1,28 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "web-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "web-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "web-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "web",
-            "image": "nginx:1.25",
-            "ports": [
-              {
-                "containerPort": 80
-              }
-            ],
-            "readinessProbe": {
-              "httpGet": {
-                "path": "/healthz",
-                "port": 80
-              },
-              "initialDelaySeconds": 5,
-              "periodSeconds": 5
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-app
+  template:
+    metadata:
+      labels:
+        app: web-app
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.25
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet:
+            path: /healthz  # ❌ BUG: nginx does not serve /healthz — this path returns 404.
+                            # The probe keeps failing, so pods are never marked Ready.
+                            # No traffic reaches them via the Service.
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5

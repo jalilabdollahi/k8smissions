@@ -1,34 +1,20 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "metrics-server",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "metrics-server"
-    }
-  },
-  "spec": {
-    "replicas": 0,
-    "selector": {
-      "matchLabels": {
-        "app": "metrics-server"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "metrics-server"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "metrics-server",
-            "image": "nginx:1.27.4"
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-server
+  namespace: k8smissions
+  labels:
+    app: metrics-server
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: metrics-server
+  template:
+    metadata:
+      labels:
+        app: metrics-server
+    spec:
+      containers:
+      - name: metrics-server
+        image: nginx:1.27.4

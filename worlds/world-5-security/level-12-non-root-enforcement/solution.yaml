@@ -1,29 +1,19 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "insecure-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "securityContext": {
-      "runAsNonRoot": true,
-      "runAsUser": 1000
-    },
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "id; sleep 3600"
-        ],
-        "securityContext": {
-          "allowPrivilegeEscalation": false,
-          "readOnlyRootFilesystem": true
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: insecure-pod
+  namespace: k8smissions
+spec:
+  securityContext:
+    runAsNonRoot: true   # ✅ FIX: Kubernetes will reject the pod if the container runs as UID 0.
+    runAsUser: 1000      # ✅ FIX: Explicitly set UID 1000 — satisfies admission and overrides the image default.
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - id; sleep 3600
+    securityContext:
+      allowPrivilegeEscalation: false  # ✅ FIX: Prevents the process from gaining more privileges than its parent.
+      readOnlyRootFilesystem: true     # ✅ FIX: Defense-in-depth — prevents writes to the container filesystem.

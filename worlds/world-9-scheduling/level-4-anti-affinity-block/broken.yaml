@@ -1,55 +1,35 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "distributed-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 3,
-    "selector": {
-      "matchLabels": {
-        "app": "distributed"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "distributed"
-        }
-      },
-      "spec": {
-        "affinity": {
-          "podAntiAffinity": {
-            "requiredDuringSchedulingIgnoredDuringExecution": [
-              {
-                "labelSelector": {
-                  "matchLabels": {
-                    "app": "distributed"
-                  }
-                },
-                "topologyKey": "kubernetes.io/hostname"
-              }
-            ]
-          }
-        },
-        "containers": [
-          {
-            "name": "app",
-            "image": "nginx:1.25",
-            "resources": {
-              "requests": {
-                "cpu": "50m",
-                "memory": "32Mi"
-              },
-              "limits": {
-                "cpu": "100m",
-                "memory": "64Mi"
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distributed-app
+  namespace: k8smissions
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: distributed
+  template:
+    metadata:
+      labels:
+        app: distributed
+    spec:
+      affinity:
+        podAntiAffinity:
+          # ❌ BUG: requiredDuringSchedulingIgnoredDuringExecution with hostname
+          # topology means each pod MUST land on a unique node. With 3 replicas
+          # and only 2 nodes, the 3rd pod can never schedule — stuck Pending.
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: distributed
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: app
+        image: nginx:1.25
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi

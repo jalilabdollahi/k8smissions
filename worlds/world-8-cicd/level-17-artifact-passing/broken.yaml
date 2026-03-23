@@ -1,34 +1,19 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Pipeline",
-  "metadata": {
-    "name": "build-deploy",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "tasks": [
-      {
-        "name": "build",
-        "taskRef": {
-          "name": "build-task"
-        },
-        "params": []
-      },
-      {
-        "name": "deploy",
-        "taskRef": {
-          "name": "deploy-task"
-        },
-        "runAfter": [
-          "build"
-        ],
-        "params": [
-          {
-            "name": "IMAGE_DIGEST",
-            "value": "$(tasks.build.results.image-digest)"
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-deploy
+  namespace: k8smissions
+spec:
+  tasks:
+  - name: build
+    taskRef:
+      name: build-task
+    params: []
+  - name: deploy
+    taskRef:
+      name: deploy-task
+    runAfter:
+    - build
+    params:
+    - name: IMAGE_DIGEST
+      value: $(tasks.build.results.image-digest)  # ❌ BUG: result name 'image-digest' (hyphenated) does not match Task declaration 'imageDigest' (camelCase) — Tekton result names are case-sensitive; deploy receives empty string

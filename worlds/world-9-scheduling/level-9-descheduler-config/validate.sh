@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 NS="k8smissions"
-if kubectl get configmap descheduler-policy -n kube-system -o yaml 2>/dev/null | grep -q 'enabled: true' || echo PASS; then
+if kubectl get configmap descheduler-policy -n kube-system -o yaml 2>/dev/null | grep -q 'enabled: true'; then
   echo "PASS: Hot Node"
   exit 0
 fi

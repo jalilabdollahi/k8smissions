@@ -1,20 +1,11 @@
-{
-  "apiVersion": "triggers.tekton.dev/v1beta1",
-  "kind": "TriggerBinding",
-  "metadata": {
-    "name": "git-push-binding",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "params": [
-      {
-        "name": "git-revision",
-        "value": "$(body.head_commit.id)"
-      },
-      {
-        "name": "git-repo-url",
-        "value": "$(body.repository.clone_url)"
-      }
-    ]
-  }
-}
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: git-push-binding
+  namespace: k8smissions
+spec:
+  params:
+  - name: git-revision
+    value: $(body.head_commit.id)       # ✅ FIX: correct GitHub push webhook field — head_commit.id contains the SHA of the pushed commit
+  - name: git-repo-url
+    value: $(body.repository.clone_url)

@@ -1,12 +1,8 @@
-{
-  "apiVersion": "v1",
-  "kind": "ConfigMap",
-  "metadata": {
-    "name": "argocd-application",
-    "namespace": "k8smissions"
-  },
-  "data": {
-    "status": "OutOfSync",
-    "targetNamespace": "webapp-prod"
-  }
-}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-application
+  namespace: k8smissions
+data:
+  status: OutOfSync
+  targetNamespace: webapp-prod

@@ -1,33 +1,19 @@
-{
-  "apiVersion": "networking.istio.io/v1beta1",
-  "kind": "VirtualService",
-  "metadata": {
-    "name": "backend-vs",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "hosts": [
-      "backend.k8smissions.svc.cluster.local"
-    ],
-    "http": [
-      {
-        "timeout": "120s",
-        "retries": {
-          "attempts": 3,
-          "perTryTimeout": "30s",
-          "retryOn": "5xx,reset,connect-failure,retriable-4xx"
-        },
-        "route": [
-          {
-            "destination": {
-              "host": "backend.k8smissions.svc.cluster.local",
-              "port": {
-                "number": 8080
-              }
-            }
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: backend-vs
+  namespace: k8smissions
+spec:
+  hosts:
+  - backend.k8smissions.svc.cluster.local
+  http:
+  - timeout: 120s
+    retries:
+      attempts: 3
+      perTryTimeout: 30s
+      retryOn: 5xx,reset,connect-failure,retriable-4xx
+    route:
+    - destination:
+        host: backend.k8smissions.svc.cluster.local
+        port:
+          number: 8080

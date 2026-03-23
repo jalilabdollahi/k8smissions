@@ -1,18 +1,9 @@
-{
-  "apiVersion": "v1",
-  "kind": "ServiceAccount",
-  "metadata": {
-    "name": "ci-sa",
-    "namespace": "k8smissions"
-  },
-  "imagePullSecrets": [
-    {
-      "name": "registry-creds"
-    }
-  ],
-  "secrets": [
-    {
-      "name": "registry-creds"
-    }
-  ]
-}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ci-sa
+  namespace: k8smissions
+imagePullSecrets:
+- name: registry-creds  # ✅ FIX: registry credentials attached as imagePullSecrets for pulling images
+secrets:
+- name: registry-creds  # ✅ FIX: same secret also in secrets list — Tekton mounts it into Task pods so docker push can authenticate

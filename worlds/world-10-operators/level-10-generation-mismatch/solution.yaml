@@ -1,17 +1,12 @@
-{
-  "apiVersion": "example.com/v1",
-  "kind": "MyApp",
-  "metadata": {
-    "name": "my-app",
-    "namespace": "k8smissions",
-    "generation": 5
-  },
-  "spec": {
-    "replicas": 3,
-    "image": "nginx:1.25"
-  },
-  "status": {
-    "phase": "Ready",
-    "observedGeneration": 5
-  }
-}
+apiVersion: example.com/v1
+kind: MyApp
+metadata:
+  name: my-app
+  namespace: k8smissions
+  generation: 5
+spec:
+  replicas: 3
+  image: nginx:1.25
+status:
+  phase: Ready
+  observedGeneration: 5

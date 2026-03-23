@@ -1,125 +1,88 @@
-[
-  {
-    "apiVersion": "v1",
-    "kind": "Secret",
-    "metadata": {
-      "name": "p0-secret",
-      "namespace": "k8smissions"
-    },
-    "type": "Opaque",
-    "stringData": {
-      "password": "productionpassword"
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "ServiceAccount",
-    "metadata": {
-      "name": "p0-sa",
-      "namespace": "k8smissions"
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "p0-app",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 2,
-      "selector": {
-        "matchLabels": {
-          "app": "p0-app"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "p0-app"
-          }
-        },
-        "spec": {
-          "serviceAccountName": "p0-sa",
-          "containers": [
-            {
-              "name": "p0-app",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ],
-              "env": [
-                {
-                  "name": "DB_PASS",
-                  "valueFrom": {
-                    "secretKeyRef": {
-                      "name": "p0-secret",
-                      "key": "password"
-                    }
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "networking.k8s.io/v1",
-    "kind": "NetworkPolicy",
-    "metadata": {
-      "name": "allow-dns",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "podSelector": {},
-      "policyTypes": [
-        "Egress"
-      ],
-      "egress": [
-        {
-          "ports": [
-            {
-              "port": 53,
-              "protocol": "UDP"
-            },
-            {
-              "port": 53,
-              "protocol": "TCP"
-            },
-            {
-              "port": 80,
-              "protocol": "TCP"
-            },
-            {
-              "port": 443,
-              "protocol": "TCP"
-            }
-          ]
-        }
-      ]
-    }
-  },
-  {
-    "apiVersion": "v1",
-    "kind": "PersistentVolumeClaim",
-    "metadata": {
-      "name": "p0-pvc",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "accessModes": [
-        "ReadWriteOnce"
-      ],
-      "resources": {
-        "requests": {
-          "storage": "1Gi"
-        }
-      },
-      "storageClassName": "standard"
-    }
-  }
-]
+# ✅ FIX: P0 Incident resolution — fix all 5 failures in dependency order.
+# Order matters: Secret and ServiceAccount must exist before scaling the Deployment.
+---
+# ✅ FIX 1: Recreate the missing Secret so the pod can get its DB_PASS env var.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: p0-secret  # ✅ FIX: Secret recreated — pods can now start
+  namespace: k8smissions
+type: Opaque
+stringData:
+  password: productionpassword
+---
+# ✅ FIX 2: Recreate the missing ServiceAccount referenced by the Deployment.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: p0-sa  # ✅ FIX: ServiceAccount recreated — pod spec reference is satisfied
+  namespace: k8smissions
+---
+# ✅ FIX 3: Scale deployment to 2 replicas and remove the bad nodeSelector.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: p0-app
+  namespace: k8smissions
+spec:
+  replicas: 2  # ✅ FIX: Scaled from 0 to 2 replicas
+  selector:
+    matchLabels:
+      app: p0-app
+  template:
+    metadata:
+      labels:
+        app: p0-app
+    spec:
+      serviceAccountName: p0-sa
+      # ✅ FIX: nodeSelector removed — pods can schedule on any available node
+      containers:
+      - name: p0-app
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+        env:
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: p0-secret
+              key: password
+---
+# ✅ FIX 4: Replace blocking NetworkPolicy with one that allows DNS egress (port 53).
+# Deleting block-dns and creating allow-dns resolves the DNS blackout.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns  # ✅ FIX: Renamed and updated to allow DNS + HTTP/HTTPS egress
+  namespace: k8smissions
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP   # ✅ FIX: DNS UDP — required for all hostname resolution
+    - port: 53
+      protocol: TCP   # ✅ FIX: DNS TCP — used for large DNS responses
+    - port: 80
+      protocol: TCP
+    - port: 443
+      protocol: TCP
+---
+# ✅ FIX 5: Change PVC storage request to a realistic 1Gi.
+# The old 999Ti request could never be provisioned — PVC was stuck Pending.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: p0-pvc
+  namespace: k8smissions
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi  # ✅ FIX: Realistic storage size — PVC can now be provisioned
+  storageClassName: standard

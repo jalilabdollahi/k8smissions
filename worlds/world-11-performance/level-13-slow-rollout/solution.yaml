@@ -1,48 +1,30 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "slow-deploy",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 100,
-    "selector": {
-      "matchLabels": {
-        "app": "slow"
-      }
-    },
-    "strategy": {
-      "type": "RollingUpdate",
-      "rollingUpdate": {
-        "maxSurge": 10,
-        "maxUnavailable": 0
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "slow"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "app",
-            "image": "nginx:1.25",
-            "resources": {
-              "requests": {
-                "cpu": "50m",
-                "memory": "32Mi"
-              },
-              "limits": {
-                "cpu": "100m",
-                "memory": "64Mi"
-              }
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: slow-deploy
+  namespace: k8smissions
+spec:
+  replicas: 100
+  selector:
+    matchLabels:
+      app: slow
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 10
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: slow
+    spec:
+      containers:
+      - name: app
+        image: nginx:1.25
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 100m
+            memory: 64Mi

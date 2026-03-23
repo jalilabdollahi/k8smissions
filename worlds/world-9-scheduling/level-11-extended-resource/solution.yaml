@@ -1,26 +1,19 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "fpga-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "compute",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "limits": {
-            "company.io/fpga": "1"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fpga-pod
+  namespace: k8smissions
+spec:
+  containers:
+  - name: compute
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    resources:
+      limits:
+        # ✅ FIX: Corrected resource name to 'company.io/fpga' — this matches
+        # exactly what the device plugin registered. Extended resources must
+        # always be placed under limits (not requests) and use whole numbers.
+        company.io/fpga: '1'

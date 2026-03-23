@@ -1,27 +1,17 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "selector-pod",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "selector-pod"
-    }
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "selector-pod",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ]
-      }
-    ],
-    "nodeSelector": {
-      "kubernetes.io/os": "linux"
-    }
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: selector-pod
+  namespace: k8smissions
+  labels:
+    app: selector-pod
+spec:
+  containers:
+  - name: selector-pod
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+  nodeSelector:
+    kubernetes.io/os: linux

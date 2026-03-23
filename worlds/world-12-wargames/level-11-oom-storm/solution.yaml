@@ -1,134 +1,86 @@
-[
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "svc-alpha",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "svc-alpha"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "svc-alpha"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "svc-alpha",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ],
-              "resources": {
-                "requests": {
-                  "memory": "64Mi"
-                },
-                "limits": {
-                  "memory": "256Mi"
-                }
-              }
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "svc-beta",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "svc-beta"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "svc-beta"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "svc-beta",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ],
-              "resources": {
-                "requests": {
-                  "memory": "64Mi"
-                },
-                "limits": {
-                  "memory": "256Mi"
-                }
-              }
-            }
-          ]
-        }
-      }
-    }
-  },
-  {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "name": "svc-gamma",
-      "namespace": "k8smissions"
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "svc-gamma"
-        }
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "svc-gamma"
-          }
-        },
-        "spec": {
-          "containers": [
-            {
-              "name": "svc-gamma",
-              "image": "busybox:1.36",
-              "command": [
-                "/bin/sh",
-                "-c",
-                "sleep 3600"
-              ],
-              "resources": {
-                "requests": {
-                  "memory": "64Mi"
-                },
-                "limits": {
-                  "memory": "256Mi"
-                }
-              }
-            }
-          ]
-        }
-      }
-    }
-  }
-]
+# ✅ FIX: Set limits to 256Mi (8x the 32Mi request) to provide burst headroom.
+# Burstable QoS (limits > requests) allows temporary memory spikes without OOMKill.
+# Rule of thumb: limits should be 2-4x requests for memory to absorb traffic bursts.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: svc-alpha
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: svc-alpha
+  template:
+    metadata:
+      labels:
+        app: svc-alpha
+    spec:
+      containers:
+      - name: svc-alpha
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+        resources:
+          requests:
+            memory: "64Mi"   # ✅ FIX: Increased request to match realistic baseline usage
+          limits:
+            memory: "256Mi"  # ✅ FIX: limits 4x requests — burst headroom prevents OOMKill on spikes
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: svc-beta
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: svc-beta
+  template:
+    metadata:
+      labels:
+        app: svc-beta
+    spec:
+      containers:
+      - name: svc-beta
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+        resources:
+          requests:
+            memory: "64Mi"
+          limits:
+            memory: "256Mi"  # ✅ FIX: All three deployments get same safe limit
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: svc-gamma
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: svc-gamma
+  template:
+    metadata:
+      labels:
+        app: svc-gamma
+    spec:
+      containers:
+      - name: svc-gamma
+        image: busybox:1.36
+        command:
+        - /bin/sh
+        - -c
+        - sleep 3600
+        resources:
+          requests:
+            memory: "64Mi"
+          limits:
+            memory: "256Mi"  # ✅ FIX: OOM storm stops — none of the three will OOMKill on normal spikes

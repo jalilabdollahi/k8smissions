@@ -1,8 +1,32 @@
-{
-  "apiVersion": "v1",
-  "kind": "ServiceAccount",
-  "metadata": {
-    "name": "deploy-sa",
-    "namespace": "k8smissions"
-  }
-}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: deploy-sa
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: deploy-role
+  namespace: k8smissions
+rules:
+- apiGroups: ["apps"]          # ✅ FIX: grant access to apps API group for Deployments
+  resources: ["deployments"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
+- apiGroups: [""]              # ✅ FIX: grant access to core API group for Services and ConfigMaps
+  resources: ["services", "configmaps"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deploy-rb
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: deploy-role
+subjects:
+- kind: ServiceAccount
+  name: deploy-sa              # ✅ FIX: bind the Role to deploy-sa — pipeline Task now has permission to apply Deployments and Services
+  namespace: k8smissions

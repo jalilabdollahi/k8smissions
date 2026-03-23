@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 NS="k8smissions"
-if kubectl get configmap etcd-config -n kube-system -o jsonpath='{.data.quota-backend-bytes}' 2>/dev/null | grep -qv '^2147483648$' || echo PASS; then
+QUOTA=$(kubectl get configmap etcd-config -n kube-system -o jsonpath='{.data.quota-backend-bytes}' 2>/dev/null || true)
+if [ -n "$QUOTA" ] && [ "$QUOTA" != "2147483648" ]; then
   echo "PASS: API Server Writes Fail"
   exit 0
 fi

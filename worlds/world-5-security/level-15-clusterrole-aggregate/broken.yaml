@@ -1,43 +1,28 @@
-{
-  "apiVersion": "rbac.authorization.k8s.io/v1",
-  "kind": "ClusterRole",
-  "metadata": {
-    "name": "operator-role"
-  },
-  "aggregationRule": {
-    "clusterRoleSelectors": [
-      {
-        "matchLabels": {
-          "rbac.example.io/aggregate-to-operator": "true"
-        }
-      }
-    ]
-  },
-  "rules": []
-}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: operator-role
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.example.io/aggregate-to-operator: 'true'
+rules: []
 ---
-{
-  "apiVersion": "rbac.authorization.k8s.io/v1",
-  "kind": "ClusterRole",
-  "metadata": {
-    "name": "deployments-reader",
-    "labels": {
-      "rbac.example.io/aggregate-to-viewer": "true"
-    }
-  },
-  "rules": [
-    {
-      "apiGroups": [
-        "apps"
-      ],
-      "resources": [
-        "deployments"
-      ],
-      "verbs": [
-        "get",
-        "list",
-        "watch"
-      ]
-    }
-  ]
-}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: deployments-reader
+  labels:
+    rbac.example.io/aggregate-to-viewer: 'true'  # ❌ BUG: Wrong label value — uses 'aggregate-to-viewer'
+                                                   # but operator-role selects for 'aggregate-to-operator'.
+                                                   # The label mismatch means this ClusterRole is never
+                                                   # aggregated into operator-role, so the rules stay empty.
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - get
+  - list
+  - watch

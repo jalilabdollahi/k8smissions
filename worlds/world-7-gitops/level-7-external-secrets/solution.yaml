@@ -1,16 +1,11 @@
-{
-  "apiVersion": "v1",
-  "kind": "Secret",
-  "metadata": {
-    "name": "app-secret",
-    "namespace": "k8smissions",
-    "annotations": {
-      "managed-by": "external-secrets"
-    }
-  },
-  "type": "Opaque",
-  "stringData": {
-    "username": "app-user",
-    "password": "rotated-pass"
-  }
-}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secret
+  namespace: k8smissions
+  annotations:
+    managed-by: external-secrets
+type: Opaque
+stringData:
+  username: app-user
+  password: rotated-pass

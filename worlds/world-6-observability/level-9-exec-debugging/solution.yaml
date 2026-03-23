@@ -1,50 +1,30 @@
-{
-  "apiVersion": "v1",
-  "kind": "ConfigMap",
-  "metadata": {
-    "name": "app-config",
-    "namespace": "k8smissions"
-  },
-  "data": {
-    "config.json": "{\"DB_HOST\":\"database.k8smissions.svc.cluster.local\",\"DB_PORT\":5432}"
-  }
-}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: k8smissions
+data:
+  config.json: '{"DB_HOST":"database.k8smissions.svc.cluster.local","DB_PORT":5432}'
 ---
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "debug-pod",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "debug-pod"
-    }
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "debug-pod",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "volumeMounts": [
-          {
-            "name": "config",
-            "mountPath": "/app"
-          }
-        ]
-      }
-    ],
-    "volumes": [
-      {
-        "name": "config",
-        "configMap": {
-          "name": "app-config"
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-pod
+  namespace: k8smissions
+  labels:
+    app: debug-pod
+spec:
+  containers:
+  - name: debug-pod
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    volumeMounts:
+    - name: config
+      mountPath: /app
+  volumes:
+  - name: config
+    configMap:
+      name: app-config

@@ -1,17 +1,18 @@
-{
-  "apiVersion": "v1",
-  "kind": "ConfigMap",
-  "metadata": {
-    "name": "leader-election",
-    "namespace": "k8smissions",
-    "annotations": {
-      "control-plane.alpha.kubernetes.io/leader": "{\"holderIdentity\":\"secondary-cluster\",\"acquireTime\":\"2026-03-23\",\"renewTime\":\"2026-03-23\",\"leaderTransitions\":1}"
-    }
-  },
-  "data": {
-    "failover-enabled": "true",
-    "active-cluster": "secondary",
-    "passive-cluster": "primary",
-    "sync-status": "synced"
-  }
-}
+# ✅ FIX: Update leader election ConfigMap to:
+# 1. Enable failover (failover-enabled: true)
+# 2. Set secondary as the new active cluster (since primary's lease expired)
+# 3. Update renewTime to current date so the lease is valid
+# 4. Mark sync-status as synced so traffic can route to secondary
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: leader-election
+  namespace: k8smissions
+  annotations:
+    # ✅ FIX: Updated holderIdentity to secondary, renewed timestamp to today, incremented leaderTransitions
+    control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"secondary-cluster","acquireTime":"2026-03-23","renewTime":"2026-03-23","leaderTransitions":1}'
+data:
+  failover-enabled: 'true'     # ✅ FIX: Failover enabled — cluster can self-heal on future failures
+  active-cluster: secondary    # ✅ FIX: Secondary promoted to active after primary lease expired
+  passive-cluster: primary
+  sync-status: synced          # ✅ FIX: Secondary is now in sync — safe to route traffic

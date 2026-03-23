@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Player save file — contains personal progress and timestamps
+progress.json
+
+# Generated level registry (regenerate with: python3 scripts/generate_registry.py)
+levels.json
+
+# Certificates earned by a specific player
+certificates/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+**/.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Kind cluster kubeconfig (if exported locally)
+kubeconfig
+
+# Temp / scratch files
+*.tmp
+*.bak
+"Agent tool input*"

@@ -1,15 +1,20 @@
-{
-  "apiVersion": "v1",
-  "kind": "ResourceQuota",
-  "metadata": {
-    "name": "ns-quota",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "hard": {
-      "pods": "100",
-      "requests.cpu": "10",
-      "requests.memory": "20Gi"
-    }
-  }
-}
+# ✅ FIX: Delete all stale ci-test-pod-* pods to free ResourceQuota slots.
+# This is an imperative fix — run this command:
+#   kubectl delete pod -l job=ci-test -n k8smissions
+#
+# The ResourceQuota limits are correct — no change needed to the quota itself.
+# The problem was accumulated completed pods consuming quota slots indefinitely.
+#
+# ✅ FIX: Prevention — add to all CI Job specs:
+#   spec:
+#     ttlSecondsAfterFinished: 300  # auto-delete 5 minutes after completion
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: ns-quota  # ✅ FIX: Quota itself is fine — after deleting pods, slots are freed
+  namespace: k8smissions
+spec:
+  hard:
+    pods: '100'
+    requests.cpu: '10'
+    requests.memory: 20Gi

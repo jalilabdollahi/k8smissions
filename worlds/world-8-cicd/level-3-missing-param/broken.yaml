@@ -1,14 +1,9 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "TaskRun",
-  "metadata": {
-    "name": "push-run",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "taskRef": {
-      "name": "image-push"
-    },
-    "params": []
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: push-run
+  namespace: k8smissions
+spec:
+  taskRef:
+    name: image-push
+  params: []  # ❌ BUG: Task 'image-push' requires param IMAGE with no default — empty params causes validation failure at admission time

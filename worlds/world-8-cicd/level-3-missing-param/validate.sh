@@ -1,9 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 NS="k8smissions"
-if kubectl get taskrun push-run -n k8smissions -o jsonpath='{.spec.params}' 2>/dev/null | grep -q IMAGE; then
-  echo "PASS: Missing Parameter"
+
+PARAMS=$(kubectl get taskrun push-run -n "$NS" -o jsonpath='{.spec.params}' 2>/dev/null || true)
+
+if [ -z "$PARAMS" ] || [ "$PARAMS" = "[]" ]; then
+  echo "FAIL: TaskRun 'push-run' has no params — Task 'image-push' requires param IMAGE with no default"
+  exit 1
+fi
+
+if echo "$PARAMS" | grep -q IMAGE; then
+  echo "PASS: TaskRun 'push-run' supplies the required IMAGE param — TaskRun will pass validation"
   exit 0
 fi
-echo "FAIL: check broken state"
+
+echo "FAIL: TaskRun 'push-run' params do not include required 'IMAGE' — add it under spec.params"
 exit 1

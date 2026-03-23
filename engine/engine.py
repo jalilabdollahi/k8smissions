@@ -9,6 +9,7 @@ import re
 import shlex
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import yaml
@@ -55,6 +56,24 @@ except ModuleNotFoundError:
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROGRESS_FILE = REPO_ROOT / "progress.json"
+LEVELS_REGISTRY = REPO_ROOT / "levels.json"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Cluster health check (#3)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def check_cluster_health() -> bool:
+    """Return True if a kubectl-reachable cluster is available."""
+    # Try the specific kind context first, then fall back to current context
+    for args in [
+        ["kubectl", "cluster-info", "--context", "kind-k8smissions"],
+        ["kubectl", "cluster-info"],
+    ]:
+        result = subprocess.run(args, capture_output=True, text=True, check=False, timeout=10)
+        if result.returncode == 0:
+            return True
+    return False
 
 
 def load_progress() -> dict:
@@ -66,8 +85,14 @@ def load_progress() -> dict:
             "current_world": "",
             "current_level": "",
             "world_certificates": [],
+            "time_per_level": {},
+            "level_start_time": None,
         }
-    return json.loads(PROGRESS_FILE.read_text(encoding="utf-8"))
+    data = json.loads(PROGRESS_FILE.read_text(encoding="utf-8"))
+    # Backfill time fields for existing progress files
+    data.setdefault("time_per_level", {})
+    data.setdefault("level_start_time", None)
+    return data
 
 
 def save_progress(progress: dict) -> None:
@@ -79,6 +104,30 @@ def load_worlds() -> list[dict]:
         match = re.search(r"(\d+)", path.name)
         return (int(match.group(1)) if match else 9999, path.name)
 
+    # Fast path: load from pre-built registry if available
+    if LEVELS_REGISTRY.exists():
+        try:
+            registry = json.loads(LEVELS_REGISTRY.read_text(encoding="utf-8"))
+            worlds = []
+            for w in registry.get("worlds", []):
+                levels = []
+                for lv in w.get("levels", []):
+                    level_path = REPO_ROOT / lv["path"]
+                    if level_path.exists():
+                        levels.append({
+                            "id": lv["id"],
+                            "name": lv["name"],
+                            "path": level_path,
+                            "mission": lv["mission"],
+                        })
+                if levels:
+                    worlds.append({"name": w["name"], "path": REPO_ROOT / "worlds" / w["name"], "levels": levels})
+            if worlds:
+                return worlds
+        except Exception:
+            pass  # fall through to directory scan
+
+    # Fallback: scan directories
     worlds = []
     worlds_dir = REPO_ROOT / "worlds"
     for world_dir in sorted((path for path in worlds_dir.iterdir() if path.is_dir()), key=sort_key):
@@ -99,6 +148,14 @@ def load_worlds() -> list[dict]:
         if levels:
             worlds.append({"name": world_dir.name, "path": world_dir, "levels": levels})
     return worlds
+
+
+def compute_max_xp_by_world(worlds: list[dict]) -> dict[str, int]:
+    """Dynamically compute total possible XP per world from mission files (#11)."""
+    return {
+        world["name"]: sum(int(level["mission"].get("xp", 0)) for level in world["levels"])
+        for world in worlds
+    }
 
 
 def build_world_xp(worlds: list[dict], completed_levels: set[str]) -> dict[str, int]:
@@ -205,16 +262,19 @@ def award_world_certificate(progress: dict, worlds: list[dict], world_index: int
         return
 
     world_xp = sum(int(level["mission"].get("xp", 0)) for level in world["levels"] if level["id"] in completed_levels)
-    certificate_text = generate_certificate(
-        progress["player_name"],
-        world["name"],
-        world_title(world["name"]),
-        world_xp,
-    )
+    w_title = world_title(world["name"])
+    # Save markdown certificate to disk
+    certificate_text = generate_certificate(progress["player_name"], world["name"], w_title, world_xp)
     save_certificate(REPO_ROOT, world["name"], certificate_text)
+    # Show rich panel in terminal (#5)
+    try:
+        from engine.certificate import render_certificate_panel
+    except ModuleNotFoundError:
+        from certificate import render_certificate_panel
+    panel = render_certificate_panel(progress["player_name"], w_title, world["name"], world_xp)
     progress.setdefault("world_certificates", []).append(world["name"])
     save_progress(progress)
-    show_world_completion(certificate_text)
+    show_world_completion(panel)
 
 
 def complete_level(progress: dict, worlds: list[dict], world_index: int, level_index: int, award_xp: bool) -> bool:
@@ -223,15 +283,35 @@ def complete_level(progress: dict, worlds: list[dict], world_index: int, level_i
     level_id = level["id"]
     xp = int(level["mission"].get("xp", 0)) if award_xp and level_id not in completed_levels else 0
 
+    # Time tracking (#6): compute elapsed seconds for this level
+    elapsed_seconds: int | None = None
+    start_ts = progress.get("level_start_time")
+    if start_ts is not None:
+        elapsed_seconds = max(0, int(time.time() - start_ts))
+        progress.setdefault("time_per_level", {})[level_id] = elapsed_seconds
+    progress["level_start_time"] = None  # clear start time
+
     completed_levels.add(level_id)
     progress["completed_levels"] = sorted(completed_levels)
     progress["total_xp"] = int(progress.get("total_xp", 0)) + xp
     save_progress(progress)
-    show_victory(worlds[world_index]["name"], level["mission"].get("name", level["name"]), xp, progress["total_xp"], skipped=not award_xp)
+    show_victory(
+        worlds[world_index]["name"],
+        level["mission"].get("name", level["name"]),
+        xp,
+        progress["total_xp"],
+        skipped=not award_xp,
+        elapsed_seconds=elapsed_seconds,
+        expected_time=level["mission"].get("expected_time"),
+    )
 
     # Always show the lesson after a real completion (skip auto-debrief on 'skip' command)
     if award_xp:
-        show_post_level_debrief(level["path"])
+        show_post_level_debrief(
+            level["path"],
+            elapsed_seconds=elapsed_seconds,
+            expected_time=level["mission"].get("expected_time"),
+        )
 
     award_world_certificate(progress, worlds, world_index, completed_levels)
 
@@ -249,6 +329,8 @@ def complete_level(progress: dict, worlds: list[dict], world_index: int, level_i
 
 _NUMBER_CMDS: dict[str, str] = {
     "1": "check",
+    "d": "check-dry",
+    "w": "watch",
     "2": "hint",
     "3": "guide",
     "4": "debrief",
@@ -260,7 +342,59 @@ _NUMBER_CMDS: dict[str, str] = {
 }
 
 
+def watch_mode(level_path: Path) -> bool:
+    """Auto-run validator every 5 seconds until it passes (#7). Returns True if passed."""
+    from rich.panel import Panel
+    from rich.text import Text
+    interval = 5
+    console.print(Panel(
+        Text.assemble(
+            ("Watch mode active — ", "bright_cyan"),
+            ("validator runs every 5s", "white"),
+            ("  •  ", "grey50"),
+            ("Ctrl+C to cancel", "grey70"),
+        ),
+        border_style="bright_cyan", padding=(0, 1)
+    ))
+    attempt = 0
+    try:
+        while True:
+            attempt += 1
+            result = run_validator(level_path)
+            if result.stdout:
+                console.print(result.stdout.rstrip())
+            if result.returncode == 0:
+                console.print(f"[bold bright_green]✅ Passed on attempt {attempt}[/bold bright_green]")
+                return True
+            # Countdown
+            for remaining in range(interval, 0, -1):
+                console.print(f"\r[grey70]  ↺ Attempt {attempt} failed — rechecking in {remaining}s... [/grey70]", end="")
+                time.sleep(1)
+            console.print()
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Watch mode cancelled.[/yellow]")
+        return False
+
+
 def game_loop() -> int:
+    # Cluster health check (#3)
+    from rich.panel import Panel as _Panel
+    from rich.text import Text as _Text
+    console.print("[grey70]Checking cluster health...[/grey70]", end="\r")
+    if not check_cluster_health():
+        console.print(_Panel(
+            _Text.assemble(
+                ("Kubernetes cluster not reachable.\n\n", "bold red"),
+                ("Start the cluster with:\n", "white"),
+                ("  kind create cluster --name k8smissions\n", "bright_cyan"),
+                ("Then run ./install.sh to configure it.", "grey70"),
+            ),
+            title="[bold red]Cluster Offline[/bold red]",
+            border_style="red",
+        ))
+        return 1
+    console.print(" " * 50, end="\r")  # clear the checking message
+
     worlds = load_worlds()
     progress = load_progress()
     ensure_player_name(progress)
@@ -268,11 +402,18 @@ def game_loop() -> int:
 
     completed_levels = set(progress.get("completed_levels", []))
     xp_by_world = build_world_xp(worlds, completed_levels)
-    show_welcome(progress["player_name"], int(progress.get("total_xp", 0)), worlds, completed_levels, xp_by_world)
+    max_xp_by_world = compute_max_xp_by_world(worlds)
+    max_total_xp = sum(max_xp_by_world.values())
+    show_welcome(progress["player_name"], int(progress.get("total_xp", 0)), worlds, completed_levels, xp_by_world, max_xp_by_world, max_total_xp)
 
     world_index, level_index = current_position(worlds, progress)
     current_level = worlds[world_index]["levels"][level_index]
     prepare_level(REPO_ROOT, current_level["path"])
+
+    # Record level start time (#6)
+    if not progress.get("level_start_time"):
+        progress["level_start_time"] = time.time()
+        save_progress(progress)
 
     hint_index = 0
     while True:
@@ -307,7 +448,9 @@ def game_loop() -> int:
             if command == "status":
                 completed_levels = set(progress.get("completed_levels", []))
                 xp_by_world = build_world_xp(worlds, completed_levels)
-                show_status(worlds, completed_levels, xp_by_world, int(progress.get("total_xp", 0)))
+                max_xp_by_world = compute_max_xp_by_world(worlds)
+                max_total_xp = sum(max_xp_by_world.values())
+                show_status(worlds, completed_levels, xp_by_world, int(progress.get("total_xp", 0)), max_xp_by_world, max_total_xp)
                 continue
             if command == "debrief":
                 show_debrief(current_level["path"])
@@ -326,6 +469,9 @@ def game_loop() -> int:
             if command == "reset":
                 prepare_level(REPO_ROOT, current_level["path"])
                 hint_index = 0
+                # Reset start time on scenario reset (#6)
+                progress["level_start_time"] = time.time()
+                save_progress(progress)
                 console.print("[green]Level reset complete.[/green]")
                 continue
             if command == "check":
@@ -336,12 +482,41 @@ def game_loop() -> int:
                     console.print(f"[yellow]{result.stderr.rstrip()}[/yellow]")
                 if result.returncode == 0:
                     if complete_level(progress, worlds, world_index, level_index, award_xp=True):
+                        progress = load_progress()
+                        progress["level_start_time"] = time.time()
+                        save_progress(progress)
+                        hint_index = 0
+                        break
+                    return 0
+                continue
+            if command == "check-dry":
+                # Dry-run validator — shows output without awarding XP (#4)
+                result = run_validator(current_level["path"])
+                console.print("[bold grey70]── Dry Run (no XP awarded) ──[/bold grey70]")
+                if result.stdout:
+                    console.print(result.stdout.rstrip())
+                if result.stderr:
+                    console.print(f"[yellow]{result.stderr.rstrip()}[/yellow]")
+                verdict = "[bright_green]WOULD PASS[/bright_green]" if result.returncode == 0 else "[red]WOULD FAIL[/red]"
+                console.print(f"[grey70]Exit code {result.returncode} → {verdict}[/grey70]")
+                continue
+            if command == "watch":
+                # Watch mode — auto-runs validator every 5s (#7)
+                passed = watch_mode(current_level["path"])
+                if passed:
+                    if complete_level(progress, worlds, world_index, level_index, award_xp=True):
+                        progress = load_progress()
+                        progress["level_start_time"] = time.time()
+                        save_progress(progress)
                         hint_index = 0
                         break
                     return 0
                 continue
             if command == "skip":
                 if complete_level(progress, worlds, world_index, level_index, award_xp=False):
+                    progress = load_progress()
+                    progress["level_start_time"] = time.time()
+                    save_progress(progress)
                     hint_index = 0
                     break
                 return 0
@@ -359,6 +534,8 @@ def game_loop() -> int:
                         "current_world": "",
                         "current_level": "",
                         "world_certificates": [],
+                        "time_per_level": {},
+                        "level_start_time": time.time(),
                     }
                     save_progress(progress)
                     console.print("[bright_green]✅ Progress reset. Restarting from World 1 Level 1.[/bright_green]")
@@ -371,7 +548,20 @@ def game_loop() -> int:
                 print_safety_info()
                 continue
             if command.startswith("kubectl "):
-                run_kubectl(command[len("kubectl ") :])
+                run_kubectl(command[len("kubectl "):])
+                continue
+
+            # Helpful catch for bare kubectl subcommands like "get po -A"
+            _KUBECTL_VERBS = {"get", "describe", "logs", "exec", "apply", "delete",
+                              "edit", "patch", "scale", "rollout", "set", "label",
+                              "annotate", "top", "drain", "cordon", "uncordon",
+                              "port-forward", "proxy", "cp", "auth", "config"}
+            first_word = command.split()[0] if command.split() else ""
+            if first_word in _KUBECTL_VERBS:
+                console.print(
+                    f"[yellow]Tip: prefix kubectl commands with [bold]kubectl[/bold] or use [bold]5[/bold].\n"
+                    f"  e.g.  [bright_cyan]kubectl {command}[/bright_cyan]  or  [bright_cyan]5 {command}[/bright_cyan][/yellow]"
+                )
                 continue
 
             console.print("[yellow]Unknown command. Type 'help' for the available actions.[/yellow]")

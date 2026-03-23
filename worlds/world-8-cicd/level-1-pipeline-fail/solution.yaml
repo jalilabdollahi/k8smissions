@@ -1,17 +1,13 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "Task",
-  "metadata": {
-    "name": "build-task",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "steps": [
-      {
-        "name": "build",
-        "image": "golang:1.21",
-        "script": "echo 'Building...'; exit 0"
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: build-task
+  namespace: k8smissions
+spec:
+  steps:
+  - name: build
+    image: golang:1.21  # ✅ FIX: valid, published image tag — pod can pull and start the step container
+    script: |
+      #!/bin/bash
+      echo "Building..."
+      go build ./...

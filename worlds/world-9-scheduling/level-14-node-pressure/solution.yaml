@@ -1,31 +1,23 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "memory-hog",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "requests": {
-            "cpu": "10m",
-            "memory": "50Mi"
-          },
-          "limits": {
-            "cpu": "100m",
-            "memory": "128Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memory-hog
+  namespace: k8smissions
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    # ✅ FIX: Removed the memory-allocating dd command — just sleep now.
+    - sleep 3600
+    resources:
+      requests:
+        cpu: 10m
+        memory: 50Mi
+      limits:
+        cpu: 100m
+        # ✅ FIX: Reduced memory limit from 2Gi to 128Mi — realistic for this workload,
+        # preventing node memory pressure and collateral evictions.
+        memory: 128Mi

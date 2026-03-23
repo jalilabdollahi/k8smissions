@@ -2,8 +2,8 @@
 # values.yaml — BROKEN (wrong indentation)
 replicaCount: 3
 image:
-tag: v2.0.0      # this is at wrong indentation — should be under image:
-  repository: nginx
+tag: v2.0.0      # ❌ BUG: 'tag' is at root level, NOT indented under 'image:' — Helm sees it as a separate top-level key
+  repository: nginx  # ❌ BUG: 'repository' is indented but 'tag' above it is not — inconsistent, tag is parsed at root
 resources:
   limits:
     cpu: 500m

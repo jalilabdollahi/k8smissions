@@ -1,12 +1,16 @@
-# Solution steps:
-# 1. Find all resources in the namespace with finalizers
-# kubectl get all,configmaps,secrets -n zombie-ns -o json | python3 -c "
-import json,sys
-data=json.load(sys.stdin)
-for item in data.get('items',[]):
-    if item['metadata'].get('finalizers'):
-        print(item['kind'], item['metadata']['name'])
-"
-# 2. Patch each stuck resource to clear finalizers
-# kubectl patch configmap stuck-resource -n zombie-ns -p '{"metadata":{"finalizers":[]}}' --type=merge
-# 3. The namespace deletion will then complete automatically
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zombie-ns
+  finalizers: []          # ✅ FIX: namespace finalizer cleared — namespace can now complete deletion
+status:
+  phase: Terminating
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stuck-resource
+  namespace: zombie-ns
+  finalizers: []          # ✅ FIX: object finalizer removed via kubectl patch — no operator to clear it, so we force-clear it
+data:
+  key: value

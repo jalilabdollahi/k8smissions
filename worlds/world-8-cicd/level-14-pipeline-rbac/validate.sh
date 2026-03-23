@@ -1,9 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 NS="k8smissions"
-if kubectl auth can-i create pipelineruns.tekton.dev -n k8smissions --as=system:serviceaccount:k8smissions:trigger-sa 2>/dev/null | grep -q yes; then
-  echo "PASS: Pipeline Locked Out"
+
+RESULT=$(kubectl auth can-i create pipelineruns.tekton.dev -n "$NS" \
+  --as=system:serviceaccount:${NS}:trigger-sa 2>/dev/null || true)
+
+if [ "$RESULT" = "yes" ]; then
+  echo "PASS: ServiceAccount 'trigger-sa' can create PipelineRuns — EventListener can trigger pipelines on webhook events"
   exit 0
 fi
-echo "FAIL: check broken state"
+
+echo "FAIL: ServiceAccount 'trigger-sa' cannot create pipelineruns.tekton.dev — create a Role targeting apiGroups: [tekton.dev] and bind it to trigger-sa"
 exit 1

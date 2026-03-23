@@ -1,19 +1,11 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "events-pod",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "events-pod"
-    }
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "events-pod",
-        "image": "nginx:broken-tag"
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: events-pod
+  namespace: k8smissions
+  labels:
+    app: events-pod
+spec:
+  containers:
+  - name: events-pod
+    image: nginx:broken-tag

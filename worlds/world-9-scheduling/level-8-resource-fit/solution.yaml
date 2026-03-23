@@ -1,31 +1,22 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "large-pod",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "requests": {
-            "cpu": "100m",
-            "memory": "256Mi"
-          },
-          "limits": {
-            "cpu": "200m",
-            "memory": "512Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: large-pod
+  namespace: k8smissions
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    resources:
+      requests:
+        cpu: 100m
+        # ✅ FIX: Reduced memory request from 100Gi to 256Mi — sized against
+        # actual node allocatable memory, not raw capacity. Pod can now schedule.
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi

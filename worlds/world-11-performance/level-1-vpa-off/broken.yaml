@@ -1,18 +1,14 @@
-{
-  "apiVersion": "autoscaling.k8s.io/v1",
-  "kind": "VerticalPodAutoscaler",
-  "metadata": {
-    "name": "my-app-vpa",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "targetRef": {
-      "apiVersion": "apps/v1",
-      "kind": "Deployment",
-      "name": "my-app"
-    },
-    "updatePolicy": {
-      "updateMode": "Off"
-    }
-  }
-}
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: my-app-vpa
+  namespace: k8smissions
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-app
+  updatePolicy:
+    # ❌ BUG: updateMode is 'Off' so VPA only recommends resources but never applies
+    # them. Pods are never restarted with right-sized resources, causing OOMKills.
+    updateMode: 'Off'

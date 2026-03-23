@@ -1,17 +1,17 @@
-{
-  "apiVersion": "v1",
-  "kind": "ConfigMap",
-  "metadata": {
-    "name": "leader-election",
-    "namespace": "k8smissions",
-    "annotations": {
-      "control-plane.alpha.kubernetes.io/leader": "{\"holderIdentity\":\"primary-cluster\",\"acquireTime\":\"2024-01-01\",\"renewTime\":\"2024-01-01\",\"leaderTransitions\":0}"
-    }
-  },
-  "data": {
-    "failover-enabled": "false",
-    "active-cluster": "primary",
-    "passive-cluster": "secondary",
-    "sync-status": "stale"
-  }
-}
+# ❌ BUG: Leader election ConfigMap has a stale renewTime from over 2 years ago.
+# The leader hasn't renewed its lease — the failover controller detects this as a
+# dead leader and should trigger failover, but failover-enabled is 'false'.
+# Result: the cluster is stuck in a broken state — no active leader, no failover.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: leader-election
+  namespace: k8smissions
+  annotations:
+    # ❌ BUG: renewTime is 2024-01-01 — over 2 years stale, lease has expired
+    control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"primary-cluster","acquireTime":"2024-01-01","renewTime":"2024-01-01","leaderTransitions":0}'
+data:
+  failover-enabled: 'false'  # ❌ BUG: Failover is disabled — stuck cluster cannot self-heal
+  active-cluster: primary
+  passive-cluster: secondary
+  sync-status: stale         # ❌ BUG: Sync is stale — secondary is not in sync with primary

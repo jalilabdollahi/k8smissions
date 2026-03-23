@@ -1,31 +1,20 @@
-{
-  "apiVersion": "v1",
-  "kind": "Pod",
-  "metadata": {
-    "name": "quota-buster",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "containers": [
-      {
-        "name": "app",
-        "image": "busybox:1.36",
-        "command": [
-          "/bin/sh",
-          "-c",
-          "sleep 3600"
-        ],
-        "resources": {
-          "requests": {
-            "cpu": "100m",
-            "memory": "100Mi"
-          },
-          "limits": {
-            "cpu": "200m",
-            "memory": "200Mi"
-          }
-        }
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: quota-buster
+  namespace: k8smissions
+spec:
+  containers:
+  - name: app
+    image: busybox:1.36
+    command:
+    - /bin/sh
+    - -c
+    - sleep 3600
+    resources:
+      requests:
+        cpu: 100m      # ✅ FIX: Reduced from 400m to 100m — well within the 500m quota, leaves room for other pods.
+        memory: 100Mi  # ✅ FIX: Reduced from 400Mi to 100Mi — fits within the 512Mi quota.
+      limits:
+        cpu: 200m
+        memory: 200Mi

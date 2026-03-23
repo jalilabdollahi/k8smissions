@@ -1,14 +1,9 @@
-{
-  "apiVersion": "v1",
-  "kind": "ConfigMap",
-  "metadata": {
-    "name": "stuck-config",
-    "namespace": "k8smissions",
-    "finalizers": [
-      "custom.operator.io/cleanup"
-    ]
-  },
-  "data": {
-    "key": "value"
-  }
-}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: stuck-config
+  namespace: k8smissions
+  finalizers:
+  - custom.operator.io/cleanup
+data:
+  key: value

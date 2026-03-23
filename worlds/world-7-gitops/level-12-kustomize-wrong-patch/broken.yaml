@@ -8,43 +8,30 @@ patches:
       apiVersion: apps/v1
       kind: Deployment
       metadata:
-        name: backend-api
+        name: backend-api  # ❌ BUG: patch targets 'backend-api' but Deployment is named 'api-server' — patch silently does nothing
       spec:
         replicas: 5
     target:
       kind: Deployment
-      name: backend-api
+      name: backend-api   # ❌ BUG: target selector 'backend-api' matches no resource; Kustomize skips patch with no error
 
 ---
 # deployment.yaml
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "api-server",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 1,
-    "selector": {
-      "matchLabels": {
-        "app": "api"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "api"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "api",
-            "image": "nginx:1.25"
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server        # The actual Deployment name — does NOT match the patch target above
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api
+  template:
+    metadata:
+      labels:
+        app: api
+    spec:
+      containers:
+      - name: api
+        image: nginx:1.25

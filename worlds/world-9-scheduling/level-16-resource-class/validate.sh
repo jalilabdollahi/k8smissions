@@ -1,7 +1,13 @@
 #!/bin/bash
 set -euo pipefail
 NS="k8smissions"
-if kubectl get resourceclaim my-fpga-claim -n k8smissions -o jsonpath='{.spec.resourceClassName}' 2>/dev/null | grep -q fpga-class || echo PASS; then
+# Check if the ResourceClass 'fpga-class' exists (the solution creates it)
+# OR the ResourceClaim now references the correct class name
+if kubectl get resourceclass fpga-class 2>/dev/null | grep -q fpga-class; then
+  echo "PASS: Class Not Found"
+  exit 0
+fi
+if kubectl get resourceclaim my-fpga-claim -n "$NS" -o jsonpath='{.spec.resourceClassName}' 2>/dev/null | grep -q 'fpga-class'; then
   echo "PASS: Class Not Found"
   exit 0
 fi

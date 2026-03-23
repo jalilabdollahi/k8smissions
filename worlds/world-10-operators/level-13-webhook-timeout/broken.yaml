@@ -1,41 +1,25 @@
-{
-  "apiVersion": "admissionregistration.k8s.io/v1",
-  "kind": "ValidatingWebhookConfiguration",
-  "metadata": {
-    "name": "policy-enforcer"
-  },
-  "webhooks": [
-    {
-      "name": "enforce.example.com",
-      "admissionReviewVersions": [
-        "v1"
-      ],
-      "timeoutSeconds": 30,
-      "clientConfig": {
-        "service": {
-          "name": "policy-svc",
-          "namespace": "operators",
-          "port": 443
-        }
-      },
-      "rules": [
-        {
-          "apiGroups": [
-            ""
-          ],
-          "apiVersions": [
-            "v1"
-          ],
-          "operations": [
-            "CREATE"
-          ],
-          "resources": [
-            "pods"
-          ]
-        }
-      ],
-      "failurePolicy": "Fail",
-      "sideEffects": "None"
-    }
-  ]
-}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: policy-enforcer
+webhooks:
+- name: enforce.example.com
+  admissionReviewVersions:
+  - v1
+  timeoutSeconds: 30
+  clientConfig:
+    service:
+      name: policy-svc
+      namespace: operators
+      port: 443
+  rules:
+  - apiGroups:
+    - ''
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  failurePolicy: Fail
+  sideEffects: None

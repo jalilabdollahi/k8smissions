@@ -1,22 +1,14 @@
-{
-  "apiVersion": "v1",
-  "kind": "Service",
-  "metadata": {
-    "name": "nodeport-svc",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "type": "NodePort",
-    "externalTrafficPolicy": "Cluster",
-    "selector": {
-      "app": "backend"
-    },
-    "ports": [
-      {
-        "port": 80,
-        "targetPort": 80,
-        "nodePort": 30080
-      }
-    ]
-  }
-}
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodeport-svc
+  namespace: k8smissions
+spec:
+  type: NodePort
+  externalTrafficPolicy: Cluster  # ✅ FIX: Cluster routes to any backend, regardless of which node receives the packet
+  selector:
+    app: backend
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30080

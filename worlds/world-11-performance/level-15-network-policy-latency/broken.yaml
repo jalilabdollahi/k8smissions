@@ -1,65 +1,31 @@
-{
-  "apiVersion": "networking.k8s.io/v1",
-  "kind": "NetworkPolicy",
-  "metadata": {
-    "name": "restrictive-policy",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "podSelector": {
-      "matchLabels": {
-        "app": "my-app"
-      }
-    },
-    "policyTypes": [
-      "Ingress",
-      "Egress"
-    ],
-    "ingress": [
-      {
-        "from": [
-          {
-            "podSelector": {
-              "matchLabels": {
-                "app": "frontend"
-              }
-            }
-          }
-        ],
-        "ports": [
-          {
-            "protocol": "TCP",
-            "port": 8080
-          }
-        ]
-      }
-    ],
-    "egress": [
-      {
-        "to": [
-          {
-            "podSelector": {
-              "matchLabels": {
-                "app": "database"
-              }
-            }
-          }
-        ],
-        "ports": [
-          {
-            "protocol": "TCP",
-            "port": 5432
-          }
-        ]
-      },
-      {
-        "ports": [
-          {
-            "protocol": "UDP",
-            "port": 53
-          }
-        ]
-      }
-    ]
-  }
-}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: restrictive-policy
+  namespace: k8smissions
+spec:
+  podSelector:
+    matchLabels:
+      app: my-app
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  - ports:
+    - protocol: UDP
+      port: 53

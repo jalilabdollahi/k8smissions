@@ -1,32 +1,23 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "registry-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 2,
-    "selector": {
-      "matchLabels": {
-        "app": "registry-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "registry-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "registry-app",
-            "image": "nginx:1.27.4",
-            "imagePullPolicy": "IfNotPresent"
-          }
-        ]
-      }
-    }
-  }
-}
+# ✅ FIX: Switch to a publicly reachable image and change imagePullPolicy to IfNotPresent.
+# In a real incident you'd restore the registry, but for business continuity
+# switching to an equivalent public image gets traffic flowing immediately.
+# IfNotPresent allows Kubernetes to use locally cached images on subsequent restarts.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: registry-app
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: registry-app
+  template:
+    metadata:
+      labels:
+        app: registry-app
+    spec:
+      containers:
+      - name: registry-app
+        image: nginx:1.27.4          # ✅ FIX: Switched to public registry image — always reachable
+        imagePullPolicy: IfNotPresent # ✅ FIX: Uses node cache on restarts — registry outage tolerant

@@ -1,61 +1,37 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "runbook-app",
-    "namespace": "k8smissions",
-    "labels": {
-      "app": "runbook-app"
-    }
-  },
-  "spec": {
-    "replicas": 1,
-    "selector": {
-      "matchLabels": {
-        "app": "runbook-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "runbook-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "runbook-app",
-            "image": "nginx:1.27.4"
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: runbook-app
+  namespace: k8smissions
+  labels:
+    app: runbook-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: runbook-app
+  template:
+    metadata:
+      labels:
+        app: runbook-app
+    spec:
+      containers:
+      - name: runbook-app
+        image: nginx:1.27.4
 ---
-{
-  "apiVersion": "batch/v1",
-  "kind": "Job",
-  "metadata": {
-    "name": "db-migration",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "template": {
-      "spec": {
-        "restartPolicy": "Never",
-        "containers": [
-          {
-            "name": "db-migration",
-            "image": "busybox:missing",
-            "command": [
-              "/bin/sh",
-              "-c",
-              "exit 1"
-            ]
-          }
-        ]
-      }
-    }
-  }
-}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migration
+  namespace: k8smissions
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: db-migration
+        image: busybox:missing
+        command:
+        - /bin/sh
+        - -c
+        - exit 1

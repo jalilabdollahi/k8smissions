@@ -1,19 +1,11 @@
-{
-  "apiVersion": "tekton.dev/v1beta1",
-  "kind": "TaskRun",
-  "metadata": {
-    "name": "push-run",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "taskRef": {
-      "name": "image-push"
-    },
-    "params": [
-      {
-        "name": "IMAGE",
-        "value": "registry.example.com/myapp:v1.0.0"
-      }
-    ]
-  }
-}
+apiVersion: tekton.dev/v1beta1
+kind: TaskRun
+metadata:
+  name: push-run
+  namespace: k8smissions
+spec:
+  taskRef:
+    name: image-push
+  params:
+  - name: IMAGE                             # ✅ FIX: required param IMAGE is now supplied
+    value: registry.example.com/myapp:v1.0.0  # ✅ FIX: value provided — Tekton validates params at admission and proceeds to run

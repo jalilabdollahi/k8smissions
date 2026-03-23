@@ -1,58 +1,41 @@
-{
-  "apiVersion": "apps/v1",
-  "kind": "Deployment",
-  "metadata": {
-    "name": "zombie-app",
-    "namespace": "k8smissions"
-  },
-  "spec": {
-    "replicas": 1,
-    "selector": {
-      "matchLabels": {
-        "app": "zombie-app"
-      }
-    },
-    "template": {
-      "metadata": {
-        "labels": {
-          "app": "zombie-app"
-        }
-      },
-      "spec": {
-        "containers": [
-          {
-            "name": "zombie-app",
-            "image": "hashicorp/http-echo:1.0.0",
-            "args": [
-              "-text=ok",
-              "-listen=:8080"
-            ],
-            "ports": [
-              {
-                "containerPort": 8080
-              }
-            ],
-            "readinessProbe": {
-              "httpGet": {
-                "path": "/",
-                "port": 8080
-              },
-              "initialDelaySeconds": 3,
-              "periodSeconds": 5,
-              "failureThreshold": 3
-            },
-            "livenessProbe": {
-              "httpGet": {
-                "path": "/",
-                "port": 8080
-              },
-              "initialDelaySeconds": 10,
-              "periodSeconds": 10,
-              "failureThreshold": 3
-            }
-          }
-        ]
-      }
-    }
-  }
-}
+# ✅ FIX: Add both readinessProbe and livenessProbe to detect zombie/hung processes.
+# readinessProbe: removes pod from Service endpoints when failing (stops new traffic)
+# livenessProbe: restarts the container when failing (self-heals the zombie)
+# Both probes use httpGet — if the process is zombie/hung, HTTP requests will fail.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zombie-app
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zombie-app
+  template:
+    metadata:
+      labels:
+        app: zombie-app
+    spec:
+      containers:
+      - name: zombie-app
+        image: hashicorp/http-echo:1.0.0
+        args:
+        - -text=ok
+        - -listen=:8080
+        ports:
+        - containerPort: 8080
+        readinessProbe:              # ✅ FIX: Added — removes pod from Service endpoints on failure
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 5
+          failureThreshold: 3
+        livenessProbe:               # ✅ FIX: Added — restarts container when process is zombie/hung
+          httpGet:
+            path: /
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          failureThreshold: 3

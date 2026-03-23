@@ -1,43 +1,26 @@
-{
-  "apiVersion": "admissionregistration.k8s.io/v1",
-  "kind": "MutatingWebhookConfiguration",
-  "metadata": {
-    "name": "pod-annotations-injector",
-    "annotations": {
-      "cert-manager.io/inject-ca-from": "operators/webhook-cert"
-    }
-  },
-  "webhooks": [
-    {
-      "name": "inject.example.com",
-      "admissionReviewVersions": [
-        "v1"
-      ],
-      "clientConfig": {
-        "service": {
-          "name": "webhook-service",
-          "namespace": "operators",
-          "port": 443
-        }
-      },
-      "rules": [
-        {
-          "apiGroups": [
-            ""
-          ],
-          "apiVersions": [
-            "v1"
-          ],
-          "operations": [
-            "CREATE"
-          ],
-          "resources": [
-            "pods"
-          ]
-        }
-      ],
-      "failurePolicy": "Fail",
-      "sideEffects": "None"
-    }
-  ]
-}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: pod-annotations-injector
+  annotations:
+    cert-manager.io/inject-ca-from: operators/webhook-cert
+webhooks:
+- name: inject.example.com
+  admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: operators
+      port: 443
+  rules:
+  - apiGroups:
+    - ''
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    resources:
+    - pods
+  failurePolicy: Fail
+  sideEffects: None
