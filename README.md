@@ -11,17 +11,17 @@ No cloud. No AWS. No costs.
 
 ## ✨ Features
 
-- 🎯 **200 missions** across 12 worlds — from pod crashes to multi-failure war games
+- 🗡️ **200 missions** across 12 worlds — from pod crashes to multi-failure war games
 - 🏆 **XP & progression system** — earn points, unlock worlds, track your journey
 - 💡 **Progressive hints** — unlock gradually, only if you need them
 - 📖 **Post-mission debriefs** — learn *why* your fix worked, with real-world examples
 - ⏱️ **Time tracking** — see how long each mission takes vs. the estimated time
-- 🔍 **Dry-run mode** — test your fix before applying it, no XP penalty
+- 🧪 **Dry-run mode** — test your fix before applying it, no XP penalty
 - 👁️ **Watch mode** — auto-validates your cluster every 5 seconds
 - 🏅 **World certificates** — earn a rich terminal certificate for each world completed
-- 🛡️ **Safety guards** — RBAC limits blast radius; critical namespaces are protected
+- 🔒 **Safety guards** — RBAC limits blast radius; critical namespaces are protected
 - 💾 **Auto-save** — progress is saved after every completed mission
-- 🐚 **Shell completion** — tab-complete all commands in bash and zsh
+- ⌨️ **Shell completion** — tab-complete all commands in bash and zsh
 
 ---
 
@@ -86,10 +86,10 @@ cd k8smissions
 
 K8sMissions includes RBAC-based safety guards, on by default:
 
-- ✅ Operations are scoped to the `k8smissions` namespace
-- ✅ Deletion of `kube-system`, `default`, and other critical namespaces is blocked
-- ✅ Destructive cluster-wide operations are prevented
-- ✅ Safe for beginners — hard to accidentally wreck things
+- 🔐 Operations are scoped to the `k8smissions` namespace
+- 🚫 Deletion of `kube-system`, `default`, and other critical namespaces is blocked
+- ⛔ Destructive cluster-wide operations are prevented
+- 🧸 Safe for beginners — hard to accidentally wreck things
 
 ---
 
@@ -182,7 +182,7 @@ python3 engine/reset.py all                       # reset everything
 
 After every mission you unlock a debrief that covers:
 
-- ✅ What actually broke and why
+- 🔎 What actually broke and why
 - 🧠 The correct mental model for the concept
 - 🚨 Real-world production incident analogues
 - 💼 Interview questions you can now answer
@@ -194,7 +194,7 @@ After every mission you unlock a debrief that covers:
 
 If K8sMissions helped you learn Kubernetes:
 
-- ⭐ **Star this repo** — helps others discover it
+- 🌟 **Star this repo** — helps others discover it
 - 🐛 **Open an issue** — report bugs or suggest new levels
 - 🤝 **Contribute** — see [CONTRIBUTING.md](CONTRIBUTING.md)
 
