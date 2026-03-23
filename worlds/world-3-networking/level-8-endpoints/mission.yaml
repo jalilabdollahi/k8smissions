@@ -1,0 +1,16 @@
+{
+  "name": "Dead Endpoints",
+  "description": "A Service shows endpoints, but traffic to the service is still failing.",
+  "objective": "Pods are Running but not Ready, so the Service has no valid endpoints \u2014 add a readiness probe so pods join endpoints only when ready",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Readiness probe",
+    "endpoint slice",
+    "Not Ready pods",
+    "traffic routing only to Ready pods"
+  ],
+  "world": "world-3-networking",
+  "level": "level-8-endpoints"
+}

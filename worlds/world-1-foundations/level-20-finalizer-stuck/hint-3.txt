@@ -1,0 +1,4 @@
+Patch the finalizers list to empty:
+  kubectl patch configmap stuck-config -n k8smissions \
+    -p '{"metadata":{"finalizers":[]}}' --type=merge
+Then delete the object normally.

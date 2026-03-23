@@ -1,0 +1,4 @@
+Change updateMode to Auto:
+  updatePolicy:
+    updateMode: Auto
+VPA will restart pods with improved resource requests/limits based on historical usage.

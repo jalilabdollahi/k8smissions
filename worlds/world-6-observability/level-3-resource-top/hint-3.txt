@@ -1,0 +1,1 @@
+Validation target: Node CPU back under 70%, other pods healthy

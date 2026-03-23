@@ -1,0 +1,165 @@
+═══════════════════════════════════════════════════════════════════
+  WORLD 5 — SECURITY
+  "Lock it down: RBAC, policies, quotas, and hardening"
+═══════════════════════════════════════════════════════════════════
+
+OVERVIEW
+────────
+World 5 covers Kubernetes security in depth. Players fix real
+permission errors, harden containers, enforce resource governance,
+manage pod scheduling constraints, and deal with a multi-failure
+production chaos scenario as the final boss.
+
+Difficulty   : Advanced → Expert
+Total levels : 10
+Total XP     : 3,150
+Cluster type : kind (local)
+
+SKILLS COVERED
+──────────────
+- RBAC: Role, ClusterRole, RoleBinding, ServiceAccount
+- SecurityContext: runAsUser, runAsNonRoot, allowPrivilegeEscalation
+- ResourceQuota and LimitRange
+- NetworkPolicy (ingress/egress from a security perspective)
+- Node affinity vs nodeSelector
+- Taints and tolerations
+- PodDisruptionBudget for cluster maintenance
+- Pod Security Standards (privileged / baseline / restricted)
+- PriorityClass and preemption
+- Multi-failure chaos: combine all concepts
+
+───────────────────────────────────────────────────────────────────
+LEVELS
+───────────────────────────────────────────────────────────────────
+
+LEVEL 1 — rbac-permission  (level-1-rbac-permission)
+  Name        : "Forbidden!"
+  Difficulty  : advanced
+  XP          : 300
+  Description : App pod crashes with "pods is forbidden: User 'system:serviceaccount:
+                k8smissions:app-sa' cannot list resource 'pods'". ServiceAccount
+                exists but has no Role/RoleBinding.
+  Broken state: ServiceAccount app-sa exists with no permissions
+  Fix         : Create Role (verbs: get, list, watch on pods) + RoleBinding
+  Concepts    : RBAC, Role, RoleBinding, ServiceAccount, least privilege
+  Debrief     : ClusterRole vs Role, why default SA should have no permissions
+
+LEVEL 2 — securitycontext  (level-2-securitycontext)
+  Name        : "Running as Root"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : Security scanner flags the pod — container runs as root (uid 0).
+                Policy requires non-root. Pod fails with
+                "container has runAsNonRoot and image will run as root".
+  Broken state: No securityContext set; image defaults to root
+  Fix         : Add securityContext: runAsNonRoot: true, runAsUser: 1000,
+                allowPrivilegeEscalation: false
+  Concepts    : SecurityContext, runAsNonRoot, runAsUser, privilege escalation,
+                CIS Kubernetes Benchmark
+
+LEVEL 3 — resourcequota  (level-3-resourcequota)
+  Name        : "Quota Exceeded"
+  Difficulty  : advanced
+  XP          : 300
+  Description : Namespace has ResourceQuota: max 2 CPU / 4Gi memory.
+                Three pods each request 1 CPU. Third pod can't schedule.
+  Broken state: 3 pods × 1 CPU = 3 CPU > quota of 2 CPU
+  Fix         : Reduce CPU request per pod to 600m OR delete unused pods
+                OR request quota increase (update ResourceQuota)
+  Concepts    : ResourceQuota, LimitRange, requests.cpu, requests.memory,
+                namespace-level governance
+
+LEVEL 4 — networkpolicy-security  (level-4-networkpolicy-security)
+  Name        : "Locked Down Too Hard"
+  Difficulty  : advanced
+  XP          : 350
+  Description : Security team applied default-deny-all NetworkPolicy.
+                Frontend → backend → database chain all broken.
+  Broken state: NetworkPolicy denies all ingress/egress
+  Fix         : Add specific allow rules:
+                - frontend → backend on port 8080
+                - backend → database on port 5432
+  Concepts    : NetworkPolicy default-deny, ingress/egress, podSelector,
+                namespaceSelector, port-specific rules, defense in depth
+
+LEVEL 5 — node-affinity  (level-5-node-affinity)
+  Name        : "Node Affinity Mismatch"
+  Difficulty  : advanced
+  XP          : 300
+  Description : Pod requires nodeAffinity for node with label zone=gpu-zone.
+                No nodes have that label. Pod stuck in Pending.
+  Broken state: nodeAffinity.required: zone: gpu-zone (no such label on nodes)
+  Fix         : Either remove affinity OR label a node:
+                kubectl label node <name> zone=gpu-zone
+  Concepts    : requiredDuringSchedulingIgnoredDuringExecution,
+                preferredDuringScheduling, labelSelector, matchExpressions
+
+LEVEL 6 — taints-tolerations  (level-6-taints-tolerations)
+  Name        : "Tainted Nodes"
+  Difficulty  : advanced
+  XP          : 350
+  Description : All nodes tainted dedicated=gpu:NoSchedule. Regular
+                app pods have no toleration — stuck in Pending.
+  Broken state: Pod spec has no tolerations
+  Fix         : Add tolerations: [{key: dedicated, operator: Equal,
+                value: gpu, effect: NoSchedule}]
+  Concepts    : Taints (NoSchedule, PreferNoSchedule, NoExecute),
+                tolerations, taint-based eviction, node pools
+
+LEVEL 7 — poddisruptionbudget  (level-7-poddisruptionbudget)
+  Name        : "PDB Blocks Node Drain"
+  Difficulty  : advanced
+  XP          : 300
+  Description : PDB minAvailable: 3, Deployment replicas: 2.
+                Node drain fails because it can't evict pods safely.
+  Broken state: PDB minAvailable: 3 > actual replicas 2
+  Fix         : Change PDB minAvailable: 1  OR scale Deployment to 4+
+  Concepts    : PodDisruptionBudget, voluntary disruption, cluster upgrades,
+                kubectl drain --ignore-daemonsets
+
+LEVEL 8 — pod-security  (level-8-pod-security)
+  Name        : "Restricted Policy Violation"
+  Difficulty  : advanced
+  XP          : 350
+  Description : Namespace enforces Pod Security Standard "restricted".
+                Pod runs as root with privileged: true. Rejected.
+  Broken state: securityContext.runAsUser: 0, privileged: true
+  Fix         : securityContext: runAsNonRoot: true, runAsUser: 1000,
+                allowPrivilegeEscalation: false, seccompProfile: RuntimeDefault
+  Concepts    : Pod Security Standards (PSS): privileged/baseline/restricted,
+                Pod Security Admission (PSA), namespace labels
+
+LEVEL 9 — priorityclass  (level-9-priorityclass)
+  Name        : "Critical Pods Can't Schedule"
+  Difficulty  : advanced
+  XP          : 300
+  Description : Cluster at capacity with low-priority dev pods.
+                Critical API pod can't schedule (Insufficient CPU).
+  Broken state: No PriorityClass assigned to critical pod
+  Fix         : Create PriorityClass "high-priority" (value: 1000000)
+                and assign to critical pod spec
+  Concepts    : PriorityClass, preemption, pod priority values,
+                PriorityClass.globalDefault, scheduling order
+
+LEVEL 10 — chaos-finale  (level-10-chaos-finale)
+  Name        : "CHAOS FINALE: The Perfect Storm"
+  Difficulty  : expert
+  XP          : 500
+  Description : Production emergency! Multiple simultaneous failures.
+                All issues from World 5 combined into one scenario:
+                1. RBAC: app-sa missing RoleBinding
+                2. SecurityContext: running as root
+                3. ResourceQuota: limit exceeded
+                4. NetworkPolicy: database unreachable
+                5. Node Affinity: wrong label selector
+                6. Taints: missing toleration
+                7. PDB: blocking drain
+                8. Pod Security: restricted violation
+                9. PriorityClass: critical pod stuck behind dev pods
+  Fix         : Systematically fix all 9 issues (checklist provided in hints)
+  Concepts    : All World 5 concepts combined, incident response workflow,
+                priority triaging in production
+
+═══════════════════════════════
+  TOTAL WORLD 5 XP: 3,150
+═══════════════════════════════

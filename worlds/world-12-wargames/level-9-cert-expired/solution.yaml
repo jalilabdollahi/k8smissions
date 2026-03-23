@@ -1,0 +1,16 @@
+{
+  "apiVersion": "v1",
+  "kind": "Secret",
+  "metadata": {
+    "name": "cluster-cert-status",
+    "namespace": "k8smissions",
+    "annotations": {
+      "cert-status": "valid",
+      "expiry": "2027-01-01"
+    }
+  },
+  "type": "Opaque",
+  "stringData": {
+    "status": "valid"
+  }
+}

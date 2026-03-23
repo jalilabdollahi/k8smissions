@@ -1,0 +1,2 @@
+Run: kubectl get catalogsource -n olm
+List all available CatalogSources and find the right name.

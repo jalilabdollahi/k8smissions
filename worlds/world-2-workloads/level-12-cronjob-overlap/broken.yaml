@@ -1,0 +1,32 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "CronJob",
+  "metadata": {
+    "name": "data-processor",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "schedule": "* * * * *",
+    "concurrencyPolicy": "Allow",
+    "jobTemplate": {
+      "spec": {
+        "template": {
+          "spec": {
+            "restartPolicy": "Never",
+            "containers": [
+              {
+                "name": "processor",
+                "image": "busybox:1.36",
+                "command": [
+                  "/bin/sh",
+                  "-c",
+                  "sleep 120"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

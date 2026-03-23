@@ -1,0 +1,2 @@
+Kubernetes supports multiple schedulers. To use a custom scheduler, set spec.schedulerName.
+Without it, the default-scheduler handles all pods.

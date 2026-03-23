@@ -1,0 +1,1 @@
+Start with: DB_HOST=backend-svc (missing namespace in DNS name)

@@ -1,0 +1,17 @@
+{
+  "name": "Deployment Stuck",
+  "description": "A rolling deployment is completely blocked \u2014 no pods can be rotated even though the cluster has capacity.",
+  "objective": "The PodDisruptionBudget requires all 3 pods available at all times \u2014 relax it to allow one disruption",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "PodDisruptionBudget",
+    "PDB",
+    "minAvailable",
+    "maxUnavailable",
+    "rolling update"
+  ],
+  "world": "world-11-performance",
+  "level": "level-7-pdb-too-strict"
+}

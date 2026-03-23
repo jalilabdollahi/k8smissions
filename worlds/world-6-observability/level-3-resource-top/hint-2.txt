@@ -1,0 +1,1 @@
+Goal state: Use kubectl top pods to identify the culprit Add resources.limits.cpu: "200m" to the greedy pod

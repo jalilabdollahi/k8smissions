@@ -1,0 +1,4 @@
+Fix the pod's memory limit to a realistic value:
+  limits:
+    memory: 128Mi
+Also fix the command — allocating 1GB of zeros is the direct cause of pressure.

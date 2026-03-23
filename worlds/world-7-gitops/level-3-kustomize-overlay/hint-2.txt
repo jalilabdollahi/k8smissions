@@ -1,0 +1,1 @@
+Goal state: kubectl delete -k overlays/production kubectl apply -k overlays/staging

@@ -1,0 +1,1 @@
+Goal state: Set image.tag: "1.2.3" in values.yaml helm upgrade myapp ./charts/myapp -n k8smissions

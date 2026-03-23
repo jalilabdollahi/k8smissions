@@ -1,0 +1,9 @@
+Add an egress rule allowing UDP/TCP port 53:
+  egress:
+  - ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  - to:
+    - podSelector: {}

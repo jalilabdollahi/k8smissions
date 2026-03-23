@@ -1,0 +1,1 @@
+Check what pods exist in the namespace — something that should be there is missing.

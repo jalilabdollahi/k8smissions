@@ -1,0 +1,1 @@
+kubectl get deployments -n k8smissions — look for READY 0/0

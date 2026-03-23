@@ -1,0 +1,16 @@
+{
+  "name": "Zombie Pod",
+  "description": "A pod reports Running but its process is a zombie. The container thinks it's running but the app is completely unresponsive.",
+  "objective": "The pod is Running but has no readiness probe \u2014 add a readiness probe so Kubernetes can detect the zombie and stop routing traffic to it",
+  "xp": 350,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "zombie processes",
+    "readiness probes",
+    "container runtime",
+    "PID 1"
+  ],
+  "world": "world-12-wargames",
+  "level": "level-15-zombie-process"
+}

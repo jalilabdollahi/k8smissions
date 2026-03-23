@@ -1,0 +1,2 @@
+A Pipeline declares workspaces that Tasks use to share data.
+A PipelineRun must bind each workspace to an actual volume source.

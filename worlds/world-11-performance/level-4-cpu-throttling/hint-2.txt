@@ -1,0 +1,2 @@
+CPU throttling: when a container hits its CPU limit, Linux CFS (Completely Fair Scheduler) bandwidth control kicks in.
+It suspends the container for the rest of the 100ms scheduling period — causing latency spikes in P99 measurements.

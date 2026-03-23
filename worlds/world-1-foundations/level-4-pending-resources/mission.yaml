@@ -1,0 +1,16 @@
+{
+  "name": "Too Greedy",
+  "description": "Pod has been submitted but remains in Pending state with no node assigned.",
+  "objective": "The CPU request is set to an impossibly high value no node can satisfy \u2014 reduce it to something schedulable",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "10m",
+  "concepts": [
+    "resource requests",
+    "resource limits",
+    "scheduling",
+    "millicores"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-4-pending-resources"
+}

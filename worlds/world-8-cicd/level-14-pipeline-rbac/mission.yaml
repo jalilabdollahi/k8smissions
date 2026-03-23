@@ -1,0 +1,17 @@
+{
+  "name": "Pipeline Locked Out",
+  "description": "A CI pipeline ServiceAccount cannot create PipelineRuns \u2014 it lacks permission to manage Tekton resources.",
+  "objective": "The pipeline SA needs RBAC to create PipelineRuns and TaskRuns \u2014 add the required Role and RoleBinding",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "Tekton",
+    "RBAC",
+    "ServiceAccount",
+    "PipelineRun",
+    "tekton resources"
+  ],
+  "world": "world-8-cicd",
+  "level": "level-14-pipeline-rbac"
+}

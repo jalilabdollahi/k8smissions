@@ -1,0 +1,1 @@
+Goal state: kubectl exec -it <pod> -- /bin/sh cat /app/config.json → find wrong DB_HOST value Patch the ConfigMap and restart pod

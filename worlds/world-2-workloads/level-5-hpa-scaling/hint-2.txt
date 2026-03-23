@@ -1,0 +1,1 @@
+Goal state: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/... (or bundled metrics-server manifest in level folder)

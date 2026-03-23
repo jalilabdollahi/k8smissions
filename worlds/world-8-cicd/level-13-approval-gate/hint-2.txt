@@ -1,0 +1,3 @@
+The Task is polling for an approval file. You can either:
+1. Create the approval file inside the pod
+2. Override by patching the annotation and fixing the script

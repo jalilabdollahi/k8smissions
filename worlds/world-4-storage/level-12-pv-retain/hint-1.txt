@@ -1,0 +1,2 @@
+Run: kubectl get pv db-data-pv -o yaml | grep reclaimPolicy
+Delete means the PV (and its data) is removed when the PVC is deleted.

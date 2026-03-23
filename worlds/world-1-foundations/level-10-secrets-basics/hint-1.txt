@@ -1,0 +1,1 @@
+kubectl describe pod secret-pod -n k8smissions

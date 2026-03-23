@@ -1,0 +1,6 @@
+Create the role:
+  kubectl create role tekton-run-role -n k8smissions \
+    --verb=create,get,list,watch \
+    --resource=pipelineruns.tekton.dev,taskruns.tekton.dev
+  kubectl create rolebinding tekton-run-rb -n k8smissions \
+    --role=tekton-run-role --serviceaccount=k8smissions:trigger-sa

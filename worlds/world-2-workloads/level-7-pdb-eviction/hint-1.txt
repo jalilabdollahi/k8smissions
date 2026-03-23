@@ -1,0 +1,1 @@
+Start with: PDB minAvailable: 5, Deployment replicas: 2

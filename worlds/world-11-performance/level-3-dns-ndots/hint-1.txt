@@ -1,0 +1,2 @@
+Run: kubectl exec dns-heavy-app -n k8smissions -- cat /etc/resolv.conf
+Note the 'search' and 'ndots' lines. Default ndots is 5.

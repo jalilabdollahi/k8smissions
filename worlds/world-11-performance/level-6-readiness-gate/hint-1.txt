@@ -1,0 +1,2 @@
+Run: kubectl rollout status deployment/java-app -n k8smissions
+Watch pods becoming ready during rollout — are they immediately marked ready?

@@ -1,0 +1,28 @@
+{
+  "apiVersion": "v1",
+  "kind": "Namespace",
+  "metadata": {
+    "name": "zombie-ns",
+    "finalizers": [
+      "kubernetes"
+    ]
+  },
+  "status": {
+    "phase": "Terminating"
+  }
+}
+---
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "stuck-resource",
+    "namespace": "zombie-ns",
+    "finalizers": [
+      "some.controller.io/cleanup"
+    ]
+  },
+  "data": {
+    "key": "value"
+  }
+}

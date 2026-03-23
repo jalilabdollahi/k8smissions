@@ -1,0 +1,1 @@
+Goal state: Add lifecycle.preStop: exec sleep 15 Set terminationGracePeriodSeconds: 60

@@ -1,0 +1,1 @@
+Goal state: Add ingress rule allowing traffic from frontend pod selector

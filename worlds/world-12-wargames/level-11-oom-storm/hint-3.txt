@@ -1,0 +1,1 @@
+Patch all three: kubectl set resources deployment svc-alpha svc-beta svc-gamma --limits=memory=256Mi -n k8smissions

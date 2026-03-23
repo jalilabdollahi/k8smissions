@@ -1,0 +1,2 @@
+Run: kubectl create pod test --image=nginx --dry-run=server -n k8smissions 2>&1
+If you see 'x509: certificate signed by unknown authority', the webhook TLS setup is broken.

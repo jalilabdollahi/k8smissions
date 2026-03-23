@@ -1,0 +1,3 @@
+RollingUpdate requires either maxSurge > 0 OR maxUnavailable > 0.
+maxSurge=0 means no new pods above replicas count. maxUnavailable=0 means no pods can go down.
+Both zero means there is no room for any change.

@@ -1,0 +1,28 @@
+{
+  "apiVersion": "networking.istio.io/v1beta1",
+  "kind": "VirtualService",
+  "metadata": {
+    "name": "backend-vs",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "hosts": [
+      "backend.k8smissions.svc.cluster.local"
+    ],
+    "http": [
+      {
+        "timeout": "15s",
+        "route": [
+          {
+            "destination": {
+              "host": "backend.k8smissions.svc.cluster.local",
+              "port": {
+                "number": 8080
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

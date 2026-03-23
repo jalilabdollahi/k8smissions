@@ -1,0 +1,2 @@
+Run: kubectl logs -n operators deployment/my-operator | tail -20
+Panic messages with 'nil pointer' or 'no kind is registered for the type'.

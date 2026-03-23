@@ -1,0 +1,2 @@
+Run: kubectl get application my-app -n argocd -o yaml | grep selfHeal
+If selfHeal: true, any manual kubectl change will be reverted by ArgoCD within minutes.

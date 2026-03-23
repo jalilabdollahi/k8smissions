@@ -1,0 +1,17 @@
+{
+  "name": "Hot Node",
+  "description": "One node is running 80% of all pods while other nodes are mostly empty \u2014 the cluster is severely imbalanced.",
+  "objective": "Configure the Descheduler policy to evict pods from overloaded nodes and allow rebalancing",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "Descheduler",
+    "LowNodeUtilization",
+    "pod eviction",
+    "rebalancing",
+    "cluster efficiency"
+  ],
+  "world": "world-9-scheduling",
+  "level": "level-9-descheduler-config"
+}

@@ -1,0 +1,2 @@
+Run: kubectl exec config-reader -n k8smissions -- ls /config/
+You should see both app.properties and logging.properties — if one is missing, check the volume definition.

@@ -1,0 +1,2 @@
+Run: kubectl get endpoints web-svc -n k8smissions
+If ENDPOINTS shows <none>, the Service has no healthy backends — check pod readiness and port matching.

@@ -1,0 +1,17 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "Task",
+  "metadata": {
+    "name": "run-tests",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "steps": [
+      {
+        "name": "test",
+        "image": "busybox:1.36",
+        "script": "#!/bin/sh\necho 'all tests passed'\nexit 0"
+      }
+    ]
+  }
+}

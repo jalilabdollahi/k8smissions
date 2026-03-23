@@ -1,0 +1,1 @@
+kubectl describe pod nodeselector-pod -n k8smissions

@@ -1,0 +1,1 @@
+echo -n 'mypassword' | base64  → use in secret data field

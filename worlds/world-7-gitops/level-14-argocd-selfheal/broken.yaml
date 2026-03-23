@@ -1,0 +1,29 @@
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "Application",
+  "metadata": {
+    "name": "my-app",
+    "namespace": "argocd"
+  },
+  "spec": {
+    "project": "default",
+    "source": {
+      "repoURL": "https://github.com/example/gitops-repo",
+      "targetRevision": "HEAD",
+      "path": "charts/my-app"
+    },
+    "destination": {
+      "server": "https://kubernetes.default.svc",
+      "namespace": "k8smissions"
+    },
+    "syncPolicy": {
+      "automated": {
+        "selfHeal": true,
+        "prune": true
+      },
+      "syncOptions": [
+        "CreateNamespace=true"
+      ]
+    }
+  }
+}

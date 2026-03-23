@@ -1,0 +1,1 @@
+List NetworkPolicies — there's a deny-all that blocks everything including required service traffic.

@@ -1,0 +1,3 @@
+A pause step with no duration waits forever for manual promotion.
+Run: kubectl argo rollouts promote api-rollout -n k8smissions
+Or fix the pause step to have a time duration.

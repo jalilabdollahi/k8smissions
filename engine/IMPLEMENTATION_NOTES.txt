@@ -1,0 +1,171 @@
+═══════════════════════════════════════════════════════════════════
+  ENGINE IMPLEMENTATION NOTES
+  For AI implementation of: engine/engine.py and supporting files
+═══════════════════════════════════════════════════════════════════
+
+GAME NAME     : K8sMissions
+CLUSTER NAME  : k8smissions
+NAMESPACE     : k8smissions
+PYTHON ENTRY  : engine/engine.py
+SAVE FILE     : progress.json (repo root)
+DEPS          : rich>=13.0.0, pyyaml>=6.0
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  FILES TO BUILD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+engine/
+  engine.py          ← Main game loop (see spec below)
+  ui.py              ← Mission Control UI (terminal theme — see spec)
+  safety.py          ← kubectl command safety guard 
+  reset.py           ← Re-apply broken.yaml for current level
+  certificate.py     ← World completion certificate generator
+  player.py          ← Player name prompt and persistence
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  UI THEME: "MISSION CONTROL"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Design Principles:
+  - Clean, professional terminal UI — NOT retro arcade, NOT ASCII art spaceships
+  - Inspired by NASA mission control / SRE runbook dashboards
+  - Uses rich Panel, Table, Progress, Rule, Columns, Markdown
+  - Color palette:
+      Primary   : bright_cyan      (headers, world names)
+      Success   : bright_green     (pass, complete, XP earned)
+      Warning   : bright_yellow    (hints, warnings)
+      Danger    : bright_red       (errors, broken state, alerts)
+      Neutral   : white / grey70   (body text, separator lines)
+      Accent    : bright_magenta   (player name, XP totals)
+  - No ASCII sprites or pixel art
+
+Welcome Screen:
+  ┌─────────────────────────────────────────────────┐
+  │         K8S MISSIONS — MISSION CONTROL          │
+  │         ─────────────────────────────           │
+  │   75 challenges. 7 worlds. Real Kubernetes.     │
+  │                                                 │
+  │   Agent: <player_name>    XP: 0 / 19,000        │
+  └─────────────────────────────────────────────────┘
+  Use rich.Panel with style="bright_cyan"
+
+Mission Briefing (shown at start of each level):
+  ┌─── MISSION BRIEFING ─────────────────────────────────────────┐
+  │  World 1 • Level 3        [★★☆☆☆] Beginner    Est: 5m        │
+  │  ──────────────────────────────────────────────────────────  │
+  │  NAME: Image Not Found                                       │
+  │  ──────────────────────────────────────────────────────────  │
+  │  SITUATION: A pod is stuck in ImagePullBackOff...            │
+  │  OBJECTIVE: Fix the image reference so the pod can start     │
+  │  XP REWARD: +100 XP                                          │
+  │  CONCEPTS:  ImagePullBackOff • image registry • tags         │
+  └──────────────────────────────────────────────────────────────┘
+
+Victory Screen (level complete):
+  ╔══════════════════════════════════════╗
+  ║   ✅  MISSION ACCOMPLISHED           ║
+  ║   World 1 • Level 3 Complete!        ║
+  ║   XP Earned: +100  │  Total: 200     ║
+  ╚══════════════════════════════════════╝
+  Use rich Panel with style="bright_green", border_style="green"
+
+World Complete Screen:
+  Show a "certificate" panel with world name, player name, date,
+  total XP earned in the world. Use box.DOUBLE_EDGE border.
+
+Progress Bar (shown in welcome / between levels):
+  World 1 ████████████░░░░ 8/15   [1,050 / 2,050 XP]
+  Use rich.progress.Progress or manual progress bar chars
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  engine.py — MAIN GAME LOOP SPEC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Startup sequence:
+  1. Load progress.json
+  2. If player_name == "" → prompt for name, save
+  3. Show welcome screen
+  4. Show current world/level briefing
+  5. Apply broken.yaml via kubectl (kubectl apply -f broken.yaml -n k8smissions)
+  6. Enter COMMAND LOOP
+
+COMMAND LOOP — accepted inputs:
+  check         → Run validate.sh; show PASS/FAIL with rich output
+                  On PASS: award XP, save progress, advance level
+  hint          → Show progressive hints (hint-1 → hint-2 → hint-3)
+                  Each call reveals next hint
+  guide         → Show full walkthrough (solution-guide.md if exists,
+                  else show solution.yaml contents with explanations)
+  reset         → Delete k8smissions namespace, recreate, re-apply broken.yaml
+  debrief       → Show debrief.md (paginated, press any key to scroll)
+  status        → Show player XP progress bar across all worlds
+  kubectl <cmd> → Pass through to kubectl after safety check
+  skip          → Mark level complete (no XP), advance to next
+  quit / exit   → Save progress and exit gracefully
+
+Safety guard:
+  Block:  delete namespace kube-system, delete nodes, delete CRDs, --all-namespaces delete
+  Warn:   delete namespace k8smissions, delete --all, delete PV
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PER-LEVEL FILE STRUCTURE (must match this exactly)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+worlds/<world-name>/<level-name>/
+  mission.yaml         ← Level metadata (REQUIRED)
+  broken.yaml          ← Broken Kubernetes manifest (REQUIRED)
+  solution.yaml        ← Correct fixed manifest (REQUIRED)
+  validate.sh          ← Bash validation script (REQUIRED)
+  hint-1.txt           ← Vague first hint (REQUIRED)
+  hint-2.txt           ← More specific hint (REQUIRED)
+  hint-3.txt           ← Near-answer hint (REQUIRED)
+  debrief.md           ← Post-fix lesson (REQUIRED)
+  common-mistakes.md   ← Typical errors (OPTIONAL)
+
+mission.yaml schema:
+  name: "Human-readable level name"
+  description: "One paragraph describing the broken scenario"
+  objective: "What success looks like"
+  xp: <integer>
+  difficulty: beginner | intermediate | advanced | expert
+  expected_time: "Xm"
+  concepts:
+    - concept-1
+    - concept-2
+  world: <world-directory-name>
+  level: <level-directory-name>
+
+validate.sh:
+  - Must be executable (chmod +x)
+  - Exit code 0 = PASS, exit code 1 = FAIL
+  - Should print human-readable status messages
+  - Must reference namespace k8smissions
+  - Template:
+      #!/bin/bash
+      NS="k8smissions"
+      echo "Checking..."
+      STATUS=$(kubectl get pod <name> -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null)
+      if [ "$STATUS" = "Running" ]; then
+        echo "✅ PASS: Pod is Running"
+        exit 0
+      else
+        echo "❌ FAIL: Pod status is '$STATUS'"
+        exit 1
+      fi
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  WORLD ORDER & DIRECTORY MAPPING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+worlds/
+  world-1-foundations/    15 levels  2,050 XP  beginner→intermediate
+  world-2-workloads/      10 levels  2,050 XP  intermediate→advanced
+  world-3-networking/     10 levels  2,350 XP  intermediate
+  world-4-storage/        10 levels  2,450 XP  intermediate→advanced
+  world-5-security/       10 levels  3,150 XP  advanced→expert
+  world-6-observability/  10 levels  2,900 XP  advanced        ← NEW
+  world-7-gitops/         10 levels  4,050 XP  expert          ← NEW
+                         ──────────────────────
+  TOTAL                   75 levels  19,000 XP
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

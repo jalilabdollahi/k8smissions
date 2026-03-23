@@ -1,0 +1,1 @@
+Start with: livenessProbe.httpGet.path: /api/v1/ready (slow endpoint)

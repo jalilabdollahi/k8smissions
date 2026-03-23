@@ -1,0 +1,3 @@
+Cancel the stuck run and create a new one with auto-approve:
+  kubectl delete taskrun approval-gate -n k8smissions
+Then recreate with the override script that exits 0.

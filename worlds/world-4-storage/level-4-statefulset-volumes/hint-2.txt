@@ -1,0 +1,1 @@
+Goal state: Remove the shared PVC reference, add volumeClaimTemplates so Kubernetes creates one PVC per pod automatically

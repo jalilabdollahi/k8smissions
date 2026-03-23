@@ -1,0 +1,5 @@
+Patch the annotations:
+  kubectl annotate pod metrics-app -n k8smissions \
+    prometheus.io/scrape=true \
+    prometheus.io/port=9090 \
+    prometheus.io/path=/metrics

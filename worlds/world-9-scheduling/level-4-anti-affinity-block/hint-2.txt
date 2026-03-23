@@ -1,0 +1,3 @@
+Run: kubectl describe pod <pending-pod> -n k8smissions
+requiredDuringScheduling antiAffinity means each pod MUST be on a different node.
+3 pods, 2 nodes = 1 pod always Pending.

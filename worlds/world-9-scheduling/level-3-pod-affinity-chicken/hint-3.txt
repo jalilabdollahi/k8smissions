@@ -1,0 +1,9 @@
+Change to preferredDuringSchedulingIgnoredDuringExecution:
+  podAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchLabels:
+            tier: cache
+        topologyKey: kubernetes.io/hostname

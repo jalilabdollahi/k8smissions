@@ -1,0 +1,1 @@
+Validation target: Pods show Ready 1/1 only after startup; no 502s during rollout

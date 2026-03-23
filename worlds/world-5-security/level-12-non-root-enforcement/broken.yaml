@@ -1,0 +1,21 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "insecure-pod",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "app",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "id; sleep 3600"
+        ]
+      }
+    ]
+  }
+}

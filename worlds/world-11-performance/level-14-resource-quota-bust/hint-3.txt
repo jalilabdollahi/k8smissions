@@ -1,0 +1,5 @@
+Option 1: Increase the quota for the namespace:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+Option 2: Reduce over-provisioned requests in existing pods

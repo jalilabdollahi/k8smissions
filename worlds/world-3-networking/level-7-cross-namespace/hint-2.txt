@@ -1,0 +1,1 @@
+Goal state: DB_HOST=backend-svc.backend-ns.svc.cluster.local

@@ -1,0 +1,3 @@
+The Ingress references 'app-serv' but the Service is named 'app-service'.
+Fix: kubectl edit ingress app-ingress -n k8smissions
+Change spec.rules[0].http.paths[0].backend.service.name to: app-service

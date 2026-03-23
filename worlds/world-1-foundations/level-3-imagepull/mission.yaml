@@ -1,0 +1,16 @@
+{
+  "name": "Image Not Found",
+  "description": "Pod is stuck in ImagePullBackOff and cannot start.",
+  "objective": "The image name contains a typo that prevents Kubernetes from pulling it \u2014 correct the image reference",
+  "xp": 100,
+  "difficulty": "beginner",
+  "expected_time": "5m",
+  "concepts": [
+    "ImagePullBackOff",
+    "ErrImagePull",
+    "image registry",
+    "tags"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-3-imagepull"
+}

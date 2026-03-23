@@ -1,0 +1,7 @@
+Create and attach registry credentials:
+  kubectl create secret docker-registry registry-creds \
+    --docker-server=registry.example.com \
+    --docker-username=ci-user \
+    --docker-password=TOKEN \
+    -n k8smissions
+  kubectl patch sa ci-sa -n k8smissions -p '{"secrets":[{"name":"registry-creds"}]}'

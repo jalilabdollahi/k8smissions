@@ -1,0 +1,17 @@
+{
+  "name": "Running as Root",
+  "description": "A pod fails to start and shows a policy violation error.",
+  "objective": "The container runs as root, violating the namespace policy \u2014 add a securityContext to run as a non-root user",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "SecurityContext",
+    "runAsNonRoot",
+    "runAsUser",
+    "privilege escalation",
+    "CIS Kubernetes Benchmark"
+  ],
+  "world": "world-5-security",
+  "level": "level-2-securitycontext"
+}

@@ -1,0 +1,1 @@
+Start with: Service has clusterIP: (auto-assigned)

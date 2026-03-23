@@ -1,0 +1,2 @@
+Run: kubectl get taskrun push-image-run -n k8smissions
+Check logs for 'unauthorized' from the registry.

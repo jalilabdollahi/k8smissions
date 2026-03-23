@@ -1,0 +1,41 @@
+{
+  "apiVersion": "admissionregistration.k8s.io/v1",
+  "kind": "MutatingWebhookConfiguration",
+  "metadata": {
+    "name": "pod-annotations-injector"
+  },
+  "webhooks": [
+    {
+      "name": "inject.example.com",
+      "admissionReviewVersions": [
+        "v1"
+      ],
+      "clientConfig": {
+        "service": {
+          "name": "webhook-service",
+          "namespace": "operators",
+          "port": 443
+        },
+        "caBundle": "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk9MREVSVE0K"
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": [
+            "v1"
+          ],
+          "operations": [
+            "CREATE"
+          ],
+          "resources": [
+            "pods"
+          ]
+        }
+      ],
+      "failurePolicy": "Fail",
+      "sideEffects": "None"
+    }
+  ]
+}

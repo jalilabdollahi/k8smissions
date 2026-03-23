@@ -1,0 +1,50 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "app-config",
+    "namespace": "k8smissions"
+  },
+  "data": {
+    "APP_MODE": "production"
+  }
+}
+---
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "configmap-pod",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "configmap-pod"
+    }
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "configmap-pod",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "sleep 3600"
+        ],
+        "volumeMounts": [
+          {
+            "name": "config",
+            "mountPath": "/etc/app"
+          }
+        ]
+      }
+    ],
+    "volumes": [
+      {
+        "name": "config",
+        "configMap": {
+          "name": "app-config"
+        }
+      }
+    ]
+  }
+}

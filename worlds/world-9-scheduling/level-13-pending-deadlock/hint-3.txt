@@ -1,0 +1,4 @@
+Change failurePolicy to Ignore:
+  kubectl patch validatingwebhookconfiguration strict-validator \
+    -p '{"webhooks":[{"name":"validate.example.com","failurePolicy":"Ignore"}]}'
+Or delete the webhook temporarily: kubectl delete validatingwebhookconfiguration strict-validator

@@ -1,0 +1,2 @@
+Run: kubectl describe pod -n k8smissions -l app=slo-app | grep -A5 Liveness
+failureThreshold: 10 means the probe fails 10 times before restarting the pod (100s of downtime).

@@ -1,0 +1,3 @@
+Fix the source field to match an existing CatalogSource:
+  spec:
+    source: operatorhub  # match the name from 'kubectl get catalogsource -n olm'

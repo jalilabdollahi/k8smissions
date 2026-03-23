@@ -1,0 +1,4 @@
+Change to Cluster:
+  kubectl patch svc nodeport-svc -n k8smissions \
+    -p '{"spec":{"externalTrafficPolicy":"Cluster"}}'
+This allows kube-proxy to forward to any pod across any node.

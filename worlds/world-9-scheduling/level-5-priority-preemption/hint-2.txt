@@ -1,0 +1,2 @@
+PriorityClass defines a pod's importance. Higher priority pods preempt (evict) lower priority pods when resources are tight.
+The critical pod uses low-priority — it waits behind everything else.

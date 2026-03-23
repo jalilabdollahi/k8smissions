@@ -1,0 +1,1 @@
+Goal state: Fix Job spec, run in correct order, validate each step

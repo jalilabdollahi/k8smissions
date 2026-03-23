@@ -1,0 +1,1 @@
+Goal state: Update Ingress path to /v1/api  OR add path rewriting annotation

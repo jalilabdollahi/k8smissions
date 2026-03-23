@@ -1,0 +1,1 @@
+Start with: nodeAffinity.required: zone: gpu-zone (no such label on nodes)

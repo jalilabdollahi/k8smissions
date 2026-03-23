@@ -1,0 +1,2 @@
+Run: kubectl get pods -o wide -n k8smissions | awk '{print $7}' | sort | uniq -c
+If one node has many more pods than others, the cluster is imbalanced.

@@ -1,0 +1,1 @@
+Start with: spec.replicas: 0

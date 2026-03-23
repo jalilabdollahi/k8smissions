@@ -1,0 +1,2 @@
+ResourceClaims reference ResourceClasses (similar to PVC→StorageClass).
+If the class doesn't exist, the claim can never be allocated.

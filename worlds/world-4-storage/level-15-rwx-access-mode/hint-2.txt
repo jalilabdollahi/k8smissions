@@ -1,0 +1,2 @@
+To share a PVC across multiple pods on different nodes, you need ReadWriteMany.
+Not all StorageClasses support RWX — check kubectl get storageclass for support.

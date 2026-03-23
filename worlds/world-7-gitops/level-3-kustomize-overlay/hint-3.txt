@@ -1,0 +1,1 @@
+Validation target: Deployment replicas = 2 (staging), not 10 (production)

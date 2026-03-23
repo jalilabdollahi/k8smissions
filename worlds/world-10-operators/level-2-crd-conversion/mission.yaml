@@ -1,0 +1,17 @@
+{
+  "name": "Version Migration",
+  "description": "Custom resources created with v1alpha1 are not visible when querying v1beta1 version.",
+  "objective": "The CRD has two versions but no conversion webhook \u2014 stored v1alpha1 resources won't auto-convert to v1beta1 format",
+  "xp": 375,
+  "difficulty": "advanced",
+  "expected_time": "18m",
+  "concepts": [
+    "CRD versioning",
+    "conversion webhook",
+    "hub version",
+    "storage version",
+    "CRD migration"
+  ],
+  "world": "world-10-operators",
+  "level": "level-2-crd-conversion"
+}

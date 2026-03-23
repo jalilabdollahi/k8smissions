@@ -1,0 +1,7 @@
+Add a toleration with tolerationSeconds:
+  tolerations:
+  - key: maintenance
+    operator: Equal
+    value: draining
+    effect: NoExecute
+    tolerationSeconds: 300

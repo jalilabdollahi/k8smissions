@@ -1,0 +1,40 @@
+{
+  "apiVersion": "admissionregistration.k8s.io/v1",
+  "kind": "ValidatingWebhookConfiguration",
+  "metadata": {
+    "name": "strict-validator"
+  },
+  "webhooks": [
+    {
+      "name": "validate.example.com",
+      "admissionReviewVersions": [
+        "v1"
+      ],
+      "clientConfig": {
+        "service": {
+          "name": "validator-svc",
+          "namespace": "kube-system",
+          "port": 443
+        }
+      },
+      "rules": [
+        {
+          "apiGroups": [
+            ""
+          ],
+          "apiVersions": [
+            "v1"
+          ],
+          "operations": [
+            "CREATE"
+          ],
+          "resources": [
+            "pods"
+          ]
+        }
+      ],
+      "failurePolicy": "Fail",
+      "sideEffects": "None"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+Run: kubectl rollout status deployment/api-server -n k8smissions
+The rollout will be stuck. Check: kubectl get deployment api-server -n k8smissions -o yaml | grep -A5 rollingUpdate

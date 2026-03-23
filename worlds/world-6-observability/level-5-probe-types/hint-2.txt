@@ -1,0 +1,1 @@
+Goal state: Move the slow check to readinessProbe, use a lightweight /healthz for livenessProbe

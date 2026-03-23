@@ -1,0 +1,42 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "my-operator",
+    "namespace": "operators"
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": {
+      "matchLabels": {
+        "app": "my-operator"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "my-operator"
+        }
+      },
+      "spec": {
+        "initContainers": [],
+        "containers": [
+          {
+            "name": "operator",
+            "image": "my-operator:v1.0",
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "64Mi"
+              },
+              "limits": {
+                "cpu": "200m",
+                "memory": "128Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

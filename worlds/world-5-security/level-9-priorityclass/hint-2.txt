@@ -1,0 +1,1 @@
+Goal state: Create PriorityClass "high-priority" (value: 1000000) and assign to critical pod spec

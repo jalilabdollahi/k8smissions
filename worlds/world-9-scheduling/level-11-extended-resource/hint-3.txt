@@ -1,0 +1,4 @@
+Fix the resource name to match the device plugin's registration:
+  resources:
+    limits:
+      company.io/fpga: "1"

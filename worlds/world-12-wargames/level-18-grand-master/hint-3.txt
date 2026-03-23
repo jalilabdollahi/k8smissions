@@ -1,0 +1,1 @@
+Fix order: W8 Secret → W5 RoleBinding → W2 replicas → W1 image → W3 selector → W4 PVC → W7 ConfigMap → W6 probe → W9 memory

@@ -1,0 +1,67 @@
+{
+  "apiVersion": "v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "db-svc",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "selector": {
+      "app": "db"
+    },
+    "ports": [
+      {
+        "port": 3306,
+        "targetPort": 3306
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "apps/v1",
+  "kind": "StatefulSet",
+  "metadata": {
+    "name": "db",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "serviceName": "db-svc",
+    "replicas": 2,
+    "selector": {
+      "matchLabels": {
+        "app": "db"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "db"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "db",
+            "image": "busybox:1.36",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "while true; do sleep 30; done"
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "32Mi"
+              },
+              "limits": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

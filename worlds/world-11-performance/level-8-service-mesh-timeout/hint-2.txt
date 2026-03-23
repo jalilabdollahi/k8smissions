@@ -1,0 +1,2 @@
+Istio VirtualService timeout overrides the default envoy timeout.
+For long-running API calls (file upload, batch processing), 15s is too short.

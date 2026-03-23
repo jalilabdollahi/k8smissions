@@ -1,0 +1,4 @@
+Change reclaimPolicy to Retain:
+  kubectl patch pv db-data-pv \
+    -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+Retain leaves the PV in Released state and you must manually re-bind or clean up.

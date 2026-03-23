@@ -1,0 +1,2 @@
+Run: kubectl get pod ml-pod -n k8smissions -o yaml | grep schedulerName
+The default scheduler is named 'default-scheduler'.

@@ -1,0 +1,2 @@
+Run: kubectl logs logger-app -n k8smissions --tail=10
+If every line says [DEBUG], the verbosity is too high.

@@ -1,0 +1,43 @@
+{
+  "apiVersion": "apiextensions.k8s.io/v1",
+  "kind": "CustomResourceDefinition",
+  "metadata": {
+    "name": "databases.example.com"
+  },
+  "spec": {
+    "group": "example.com",
+    "versions": [
+      {
+        "name": "v1alpha1",
+        "served": true,
+        "storage": false
+      },
+      {
+        "name": "v1beta1",
+        "served": true,
+        "storage": true
+      }
+    ],
+    "conversion": {
+      "strategy": "Webhook",
+      "webhook": {
+        "conversionReviewVersions": [
+          "v1"
+        ],
+        "clientConfig": {
+          "service": {
+            "name": "db-operator-webhook",
+            "namespace": "operators",
+            "port": 443
+          }
+        }
+      }
+    },
+    "scope": "Namespaced",
+    "names": {
+      "plural": "databases",
+      "singular": "database",
+      "kind": "Database"
+    }
+  }
+}

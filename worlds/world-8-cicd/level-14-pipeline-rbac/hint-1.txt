@@ -1,0 +1,3 @@
+Run: kubectl auth can-i create pipelineruns -n k8smissions \
+  --as=system:serviceaccount:k8smissions:trigger-sa
+A Tekton EventListener uses a SA to create PipelineRuns.

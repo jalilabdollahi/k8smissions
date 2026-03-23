@@ -1,0 +1,3 @@
+The pod requests 400m CPU and 400Mi memory.
+The quota only allows 500m CPU total — there is little room for other pods.
+Reduce the pod's requests to cpu: 100m, memory: 100Mi

@@ -1,0 +1,1 @@
+All pods are crashing — check what env vars they expect and compare to the ConfigMap.

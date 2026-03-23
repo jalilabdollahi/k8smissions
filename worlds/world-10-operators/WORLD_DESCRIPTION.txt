@@ -1,0 +1,8 @@
+World 10: Custom Resources & Operators
+=======================================
+Theme: CRDs, custom controllers, admission webhooks, Helm operators, and operator lifecycle.
+The cluster speaks a new language — your job is to teach it and make it listen correctly.
+Debug broken CRDs, misconfigured webhooks, and failing operator reconciliation loops.
+
+XP Range: 300-425 XP per level
+Difficulty: advanced

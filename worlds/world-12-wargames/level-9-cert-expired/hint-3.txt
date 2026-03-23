@@ -1,0 +1,1 @@
+Patch the secret: kubectl patch secret cluster-cert-status -n k8smissions -p '{"metadata":{"annotations":{"cert-status":"valid","expiry":"2027-01-01"}}}'

@@ -1,0 +1,1 @@
+kubectl get configmap leader-election -n k8smissions -o yaml

@@ -1,0 +1,2 @@
+Without a memory limit, a leaky pod can consume all node memory.
+This triggers node-level memory pressure and evicts OTHER pods — a cascading failure.

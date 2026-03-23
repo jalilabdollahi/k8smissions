@@ -1,0 +1,6 @@
+Create a Role with deploy permissions and bind to the SA:
+  kubectl create role deploy-role -n k8smissions \
+    --verb=get,list,create,update,patch,delete \
+    --resource=deployments,services,configmaps
+  kubectl create rolebinding deploy-rb -n k8smissions \
+    --role=deploy-role --serviceaccount=k8smissions:deploy-sa

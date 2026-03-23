@@ -1,0 +1,1 @@
+Goal state: Set PDB minAvailable: 1 OR scale Deployment replicas to 6+

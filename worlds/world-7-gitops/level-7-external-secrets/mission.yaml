@@ -1,0 +1,18 @@
+{
+  "name": "Secrets in Git? Never.",
+  "description": "A security audit has flagged plain-text credentials in the Git repository.",
+  "objective": "Plain-text credentials are committed in Git \u2014 replace the inline Secret with an ExternalSecret managed by ESO",
+  "xp": 500,
+  "difficulty": "expert",
+  "expected_time": "10m",
+  "concepts": [
+    "External Secrets Operator",
+    "SecretStore",
+    "ExternalSecret",
+    "Vault integration",
+    "Sealed Secrets alternative",
+    "secret rotation"
+  ],
+  "world": "world-7-gitops",
+  "level": "level-7-external-secrets"
+}

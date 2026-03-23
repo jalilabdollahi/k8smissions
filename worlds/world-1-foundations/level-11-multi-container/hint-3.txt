@@ -1,0 +1,1 @@
+The log-shipper command references a path that doesn't exist

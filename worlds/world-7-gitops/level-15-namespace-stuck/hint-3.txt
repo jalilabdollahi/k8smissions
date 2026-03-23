@@ -1,0 +1,4 @@
+For each stuck object:
+  kubectl patch <kind> <name> -n zombie-ns \
+    -p '{"metadata":{"finalizers":[]}}' --type=merge
+Once all object finalizers are cleared, the namespace finalizer resolves and deletion completes.

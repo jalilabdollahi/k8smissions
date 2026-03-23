@@ -1,0 +1,1 @@
+Validation target: kubectl top pods -n k8smissions returns CPU/Memory values

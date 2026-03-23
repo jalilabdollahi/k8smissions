@@ -1,0 +1,1 @@
+Create a Pod named db-primary with label app=db, a Service named db-service selecting it, then redeploy the app.

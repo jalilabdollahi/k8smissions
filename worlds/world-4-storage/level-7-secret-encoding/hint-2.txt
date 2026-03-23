@@ -1,0 +1,1 @@
+Goal state: echo "dmFsdWU=" | base64 -d  (show it decodes instantly) Apply Role restricting secret access to specific SA only

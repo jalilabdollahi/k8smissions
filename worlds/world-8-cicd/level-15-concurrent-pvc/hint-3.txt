@@ -1,0 +1,9 @@
+Use volumeClaimTemplate in the PipelineRun for per-run storage:
+  workspaces:
+  - name: source
+    volumeClaimTemplate:
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi

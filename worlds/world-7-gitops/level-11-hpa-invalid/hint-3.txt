@@ -1,0 +1,4 @@
+Fix the values so minReplicas <= maxReplicas:
+  minReplicas: 2
+  maxReplicas: 10
+The Deployment starts at minReplicas and scales up to maxReplicas based on CPU.

@@ -1,0 +1,2 @@
+Run: kubectl get networkpolicy restrictive-policy -n k8smissions -o yaml
+Count ingress and egress rules — iptables evaluates ALL rules for EACH packet.

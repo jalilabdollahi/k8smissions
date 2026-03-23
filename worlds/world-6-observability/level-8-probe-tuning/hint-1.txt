@@ -1,0 +1,1 @@
+Start with: livenessProbe.initialDelaySeconds: 5 (too short)

@@ -1,0 +1,2 @@
+Run: kubectl get pod config-reader -n k8smissions -o yaml | grep -A20 volumes
+When you specify 'items:' in a configMap volume, ONLY the listed keys are mounted — all others are excluded.

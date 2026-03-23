@@ -1,0 +1,2 @@
+requiredDuringScheduling means the affinity MUST be satisfied — it's a hard constraint.
+If no pod with tier:cache exists, NO placement is possible.

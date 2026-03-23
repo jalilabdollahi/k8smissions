@@ -1,0 +1,16 @@
+{
+  "name": "Chicken and Egg",
+  "description": "A new pod is stuck Pending \u2014 it requires affinity to a pod that doesn't exist yet.",
+  "objective": "The podAffinity rule requires a pod with label 'tier: cache' but no such pod exists \u2014 the affinity creates a deadlock. Fix it using preferredDuringScheduling instead",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "podAffinity",
+    "requiredDuringScheduling",
+    "preferredDuringScheduling",
+    "scheduling deadlock"
+  ],
+  "world": "world-9-scheduling",
+  "level": "level-3-pod-affinity-chicken"
+}

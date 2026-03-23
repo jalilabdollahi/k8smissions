@@ -1,0 +1,1 @@
+Validation target: Rolling update completes with at least 1 pod always Running

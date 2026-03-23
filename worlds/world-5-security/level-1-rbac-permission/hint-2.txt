@@ -1,0 +1,1 @@
+Goal state: Create Role (verbs: get, list, watch on pods) + RoleBinding

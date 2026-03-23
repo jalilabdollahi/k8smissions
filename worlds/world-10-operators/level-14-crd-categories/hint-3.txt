@@ -1,0 +1,9 @@
+Add categories and shortNames to the CRD:
+  names:
+    plural: apps
+    singular: app
+    kind: App
+    shortNames:
+    - ap
+    categories:
+    - all

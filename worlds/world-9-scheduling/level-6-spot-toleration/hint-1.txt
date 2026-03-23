@@ -1,0 +1,2 @@
+Run: kubectl get nodes -L node-type,node-lifecycle
+Check which nodes are spot vs on-demand and what taints they have.

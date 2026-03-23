@@ -1,0 +1,2 @@
+Run: kubectl describe task multi-task -n k8smissions
+Look for all problems: non-existent image version, missing defaults.

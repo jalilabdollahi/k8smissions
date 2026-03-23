@@ -1,0 +1,2 @@
+metadata.generation increases each time spec changes. status.observedGeneration should be updated by the controller after processing.
+If they differ, the controller missed or is ignoring the latest change.

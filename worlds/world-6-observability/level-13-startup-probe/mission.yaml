@@ -1,0 +1,16 @@
+{
+  "name": "The Slow Starter",
+  "description": "A Java application pod keeps restarting during container startup \u2014 the app takes 90 seconds to initialize.",
+  "objective": "The liveness probe fires before the app finishes starting \u2014 add a startupProbe to give the app time to boot",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "startupProbe",
+    "liveness probe",
+    "slow start",
+    "initialDelaySeconds"
+  ],
+  "world": "world-6-observability",
+  "level": "level-13-startup-probe"
+}

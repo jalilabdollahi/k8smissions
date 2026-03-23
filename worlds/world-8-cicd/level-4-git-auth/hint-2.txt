@@ -1,0 +1,2 @@
+The git-clone Tekton task uses the ServiceAccount's attached secrets for authentication.
+A Secret of type kubernetes.io/ssh-auth must be created and attached to the SA.

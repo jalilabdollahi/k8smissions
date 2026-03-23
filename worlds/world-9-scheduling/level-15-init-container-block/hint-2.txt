@@ -1,0 +1,2 @@
+Run: kubectl logs init-pod -c db-wait -n k8smissions
+The init container waits for non-existent-db-host which never resolves.

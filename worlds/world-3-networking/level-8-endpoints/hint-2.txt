@@ -1,0 +1,1 @@
+Goal state: Add readinessProbe httpGet /ready port 8080

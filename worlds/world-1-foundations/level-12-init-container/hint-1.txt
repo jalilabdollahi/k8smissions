@@ -1,0 +1,1 @@
+kubectl describe pod init-pod -n k8smissions → Init Containers

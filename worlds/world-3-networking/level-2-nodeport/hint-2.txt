@@ -1,0 +1,1 @@
+Goal state: Set nodePort: 30080 (or remove to let k8s assign)

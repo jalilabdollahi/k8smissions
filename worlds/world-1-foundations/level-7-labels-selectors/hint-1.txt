@@ -1,0 +1,1 @@
+kubectl get endpoints labels-svc -n k8smissions

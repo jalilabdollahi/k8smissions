@@ -1,0 +1,8 @@
+Add names to both Service ports:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443

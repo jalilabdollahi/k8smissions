@@ -1,0 +1,3 @@
+Attach the SSH secret to the ServiceAccount:
+  kubectl patch serviceaccount pipeline-sa -n k8smissions \
+    -p '{"secrets":[{"name":"git-ssh-key"}]}'

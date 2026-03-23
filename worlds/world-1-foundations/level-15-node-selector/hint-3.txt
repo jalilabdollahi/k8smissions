@@ -1,0 +1,1 @@
+Check node labels: kubectl get nodes --show-labels

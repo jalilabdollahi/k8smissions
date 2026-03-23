@@ -1,0 +1,1 @@
+kubectl describe pod hello-pod -n k8smissions

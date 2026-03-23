@@ -1,0 +1,1 @@
+Start with: prod cluster running dev ConfigMap values (LOG_LEVEL=debug, replicas=1, no limits)

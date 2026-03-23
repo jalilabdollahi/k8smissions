@@ -1,0 +1,16 @@
+{
+  "name": "LoadBalancer Stuck Pending",
+  "description": "A Service of type LoadBalancer shows EXTERNAL-IP as <pending> and never receives an IP.",
+  "objective": "A LoadBalancer service has no external IP on a local cluster \u2014 use NodePort or port-forward as the correct local alternative",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Service types",
+    "cloud provider integration",
+    "MetalLB for on-prem",
+    "kind limitations"
+  ],
+  "world": "world-3-networking",
+  "level": "level-9-loadbalancer"
+}

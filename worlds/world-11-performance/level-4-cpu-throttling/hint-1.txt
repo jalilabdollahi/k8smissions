@@ -1,0 +1,2 @@
+Run: kubectl top pods -l app=api-server -n k8smissions
+If CPU usage equals the limit (100m), the pod is being throttled.

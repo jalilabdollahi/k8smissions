@@ -1,0 +1,2 @@
+GitHub push webhook payload uses body.head_commit.id for the commit SHA, not body.commits[0].sha.
+A wrong field reference silently extracts empty string — TriggerTemplate may fail to create PipelineRun.

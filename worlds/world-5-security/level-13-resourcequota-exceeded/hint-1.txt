@@ -1,0 +1,2 @@
+Run: kubectl describe namespace k8smissions | grep -A20 ResourceQuota
+This shows the current usage vs limits.

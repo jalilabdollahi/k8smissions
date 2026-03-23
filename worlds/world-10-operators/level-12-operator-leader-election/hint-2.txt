@@ -1,0 +1,3 @@
+Run: kubectl get lease -n operators
+With leader election enabled, a Lease object tracks the current leader.
+With --leader-elect=false, no Lease exists and all replicas run as active.

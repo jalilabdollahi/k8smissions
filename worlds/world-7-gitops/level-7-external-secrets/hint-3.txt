@@ -1,0 +1,1 @@
+Validation target: Secret exists in cluster but source is ESO, not Git

@@ -1,0 +1,16 @@
+{
+  "name": "Class Not Found",
+  "description": "A pod with a ResourceClaim is stuck Pending \u2014 the dynamic resource allocation request can't be satisfied.",
+  "objective": "The ResourceClaim references a ResourceClass that doesn't exist \u2014 create the ResourceClass or fix the reference",
+  "xp": 375,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "ResourceClaim",
+    "ResourceClass",
+    "Dynamic Resource Allocation",
+    "DRA"
+  ],
+  "world": "world-9-scheduling",
+  "level": "level-16-resource-class"
+}

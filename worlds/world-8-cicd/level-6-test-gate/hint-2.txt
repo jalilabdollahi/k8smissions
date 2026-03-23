@@ -1,0 +1,2 @@
+A Tekton step fails if it exits with a non-zero code.
+The pipeline treats step failure as stage failure and stops execution.

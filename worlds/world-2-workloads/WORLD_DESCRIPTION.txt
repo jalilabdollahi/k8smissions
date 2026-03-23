@@ -1,0 +1,178 @@
+═══════════════════════════════════════════════════════════════════
+  WORLD 2 — WORKLOADS
+  "Deployments, scaling, and keeping apps alive"
+═══════════════════════════════════════════════════════════════════
+
+OVERVIEW
+────────
+World 2 moves from single Pods to production-grade workloads.
+Players work with Deployments, ReplicaSets, StatefulSets, HPA,
+rollouts, PodDisruptionBudgets, and deployment strategies.
+
+This world covers Deployments & Scaling with additional levels and improved explanations.
+
+Difficulty   : Intermediate → Advanced
+Total levels : 10
+Total XP     : 2,050
+Cluster type : kind (local)
+
+SKILLS COVERED
+──────────────
+- Deployment spec: replicas, strategy, selector
+- Rolling updates and rollbacks (kubectl rollout)
+- Liveness and readiness probes
+- HorizontalPodAutoscaler + metrics-server
+- PodDisruptionBudget (minAvailable, maxUnavailable)
+- Blue-green and canary deployment patterns
+- StatefulSet vs Deployment (when to use each)
+- ReplicaSet ownership and Deployment abstraction
+
+───────────────────────────────────────────────────────────────────
+LEVELS
+───────────────────────────────────────────────────────────────────
+
+LEVEL 1 — deployment-replicas  (level-1-deployment-replicas)
+  Name        : "Ghost Deployment"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 8m
+  Description : Deployment exists but has replicas: 0. No pods running.
+  Broken state: spec.replicas: 0
+  Fix         : Set replicas: 3
+  Validate    : 3/3 pods Ready
+  Concepts    : Deployment, replicas, ReplicaSet, desired vs actual state
+  Debrief     : Deployment → ReplicaSet → Pod ownership chain
+
+LEVEL 2 — rollback  (level-2-rollback)
+  Name        : "Bad Update — Roll Back!"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 15m
+  Description : Deployment updated to a non-existent image (nginx:broken-tag).
+                All pods in ImagePullBackOff. Must rollback.
+  Broken state: image: nginx:broken-tag
+  Fix         : kubectl rollout undo deployment/rollback-app -n k8smissions
+  Validate    : All pods Running on previous revision
+  Concepts    : kubectl rollout undo/history/status, deployment revision,
+                annotations
+  Debrief     : Deployment revision history, --to-revision flag, change-cause
+
+LEVEL 3 — liveness-probe  (level-3-liveness-probe)
+  Name        : "The Restart Loop"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 12m
+  Description : Pods keep restarting. Liveness probe hits /healthz but
+                the app only exposes /health (path mismatch).
+  Broken state: livenessProbe.httpGet.path: /healthz
+  Fix         : Change path to /health
+  Validate    : Pods Running, RESTARTS count not increasing
+  Concepts    : livenessProbe, httpGet, tcpSocket, exec, initialDelaySeconds,
+                periodSeconds, failureThreshold
+  Debrief     : When liveness kills vs when it should, probe tuning strategy
+
+LEVEL 4 — readiness-probe  (level-4-readiness-probe)
+  Name        : "Too Eager"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 12m
+  Description : Pods receive traffic immediately on start before they finish
+                initializing, causing 502 errors. No readiness probe defined.
+  Broken state: No readinessProbe on the container spec
+  Fix         : Add readinessProbe httpGet /ready port 8080 with
+                initialDelaySeconds: 10, periodSeconds: 5
+  Validate    : Pods show Ready 1/1 only after startup; no 502s during rollout
+  Concepts    : readinessProbe vs livenessProbe, pod readiness gates,
+                service endpoint management
+  Debrief     : How readiness controls service endpoints, graceful rollouts
+
+LEVEL 5 — hpa-scaling  (level-5-hpa-scaling)
+  Name        : "Autoscaler Blind"
+  Difficulty  : intermediate
+  XP          : 250
+  Time est.   : 20m
+  Description : HPA created but shows "unknown" for CPU metrics.
+                metrics-server not installed.
+  Broken state: HPA referencing cpu utilization, but metrics-server absent
+  Fix         : kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/...
+                (or bundled metrics-server manifest in level folder)
+  Validate    : kubectl get hpa → TARGETS shows actual CPU%, not <unknown>
+  Concepts    : HPA, metrics-server, resource metrics API, CPU utilization,
+                minReplicas, maxReplicas
+  Debrief     : HPA vs VPA vs KEDA, Metrics API, custom metrics
+
+LEVEL 6 — rolling-update  (level-6-rolling-update)
+  Name        : "Zero-Downtime Gone Wrong"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 12m
+  Description : Deployment strategy has maxUnavailable: 100% causing all pods
+                to be terminated before new ones start — full outage.
+  Broken state: strategy.rollingUpdate.maxUnavailable: "100%"
+  Fix         : Set maxUnavailable: 1 (or "25%") and maxSurge: 1
+  Validate    : Rolling update completes with at least 1 pod always Running
+  Concepts    : RollingUpdate strategy, maxUnavailable, maxSurge, Recreate
+  Debrief     : Recreate vs RollingUpdate, surge vs unavailable tradeoffs
+
+LEVEL 7 — pdb-eviction  (level-7-pdb-eviction)
+  Name        : "Maintenance is Stuck"
+  Difficulty  : advanced
+  XP          : 250
+  Time est.   : 15m
+  Description : PodDisruptionBudget requires minAvailable: 5 but Deployment
+                only has 2 replicas. Node drain fails.
+  Broken state: PDB minAvailable: 5, Deployment replicas: 2
+  Fix         : Set PDB minAvailable: 1 OR scale Deployment replicas to 6+
+  Validate    : kubectl drain succeeds without error
+  Concepts    : PodDisruptionBudget, voluntary disruption, node drain,
+                minAvailable vs maxUnavailable
+  Debrief     : PDB purpose for cluster upgrades, availability guarantees
+
+LEVEL 8 — blue-green  (level-8-blue-green)
+  Name        : "Blue-Green Gone Wrong"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 12m
+  Description : Blue-green deployment done. New (green) deployment is healthy
+                but the Service still routes to the old (blue) version.
+  Broken state: Service selector: version: blue
+                New deployment has label: version: green
+  Fix         : Patch service selector to version: green
+  Validate    : curl to service returns green deployment response
+  Concepts    : Blue-green strategy, service selectors, zero-downtime switch,
+                rollback by switching selector back
+  Debrief     : Blue-green vs rolling update, cost (double resources),
+                canary as a middle ground
+
+LEVEL 9 — canary  (level-9-canary)
+  Name        : "Off-Balance Canary"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 12m
+  Description : Canary deployment exists but replica ratio is 50/50 instead
+                of 90/10. Too much traffic going to the untested canary.
+  Broken state: stable: replicas: 1, canary: replicas: 1 (50/50 split)
+  Fix         : stable: replicas: 9, canary: replicas: 1 (10% canary)
+  Validate    : 90% requests hit stable, ~10% hit canary
+  Concepts    : Canary deployments, traffic splitting via replicas,
+                gradual rollout, risk management
+  Debrief     : Canary via replicas vs Ingress weights, progressive delivery,
+                feature flags
+
+LEVEL 10 — statefulset  (level-10-statefulset)
+  Name        : "Database Needs Identity"
+  Difficulty  : advanced
+  XP          : 200
+  Time est.   : 18m
+  Description : A database is deployed as a Deployment. On restarts, pod
+                identity and hostname change, breaking replication.
+  Broken state: Deployment managing database pods
+  Fix         : Convert to StatefulSet with serviceName and stable hostnames
+  Validate    : kubectl get statefulset, pods have predictable names (db-0, db-1)
+  Concepts    : StatefulSet vs Deployment, stable network IDs, ordered deploys,
+                headless service, VolumeClaimTemplates
+  Debrief     : When to use StatefulSet (databases, Kafka, ZooKeeper, etcd)
+
+═══════════════════════════════
+  TOTAL WORLD 2 XP: 2,050
+═══════════════════════════════

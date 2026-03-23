@@ -1,0 +1,158 @@
+═══════════════════════════════════════════════════════════════════
+  WORLD 4 — STORAGE
+  "Persist or perish: volumes, claims, and stateful data"
+═══════════════════════════════════════════════════════════════════
+
+OVERVIEW
+────────
+World 4 covers all Kubernetes storage primitives: PersistentVolumes,
+PVCs, StorageClasses, volume mounts, access modes, and Secrets/
+ConfigMaps as mounted data. Players also learn about security issues
+with data storage (encoding vs encryption) and data-loss scenarios.
+
+Difficulty   : Intermediate → Advanced
+Total levels : 10
+Total XP     : 2,450
+Cluster type : kind (local)
+
+SKILLS COVERED
+──────────────
+- PersistentVolume (PV) and PersistentVolumeClaim (PVC)
+- PVC binding: capacity, accessModes, storageClassName matching
+- volumeMount paths and volume definitions
+- Access modes: ReadWriteOnce, ReadWriteMany, ReadOnlyMany
+- StorageClass and dynamic provisioning
+- ConfigMap as mounted files and env variables
+- Secret encoding (base64) vs real encryption
+- Volume permissions: fsGroup, runAsUser, securityContext
+- Reclaim policies: Delete vs Retain
+- emptyDir vs PVC — ephemeral vs persistent
+- StatefulSet volumeClaimTemplates (per-pod storage)
+
+───────────────────────────────────────────────────────────────────
+LEVELS
+───────────────────────────────────────────────────────────────────
+
+LEVEL 1 — pvc-pending  (level-1-pvc-pending)
+  Name        : "PVC Won't Bind"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : Pod stuck in ContainerCreating. PVC is in Pending state
+                because no PV matches its storage request (PV has 1Gi,
+                PVC requests 5Gi).
+  Broken state: PVC requests 5Gi, PV only provides 1Gi
+  Fix         : Update PVC to request 1Gi  OR create a larger PV
+  Concepts    : PV/PVC binding, capacity matching, StorageClass,
+                kubectl get pv pvc
+
+LEVEL 2 — volume-mount  (level-2-volume-mount)
+  Name        : "Wrong Mount Path"
+  Difficulty  : intermediate
+  XP          : 200
+  Description : App crashes because it reads config from /app/config,
+                but volumeMount path is set to /config.
+  Broken state: volumeMounts[0].mountPath: /config
+  Fix         : Change mountPath to /app/config
+  Concepts    : volumeMounts, mountPath, subPath, volume definitions,
+                container filesystem
+
+LEVEL 3 — access-mode  (level-3-access-mode)
+  Name        : "Only One Can Write"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : Three pods on different nodes need to share a volume for
+                writing. PVC is ReadWriteOnce — only allows one writer.
+  Broken state: PVC accessMode: ReadWriteOnce
+  Fix         : Delete PVC (immutable spec), recreate with ReadWriteMany
+                Note: Simulated on kind (single-node) but concept matters
+                for production multi-node clusters
+  Concepts    : Access modes (RWO, RWX, ROX), PVC immutability,
+                multi-pod shared storage, NFS/EFS for RWX
+
+LEVEL 4 — statefulset-volumes  (level-4-statefulset-volumes)
+  Name        : "Shared Storage Chaos"
+  Difficulty  : advanced
+  XP          : 300
+  Description : StatefulSet has 3 replicas all mounting the same single PVC.
+                Data corruption between pods. Each pod should have its own PVC.
+  Broken state: StatefulSet using a pre-created PVC (shared)
+  Fix         : Remove the shared PVC reference, add volumeClaimTemplates
+                so Kubernetes creates one PVC per pod automatically
+  Concepts    : StatefulSet volumeClaimTemplates, per-pod storage,
+                dynamic provisioning, pod-0/pod-1/pod-2 storage isolation
+
+LEVEL 5 — storageclass  (level-5-storageclass)
+  Name        : "StorageClass Missing"
+  Difficulty  : intermediate
+  XP          : 200
+  Description : PVC references storageClassName: "fast-ssd" which doesn't
+                exist. PVC stays Pending forever.
+  Broken state: PVC storageClassName: fast-ssd (doesn't exist)
+  Fix         : Change storageClassName to "standard" (kind default)
+                OR create the "fast-ssd" StorageClass
+  Concepts    : StorageClass, dynamic vs static provisioning,
+                kubectl get storageclass, default storage class
+
+LEVEL 6 — configmap-key  (level-6-configmap-key)
+  Name        : "Missing Config Key"
+  Difficulty  : beginner
+  XP          : 200
+  Description : Pod references key "database_password" in ConfigMap but
+                the ConfigMap has key "db_password" (name mismatch).
+  Broken state: env.valueFrom.configMapKeyRef.key: database_password
+                ConfigMap has key: db_password
+  Fix         : Update keyRef to use the correct key name "db_password"
+  Concepts    : ConfigMap keys, configMapKeyRef, envFrom vs env,
+                CreateContainerConfigError
+
+LEVEL 7 — secret-encoding  (level-7-secret-encoding)
+  Name        : "False Security"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : A Secret contains a password. The team thinks it's
+                "encrypted" because it's base64. You must demonstrate
+                that base64 is trivially reversible and fix the real
+                security gap by enforcing RBAC on the secret.
+  Broken state: Secret with password in base64 AND no RBAC restriction
+  Fix         : echo "dmFsdWU=" | base64 -d  (show it decodes instantly)
+                Apply Role restricting secret access to specific SA only
+  Concepts    : base64 vs encryption, Secrets at rest, RBAC for secrets,
+                Vault, Sealed Secrets, External Secrets Operator
+
+LEVEL 8 — volume-permissions  (level-8-volume-permissions)
+  Name        : "Permission Denied"
+  Difficulty  : advanced
+  XP          : 300
+  Description : Pod mounts a volume but crashes with "Permission denied"
+                trying to write. Container runs as uid 1000, volume owned by root.
+  Broken state: No securityContext on pod; volume owned by root (uid 0)
+  Fix         : Add securityContext.fsGroup: 1000 to pod spec
+  Concepts    : fsGroup, runAsUser, runAsGroup, volume ownership,
+                securityContext at pod vs container level
+
+LEVEL 9 — reclaim-policy  (level-9-reclaim-policy)
+  Name        : "Data Deleted!"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : PV had reclaimPolicy: Delete. When devs deleted the PVC,
+                the PV and all data were wiped. Must recreate with Retain.
+  Broken state: PV persistentVolumeReclaimPolicy: Delete
+  Fix         : Patch PV reclaimPolicy to Retain
+                kubectl patch pv <pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+  Concepts    : Reclaim policies (Delete, Retain, Recycle), data safety,
+                PV release lifecycle, production data protection
+
+LEVEL 10 — emptydir-vs-pvc  (level-10-emptydir-vs-pvc)
+  Name        : "Data Lost on Restart"
+  Difficulty  : intermediate
+  XP          : 200
+  Description : App writes user uploads to an emptyDir volume. On pod restart,
+                all files are gone. Must switch to a PVC for persistence.
+  Broken state: volumes[0].emptyDir: {} (ephemeral, lost on pod restart)
+  Fix         : Replace emptyDir with PVC-backed persistent volume
+  Concepts    : emptyDir lifecycle (tied to pod), PVC lifecycle (independent),
+                ephemeral vs persistent storage, when to use each
+
+═══════════════════════════════
+  TOTAL WORLD 4 XP: 2,450
+═══════════════════════════════

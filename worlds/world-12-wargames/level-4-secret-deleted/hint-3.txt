@@ -1,0 +1,1 @@
+Create the Secret: kubectl create secret generic db-credentials --from-literal=username=appuser --from-literal=password=securepass123 -n k8smissions

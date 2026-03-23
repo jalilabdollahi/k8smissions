@@ -1,0 +1,2 @@
+Run: kubectl describe nodes | grep -A5 'Allocatable'
+The pod requests 100Gi but no node has that much allocatable memory.

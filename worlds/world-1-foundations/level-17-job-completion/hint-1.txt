@@ -1,0 +1,2 @@
+Run: kubectl get job db-init -n k8smissions
+A Job in Failed/BackoffLimitExceeded means every attempt exited non-zero.

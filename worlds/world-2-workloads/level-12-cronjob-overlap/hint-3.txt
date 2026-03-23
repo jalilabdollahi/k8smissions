@@ -1,0 +1,3 @@
+Set concurrencyPolicy: Forbid to skip new runs while one is active.
+Or use Replace to kill the current run and start fresh.
+Patch: kubectl patch cronjob data-processor -n k8smissions -p '{"spec":{"concurrencyPolicy":"Forbid"}}'

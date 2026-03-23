@@ -1,0 +1,1 @@
+Start with: App env var DB_HOST=db (correct only within same namespace) App is in a different namespace

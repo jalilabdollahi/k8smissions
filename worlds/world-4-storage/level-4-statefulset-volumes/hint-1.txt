@@ -1,0 +1,1 @@
+Start with: StatefulSet using a pre-created PVC (shared)

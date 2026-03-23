@@ -1,0 +1,2 @@
+Run: kubectl get pods -l app=ha-app -n k8smissions -o wide
+Check the NODE column — all pods on one node is a single point of failure.

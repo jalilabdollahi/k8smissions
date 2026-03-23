@@ -1,0 +1,2 @@
+The Deployment has nodeSelector: node-type: spot AND only tolerates the spot taint.
+When spot nodes are evicted, pods can't reschedule on on-demand nodes (different taint, no toleration).

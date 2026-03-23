@@ -1,0 +1,3 @@
+Run: kubectl patch myapp my-app -n k8smissions --subresource=status --type=merge -p '{"status":{"phase":"Ready"}}'
+Then: kubectl get myapp my-app -n k8smissions -o yaml | grep phase
+If phase is empty, status subresource isn't configured.

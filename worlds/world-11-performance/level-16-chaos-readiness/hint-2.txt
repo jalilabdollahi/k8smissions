@@ -1,0 +1,3 @@
+Chaos tolerance rule: N = minimum pods needed for full capacity.
+For chaos resilience, run N+50% replicas minimum.
+2 replicas with 50% kill = 1 pod left — not enough for production load.

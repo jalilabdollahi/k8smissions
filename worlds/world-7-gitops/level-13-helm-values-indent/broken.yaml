@@ -1,0 +1,10 @@
+# This is a Helm values.yaml file with incorrect indentation
+# values.yaml — BROKEN (wrong indentation)
+replicaCount: 3
+image:
+tag: v2.0.0      # this is at wrong indentation — should be under image:
+  repository: nginx
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi

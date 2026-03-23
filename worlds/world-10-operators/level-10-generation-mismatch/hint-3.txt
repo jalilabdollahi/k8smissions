@@ -1,0 +1,4 @@
+In the controller's reconciliation loop:
+  1. Read current generation and observedGeneration
+  2. If equal, skip reconciliation (no spec change)
+  3. After successful reconciliation, update status.observedGeneration = metadata.generation

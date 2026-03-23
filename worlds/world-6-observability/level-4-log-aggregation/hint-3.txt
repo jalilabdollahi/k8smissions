@@ -1,0 +1,1 @@
+Validation target: Player outputs the crash reason from previous logs

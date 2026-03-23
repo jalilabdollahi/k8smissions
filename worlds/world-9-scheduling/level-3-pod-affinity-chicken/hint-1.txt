@@ -1,0 +1,2 @@
+Run: kubectl describe pod app-pod -n k8smissions
+Look for '0/N nodes are available: N node(s) didn't match pod affinity rules'.

@@ -1,0 +1,2 @@
+Run: kubectl get cronjob report-generator -n k8smissions
+Look at the SUSPEND column.

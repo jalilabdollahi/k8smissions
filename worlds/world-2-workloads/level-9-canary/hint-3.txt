@@ -1,0 +1,1 @@
+Validation target: 90% requests hit stable, ~10% hit canary

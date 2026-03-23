@@ -1,0 +1,8 @@
+Add a readiness probe with initialDelaySeconds:
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8080
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    failureThreshold: 3

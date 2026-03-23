@@ -1,0 +1,2 @@
+Run: kubectl get svc nodeport-svc -n k8smissions -o yaml | grep externalTrafficPolicy
+Local means traffic only reaches pods on the same node where it arrived.

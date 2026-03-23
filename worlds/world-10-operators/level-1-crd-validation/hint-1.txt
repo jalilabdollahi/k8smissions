@@ -1,0 +1,2 @@
+Run: kubectl create -f my-apptemplate.yaml 2>&1 | head -5
+The API server returns a validation error with the field and constraint that failed.

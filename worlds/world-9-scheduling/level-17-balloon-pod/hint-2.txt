@@ -1,0 +1,3 @@
+Balloon pods use the pause image (no CPU/memory actually consumed) with large requests.
+This reserves capacity on a node so cluster autoscaler doesn't scale it down.
+Delete the balloon pod to free the reserved capacity for real workloads.

@@ -1,0 +1,7 @@
+Add the second key to the items list:
+  items:
+  - key: app.properties
+    path: app.properties
+  - key: logging.properties
+    path: logging.properties
+Or remove 'items:' entirely to mount ALL ConfigMap keys.

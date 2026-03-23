@@ -1,0 +1,1 @@
+Goal state: Change path to /health

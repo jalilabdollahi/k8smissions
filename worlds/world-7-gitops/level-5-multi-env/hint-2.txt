@@ -1,0 +1,1 @@
+Goal state: Apply production overlay which sets LOG_LEVEL=info, replicas=3, cpu limit=500m, memory limit=512Mi

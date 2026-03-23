@@ -1,0 +1,2 @@
+Run: kubectl get crd | grep example.com
+If the CRD is not installed but the operator tries to register a controller for it, the operator panics on startup.

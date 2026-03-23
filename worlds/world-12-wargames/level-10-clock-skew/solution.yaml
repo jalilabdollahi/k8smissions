@@ -1,0 +1,14 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "node-clock-status",
+    "namespace": "k8smissions"
+  },
+  "data": {
+    "node": "kind-worker",
+    "ntp_sync": "true",
+    "skew_seconds": "0",
+    "status": "ok"
+  }
+}

@@ -1,0 +1,4 @@
+The PVC requests 'fast-nvme' but no such StorageClass exists.
+Delete the PVC and recreate it with a valid StorageClass:
+  storageClassName: standard
+(or whatever kubectl get storageclass shows)

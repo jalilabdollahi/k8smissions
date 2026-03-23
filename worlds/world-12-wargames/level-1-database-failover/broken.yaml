@@ -1,0 +1,48 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "app-server",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "app-server"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "app-server"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "app-server",
+            "image": "busybox:1.36",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "until nc -z db-service 5432; do echo waiting; sleep 2; done; sleep 3600"
+            ],
+            "readinessProbe": {
+              "exec": {
+                "command": [
+                  "nc",
+                  "-z",
+                  "db-service",
+                  "5432"
+                ]
+              },
+              "initialDelaySeconds": 3,
+              "periodSeconds": 5
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+Set WATCH_NAMESPACE to empty string to watch all namespaces:
+  env:
+  - name: WATCH_NAMESPACE
+    value: ""
+Or set it to 'k8smissions' to watch the target namespace.

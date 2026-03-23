@@ -1,0 +1,5 @@
+Fix the CRD schema to allow minimum: 1:
+  replicas:
+    type: integer
+    minimum: 1
+Or update the CR to set replicas: 5 or higher.

@@ -1,0 +1,2 @@
+Run: kubectl describe pod web -n k8smissions | grep -i port
+The container listens on port 80. Now check: kubectl get svc web-svc -n k8smissions -o yaml | grep targetPort

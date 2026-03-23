@@ -1,0 +1,3 @@
+The finalizer prevents deletion until the operator clears it. If the operator can't clean up, manually clear the finalizer as a last resort:
+  kubectl patch database prod-db -n k8smissions --type=json \
+    -p '[{"op": "remove", "path": "/metadata/finalizers"}]'

@@ -1,0 +1,1 @@
+Start with: stable: replicas: 1, canary: replicas: 1 (50/50 split)

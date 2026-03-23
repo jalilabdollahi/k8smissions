@@ -1,0 +1,2 @@
+Run: kubectl get pods -n k8smissions -o wide | grep balloon
+Run: kubectl get pod balloon-pod -n k8smissions -o yaml | grep resources -A10

@@ -1,0 +1,2 @@
+The reclaimPolicy on a PV can be patched directly (unlike most volume fields):
+  kubectl patch pv db-data-pv -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'

@@ -1,0 +1,17 @@
+{
+  "name": "Lost in Transit",
+  "description": "A NodePort Service receives traffic on some nodes but drops it silently on others.",
+  "objective": "externalTrafficPolicy: Local causes traffic to be dropped on nodes with no matching pod \u2014 change the policy to Cluster",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "Service",
+    "NodePort",
+    "externalTrafficPolicy",
+    "Local",
+    "Cluster"
+  ],
+  "world": "world-3-networking",
+  "level": "level-13-externaltraffic-policy"
+}

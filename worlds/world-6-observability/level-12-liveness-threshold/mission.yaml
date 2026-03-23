@@ -1,0 +1,17 @@
+{
+  "name": "Restart Storm",
+  "description": "Pods are being repeatedly restarted \u2014 RESTARTS counter keeps climbing every few minutes.",
+  "objective": "The liveness probe has a failureThreshold of 1, causing restarts on any transient delay \u2014 increase the threshold",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "liveness probe",
+    "failureThreshold",
+    "successThreshold",
+    "probe tuning",
+    "CrashLoopBackOff"
+  ],
+  "world": "world-6-observability",
+  "level": "level-12-liveness-threshold"
+}

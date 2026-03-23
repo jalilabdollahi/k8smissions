@@ -1,0 +1,1 @@
+Start with: Pod memory limit 64Mi, app uses 128Mi under load

@@ -1,0 +1,16 @@
+{
+  "name": "No Workspace",
+  "description": "A Tekton Pipeline run fails immediately \u2014 a required workspace is not bound.",
+  "objective": "The Pipeline workspace is declared but no PVC or emptyDir is provided in the PipelineRun \u2014 bind a workspace",
+  "xp": 275,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Tekton",
+    "workspace",
+    "PipelineRun",
+    "volumes"
+  ],
+  "world": "world-8-cicd",
+  "level": "level-2-workspace-missing"
+}

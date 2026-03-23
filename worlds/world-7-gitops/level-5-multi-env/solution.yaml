@@ -1,0 +1,56 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "env-config",
+    "namespace": "k8smissions"
+  },
+  "data": {
+    "LOG_LEVEL": "info"
+  }
+}
+---
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "multi-env-app",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "multi-env-app"
+    }
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "multi-env-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "multi-env-app"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "multi-env-app",
+            "image": "nginx:1.27.4",
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              },
+              "limits": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

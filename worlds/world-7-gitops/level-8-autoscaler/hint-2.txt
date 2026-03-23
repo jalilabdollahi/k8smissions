@@ -1,0 +1,1 @@
+Goal state: Patch Cluster Autoscaler deployment with correct node group (or on kind: demonstrate concept with node taints simulation)

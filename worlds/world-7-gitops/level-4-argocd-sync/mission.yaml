@@ -1,0 +1,19 @@
+{
+  "name": "ArgoCD Out of Sync",
+  "description": "The ArgoCD application shows OutOfSync and Degraded status.",
+  "objective": "ArgoCD shows OutOfSync and the target namespace is missing \u2014 create the namespace and trigger a sync",
+  "xp": 400,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "ArgoCD Application CRD",
+    "sync status",
+    "health status",
+    "auto-sync",
+    "self-heal",
+    "prune",
+    "GitOps principles"
+  ],
+  "world": "world-7-gitops",
+  "level": "level-4-argocd-sync"
+}

@@ -1,0 +1,2 @@
+Run: kubectl get hpa my-hpa -n k8smissions
+If TARGETS column shows '<unknown>/70%', metrics server can't provide CPU metrics.

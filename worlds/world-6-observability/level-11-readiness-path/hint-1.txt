@@ -1,0 +1,2 @@
+Run: kubectl describe pod -l app=web-app -n k8smissions
+Look at Events — you should see readiness probe failures with a specific HTTP status code.

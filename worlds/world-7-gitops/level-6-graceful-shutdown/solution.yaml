@@ -1,0 +1,46 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "graceful-app",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "graceful-app"
+    }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": {
+      "matchLabels": {
+        "app": "graceful-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "graceful-app"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "graceful-app",
+            "image": "nginx:1.27.4",
+            "lifecycle": {
+              "preStop": {
+                "exec": {
+                  "command": [
+                    "/bin/sh",
+                    "-c",
+                    "sleep 15"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "terminationGracePeriodSeconds": 60
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "apiVersion": "v1",
+  "kind": "Secret",
+  "type": "Opaque",
+  "metadata": {
+    "name": "api-secret",
+    "namespace": "k8smissions"
+  },
+  "data": {
+    "token": "c3VwZXJzZWNyZXQtYXBpLXRva2VuLTEyMzQ1"
+  }
+}

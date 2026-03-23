@@ -1,0 +1,1 @@
+Goal state: Delete PVC (immutable spec), recreate with ReadWriteMany Note: Simulated on kind (single-node) but concept matters for production multi-node clusters

@@ -1,0 +1,1 @@
+kubectl describe pod -n k8smissions — look for 'secret db-credentials not found'

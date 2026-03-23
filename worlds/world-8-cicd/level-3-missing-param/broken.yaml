@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "TaskRun",
+  "metadata": {
+    "name": "push-run",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "taskRef": {
+      "name": "image-push"
+    },
+    "params": []
+  }
+}

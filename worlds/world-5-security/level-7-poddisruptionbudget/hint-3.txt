@@ -1,0 +1,1 @@
+Validation target: Use the validator to confirm the repaired state.

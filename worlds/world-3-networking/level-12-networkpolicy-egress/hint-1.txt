@@ -1,0 +1,2 @@
+Run: kubectl get networkpolicy -n k8smissions
+A policy with empty egress: [] blocks ALL outgoing traffic including DNS.

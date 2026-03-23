@@ -1,0 +1,15 @@
+{
+  "name": "Helm Values Gone Wrong",
+  "description": "A Helm release has been deployed but the pods are misbehaving.",
+  "objective": "The Helm values.yaml has an empty image.tag \u2014 set a pinned tag so the chart deploys a specific version",
+  "xp": 300,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "Helm values",
+    "chart templates ({{ .Values.image.tag }})",
+    "helm install/upgrade/status/get-values"
+  ],
+  "world": "world-7-gitops",
+  "level": "level-1-helm-broken-values"
+}

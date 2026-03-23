@@ -1,0 +1,18 @@
+{
+  "name": "Tainted Nodes",
+  "description": "Application pods cannot be scheduled and remain in Pending state.",
+  "objective": "Nodes are tainted but pods have no toleration \u2014 add the matching toleration to allow scheduling",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "Taints (NoSchedule",
+    "PreferNoSchedule",
+    "NoExecute)",
+    "tolerations",
+    "taint-based eviction",
+    "node pools"
+  ],
+  "world": "world-5-security",
+  "level": "level-6-taints-tolerations"
+}

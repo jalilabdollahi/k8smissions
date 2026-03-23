@@ -1,0 +1,17 @@
+{
+  "name": "Invisible Metrics",
+  "description": "A service emits Prometheus metrics but they never appear in monitoring dashboards.",
+  "objective": "The pod is missing Prometheus scrape annotations \u2014 add the required annotations to enable metrics collection",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "Prometheus",
+    "annotations",
+    "scraping",
+    "metrics",
+    "observability"
+  ],
+  "world": "world-6-observability",
+  "level": "level-15-prometheus-annotations"
+}

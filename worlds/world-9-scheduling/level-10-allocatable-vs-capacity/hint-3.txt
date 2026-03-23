@@ -1,0 +1,3 @@
+Size the pod request against allocatable, not capacity:
+  kubectl get node -o jsonpath='{.items[0].status.allocatable.memory}'
+Set pod request to < allocatable minus already-used.

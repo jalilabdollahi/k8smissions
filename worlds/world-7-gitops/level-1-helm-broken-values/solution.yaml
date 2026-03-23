@@ -1,0 +1,39 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "helm-app",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "helm-app"
+    }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": {
+      "matchLabels": {
+        "app": "helm-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "helm-app"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "helm-app",
+            "image": "nginx:1.27.4",
+            "ports": [
+              {
+                "containerPort": 80
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

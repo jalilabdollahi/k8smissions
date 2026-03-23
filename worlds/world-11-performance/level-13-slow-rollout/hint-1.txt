@@ -1,0 +1,2 @@
+Run: kubectl rollout status deployment/slow-deploy -n k8smissions and time it
+maxSurge: 0, maxUnavailable: 1 means exactly 1 pod replaced at a time.

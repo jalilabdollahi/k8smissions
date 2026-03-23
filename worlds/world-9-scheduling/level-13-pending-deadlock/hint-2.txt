@@ -1,0 +1,2 @@
+Run: kubectl get validatingwebhookconfiguration
+A webhook with failurePolicy: Fail blocks ALL pod creation if the webhook service is down.

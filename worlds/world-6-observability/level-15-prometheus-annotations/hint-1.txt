@@ -1,0 +1,2 @@
+Run: kubectl get pod metrics-app -n k8smissions -o yaml | grep annotations
+Prometheus discovers scrape targets via pod annotations set by the standard convention.

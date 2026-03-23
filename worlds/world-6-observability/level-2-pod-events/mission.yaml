@@ -1,0 +1,17 @@
+{
+  "name": "Read the Events",
+  "description": "A pod is failing to start but the container logs are empty.",
+  "objective": "The container logs are empty \u2014 look at cluster events instead to find why the pod won't start",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "10m",
+  "concepts": [
+    "kubectl events",
+    "Event objects",
+    "reason/message fields",
+    "Normal vs Warning events",
+    "event TTL (1 hour default)"
+  ],
+  "world": "world-6-observability",
+  "level": "level-2-pod-events"
+}

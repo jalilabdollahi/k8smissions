@@ -1,0 +1,2 @@
+Run: kubectl get deployment resilient-app -n k8smissions
+With only 2 replicas, losing 50% = 1 pod = 50% capacity reduction = service degradation.

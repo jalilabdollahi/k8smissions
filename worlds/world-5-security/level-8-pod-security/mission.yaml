@@ -1,0 +1,15 @@
+{
+  "name": "Restricted Policy Violation",
+  "description": "A pod is being rejected and will not start in this namespace.",
+  "objective": "The pod violates the namespace's restricted Pod Security Standard (runs as root, privileged) \u2014 fix the securityContext to comply",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "Pod Security Standards (PSS): privileged/baseline/restricted",
+    "Pod Security Admission (PSA)",
+    "namespace labels"
+  ],
+  "world": "world-5-security",
+  "level": "level-8-pod-security"
+}

@@ -1,0 +1,3 @@
+Reduce timeoutSeconds:
+  timeoutSeconds: 5
+Also check if the webhook service is making slow network calls that should be cached.

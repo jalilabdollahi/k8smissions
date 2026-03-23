@@ -1,0 +1,1 @@
+Delete all at once using label selectors: kubectl delete pod -l job=ci-test -n k8smissions

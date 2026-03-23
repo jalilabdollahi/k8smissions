@@ -1,0 +1,3 @@
+Run: kubectl auth can-i create deployments -n k8smissions \
+  --as=system:serviceaccount:k8smissions:deploy-sa
+This shows what the SA is allowed to do.

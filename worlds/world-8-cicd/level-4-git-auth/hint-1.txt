@@ -1,0 +1,2 @@
+Run: kubectl describe taskrun git-clone-run -n k8smissions
+Look for 'authentication required' or 'permission denied' in git output.

@@ -1,0 +1,5 @@
+Set selfHeal to false:
+  syncPolicy:
+    automated:
+      selfHeal: false
+Better long-term: make your change in git and let ArgoCD sync it.

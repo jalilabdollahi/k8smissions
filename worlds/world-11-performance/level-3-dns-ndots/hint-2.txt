@@ -1,0 +1,2 @@
+Default ndots: 5 means for any hostname with fewer than 5 dots, the resolver tries all search domains first before treating it as FQDN.
+'db' → tries 'db.k8smissions.svc.cluster.local', 'db.svc.cluster.local', 'db.cluster.local', 'db.ec2.internal', then 'db' — 5 lookups for 1 resolution.

@@ -1,0 +1,2 @@
+Run: kubectl describe pod noisy-pod -n k8smissions
+Look for a LimitRange error in Events or pod status.

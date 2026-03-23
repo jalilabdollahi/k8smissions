@@ -1,0 +1,2 @@
+NoExecute taints evict existing pods unless they have a matching toleration.
+tolerationSeconds allows the pod to stay for N seconds before eviction.

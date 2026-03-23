@@ -1,0 +1,2 @@
+With strategy: None, Kubernetes only returns a resource in the version it was stored under.
+v1alpha1 resources are invisible when queried as v1beta1.

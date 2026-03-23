@@ -1,0 +1,57 @@
+[
+  {
+    "apiVersion": "v1",
+    "kind": "ConfigMap",
+    "metadata": {
+      "name": "app-config",
+      "namespace": "k8smissions"
+    },
+    "data": {
+      "APP_MODE": "production",
+      "DB_HOST": "postgres.k8smissions.svc.cluster.local"
+    }
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "name": "config-app",
+      "namespace": "k8smissions"
+    },
+    "spec": {
+      "replicas": 3,
+      "selector": {
+        "matchLabels": {
+          "app": "config-app"
+        }
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "app": "config-app"
+          }
+        },
+        "spec": {
+          "containers": [
+            {
+              "name": "config-app",
+              "image": "busybox:1.36",
+              "command": [
+                "/bin/sh",
+                "-c",
+                "[ -n \"$APP_MODE\" ] && [ -n \"$DB_HOST\" ] && sleep 3600 || exit 1"
+              ],
+              "envFrom": [
+                {
+                  "configMapRef": {
+                    "name": "app-config"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+]

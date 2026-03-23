@@ -1,0 +1,81 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "grand-finale-app",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "grand-finale-app"
+    }
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "grand-finale-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "grand-finale-app"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "grand-finale-app",
+            "image": "nginx:1.27.4",
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              },
+              "limits": {
+                "cpu": "500m",
+                "memory": "512Mi"
+              }
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/",
+                "port": 80
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 5
+            },
+            "lifecycle": {
+              "preStop": {
+                "exec": {
+                  "command": [
+                    "/bin/sh",
+                    "-c",
+                    "sleep 15"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "terminationGracePeriodSeconds": 60
+      }
+    }
+  }
+}
+---
+{
+  "apiVersion": "policy/v1",
+  "kind": "PodDisruptionBudget",
+  "metadata": {
+    "name": "grand-finale-pdb",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "minAvailable": 1,
+    "selector": {
+      "matchLabels": {
+        "app": "grand-finale-app"
+      }
+    }
+  }
+}

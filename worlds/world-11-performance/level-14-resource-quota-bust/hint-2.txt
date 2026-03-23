@@ -1,0 +1,2 @@
+Run: kubectl get pods -n k8smissions -o json | python3 -c "import json,sys; pods=json.load(sys.stdin)['items']; [print(p['metadata']['name'], p['spec']['containers'][0].get('resources',{}).get('requests',{})) for p in pods]"
+Identify pods with over-provisioned requests.

@@ -1,0 +1,5 @@
+Add the cache workspace:
+  workspaces:
+  - name: cache
+    persistentVolumeClaim:
+      claimName: maven-cache-pvc

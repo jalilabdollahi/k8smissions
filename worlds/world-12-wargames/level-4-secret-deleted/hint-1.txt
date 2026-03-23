@@ -1,0 +1,1 @@
+Check the pod events — you'll see CreateContainerConfigError referencing a missing secret.

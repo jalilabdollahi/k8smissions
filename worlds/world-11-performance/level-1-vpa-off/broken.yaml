@@ -1,0 +1,18 @@
+{
+  "apiVersion": "autoscaling.k8s.io/v1",
+  "kind": "VerticalPodAutoscaler",
+  "metadata": {
+    "name": "my-app-vpa",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "targetRef": {
+      "apiVersion": "apps/v1",
+      "kind": "Deployment",
+      "name": "my-app"
+    },
+    "updatePolicy": {
+      "updateMode": "Off"
+    }
+  }
+}

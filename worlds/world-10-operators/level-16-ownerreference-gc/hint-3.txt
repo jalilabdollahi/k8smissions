@@ -1,0 +1,8 @@
+Add ownerReferences to child resources pointing to the CR:
+  ownerReferences:
+  - apiVersion: example.com/v1
+    kind: MyApp
+    name: my-app
+    uid: <uid-of-cr>   # get from the CR
+    controller: true
+    blockOwnerDeletion: true

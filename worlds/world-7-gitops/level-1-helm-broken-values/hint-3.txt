@@ -1,0 +1,1 @@
+Validation target: helm status myapp → deployed, pod uses correct image tag

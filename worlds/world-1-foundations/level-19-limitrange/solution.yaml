@@ -1,0 +1,31 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "noisy-pod",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "noisy",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "while true; do :; done"
+        ],
+        "resources": {
+          "requests": {
+            "cpu": "100m",
+            "memory": "64Mi"
+          },
+          "limits": {
+            "cpu": "500m",
+            "memory": "256Mi"
+          }
+        }
+      }
+    ]
+  }
+}

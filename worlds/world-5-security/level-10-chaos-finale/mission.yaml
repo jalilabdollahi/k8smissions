@@ -1,0 +1,15 @@
+{
+  "name": "CHAOS FINALE: The Perfect Storm",
+  "description": "Production is down. Multiple components are failing simultaneously across the cluster.",
+  "objective": "Multiple failures are active simultaneously: RBAC, SecurityContext, ResourceQuota, NetworkPolicy, NodeAffinity, Taints, PDB, PodSecurity, PriorityClass \u2014 fix each one",
+  "xp": 500,
+  "difficulty": "expert",
+  "expected_time": "10m",
+  "concepts": [
+    "All World 5 concepts combined",
+    "incident response workflow",
+    "priority triaging in production"
+  ],
+  "world": "world-5-security",
+  "level": "level-10-chaos-finale"
+}

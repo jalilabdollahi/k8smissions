@@ -1,0 +1,16 @@
+{
+  "name": "Suspended Schedule",
+  "description": "A CronJob exists in the cluster but has never fired \u2014 no Jobs have been created.",
+  "objective": "The CronJob has suspend: true \u2014 set it to false so scheduled jobs start running",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "6m",
+  "concepts": [
+    "CronJob",
+    "suspend",
+    "schedule",
+    "batch"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-18-cronjob-suspend"
+}

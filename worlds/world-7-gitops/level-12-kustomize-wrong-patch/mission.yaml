@@ -1,0 +1,17 @@
+{
+  "name": "Ghost Patch",
+  "description": "A Kustomize overlay was applied but the expected replica count change never took effect.",
+  "objective": "The Kustomize patch targets the wrong resource name \u2014 fix the patch target to match the actual Deployment name",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Kustomize",
+    "patch",
+    "strategic merge patch",
+    "overlay",
+    "target"
+  ],
+  "world": "world-7-gitops",
+  "level": "level-12-kustomize-wrong-patch"
+}

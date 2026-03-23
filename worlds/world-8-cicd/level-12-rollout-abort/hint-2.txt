@@ -1,0 +1,2 @@
+When a rollout is Degraded, fix the root cause first (the bad image) then retry.
+Update the image: kubectl argo rollouts set image web-rollout web=nginx:1.25 -n k8smissions

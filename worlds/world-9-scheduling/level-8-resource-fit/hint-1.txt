@@ -1,0 +1,2 @@
+Run: kubectl describe pod large-pod -n k8smissions
+Look for 'Insufficient memory' in Events.

@@ -1,0 +1,17 @@
+{
+  "name": "Nodes Won't Scale Up",
+  "description": "HPA has scaled pods beyond current node capacity, but no new nodes are being added.",
+  "objective": "The Cluster Autoscaler has the wrong node-group annotation \u2014 fix the annotation to match the actual node group",
+  "xp": 450,
+  "difficulty": "expert",
+  "expected_time": "10m",
+  "concepts": [
+    "Cluster Autoscaler",
+    "node groups",
+    "scale-up triggers",
+    "cloud provider integration",
+    "kind simulation limitations"
+  ],
+  "world": "world-7-gitops",
+  "level": "level-8-autoscaler"
+}

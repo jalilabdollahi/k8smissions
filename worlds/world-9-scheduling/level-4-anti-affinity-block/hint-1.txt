@@ -1,0 +1,2 @@
+Run: kubectl get pods -l app=distributed -n k8smissions
+If replicas=3 but only 2 pods run, one is stuck Pending.

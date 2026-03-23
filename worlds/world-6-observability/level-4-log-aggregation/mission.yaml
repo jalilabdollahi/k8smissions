@@ -1,0 +1,20 @@
+{
+  "name": "Logs Across Restarts",
+  "description": "An app has restarted multiple times and you need to investigate what caused the crashes.",
+  "objective": "The pod has restarted and the current logs show nothing \u2014 use kubectl logs --previous to read the crashed container's output",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "kubectl logs --previous",
+    "--since",
+    "--tail",
+    "multi-container logs",
+    "log rotation",
+    "log aggregation tools (Loki",
+    "EFK",
+    "CloudWatch)"
+  ],
+  "world": "world-6-observability",
+  "level": "level-4-log-aggregation"
+}

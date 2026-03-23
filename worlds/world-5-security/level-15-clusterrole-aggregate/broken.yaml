@@ -1,0 +1,43 @@
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "ClusterRole",
+  "metadata": {
+    "name": "operator-role"
+  },
+  "aggregationRule": {
+    "clusterRoleSelectors": [
+      {
+        "matchLabels": {
+          "rbac.example.io/aggregate-to-operator": "true"
+        }
+      }
+    ]
+  },
+  "rules": []
+}
+---
+{
+  "apiVersion": "rbac.authorization.k8s.io/v1",
+  "kind": "ClusterRole",
+  "metadata": {
+    "name": "deployments-reader",
+    "labels": {
+      "rbac.example.io/aggregate-to-viewer": "true"
+    }
+  },
+  "rules": [
+    {
+      "apiGroups": [
+        "apps"
+      ],
+      "resources": [
+        "deployments"
+      ],
+      "verbs": [
+        "get",
+        "list",
+        "watch"
+      ]
+    }
+  ]
+}

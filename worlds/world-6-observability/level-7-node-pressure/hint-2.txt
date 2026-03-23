@@ -1,0 +1,1 @@
+Goal state: kubectl describe node → identify pressure condition Identify and remove / limit high-memory pods OR cordon node and reschedule workloads

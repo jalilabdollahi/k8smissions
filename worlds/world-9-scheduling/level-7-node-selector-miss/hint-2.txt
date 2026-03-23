@@ -1,0 +1,2 @@
+Run: kubectl get nodes --show-labels | grep accelerator-type
+If no output, no node has the required label.

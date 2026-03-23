@@ -1,0 +1,2 @@
+Run: kubectl get deployment web-app -n k8smissions -o yaml | grep -A10 readinessProbe
+Note the path the probe is checking. nginx serves / but not /healthz by default.

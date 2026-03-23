@@ -1,0 +1,1 @@
+kubectl describe secret cluster-cert-status -n k8smissions

@@ -1,0 +1,3 @@
+Fix 1: Add dnsConfig ndots: 2 to dns-pod
+Fix 2: Increase CPU limit to 2000m on throttled-api deployment
+Fix 3: Set maxSurge: 10 on slow-rollout deployment

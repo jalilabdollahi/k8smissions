@@ -1,0 +1,71 @@
+[
+  {
+    "apiVersion": "v1",
+    "kind": "ServiceAccount",
+    "metadata": {
+      "name": "app-sa",
+      "namespace": "k8smissions"
+    }
+  },
+  {
+    "apiVersion": "rbac.authorization.k8s.io/v1",
+    "kind": "Role",
+    "metadata": {
+      "name": "app-role",
+      "namespace": "k8smissions"
+    },
+    "rules": [
+      {
+        "apiGroups": [
+          ""
+        ],
+        "resources": [
+          "pods",
+          "configmaps"
+        ],
+        "verbs": [
+          "get",
+          "list",
+          "watch"
+        ]
+      }
+    ]
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "name": "api-app",
+      "namespace": "k8smissions"
+    },
+    "spec": {
+      "replicas": 1,
+      "selector": {
+        "matchLabels": {
+          "app": "api-app"
+        }
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "app": "api-app"
+          }
+        },
+        "spec": {
+          "serviceAccountName": "app-sa",
+          "containers": [
+            {
+              "name": "api-app",
+              "image": "busybox:1.36",
+              "command": [
+                "/bin/sh",
+                "-c",
+                "sleep 3600"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,17 @@
+{
+  "name": "Bad Release \u2014 Roll Back Helm",
+  "description": "All pods crashed immediately after a Helm upgrade.",
+  "objective": "A Helm upgrade deployed a broken image \u2014 roll back the release to the previous working revision",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "helm history",
+    "helm rollback",
+    "helm get manifest",
+    "revision history",
+    "atomic deploys"
+  ],
+  "world": "world-7-gitops",
+  "level": "level-2-helm-rollback"
+}

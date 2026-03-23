@@ -1,0 +1,1 @@
+kubectl get configmap app-config -n k8smissions -o yaml — look for empty values.

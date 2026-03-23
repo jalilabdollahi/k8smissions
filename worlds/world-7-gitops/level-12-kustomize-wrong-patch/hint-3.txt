@@ -1,0 +1,6 @@
+Fix both the patch metadata.name and the target.name:
+  metadata:
+    name: api-server  # match the actual deployment
+  ...
+  target:
+    name: api-server

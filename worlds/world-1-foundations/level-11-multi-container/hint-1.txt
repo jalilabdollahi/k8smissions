@@ -1,0 +1,1 @@
+kubectl get pod multi-pod -n k8smissions (which container?)

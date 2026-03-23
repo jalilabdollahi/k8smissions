@@ -1,0 +1,1 @@
+Update failover-enabled to 'true' and sync-status to 'synced'

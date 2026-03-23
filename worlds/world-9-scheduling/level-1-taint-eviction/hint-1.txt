@@ -1,0 +1,2 @@
+Run: kubectl describe node | grep Taints
+A NoExecute taint immediately evicts pods without a matching toleration.

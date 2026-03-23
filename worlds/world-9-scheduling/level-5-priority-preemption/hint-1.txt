@@ -1,0 +1,2 @@
+Run: kubectl get priorityclass
+Then: kubectl describe pod critical-workload -n k8smissions | grep Priority

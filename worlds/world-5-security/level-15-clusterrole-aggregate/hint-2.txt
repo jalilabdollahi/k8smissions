@@ -1,0 +1,2 @@
+Run: kubectl get clusterrole deployments-reader -o yaml | grep labels -A5
+Compare the labels on deployments-reader with what operator-role is selecting for.

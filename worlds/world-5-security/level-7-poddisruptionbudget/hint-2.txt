@@ -1,0 +1,1 @@
+Goal state: Change PDB minAvailable: 1  OR scale Deployment to 4+

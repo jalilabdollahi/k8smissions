@@ -1,0 +1,1 @@
+Try kubectl drain — it will tell you exactly which PDB is blocking eviction.

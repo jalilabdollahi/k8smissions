@@ -1,0 +1,2 @@
+Run: kubectl logs port-binder -n k8smissions
+If you see 'permission denied' on port 80, the container lacks the capability to bind privileged ports (<1024).

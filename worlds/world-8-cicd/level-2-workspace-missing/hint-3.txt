@@ -1,0 +1,4 @@
+Add a workspace binding in the PipelineRun:
+  workspaces:
+  - name: source
+    emptyDir: {}

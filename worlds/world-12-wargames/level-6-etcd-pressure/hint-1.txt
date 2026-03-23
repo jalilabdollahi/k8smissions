@@ -1,0 +1,1 @@
+List all ConfigMaps and look for a pattern in names that indicates old CI runs.

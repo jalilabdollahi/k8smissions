@@ -1,0 +1,1 @@
+kubectl describe svc ports-svc -n k8smissions

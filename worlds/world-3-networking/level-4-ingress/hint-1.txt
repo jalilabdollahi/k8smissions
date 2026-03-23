@@ -1,0 +1,1 @@
+Start with: Ingress path: /api, Service actually handles /v1/api

@@ -1,0 +1,17 @@
+{
+  "name": "Wrong Mount Path",
+  "description": "Application pod is crashing on startup although a config volume appears to be mounted.",
+  "objective": "The volumeMount path doesn't match the path the application reads config from \u2014 correct the mountPath",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "volumeMounts",
+    "mountPath",
+    "subPath",
+    "volume definitions",
+    "container filesystem"
+  ],
+  "world": "world-4-storage",
+  "level": "level-2-volume-mount"
+}

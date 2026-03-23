@@ -1,0 +1,17 @@
+{
+  "name": "The Value Ignored",
+  "description": "A Helm upgrade was run with custom values but the deployed pods still use the old image tag.",
+  "objective": "The values file has incorrect YAML indentation \u2014 fix the indentation so the image.tag override is applied",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Helm",
+    "values.yaml",
+    "YAML indentation",
+    "override",
+    "helm upgrade"
+  ],
+  "world": "world-7-gitops",
+  "level": "level-13-helm-values-indent"
+}

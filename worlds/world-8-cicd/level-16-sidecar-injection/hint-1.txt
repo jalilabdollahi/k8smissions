@@ -1,0 +1,2 @@
+Run: kubectl describe pod -l tekton.dev/task=injected-task -n k8smissions
+If you see extra containers like 'istio-proxy', a sidecar injector is adding them.

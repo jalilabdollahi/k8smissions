@@ -1,0 +1,2 @@
+Run: kubectl top pods -n k8smissions
+If actual memory usage is near the limit, OOMKill is imminent.

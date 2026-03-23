@@ -1,0 +1,17 @@
+{
+  "name": "Scheduler Deadlock",
+  "description": "All pods in the cluster are stuck Pending \u2014 even tiny pods with minimal resource requests can't schedule.",
+  "objective": "A misconfigured admission webhook is rejecting all scheduling decisions \u2014 identify and disable the broken webhook",
+  "xp": 375,
+  "difficulty": "advanced",
+  "expected_time": "20m",
+  "concepts": [
+    "admission webhook",
+    "ValidatingWebhook",
+    "scheduling block",
+    "webhook timeout",
+    "failurePolicy"
+  ],
+  "world": "world-9-scheduling",
+  "level": "level-13-pending-deadlock"
+}

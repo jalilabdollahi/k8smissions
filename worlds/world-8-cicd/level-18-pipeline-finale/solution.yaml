@@ -1,0 +1,28 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "Task",
+  "metadata": {
+    "name": "multi-task",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "params": [
+      {
+        "name": "git-url",
+        "default": "https://github.com/example/repo"
+      }
+    ],
+    "workspaces": [
+      {
+        "name": "output"
+      }
+    ],
+    "steps": [
+      {
+        "name": "clone",
+        "image": "alpine/git:latest",
+        "script": "git clone $(params.git-url) /workspace/output"
+      }
+    ]
+  }
+}

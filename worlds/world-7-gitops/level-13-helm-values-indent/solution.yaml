@@ -1,0 +1,10 @@
+# Corrected values.yaml
+# values.yaml — FIXED
+replicaCount: 3
+image:
+  tag: v2.0.0
+  repository: nginx
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi

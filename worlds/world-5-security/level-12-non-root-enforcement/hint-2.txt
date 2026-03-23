@@ -1,0 +1,4 @@
+The namespace enforces a policy that rejects root containers.
+Add to spec.securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000

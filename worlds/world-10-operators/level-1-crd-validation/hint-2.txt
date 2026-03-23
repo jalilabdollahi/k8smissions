@@ -1,0 +1,2 @@
+CRDs can embed OpenAPI v3 schemas. The 'minimum' validator enforces minimum integer values.
+If the CR sets replicas: 2 but the schema requires minimum: 5, creation fails.

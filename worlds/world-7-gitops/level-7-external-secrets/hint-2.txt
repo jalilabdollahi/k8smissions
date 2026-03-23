@@ -1,0 +1,1 @@
+Goal state: Install External Secrets Operator (bundled manifest) Create SecretStore pointing to local fake backend Create ExternalSecret that pulls values from the store

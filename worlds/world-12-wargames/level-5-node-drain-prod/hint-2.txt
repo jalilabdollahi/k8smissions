@@ -1,0 +1,1 @@
+kubectl get pdb -n k8smissions — compare minAvailable to the deployment replica count.

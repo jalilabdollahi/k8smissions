@@ -1,0 +1,2 @@
+Run: kubectl describe pod insecure-pod -n k8smissions
+Look at the Events — a PodSecurity admission warning or OPA/Gatekeeper rejection will name the failing policy.

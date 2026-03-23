@@ -1,0 +1,2 @@
+Run: kubectl describe pod -n kube-system -l k8s-app=kube-dns
+If you see webhook rejection errors, the mutating webhook is intercepting kube-dns pod creation.

@@ -1,0 +1,60 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "batch-job",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "batch"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "batch"
+        }
+      },
+      "spec": {
+        "tolerations": [
+          {
+            "key": "spot",
+            "operator": "Equal",
+            "value": "true",
+            "effect": "NoSchedule"
+          },
+          {
+            "key": "on-demand",
+            "operator": "Equal",
+            "value": "true",
+            "effect": "NoSchedule"
+          }
+        ],
+        "containers": [
+          {
+            "name": "batch",
+            "image": "busybox:1.36",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "sleep 3600"
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "32Mi"
+              },
+              "limits": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

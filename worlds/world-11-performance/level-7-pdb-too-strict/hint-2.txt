@@ -1,0 +1,3 @@
+PDB with minAvailable: 3 on a 3-replica Deployment means:
+0 pods can be disrupted at any time.
+Rolling update needs to evict one pod first — blocked by PDB.

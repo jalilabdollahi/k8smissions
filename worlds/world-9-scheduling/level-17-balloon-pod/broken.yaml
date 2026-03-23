@@ -1,0 +1,31 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "balloon-pod",
+    "namespace": "k8smissions",
+    "annotations": {
+      "purpose": "capacity-reservation",
+      "cluster-autoscaler.kubernetes.io/safe-to-evict": "true"
+    }
+  },
+  "spec": {
+    "priorityClassName": "balloon-priority",
+    "containers": [
+      {
+        "name": "pause",
+        "image": "registry.k8s.io/pause:3.9",
+        "resources": {
+          "requests": {
+            "cpu": "2000m",
+            "memory": "4Gi"
+          },
+          "limits": {
+            "cpu": "2100m",
+            "memory": "4.1Gi"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,1 @@
+Start with: Secret manifest with plain base64 values committed in Git

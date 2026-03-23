@@ -1,0 +1,2 @@
+Option 1 (immediate fix): kubectl argo rollouts promote api-rollout -n k8smissions
+Option 2 (fix design): change pause: {} to pause: {duration: 5m} to auto-promote after 5 minutes.

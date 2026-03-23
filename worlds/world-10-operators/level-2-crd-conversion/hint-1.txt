@@ -1,0 +1,2 @@
+Run: kubectl get databases.v1beta1.example.com -A
+If empty when v1alpha1 resources exist, version conversion isn't working.

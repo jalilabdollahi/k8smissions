@@ -1,0 +1,1 @@
+Start with: App config file has wrong DB host IP (hardcoded)

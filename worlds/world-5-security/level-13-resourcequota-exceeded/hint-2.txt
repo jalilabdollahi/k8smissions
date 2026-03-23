@@ -1,0 +1,2 @@
+Run: kubectl describe quota ns-quota -n k8smissions
+Compare Used vs Hard. Your new pod's requests must fit within the remaining quota.

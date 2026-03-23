@@ -1,0 +1,2 @@
+DNS runs on port 53 (UDP and TCP) in kube-system via the kube-dns/CoreDNS pods.
+Without a rule allowing port 53 egress, all name resolution fails.

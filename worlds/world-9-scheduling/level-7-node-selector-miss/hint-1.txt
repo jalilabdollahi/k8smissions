@@ -1,0 +1,2 @@
+Run: kubectl describe pod gpu-pod -n k8smissions
+Look for 'no nodes available matching nodeSelector' in Events.

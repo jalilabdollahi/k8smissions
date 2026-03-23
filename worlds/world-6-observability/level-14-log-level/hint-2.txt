@@ -1,0 +1,2 @@
+Run: kubectl get pod logger-app -n k8smissions -o yaml | grep -A5 env
+Note the LOG_LEVEL environment variable value.

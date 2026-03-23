@@ -1,0 +1,1 @@
+Set minAvailable to 1 so at least one pod can always be evicted during a drain.

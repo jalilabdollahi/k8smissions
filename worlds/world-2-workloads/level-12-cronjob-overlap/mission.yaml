@@ -1,0 +1,17 @@
+{
+  "name": "The Flood",
+  "description": "The cluster is filling with identical pods from the same CronJob \u2014 hundreds are running simultaneously.",
+  "objective": "The CronJob has concurrencyPolicy: Allow, causing job pile-up \u2014 change it to Forbid to prevent overlapping runs",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "CronJob",
+    "concurrencyPolicy",
+    "Forbid",
+    "Replace",
+    "batch"
+  ],
+  "world": "world-2-workloads",
+  "level": "level-12-cronjob-overlap"
+}

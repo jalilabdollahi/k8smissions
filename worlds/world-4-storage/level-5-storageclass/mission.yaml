@@ -1,0 +1,16 @@
+{
+  "name": "StorageClass Missing",
+  "description": "A PVC has been created but remains stuck in Pending state.",
+  "objective": "The PVC references a StorageClass that doesn't exist \u2014 change the storageClassName to one that is available",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "StorageClass",
+    "dynamic vs static provisioning",
+    "kubectl get storageclass",
+    "default storage class"
+  ],
+  "world": "world-4-storage",
+  "level": "level-5-storageclass"
+}

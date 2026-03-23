@@ -1,0 +1,2 @@
+Run: kubectl get myapp my-app -n k8smissions -o yaml | grep -E 'generation|observedGeneration'
+If observedGeneration < generation, the controller hasn't processed the latest spec version.

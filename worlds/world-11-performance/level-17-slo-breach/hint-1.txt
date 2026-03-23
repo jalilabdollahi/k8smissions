@@ -1,0 +1,2 @@
+Run: kubectl get pods -n k8smissions -l app=slo-app
+Look for pods in Error or with high restart counts.

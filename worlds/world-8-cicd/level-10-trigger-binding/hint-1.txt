@@ -1,0 +1,2 @@
+Run: kubectl get triggerbinding git-push-binding -n k8smissions -o yaml
+Compare the body field paths with actual GitHub webhook payload structure.

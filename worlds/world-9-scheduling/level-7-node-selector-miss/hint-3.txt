@@ -1,0 +1,3 @@
+Option 1: Remove the nodeSelector if GPU scheduling isn't needed right now.
+Option 2: Add the label to a node: kubectl label node <node-name> accelerator-type=nvidia-v100
+Option 3: Use node affinity with preferredDuringScheduling.

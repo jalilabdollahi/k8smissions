@@ -1,0 +1,1 @@
+Goal state: kubectl get events -n k8smissions --sort-by='.lastTimestamp' Find the ImagePullBackOff event → fix image reference

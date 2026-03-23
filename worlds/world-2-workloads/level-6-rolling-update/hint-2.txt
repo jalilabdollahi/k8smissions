@@ -1,0 +1,1 @@
+Goal state: Set maxUnavailable: 1 (or "25%") and maxSurge: 1

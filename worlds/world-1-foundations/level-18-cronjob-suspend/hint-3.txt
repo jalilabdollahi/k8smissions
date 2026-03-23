@@ -1,0 +1,3 @@
+Patch it:
+  kubectl patch cronjob report-generator -n k8smissions -p '{"spec":{"suspend":false}}'
+Or edit the manifest: set suspend: false then kubectl apply.

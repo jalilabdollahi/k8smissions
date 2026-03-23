@@ -1,0 +1,2 @@
+Run: kubectl get cronjob data-processor -n k8smissions -o yaml | grep concurrencyPolicy
+Also check: kubectl get pods -n k8smissions | grep data-processor | wc -l

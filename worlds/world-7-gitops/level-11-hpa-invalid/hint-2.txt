@@ -1,0 +1,2 @@
+Run: kubectl describe hpa api-hpa -n k8smissions
+Look for a validation error about minReplicas being greater than maxReplicas.

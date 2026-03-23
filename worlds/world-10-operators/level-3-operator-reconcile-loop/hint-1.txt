@@ -1,0 +1,2 @@
+Run: kubectl logs -n operators deployment/my-operator | tail -20
+If the pod logs show no reconciliation events for your CR, the operator can't see it.

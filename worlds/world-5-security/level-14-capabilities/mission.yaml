@@ -1,0 +1,17 @@
+{
+  "name": "Capability Gap",
+  "description": "A network tool pod can't bind to port 80 \u2014 it exits with 'permission denied' binding the privileged port.",
+  "objective": "The container lacks the NET_BIND_SERVICE capability \u2014 add it to the container securityContext",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "securityContext",
+    "capabilities",
+    "NET_BIND_SERVICE",
+    "privileged ports",
+    "Linux capabilities"
+  ],
+  "world": "world-5-security",
+  "level": "level-14-capabilities"
+}

@@ -1,0 +1,1 @@
+Check if there's a RoleBinding for the app-sa service account — it's missing.

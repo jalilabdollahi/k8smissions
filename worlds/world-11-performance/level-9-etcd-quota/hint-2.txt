@@ -1,0 +1,5 @@
+Today's fix requires two steps:
+1. Defragment etcd to reclaim fragmented space:
+   etcdctl defrag --endpoints=https://localhost:2379
+2. Clear the alarm:
+   etcdctl alarm disarm

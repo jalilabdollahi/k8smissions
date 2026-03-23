@@ -1,0 +1,13 @@
+Create a headless service:
+  apiVersion: v1
+  kind: Service
+  metadata:
+    name: db-headless
+    namespace: k8smissions
+  spec:
+    clusterIP: None
+    selector:
+      app: db
+    ports:
+    - port: 3306
+Then update the StatefulSet's serviceName to db-headless.

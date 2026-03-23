@@ -1,0 +1,5 @@
+Three problems to find:
+1. Image alpine/git:999 does not exist
+2. Required param git-url has no default
+3. Service account has no RBAC to create TaskRuns
+Fix one at a time.

@@ -1,0 +1,17 @@
+{
+  "name": "Random Logout",
+  "description": "Users are getting randomly logged out despite the application appearing healthy.",
+  "objective": "The Service load-balances across pods per request \u2014 enable session affinity so clients stick to one pod",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Session affinity",
+    "sticky sessions",
+    "ClientIP",
+    "stateful vs stateless apps",
+    "shared session stores"
+  ],
+  "world": "world-3-networking",
+  "level": "level-6-session-affinity"
+}

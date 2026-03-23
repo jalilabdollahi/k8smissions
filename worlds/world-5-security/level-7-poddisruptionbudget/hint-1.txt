@@ -1,0 +1,1 @@
+Start with: PDB minAvailable: 3 > actual replicas 2

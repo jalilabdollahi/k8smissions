@@ -1,0 +1,1 @@
+Delete all at once: kubectl delete configmap -n k8smissions $(kubectl get cm -n k8smissions --no-headers | awk '/^ci-run-/{print $1}')

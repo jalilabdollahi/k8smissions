@@ -1,0 +1,2 @@
+Finalizers are removed by the controller that set them. If that controller is gone, you must patch them out manually.
+Run: kubectl get configmap stuck-config -n k8smissions -o jsonpath='{.metadata.finalizers}'

@@ -1,0 +1,2 @@
+TopologySpreadConstraint distributes pods across topology domains (nodes, zones).
+maxSkew: 1 means at most 1 pod difference between the most and least loaded domain.

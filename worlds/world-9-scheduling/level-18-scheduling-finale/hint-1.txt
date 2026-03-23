@@ -1,0 +1,4 @@
+Examine all three pods:
+  kubectl describe pod team-a-pod -n k8smissions
+  kubectl describe pod team-b-deploy-xxx -n k8smissions
+  kubectl describe pod team-c-pod -n k8smissions

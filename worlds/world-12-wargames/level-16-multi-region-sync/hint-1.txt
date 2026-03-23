@@ -1,0 +1,1 @@
+Check the leader-election ConfigMap — the sync-status and failover-enabled fields are wrong.

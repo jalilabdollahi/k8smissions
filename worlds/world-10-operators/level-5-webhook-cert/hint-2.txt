@@ -1,0 +1,3 @@
+Run: kubectl get secret -n operators | grep webhook-cert
+Check if cert-manager issued a certificate and if it's current:
+  kubectl describe cert webhook-cert -n operators

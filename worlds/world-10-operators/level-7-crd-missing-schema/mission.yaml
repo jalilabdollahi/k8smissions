@@ -1,0 +1,17 @@
+{
+  "name": "Unvalidated Resource",
+  "description": "The API accepts any garbage values in custom resource fields \u2014 creating a CR with replicas: -999 succeeds.",
+  "objective": "The CRD has no OpenAPI validation schema \u2014 add proper schema validation to reject invalid values",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "CRD",
+    "OpenAPI schema",
+    "validation",
+    "structural schema",
+    "x-kubernetes-validations"
+  ],
+  "world": "world-10-operators",
+  "level": "level-7-crd-missing-schema"
+}

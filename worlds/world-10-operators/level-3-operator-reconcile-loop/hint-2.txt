@@ -1,0 +1,2 @@
+Check WATCH_NAMESPACE: kubectl describe deployment my-operator -n operators | grep WATCH_NAMESPACE
+If set to 'operators', the controller only sees resources in that namespace.

@@ -1,0 +1,9 @@
+Full secure pod securityContext:
+  spec:
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+    containers:
+    - securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true

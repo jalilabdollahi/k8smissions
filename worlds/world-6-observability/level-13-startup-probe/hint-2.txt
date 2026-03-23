@@ -1,0 +1,2 @@
+The liveness probe fires after 10s initialDelay, then every 10s x 3 failures = kills the container after 40s.
+But the app needs 120s to start. The liveness probe kills it before it can boot.

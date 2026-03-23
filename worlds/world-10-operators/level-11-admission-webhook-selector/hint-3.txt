@@ -1,0 +1,6 @@
+Add a namespaceSelector to exclude system namespaces:
+  namespaceSelector:
+    matchExpressions:
+    - key: kubernetes.io/metadata.name
+      operator: NotIn
+      values: [kube-system, kube-public, kube-node-lease]

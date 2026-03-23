@@ -1,0 +1,16 @@
+{
+  "name": "StatefulSet Can't Reach Itself",
+  "description": "StatefulSet pods cannot resolve each other by hostname via DNS.",
+  "objective": "The StatefulSet service has a ClusterIP \u2014 remove it to make the service headless and enable per-pod DNS records",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Headless service",
+    "clusterIP: None",
+    "StatefulSet DNS format",
+    "<pod>.<svc>.<ns>.svc.cluster.local"
+  ],
+  "world": "world-3-networking",
+  "level": "level-10-headless"
+}

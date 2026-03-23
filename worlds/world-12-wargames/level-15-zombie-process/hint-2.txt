@@ -1,0 +1,1 @@
+Without probes, a zombie/hung process keeps the pod in Running state and in Service endpoints.

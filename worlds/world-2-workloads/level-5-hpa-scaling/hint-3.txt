@@ -1,0 +1,1 @@
+Validation target: kubectl get hpa → TARGETS shows actual CPU%, not <unknown>

@@ -1,0 +1,3 @@
+With 100 replicas, maxSurge: 0, maxUnavailable: 1:
+- Update 1 pod → wait → update 1 pod → ... = 100 sequential updates
+- If each pod takes 2 minutes to start, 100 * 2min = 200 min = 3+ hours

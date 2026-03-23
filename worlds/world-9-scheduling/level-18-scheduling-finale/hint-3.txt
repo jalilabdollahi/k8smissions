@@ -1,0 +1,3 @@
+Fix 1: Remove nodeSelector from team-a-pod
+Fix 2: Change team-b antiAffinity to preferred
+Fix 3: Remove priorityClassName from team-c-pod (or create the PriorityClass)

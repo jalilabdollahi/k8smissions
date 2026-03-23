@@ -1,0 +1,1 @@
+kubectl logs env-pod -n k8smissions

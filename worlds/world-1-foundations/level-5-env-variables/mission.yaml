@@ -1,0 +1,15 @@
+{
+  "name": "Missing the Key",
+  "description": "Pod is deployed but keeps crashing shortly after starting.",
+  "objective": "The application requires an environment variable that is missing from the pod spec \u2014 add the missing env var",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "10m",
+  "concepts": [
+    "env",
+    "environment variables",
+    "application config"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-5-env-variables"
+}

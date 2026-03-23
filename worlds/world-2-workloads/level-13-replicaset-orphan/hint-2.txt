@@ -1,0 +1,2 @@
+Normally a Deployment owns a ReplicaSet via ownerReferences.
+An orphaned ReplicaSet has no ownerReferences — nothing will clean it up automatically.

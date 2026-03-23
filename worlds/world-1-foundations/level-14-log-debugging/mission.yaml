@@ -1,0 +1,16 @@
+{
+  "name": "Silent Failure",
+  "description": "Pod is in Running state but requests to the application are not being served.",
+  "objective": "The app is Running but serving nothing \u2014 check the logs to find the misconfigured path, then fix it",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "12m",
+  "concepts": [
+    "kubectl logs",
+    "application logs",
+    "debugging running pods",
+    "exec into container"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-14-log-debugging"
+}

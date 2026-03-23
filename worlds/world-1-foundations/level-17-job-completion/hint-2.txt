@@ -1,0 +1,3 @@
+Run: kubectl get pods -n k8smissions -l job-name=db-init
+Then: kubectl logs <pod-name> -n k8smissions
+The container tries to run a script that doesn't exist in the image.

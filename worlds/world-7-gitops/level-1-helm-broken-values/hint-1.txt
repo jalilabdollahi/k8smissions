@@ -1,0 +1,1 @@
+Start with: values.yaml image.tag: "" (empty — should be pinned version)

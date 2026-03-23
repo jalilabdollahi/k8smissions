@@ -1,0 +1,2 @@
+Run: kubectl get virtualservice backend-vs -n k8smissions -o yaml | grep timeout
+The exact 15s pattern indicates a configured timeout, not random failure.

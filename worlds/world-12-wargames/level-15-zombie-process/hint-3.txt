@@ -1,0 +1,1 @@
+Add both a readinessProbe and livenessProbe with httpGet on port 8080 path /

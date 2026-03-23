@@ -1,0 +1,59 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "slo-app",
+    "namespace": "k8smissions",
+    "annotations": {
+      "slo": "availability=99.9%",
+      "error-budget": "43.8min/month"
+    }
+  },
+  "spec": {
+    "replicas": 3,
+    "selector": {
+      "matchLabels": {
+        "app": "slo-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "slo-app"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "app",
+            "image": "nginx:1.25",
+            "ports": [
+              {
+                "containerPort": 8080
+              }
+            ],
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/health/live",
+                "port": 8080
+              },
+              "initialDelaySeconds": 5,
+              "periodSeconds": 10,
+              "failureThreshold": 3
+            },
+            "resources": {
+              "requests": {
+                "cpu": "100m",
+                "memory": "128Mi"
+              },
+              "limits": {
+                "cpu": "500m",
+                "memory": "256Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

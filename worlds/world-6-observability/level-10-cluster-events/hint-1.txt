@@ -1,0 +1,1 @@
+Start with: Cluster with pre-seeded events from a simulated incident: OOMKill → pod eviction → node pressure → cascading failures

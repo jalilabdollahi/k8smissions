@@ -1,0 +1,2 @@
+Fix the init container to exit 0 (or point to the actual DB hostname):
+  command: ["/bin/sh", "-c", "echo 'DB ready'; exit 0"]

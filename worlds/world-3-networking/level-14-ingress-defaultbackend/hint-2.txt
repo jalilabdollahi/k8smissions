@@ -1,0 +1,2 @@
+Run: kubectl get services -n k8smissions
+Compare the Ingress backend service name with the actual Service names in the namespace.

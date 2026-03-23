@@ -1,0 +1,2 @@
+Run: kubectl logs config-lister -n k8smissions
+A 403 means the ServiceAccount exists but has no permissions.

@@ -1,0 +1,3 @@
+Run: kubectl get namespace zombie-ns -o yaml
+Look at metadata.finalizers and status.conditions.
+Stuck namespaces almost always have resources inside with uncleaned finalizers.

@@ -1,0 +1,2 @@
+Istio/Linkerd sidecar injection intercepts all containers in a namespace.
+Tekton Tasks run short-lived init/step containers — sidecars interfere with this lifecycle.

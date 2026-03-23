@@ -1,0 +1,2 @@
+Run: kubectl argo rollouts get rollout api-rollout -n k8smissions
+Look for 'Paused' status and check which step the rollout is on.

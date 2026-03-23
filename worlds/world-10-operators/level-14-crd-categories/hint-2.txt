@@ -1,0 +1,2 @@
+CRD names.categories controls which kubectl shorthand categories include this resource.
+The built-in 'all' category is what kubectl get all uses.

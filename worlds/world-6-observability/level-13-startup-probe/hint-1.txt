@@ -1,0 +1,2 @@
+Run: kubectl describe pod slow-java-app -n k8smissions
+Look at Events — you should see 'Liveness probe failed' during startup.

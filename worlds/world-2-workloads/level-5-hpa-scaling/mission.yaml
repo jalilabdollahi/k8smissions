@@ -1,0 +1,18 @@
+{
+  "name": "Autoscaler Blind",
+  "description": "A HorizontalPodAutoscaler has been created but shows unknown for current metrics.",
+  "objective": "The HPA shows <unknown> for CPU because metrics-server is not running \u2014 install or enable metrics-server",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "20m",
+  "concepts": [
+    "HPA",
+    "metrics-server",
+    "resource metrics API",
+    "CPU utilization",
+    "minReplicas",
+    "maxReplicas"
+  ],
+  "world": "world-2-workloads",
+  "level": "level-5-hpa-scaling"
+}

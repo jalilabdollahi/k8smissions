@@ -1,0 +1,2 @@
+Run: python3 -c "import yaml; print(yaml.safe_load(open('values.yaml').read()))"
+If 'tag' appears at the top level (not under 'image'), the indentation is wrong.

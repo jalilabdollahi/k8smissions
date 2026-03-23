@@ -1,0 +1,44 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "web",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "web"
+    }
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "web",
+        "image": "nginx:1.25",
+        "ports": [
+          {
+            "containerPort": 80
+          }
+        ]
+      }
+    ]
+  }
+}
+---
+{
+  "apiVersion": "v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "web-svc",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "selector": {
+      "app": "web"
+    },
+    "ports": [
+      {
+        "port": 80,
+        "targetPort": 8080
+      }
+    ]
+  }
+}

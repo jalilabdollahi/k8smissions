@@ -1,0 +1,16 @@
+{
+  "name": "Split Cluster",
+  "description": "A NetworkPolicy was applied too broadly and now blocks all traffic between two critical services.",
+  "objective": "A NetworkPolicy is blocking all inter-service traffic \u2014 add a targeted allow rule to restore required connectivity",
+  "xp": 400,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": [
+    "NetworkPolicy",
+    "ingress rules",
+    "podSelector",
+    "network segmentation"
+  ],
+  "world": "world-12-wargames",
+  "level": "level-12-network-partition"
+}

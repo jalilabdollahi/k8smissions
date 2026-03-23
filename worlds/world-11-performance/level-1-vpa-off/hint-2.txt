@@ -1,0 +1,2 @@
+VPA updateMode: Off means recommendations are calculated but never applied.
+Off mode is good for observation; Auto mode applies recommendations by restarting pods.

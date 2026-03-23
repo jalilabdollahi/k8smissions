@@ -1,0 +1,6 @@
+Change antiAffinity to preferredDuringScheduling:
+  preferredDuringSchedulingIgnoredDuringExecution:
+  - weight: 100
+    podAffinityTerm:
+      labelSelector: ...
+      topologyKey: kubernetes.io/hostname

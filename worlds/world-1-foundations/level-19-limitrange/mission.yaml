@@ -1,0 +1,16 @@
+{
+  "name": "The Noisy Neighbour",
+  "description": "A pod fails to create with a Forbidden error referencing a LimitRange policy.",
+  "objective": "A LimitRange in the namespace requires resource limits \u2014 add limits to the pod spec to comply",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "LimitRange",
+    "resource limits",
+    "resource requests",
+    "namespace policy"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-19-limitrange"
+}

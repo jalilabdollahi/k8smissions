@@ -1,0 +1,1 @@
+kubectl get pods -n k8smissions | grep ci-test-pod

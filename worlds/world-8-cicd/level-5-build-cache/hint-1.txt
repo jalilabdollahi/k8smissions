@@ -1,0 +1,2 @@
+Run: kubectl get taskrun build-cache-run -n k8smissions -o yaml | grep workspaces -A20
+A missing 'cache' workspace means dependencies are downloaded fresh every build.

@@ -1,0 +1,3 @@
+Fix 1: change image to alpine/git:latest
+Fix 2: add default to the git-url param
+Fix 3: create role + rolebinding for the SA to create/get taskruns

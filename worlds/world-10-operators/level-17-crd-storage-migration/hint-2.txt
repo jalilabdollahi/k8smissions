@@ -1,0 +1,2 @@
+Run: kubectl get crd configs.example.com -o yaml | grep storedVersions -A5
+status.storedVersions lists all versions used by stored objects.

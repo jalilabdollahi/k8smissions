@@ -1,0 +1,2 @@
+Run: kubectl get events -n kube-system | grep etcd | head -5
+Look for 'database space exceeded' events.

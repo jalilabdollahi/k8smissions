@@ -1,0 +1,14 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "PipelineRun",
+  "metadata": {
+    "name": "build-run",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "pipelineRef": {
+      "name": "build-pipeline"
+    },
+    "workspaces": []
+  }
+}

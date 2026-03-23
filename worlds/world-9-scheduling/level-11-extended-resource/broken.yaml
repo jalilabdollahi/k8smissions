@@ -1,0 +1,26 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "fpga-pod",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "compute",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "sleep 3600"
+        ],
+        "resources": {
+          "limits": {
+            "my.company/fpga": "1"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+Add a startupProbe that allows up to 150s for startup:
+  startupProbe:
+    exec:
+      command: ["test", "-f", "/tmp/ready"]
+    failureThreshold: 30
+    periodSeconds: 5
+The liveness probe is paused until startupProbe passes.

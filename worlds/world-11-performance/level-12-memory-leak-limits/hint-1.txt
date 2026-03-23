@@ -1,0 +1,2 @@
+Run: kubectl top pod -n k8smissions -l app=leaky --sort-by=memory
+Watch memory grow over time. Without a limit, it can consume all node memory and affect other pods.

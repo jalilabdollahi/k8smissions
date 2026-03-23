@@ -1,0 +1,2 @@
+Run: kubectl get svc dual-svc -n k8smissions -o yaml
+When a Service has multiple ports, they MUST have names — otherwise port references are ambiguous.

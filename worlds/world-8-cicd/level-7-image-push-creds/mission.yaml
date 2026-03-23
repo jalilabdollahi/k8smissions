@@ -1,0 +1,17 @@
+{
+  "name": "Push Denied",
+  "description": "The CI pipeline's image push step fails with 'unauthorized: authentication required'.",
+  "objective": "The Task is missing registry credentials \u2014 create a registry secret and bind it to the pipeline ServiceAccount",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "Tekton",
+    "registry credentials",
+    "docker-registry secret",
+    "image push",
+    "ServiceAccount"
+  ],
+  "world": "world-8-cicd",
+  "level": "level-7-image-push-creds"
+}

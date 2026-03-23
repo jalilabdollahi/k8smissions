@@ -1,0 +1,17 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "leader-election",
+    "namespace": "k8smissions",
+    "annotations": {
+      "control-plane.alpha.kubernetes.io/leader": "{\"holderIdentity\":\"secondary-cluster\",\"acquireTime\":\"2026-03-23\",\"renewTime\":\"2026-03-23\",\"leaderTransitions\":1}"
+    }
+  },
+  "data": {
+    "failover-enabled": "true",
+    "active-cluster": "secondary",
+    "passive-cluster": "primary",
+    "sync-status": "synced"
+  }
+}

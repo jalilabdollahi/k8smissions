@@ -1,0 +1,1 @@
+kubectl get deployments -n k8smissions -o json | grep -A2 limits

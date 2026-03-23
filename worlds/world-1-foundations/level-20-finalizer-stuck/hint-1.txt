@@ -1,0 +1,2 @@
+Run: kubectl get configmap stuck-config -n k8smissions -o yaml
+Look at metadata.finalizers. kubectl delete waits for all finalizers to be removed.

@@ -1,0 +1,1 @@
+Create a NetworkPolicy that allows ingress to the backend pod from the frontend pod.

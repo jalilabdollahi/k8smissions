@@ -1,0 +1,5 @@
+Change the env variable:
+  env:
+  - name: LOG_LEVEL
+    value: INFO
+Then delete and recreate the pod (env vars are immutable on running pods).

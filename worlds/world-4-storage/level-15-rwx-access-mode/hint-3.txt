@@ -1,0 +1,4 @@
+Delete the PVC and recreate with ReadWriteMany:
+  accessModes:
+  - ReadWriteMany
+Note: accessModes is immutable on an existing PVC — you must delete and recreate.

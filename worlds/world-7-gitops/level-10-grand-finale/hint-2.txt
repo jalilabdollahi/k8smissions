@@ -1,0 +1,1 @@
+Goal state: Apply the corrected manifest or patch so the workload matches the expected healthy state.

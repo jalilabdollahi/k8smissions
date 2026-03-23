@@ -1,0 +1,2 @@
+Run: kubectl get pod init-pod -n k8smissions
+If STATUS shows 'Init:0/1', an init container is blocking startup.

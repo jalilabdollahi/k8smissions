@@ -1,0 +1,17 @@
+{
+  "name": "No Cache Hit",
+  "description": "Every CI build takes 15 minutes compiling dependencies \u2014 build caching isn't working.",
+  "objective": "The build Task doesn't mount the cache PVC \u2014 add the workspace binding to enable build cache",
+  "xp": 275,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Tekton",
+    "workspace",
+    "PVC",
+    "build cache",
+    "performance"
+  ],
+  "world": "world-8-cicd",
+  "level": "level-5-build-cache"
+}

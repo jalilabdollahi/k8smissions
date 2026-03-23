@@ -1,0 +1,10 @@
+Set up a conversion webhook:
+  conversion:
+    strategy: Webhook
+    webhook:
+      conversionReviewVersions: ["v1"]
+      clientConfig:
+        service:
+          name: db-operator-webhook
+          namespace: operators
+          port: 443

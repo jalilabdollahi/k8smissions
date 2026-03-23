@@ -1,0 +1,5 @@
+Lower minAvailable to allow one disruption:
+  minAvailable: 2
+Or use maxUnavailable: 1 (equivalent, more expressive):
+  spec:
+    maxUnavailable: 1

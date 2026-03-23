@@ -1,0 +1,5 @@
+Enable leader election:
+  args:
+  - --leader-elect=true
+  - --leader-elect-lease-duration=30s
+With leader election, only one replica actively reconciles; others standby.

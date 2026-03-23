@@ -1,0 +1,2 @@
+Run: kubectl describe pod fragile-app -n k8smissions | grep -A5 Liveness
+Note failureThreshold: 1 — a single probe failure triggers a restart immediately.

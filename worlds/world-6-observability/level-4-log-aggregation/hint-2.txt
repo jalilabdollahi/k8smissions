@@ -1,0 +1,1 @@
+Goal state: kubectl logs <pod> --previous -n k8smissions Identify the crash message (OOM / missing config / etc)

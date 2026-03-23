@@ -1,0 +1,17 @@
+{
+  "name": "Manual Block",
+  "description": "A release pipeline has been waiting for an approval for two days \u2014 the approver left the company.",
+  "objective": "A pipeline run is stuck pending approval \u2014 configure the approval step to auto-approve or override it",
+  "xp": 275,
+  "difficulty": "intermediate",
+  "expected_time": "8m",
+  "concepts": [
+    "pipeline approval",
+    "manual gate",
+    "Tekton",
+    "runAfter",
+    "override"
+  ],
+  "world": "world-8-cicd",
+  "level": "level-13-approval-gate"
+}

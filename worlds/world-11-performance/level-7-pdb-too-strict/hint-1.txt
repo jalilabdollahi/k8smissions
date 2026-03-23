@@ -1,0 +1,2 @@
+Run: kubectl get pdb my-pdb -n k8smissions
+If ALLOWED DISRUPTIONS is 0, no voluntary disruptions (like rolling updates) can proceed.

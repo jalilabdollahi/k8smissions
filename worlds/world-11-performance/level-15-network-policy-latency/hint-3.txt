@@ -1,0 +1,6 @@
+Migrate to Cilium CNI which uses eBPF:
+  - eBPF does O(1) hash-map lookups instead of O(n) iptables linear scan
+  - Network policy evaluation is near-zero overhead
+Add annotation to document the optimization:
+  annotations:
+    policy-engine: cilium-ebpf

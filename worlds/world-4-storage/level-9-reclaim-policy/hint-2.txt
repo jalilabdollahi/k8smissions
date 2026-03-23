@@ -1,0 +1,1 @@
+Goal state: Patch PV reclaimPolicy to Retain kubectl patch pv <pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'

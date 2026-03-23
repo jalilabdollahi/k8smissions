@@ -1,0 +1,2 @@
+Run: kubectl describe cronjob report-generator -n k8smissions
+Look for 'Suspend: true' in the spec.

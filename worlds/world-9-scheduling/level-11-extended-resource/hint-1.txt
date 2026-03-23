@@ -1,0 +1,2 @@
+Run: kubectl describe node | grep -i fpga
+The device plugin advertises its resource under a specific name — you must use that exact name.

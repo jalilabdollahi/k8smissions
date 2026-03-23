@@ -1,0 +1,1 @@
+The image references an internal registry that is unreachable. Change it to a public image.

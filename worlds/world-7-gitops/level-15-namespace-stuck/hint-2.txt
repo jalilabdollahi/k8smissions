@@ -1,0 +1,4 @@
+Find objects with finalizers:
+  kubectl get all,configmaps,secrets -n zombie-ns -o json | \
+    python3 -c "import json,sys; [print(i['kind'],i['metadata']['name']) \
+    for i in json.load(sys.stdin)['items'] if i['metadata'].get('finalizers')]"

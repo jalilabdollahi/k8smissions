@@ -1,0 +1,17 @@
+{
+  "name": "Flying Blind",
+  "description": "Running 'kubectl top pods' returns an error and all metrics are unavailable.",
+  "objective": "kubectl top returns an error because metrics-server is not installed \u2014 deploy or enable metrics-server",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Metrics API",
+    "metrics-server",
+    "Resource Metrics Pipeline",
+    "Custom Metrics API",
+    "Prometheus Adapter"
+  ],
+  "world": "world-6-observability",
+  "level": "level-1-metrics-server"
+}

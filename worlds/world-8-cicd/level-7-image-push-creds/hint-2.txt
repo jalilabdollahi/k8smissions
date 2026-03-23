@@ -1,0 +1,2 @@
+Docker push requires credentials stored in a secret of type kubernetes.io/dockerconfigjson.
+This secret must be attached to the ServiceAccount used by the Tekton pipeline.

@@ -1,0 +1,2 @@
+StatefulSets require a headless Service (clusterIP: None) to create stable DNS records like db-0.db-headless.k8smissions.svc.cluster.local.
+A regular ClusterIP Service cannot provide per-pod DNS entries.

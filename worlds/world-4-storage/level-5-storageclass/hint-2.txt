@@ -1,0 +1,1 @@
+Goal state: Change storageClassName to "standard" (kind default) OR create the "fast-ssd" StorageClass

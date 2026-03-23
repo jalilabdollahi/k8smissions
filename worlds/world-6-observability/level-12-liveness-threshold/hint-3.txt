@@ -1,0 +1,5 @@
+Increase failureThreshold to 3 (standard default):
+  livenessProbe:
+    failureThreshold: 3
+    periodSeconds: 10
+This allows 3 consecutive failures before restarting.

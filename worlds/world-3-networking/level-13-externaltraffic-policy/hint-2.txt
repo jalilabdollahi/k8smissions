@@ -1,0 +1,2 @@
+externalTrafficPolicy: Local preserves client IP but drops traffic on nodes with no matching pod.
+If your pods aren't spread across all nodes, some nodes silently drop traffic.

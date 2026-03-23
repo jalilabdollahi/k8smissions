@@ -1,0 +1,1 @@
+Start with: HPA referencing cpu utilization, but metrics-server absent

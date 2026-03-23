@@ -1,0 +1,1 @@
+kubectl get configmap -n k8smissions | grep ci-run

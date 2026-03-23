@@ -1,0 +1,2 @@
+Run: kubectl describe deployment web-app -n k8smissions | grep DB_POOL_SIZE
+A pool size of 1 means each pod creates one connection per active request.

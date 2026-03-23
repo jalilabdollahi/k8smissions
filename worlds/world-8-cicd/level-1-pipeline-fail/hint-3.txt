@@ -1,0 +1,2 @@
+Fix: change the image to 'golang:1.21' — a valid, published tag.
+Verify with: docker pull golang:1.21 or check hub.docker.com

@@ -1,0 +1,28 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "Pipeline",
+  "metadata": {
+    "name": "build-and-clean",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "tasks": [
+      {
+        "name": "build",
+        "taskRef": {
+          "name": "build-task"
+        }
+      },
+      {
+        "name": "cleanup",
+        "taskRef": {
+          "name": "cleanup-task"
+        },
+        "runAfter": [
+          "build"
+        ]
+      }
+    ],
+    "finally": []
+  }
+}

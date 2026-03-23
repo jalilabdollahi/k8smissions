@@ -1,0 +1,1 @@
+Goal state: Set DB_HOST=db.k8smissions.svc.cluster.local

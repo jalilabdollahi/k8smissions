@@ -1,0 +1,1 @@
+Validation target: kubectl get statefulset, pods have predictable names (db-0, db-1)

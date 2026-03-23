@@ -1,0 +1,6 @@
+Increase the timeout in the VirtualService:
+  timeout: 120s
+Also add retries for transient failures:
+  retries:
+    attempts: 3
+    perTryTimeout: 30s

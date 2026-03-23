@@ -1,0 +1,1 @@
+Start with: env.valueFrom.configMapKeyRef.key: database_password ConfigMap has key: db_password

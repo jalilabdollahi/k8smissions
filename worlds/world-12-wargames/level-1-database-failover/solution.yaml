@@ -1,0 +1,86 @@
+[
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "db-primary",
+      "namespace": "k8smissions",
+      "labels": {
+        "app": "db"
+      }
+    },
+    "spec": {
+      "containers": [
+        {
+          "name": "db",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "sleep 3600"
+          ],
+          "ports": [
+            {
+              "containerPort": 5432
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "name": "db-service",
+      "namespace": "k8smissions"
+    },
+    "spec": {
+      "selector": {
+        "app": "db"
+      },
+      "ports": [
+        {
+          "port": 5432,
+          "targetPort": 5432
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "name": "app-server",
+      "namespace": "k8smissions"
+    },
+    "spec": {
+      "replicas": 3,
+      "selector": {
+        "matchLabels": {
+          "app": "app-server"
+        }
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "app": "app-server"
+          }
+        },
+        "spec": {
+          "containers": [
+            {
+              "name": "app-server",
+              "image": "busybox:1.36",
+              "command": [
+                "/bin/sh",
+                "-c",
+                "sleep 3600"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,5 @@
+resources:
+  - ../../base/deployment.yaml
+replicas:
+  - name: kustomize-app
+    count: 2

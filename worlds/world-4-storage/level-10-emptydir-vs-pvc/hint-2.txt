@@ -1,0 +1,1 @@
+Goal state: Replace emptyDir with PVC-backed persistent volume

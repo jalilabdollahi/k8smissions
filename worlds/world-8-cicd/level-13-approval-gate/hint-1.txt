@@ -1,0 +1,2 @@
+Run: kubectl get taskrun approval-gate -n k8smissions -o yaml
+Note the annotation 'awaiting-approval: true' and the wait loop in the script.

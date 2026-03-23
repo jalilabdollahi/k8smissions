@@ -1,0 +1,4 @@
+Increase DB_POOL_SIZE:
+  - name: DB_POOL_SIZE
+    value: "5"
+Also add pool timeout and max overflow settings for production stability.

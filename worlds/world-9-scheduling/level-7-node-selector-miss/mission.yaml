@@ -1,0 +1,16 @@
+{
+  "name": "Label Not Found",
+  "description": "Pods are stuck Pending \u2014 the nodeSelector references a label that no node has.",
+  "objective": "The nodeSelector uses a label key that doesn't exist on any node \u2014 fix the label key or remove the constraint",
+  "xp": 275,
+  "difficulty": "intermediate",
+  "expected_time": "8m",
+  "concepts": [
+    "nodeSelector",
+    "node labels",
+    "scheduling",
+    "Pending pods"
+  ],
+  "world": "world-9-scheduling",
+  "level": "level-7-node-selector-miss"
+}

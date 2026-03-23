@@ -1,0 +1,16 @@
+{
+  "name": "Maintenance is Stuck",
+  "description": "A node drain operation is failing and cannot be completed.",
+  "objective": "The PodDisruptionBudget requires more available pods than the Deployment has replicas \u2014 reconcile the PDB with the actual replica count",
+  "xp": 250,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "PodDisruptionBudget",
+    "voluntary disruption",
+    "node drain",
+    "minAvailable vs maxUnavailable"
+  ],
+  "world": "world-2-workloads",
+  "level": "level-7-pdb-eviction"
+}

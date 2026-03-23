@@ -1,0 +1,2 @@
+Run: kubectl logs -n operators -l app=my-operator | grep -E 'reconcile|leader'
+If two pods both show reconciliation logs, leader election is off.

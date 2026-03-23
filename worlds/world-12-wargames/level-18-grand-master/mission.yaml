@@ -1,0 +1,16 @@
+{
+  "name": "Grand Master Challenge",
+  "description": "The ultimate test. Every world contributes one failure. 12 simultaneous issues spanning foundations, workloads, networking, storage, security, observability, gitops, CI/CD, scheduling, operators, and performance.",
+  "objective": "Fix 12 simultaneous failures spanning all worlds \u2014 one failure from each world, all active at the same time",
+  "xp": 500,
+  "difficulty": "expert",
+  "expected_time": "45m",
+  "concepts": [
+    "full-stack debugging",
+    "incident response",
+    "triage",
+    "Kubernetes mastery"
+  ],
+  "world": "world-12-wargames",
+  "level": "level-18-grand-master"
+}

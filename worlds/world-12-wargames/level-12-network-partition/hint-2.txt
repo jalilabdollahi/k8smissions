@@ -1,0 +1,1 @@
+kubectl get networkpolicy -n k8smissions — you need to add an allow rule, not remove the deny.

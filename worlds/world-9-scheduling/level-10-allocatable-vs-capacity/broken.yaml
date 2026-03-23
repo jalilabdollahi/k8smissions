@@ -1,0 +1,31 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "mem-pod",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "app",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "sleep 3600"
+        ],
+        "resources": {
+          "requests": {
+            "cpu": "100m",
+            "memory": "5Gi"
+          },
+          "limits": {
+            "cpu": "200m",
+            "memory": "6Gi"
+          }
+        }
+      }
+    ]
+  }
+}

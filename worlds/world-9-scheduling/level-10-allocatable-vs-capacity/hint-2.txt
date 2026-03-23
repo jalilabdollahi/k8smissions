@@ -1,0 +1,2 @@
+Node 'Capacity' includes memory reserved for OS and kubelet (kube-reserved/system-reserved).
+'Allocatable' is what Kubernetes can actually schedule pods onto — it's always less than Capacity.

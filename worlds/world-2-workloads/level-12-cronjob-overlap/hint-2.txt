@@ -1,0 +1,2 @@
+concurrencyPolicy: Allow means new jobs start even if the previous one is still running.
+For a job that takes 120s but fires every 60s, the backlog grows without limit.

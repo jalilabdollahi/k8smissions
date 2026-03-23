@@ -1,0 +1,2 @@
+Run: kubectl get configs -A 2>&1 | head
+If you see 'no kind is registered' or conversion errors, stored objects reference a removed version.

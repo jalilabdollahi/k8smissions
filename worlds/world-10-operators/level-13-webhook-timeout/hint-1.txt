@@ -1,0 +1,2 @@
+Run: time kubectl run test-pod --image=nginx -n k8smissions --restart=Never 2>&1
+Measure how long pod creation takes.

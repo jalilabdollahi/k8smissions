@@ -1,0 +1,1 @@
+Update ntp_sync to 'true' and skew_seconds to '0' in the ConfigMap.

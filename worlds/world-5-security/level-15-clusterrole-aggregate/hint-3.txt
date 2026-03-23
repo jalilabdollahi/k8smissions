@@ -1,0 +1,5 @@
+The source ClusterRole has label 'aggregate-to-viewer' but the aggregation rule selects for 'aggregate-to-operator'.
+Fix the label on deployments-reader:
+  kubectl label clusterrole deployments-reader \
+    rbac.example.io/aggregate-to-operator=true \
+    rbac.example.io/aggregate-to-viewer-

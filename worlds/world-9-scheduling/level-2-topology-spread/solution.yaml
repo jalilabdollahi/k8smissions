@@ -1,0 +1,53 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "ha-app",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "replicas": 4,
+    "selector": {
+      "matchLabels": {
+        "app": "ha-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "ha-app"
+        }
+      },
+      "spec": {
+        "topologySpreadConstraints": [
+          {
+            "maxSkew": 1,
+            "topologyKey": "kubernetes.io/hostname",
+            "whenUnsatisfiable": "DoNotSchedule",
+            "labelSelector": {
+              "matchLabels": {
+                "app": "ha-app"
+              }
+            }
+          }
+        ],
+        "containers": [
+          {
+            "name": "app",
+            "image": "nginx:1.25",
+            "resources": {
+              "requests": {
+                "cpu": "50m",
+                "memory": "32Mi"
+              },
+              "limits": {
+                "cpu": "100m",
+                "memory": "64Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

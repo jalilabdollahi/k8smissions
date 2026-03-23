@@ -1,0 +1,2 @@
+Option 1: Delete the balloon pod: kubectl delete pod balloon-pod -n k8smissions
+Option 2: Reduce its requests to a minimal size: cpu: 100m, memory: 128Mi

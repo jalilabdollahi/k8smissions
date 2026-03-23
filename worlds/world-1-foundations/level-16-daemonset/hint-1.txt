@@ -1,0 +1,2 @@
+Run: kubectl get daemonset log-collector -n k8smissions -o wide
+Look at DESIRED vs READY. Check node taint with: kubectl describe nodes | grep Taints

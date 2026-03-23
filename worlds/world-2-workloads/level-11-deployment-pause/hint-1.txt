@@ -1,0 +1,2 @@
+Run: kubectl rollout status deployment/frontend -n k8smissions
+A paused deployment shows 'Waiting for deployment spec update to be observed'.

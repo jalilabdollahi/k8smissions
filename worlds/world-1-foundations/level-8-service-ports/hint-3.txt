@@ -1,0 +1,1 @@
+targetPort must match containerPort, not Service port

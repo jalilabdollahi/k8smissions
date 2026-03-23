@@ -1,0 +1,17 @@
+{
+  "name": "API Server Writes Fail",
+  "description": "kubectl apply fails with 'etcdserver: mvcc: database space exceeded'.",
+  "objective": "etcd has hit its storage quota (default 2GB) \u2014 defragment etcd and raise the quota",
+  "xp": 375,
+  "difficulty": "advanced",
+  "expected_time": "18m",
+  "concepts": [
+    "etcd",
+    "storage quota",
+    "defragmentation",
+    "ETCD_QUOTA_BACKEND_BYTES",
+    "compaction"
+  ],
+  "world": "world-11-performance",
+  "level": "level-9-etcd-quota"
+}

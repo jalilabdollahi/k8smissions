@@ -1,0 +1,2 @@
+A Java app with no readiness probe is marked 'Ready' as soon as all containers start.
+But JVM startup + Spring context init can take 20-30s — requests during that window fail.

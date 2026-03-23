@@ -1,0 +1,16 @@
+{
+  "name": "No Endpoints",
+  "description": "A Service has been created and pods are Running, but the endpoints list is empty.",
+  "objective": "The service selector label doesn't match the pod's labels \u2014 align them so the service routes traffic to the pod",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "10m",
+  "concepts": [
+    "labels",
+    "selectors",
+    "service endpoints",
+    "kubectl get ep"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-7-labels-selectors"
+}

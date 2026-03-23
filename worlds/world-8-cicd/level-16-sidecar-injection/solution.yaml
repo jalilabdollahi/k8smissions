@@ -1,0 +1,25 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "Task",
+  "metadata": {
+    "name": "injected-task",
+    "namespace": "k8smissions",
+    "labels": {
+      "sidecar.istio.io/inject": "false"
+    }
+  },
+  "spec": {
+    "podTemplate": {
+      "labels": {
+        "sidecar.istio.io/inject": "false"
+      }
+    },
+    "steps": [
+      {
+        "name": "build",
+        "image": "busybox:1.36",
+        "script": "echo building"
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "Status Not Updating",
+  "description": "kubectl patch on the CR status field silently succeeds but kubectl get shows status is unchanged.",
+  "objective": "The CRD doesn't have the status subresource enabled \u2014 status updates require a separate subresource config",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "status subresource",
+    "CRD",
+    "operator status",
+    "kubectl patch"
+  ],
+  "world": "world-10-operators",
+  "level": "level-9-status-subresource"
+}

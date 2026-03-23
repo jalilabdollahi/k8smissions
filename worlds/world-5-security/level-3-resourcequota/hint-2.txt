@@ -1,0 +1,1 @@
+Goal state: Reduce CPU request per pod to 600m OR delete unused pods OR request quota increase (update ResourceQuota)

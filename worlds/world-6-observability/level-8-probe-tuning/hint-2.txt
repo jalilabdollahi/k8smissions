@@ -1,0 +1,1 @@
+Goal state: Option A: Increase initialDelaySeconds: 90 Option B (better): Add startupProbe with failureThreshold: 30, periodSeconds: 5 (= 150s max wait)

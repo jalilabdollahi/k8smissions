@@ -1,0 +1,16 @@
+{
+  "apiVersion": "example.com/v1alpha1",
+  "kind": "Database",
+  "metadata": {
+    "name": "prod-db",
+    "namespace": "k8smissions",
+    "finalizers": []
+  },
+  "spec": {
+    "engine": "postgres",
+    "storage": "10Gi"
+  },
+  "status": {
+    "phase": "Terminating"
+  }
+}

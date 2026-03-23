@@ -1,0 +1,1 @@
+Resources exist in "default" — wrong namespace

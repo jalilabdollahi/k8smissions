@@ -1,0 +1,1 @@
+kubectl describe pod pending-pod -n k8smissions → Events

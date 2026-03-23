@@ -1,0 +1,1 @@
+Goal state: kubectl rollout undo deployment/rollback-app -n k8smissions

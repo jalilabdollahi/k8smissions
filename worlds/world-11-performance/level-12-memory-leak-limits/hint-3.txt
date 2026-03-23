@@ -1,0 +1,7 @@
+Add a memory limit:
+  resources:
+    requests:
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+This caps the leak impact and OOMKills the pod before it affects the node.

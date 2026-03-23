@@ -1,0 +1,16 @@
+{
+  "name": "Waiting Forever",
+  "description": "Pod is stuck in Init:0/1 state and will not progress to Running.",
+  "objective": "The init container waits for a service that doesn't exist and blocks forever \u2014 fix the dependency so the init container can complete",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "15m",
+  "concepts": [
+    "initContainers",
+    "pod initialization",
+    "startup ordering",
+    "dependency waiting"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-12-init-container"
+}

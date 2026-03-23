@@ -1,0 +1,2 @@
+Tekton resources (Pipeline, PipelineRun, TaskRun) are CRDs.
+The SA needs permission to create/get/list these resources in the tekton.dev API group.

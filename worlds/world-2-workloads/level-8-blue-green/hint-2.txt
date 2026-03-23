@@ -1,0 +1,1 @@
+Goal state: Patch service selector to version: green

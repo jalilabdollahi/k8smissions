@@ -1,0 +1,3 @@
+In YAML, hierarchy is defined purely by indentation.
+'tag: v2.0.0' at the same level as 'image:' makes it a separate top-level key.
+It should be indented 2 spaces under 'image:'.

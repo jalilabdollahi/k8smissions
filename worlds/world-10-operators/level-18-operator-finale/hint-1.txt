@@ -1,0 +1,4 @@
+Three separate failures:
+1. kubectl create pod test --image=nginx --dry-run=server -n k8smissions - should show webhook errors
+2. kubectl get apps -n k8smissions - should show CRD version errors
+3. kubectl logs -n operators -l app=my-operator - should show two active reconcilers

@@ -1,0 +1,1 @@
+Create the RoleBinding: kubectl create rolebinding app-rb --role=app-role --serviceaccount=k8smissions:app-sa -n k8smissions

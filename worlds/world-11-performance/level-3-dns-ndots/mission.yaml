@@ -1,0 +1,17 @@
+{
+  "name": "DNS Flood",
+  "description": "The cluster DNS is overwhelmed \u2014 kube-dns CPU is pegged at 100% from an app that makes thousands of DNS lookups.",
+  "objective": "The app uses short hostnames triggering FQDN search list expansion \u2014 set ndots: 2 to reduce unnecessary DNS lookups",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "DNS",
+    "ndots",
+    "resolv.conf",
+    "kube-dns",
+    "DNS performance"
+  ],
+  "world": "world-11-performance",
+  "level": "level-3-dns-ndots"
+}

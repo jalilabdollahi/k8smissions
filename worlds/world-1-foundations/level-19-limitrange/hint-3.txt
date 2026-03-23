@@ -1,0 +1,9 @@
+Add a limits block to the container resources:
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "64Mi"
+    limits:
+      cpu: "500m"
+      memory: "256Mi"
+Limits must be <= LimitRange max (cpu:1, memory:512Mi).

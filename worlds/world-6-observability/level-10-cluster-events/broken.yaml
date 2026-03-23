@@ -1,0 +1,47 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "incident-app",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "incident-app"
+    }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": {
+      "matchLabels": {
+        "app": "incident-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "incident-app"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "incident-app",
+            "image": "busybox:1.36",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "while true; do echo incident; sleep 5; done"
+            ],
+            "resources": {
+              "requests": {
+                "memory": "32Mi"
+              },
+              "limits": {
+                "memory": "64Mi"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

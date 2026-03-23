@@ -1,0 +1,2 @@
+Enable the strategy: change 'enabled: false' to 'enabled: true' in the DeschedulerPolicy ConfigMap.
+Restart the descheduler: kubectl rollout restart deployment/descheduler -n kube-system

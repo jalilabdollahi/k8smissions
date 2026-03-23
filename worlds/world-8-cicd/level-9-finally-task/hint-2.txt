@@ -1,0 +1,2 @@
+Tekton 'finally' tasks always run regardless of pipeline success or failure.
+Tasks in 'tasks:' only run when their runAfter dependencies succeed.

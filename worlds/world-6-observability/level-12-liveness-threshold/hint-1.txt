@@ -1,0 +1,2 @@
+Run: kubectl get pod fragile-app -n k8smissions
+Check the RESTARTS column. A liveness probe failure restarts the container.

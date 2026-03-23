@@ -1,0 +1,3 @@
+Fix the field reference:
+  value: "$(body.head_commit.id)"
+GitHub push events use: head_commit.id (not commits[0].sha which is for PushEvent details).

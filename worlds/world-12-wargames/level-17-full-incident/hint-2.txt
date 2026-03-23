@@ -1,0 +1,1 @@
+Five issues: (1) Secret p0-secret missing, (2) Deployment scaled to 0, (3) NetworkPolicy blocks DNS (port 53), (4) PVC requests 999Ti storage, (5) nodeSelector references non-existent label.

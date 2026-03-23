@@ -1,0 +1,2 @@
+Pod shutdown sequence: SIGTERM sent → terminationGracePeriodSeconds countdown starts → SIGKILL after grace period.
+With 5s grace period, in-flight requests running > 5s are killed mid-request.

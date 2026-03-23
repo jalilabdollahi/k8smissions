@@ -1,0 +1,2 @@
+Change priorityClassName to the correct high-priority class:
+  priorityClassName: high-priority

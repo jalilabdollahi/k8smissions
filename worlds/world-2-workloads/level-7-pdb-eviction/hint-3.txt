@@ -1,0 +1,1 @@
+Validation target: kubectl drain succeeds without error

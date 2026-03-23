@@ -1,0 +1,1 @@
+Run 'kubectl get all,pvc,configmap,secret,rolebinding -n k8smissions' to see everything at once. Start with the simplest fixes first.

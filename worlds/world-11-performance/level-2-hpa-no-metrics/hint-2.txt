@@ -1,0 +1,2 @@
+Run: kubectl top pods -n k8smissions 2>&1
+If you see 'metrics not available' or 'unable to get metrics', metrics-server is not running.

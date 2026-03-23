@@ -1,0 +1,1 @@
+Validation target: Rolling update completes with zero dropped connections

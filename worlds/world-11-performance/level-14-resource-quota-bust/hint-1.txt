@@ -1,0 +1,2 @@
+Run: kubectl describe resourcequota compute-resources -n k8smissions
+View 'Used' vs 'Hard' for each resource type.

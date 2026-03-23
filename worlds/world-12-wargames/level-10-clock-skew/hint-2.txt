@@ -1,0 +1,1 @@
+kubectl get configmap node-clock-status -n k8smissions -o yaml

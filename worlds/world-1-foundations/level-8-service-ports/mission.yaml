@@ -1,0 +1,16 @@
+{
+  "name": "Connection Refused",
+  "description": "Service is created and pods are Running, but connections to the service are failing.",
+  "objective": "The service targetPort points to the wrong container port \u2014 correct it to match what the container actually listens on",
+  "xp": 100,
+  "difficulty": "beginner",
+  "expected_time": "8m",
+  "concepts": [
+    "port",
+    "targetPort",
+    "containerPort",
+    "service routing"
+  ],
+  "world": "world-1-foundations",
+  "level": "level-8-service-ports"
+}

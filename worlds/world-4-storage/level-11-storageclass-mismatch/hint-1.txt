@@ -1,0 +1,3 @@
+Run: kubectl get pvc data-pvc -n k8smissions
+Check STATUS — Pending means no PV matched or was created.
+Run: kubectl describe pvc data-pvc -n k8smissions | grep Events -A10

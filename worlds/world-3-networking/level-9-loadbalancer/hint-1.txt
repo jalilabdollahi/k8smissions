@@ -1,0 +1,1 @@
+Start with: Service type: LoadBalancer (incompatible with local kind)

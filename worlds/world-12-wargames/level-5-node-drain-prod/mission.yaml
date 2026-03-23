@@ -1,0 +1,16 @@
+{
+  "name": "Surprise Drain",
+  "description": "A node is being drained for maintenance but the PodDisruptionBudget is too strict \u2014 drain is stuck and the node cannot be emptied.",
+  "objective": "The PDB minAvailable is too high for the replica count \u2014 fix the PDB so node drain can proceed",
+  "xp": 350,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "PodDisruptionBudget",
+    "node drain",
+    "maintenance windows",
+    "high availability"
+  ],
+  "world": "world-12-wargames",
+  "level": "level-5-node-drain-prod"
+}

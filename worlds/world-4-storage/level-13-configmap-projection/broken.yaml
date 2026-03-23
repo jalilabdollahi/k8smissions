@@ -1,0 +1,54 @@
+{
+  "apiVersion": "v1",
+  "kind": "ConfigMap",
+  "metadata": {
+    "name": "app-config",
+    "namespace": "k8smissions"
+  },
+  "data": {
+    "app.properties": "db.host=localhost\ndb.port=5432",
+    "logging.properties": "level=INFO\nformat=json"
+  }
+}
+---
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "config-reader",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "reader",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "cat /config/app.properties; cat /config/logging.properties; sleep 3600"
+        ],
+        "volumeMounts": [
+          {
+            "name": "config",
+            "mountPath": "/config"
+          }
+        ]
+      }
+    ],
+    "volumes": [
+      {
+        "name": "config",
+        "configMap": {
+          "name": "app-config",
+          "items": [
+            {
+              "key": "app.properties",
+              "path": "app.properties"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

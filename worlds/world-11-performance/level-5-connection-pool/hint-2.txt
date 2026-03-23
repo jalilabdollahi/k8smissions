@@ -1,0 +1,2 @@
+10 pods * 100 requests/s * pool_size=1 = up to 1000 simultaneous DB connections.
+Most PostgreSQL instances allow 100-200 connections — 1000 causes connection rejection.

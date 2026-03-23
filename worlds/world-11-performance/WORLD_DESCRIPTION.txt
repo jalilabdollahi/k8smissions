@@ -1,0 +1,8 @@
+World 11: Performance & SRE
+============================
+Theme: Latency, throughput, VPA, resource tuning, DNS performance, chaos engineering, SLO/SLA.
+The app runs — but it's slow, unreliable, or wasteful.
+Fix performance problems before the SLA breach alarm fires.
+
+XP Range: 300-425 XP per level
+Difficulty: advanced

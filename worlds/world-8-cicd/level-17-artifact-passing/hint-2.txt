@@ -1,0 +1,2 @@
+The Pipeline references tasks.build.results.image-digest but the Task result is named 'imageDigest' (camelCase, no hyphen).
+Result names are case-sensitive.

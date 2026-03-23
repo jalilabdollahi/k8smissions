@@ -1,0 +1,537 @@
+[
+  {
+    "apiVersion": "v1",
+    "kind": "ResourceQuota",
+    "metadata": {
+      "name": "ns-quota",
+      "namespace": "k8smissions"
+    },
+    "spec": {
+      "hard": {
+        "pods": "100",
+        "requests.cpu": "10",
+        "requests.memory": "20Gi"
+      }
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-001",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "1"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-002",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "2"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-003",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "3"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-004",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "4"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-005",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "5"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-006",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "6"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-007",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "7"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-008",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "8"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-009",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "9"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-010",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "10"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-011",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "11"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-012",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "12"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-013",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "13"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-014",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "14"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-015",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "15"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-016",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "16"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-017",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "17"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-018",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "18"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-019",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "19"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "apiVersion": "v1",
+    "kind": "Pod",
+    "metadata": {
+      "name": "ci-test-pod-020",
+      "namespace": "k8smissions",
+      "labels": {
+        "job": "ci-test",
+        "run": "20"
+      }
+    },
+    "spec": {
+      "restartPolicy": "Never",
+      "containers": [
+        {
+          "name": "test",
+          "image": "busybox:1.36",
+          "command": [
+            "/bin/sh",
+            "-c",
+            "exit 0"
+          ]
+        }
+      ]
+    }
+  }
+]

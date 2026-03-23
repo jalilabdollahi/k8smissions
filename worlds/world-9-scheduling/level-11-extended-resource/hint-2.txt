@@ -1,0 +1,2 @@
+Run: kubectl get nodes -o json | python3 -c "import json,sys; [print(n['status'].get('capacity',{})) for n in json.load(sys.stdin)['items']]"
+Find the exact resource name reported by the device plugin.

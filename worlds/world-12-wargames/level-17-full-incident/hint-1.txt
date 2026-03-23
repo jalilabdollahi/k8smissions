@@ -1,0 +1,1 @@
+Start with 'kubectl get all -n k8smissions' to get a full view, then triage by severity: what's causing the most impact first?

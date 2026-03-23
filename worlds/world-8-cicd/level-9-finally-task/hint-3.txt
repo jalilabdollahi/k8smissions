@@ -1,0 +1,5 @@
+Move cleanup from spec.tasks to spec.finally:
+  finally:
+  - name: cleanup
+    taskRef:
+      name: cleanup-task

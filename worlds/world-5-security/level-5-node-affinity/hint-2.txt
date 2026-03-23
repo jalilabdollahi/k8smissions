@@ -1,0 +1,1 @@
+Goal state: Either remove affinity OR label a node: kubectl label node <name> zone=gpu-zone

@@ -1,0 +1,3 @@
+Secret `data` fields must contain base64 of the ACTUAL value.
+If you base64 the value first then put it in data:, you get double-encoding.
+The correct token is: supersecret-api-token-12345

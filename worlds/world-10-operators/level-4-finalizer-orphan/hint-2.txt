@@ -1,0 +1,2 @@
+Run: kubectl logs -n operators deployment/db-operator | grep -i cleanup
+Check if cleanup logic is throwing errors before the finalizer is removed.

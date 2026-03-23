@@ -1,0 +1,67 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "runbook-app",
+    "namespace": "k8smissions",
+    "labels": {
+      "app": "runbook-app"
+    }
+  },
+  "spec": {
+    "replicas": 1,
+    "selector": {
+      "matchLabels": {
+        "app": "runbook-app"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "runbook-app"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "runbook-app",
+            "image": "nginx:1.27.4"
+          }
+        ]
+      }
+    }
+  }
+}
+---
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": "db-migration",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "template": {
+      "spec": {
+        "restartPolicy": "Never",
+        "containers": [
+          {
+            "name": "db-migration",
+            "image": "busybox:1.36",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "echo migration complete"
+            ],
+            "env": [
+              {
+                "name": "DATABASE_URL",
+                "value": "postgres://db/app"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

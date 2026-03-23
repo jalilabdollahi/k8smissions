@@ -1,0 +1,2 @@
+Run: kubectl get secret api-secret -n k8smissions -o jsonpath='{.data.token}' | base64 -d
+If the output still looks like base64 (letters+numbers+==), it was double-encoded.

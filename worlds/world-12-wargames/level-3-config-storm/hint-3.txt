@@ -1,0 +1,1 @@
+Set APP_MODE=production and DB_HOST=postgres.k8smissions.svc.cluster.local in the ConfigMap.

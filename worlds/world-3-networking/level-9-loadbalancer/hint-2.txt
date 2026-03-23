@@ -1,0 +1,1 @@
+Goal state: Change to NodePort for local access

@@ -1,0 +1,2 @@
+Run: kubectl get all -n k8smissions
+Count whether your custom resource type appears in the output.

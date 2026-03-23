@@ -1,0 +1,2 @@
+Run: kubectl get pods -n kube-system | grep dns
+If kube-dns is Pending or CrashLoopBackOff, inspect kube-dns pod events.

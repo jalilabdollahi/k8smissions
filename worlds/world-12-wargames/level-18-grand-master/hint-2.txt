@@ -1,0 +1,1 @@
+Issues: W1=bad image, W2=0 replicas, W3=wrong selector, W4=impossible PVC size, W5=missing RoleBinding, W6=no readiness probe, W7=empty ConfigMap, W8=missing Secret, W9=1Mi memory limit

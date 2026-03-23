@@ -1,0 +1,29 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "TaskRun",
+  "metadata": {
+    "name": "approval-gate",
+    "namespace": "k8smissions",
+    "annotations": {
+      "awaiting-approval": "false",
+      "override-reason": "approver-unavailable"
+    }
+  },
+  "spec": {
+    "taskSpec": {
+      "steps": [
+        {
+          "name": "wait",
+          "image": "busybox:1.36",
+          "script": "#!/bin/sh\necho 'Auto-approved'; exit 0"
+        }
+      ]
+    },
+    "workspaces": [
+      {
+        "name": "approval",
+        "emptyDir": {}
+      }
+    ]
+  }
+}

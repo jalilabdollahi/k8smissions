@@ -1,0 +1,17 @@
+{
+  "name": "Not in List",
+  "description": "kubectl get all does not show custom resources even though the CRD is installed and resources exist.",
+  "objective": "The CRD lacks a 'categories' field that includes 'all' \u2014 add it to make CRs appear in kubectl get all",
+  "xp": 275,
+  "difficulty": "intermediate",
+  "expected_time": "8m",
+  "concepts": [
+    "CRD",
+    "categories",
+    "kubectl get all",
+    "shortNames",
+    "API discovery"
+  ],
+  "world": "world-10-operators",
+  "level": "level-14-crd-categories"
+}

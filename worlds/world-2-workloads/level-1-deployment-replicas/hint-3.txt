@@ -1,0 +1,1 @@
+Validation target: 3/3 pods Ready

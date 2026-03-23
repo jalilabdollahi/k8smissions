@@ -1,0 +1,2 @@
+Kubernetes garbage collector removes resources when their 'owner' is deleted — but only if ownerReferences are set.
+The operator must set ownerReferences when creating child resources.

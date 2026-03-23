@@ -1,0 +1,19 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "TaskRun",
+  "metadata": {
+    "name": "build-cache-run",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "taskRef": {
+      "name": "maven-build"
+    },
+    "workspaces": [
+      {
+        "name": "source",
+        "emptyDir": {}
+      }
+    ]
+  }
+}

@@ -1,0 +1,2 @@
+Run: kubectl get statefulset db -n k8smissions -o yaml | grep serviceName
+Then: kubectl get service <serviceName> -n k8smissions -o yaml | grep clusterIP

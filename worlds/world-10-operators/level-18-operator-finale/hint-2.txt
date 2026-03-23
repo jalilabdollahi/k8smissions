@@ -1,0 +1,4 @@
+Fix each independently:
+1. Webhook: change failurePolicy to Ignore, add namespaceSelector
+2. CRD: add missing v1 version as served: true, storage: false
+3. Operator: change --leader-elect to true

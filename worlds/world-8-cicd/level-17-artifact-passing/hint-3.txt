@@ -1,0 +1,2 @@
+Fix the result reference to match the Task declaration exactly:
+  value: "$(tasks.build.results.imageDigest)"

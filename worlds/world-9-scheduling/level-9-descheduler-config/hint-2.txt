@@ -1,0 +1,2 @@
+The Descheduler's LowNodeUtilization strategy evicts pods from high-utilization nodes.
+If 'enabled: false', it never runs and imbalance persists.

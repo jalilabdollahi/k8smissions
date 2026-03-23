@@ -1,0 +1,17 @@
+{
+  "name": "Deployment Takes Hours",
+  "description": "A Deployment rollout is taking 3+ hours \u2014 only one pod is being updated at a time.",
+  "objective": "The rolling update strategy has maxSurge: 0 and maxUnavailable: 1 \u2014 increase maxSurge for faster rollout",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "rollingUpdate",
+    "maxSurge",
+    "maxUnavailable",
+    "deployment strategy",
+    "rollout speed"
+  ],
+  "world": "world-11-performance",
+  "level": "level-13-slow-rollout"
+}

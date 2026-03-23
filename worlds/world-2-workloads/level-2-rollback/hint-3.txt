@@ -1,0 +1,1 @@
+Validation target: All pods Running on previous revision

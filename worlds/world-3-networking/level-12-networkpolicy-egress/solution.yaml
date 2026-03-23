@@ -1,0 +1,35 @@
+{
+  "apiVersion": "networking.k8s.io/v1",
+  "kind": "NetworkPolicy",
+  "metadata": {
+    "name": "deny-all-egress",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "podSelector": {},
+    "policyTypes": [
+      "Egress"
+    ],
+    "egress": [
+      {
+        "ports": [
+          {
+            "protocol": "UDP",
+            "port": 53
+          },
+          {
+            "protocol": "TCP",
+            "port": 53
+          }
+        ]
+      },
+      {
+        "to": [
+          {
+            "podSelector": {}
+          }
+        ]
+      }
+    ]
+  }
+}

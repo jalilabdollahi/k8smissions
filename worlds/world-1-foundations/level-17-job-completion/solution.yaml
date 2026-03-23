@@ -1,0 +1,27 @@
+{
+  "apiVersion": "batch/v1",
+  "kind": "Job",
+  "metadata": {
+    "name": "db-init",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "backoffLimit": 2,
+    "template": {
+      "spec": {
+        "restartPolicy": "Never",
+        "containers": [
+          {
+            "name": "db-init",
+            "image": "busybox:1.36",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "echo 'DB initialised'; exit 0"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

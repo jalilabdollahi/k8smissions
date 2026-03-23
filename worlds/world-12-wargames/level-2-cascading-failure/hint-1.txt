@@ -1,0 +1,1 @@
+Check all deployments. One of them has 0 replicas.

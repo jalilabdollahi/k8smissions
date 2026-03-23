@@ -1,0 +1,6 @@
+Correct structure:
+  image:
+    tag: v2.0.0
+    repository: nginx
+
+Note: both 'tag' and 'repository' are indented exactly 2 spaces under 'image:'.

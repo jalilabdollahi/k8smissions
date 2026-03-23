@@ -1,0 +1,20 @@
+{
+  "apiVersion": "triggers.tekton.dev/v1beta1",
+  "kind": "TriggerBinding",
+  "metadata": {
+    "name": "git-push-binding",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "params": [
+      {
+        "name": "git-revision",
+        "value": "$(body.commits[0].sha)"
+      },
+      {
+        "name": "git-repo-url",
+        "value": "$(body.repository.clone_url)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+Set ndots: 2 in pod dnsConfig:
+  dnsConfig:
+    options:
+    - name: ndots
+      value: "2"
+Or use FQDNs with trailing dot: nslookup db.k8smissions.svc.cluster.local.

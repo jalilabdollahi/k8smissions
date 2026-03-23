@@ -1,0 +1,36 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "api-watcher",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "replicas": 2,
+    "selector": {
+      "matchLabels": {
+        "app": "api-watcher"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "api-watcher"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "api-watcher",
+            "image": "busybox:1.36",
+            "command": [
+              "/bin/sh",
+              "-c",
+              "while true; do sleep 1; done"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

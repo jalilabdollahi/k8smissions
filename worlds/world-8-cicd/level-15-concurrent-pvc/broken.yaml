@@ -1,0 +1,29 @@
+{
+  "apiVersion": "tekton.dev/v1beta1",
+  "kind": "Pipeline",
+  "metadata": {
+    "name": "ci-pipeline",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "workspaces": [
+      {
+        "name": "source"
+      }
+    ],
+    "tasks": [
+      {
+        "name": "build",
+        "taskRef": {
+          "name": "build-task"
+        },
+        "workspaces": [
+          {
+            "name": "source",
+            "workspace": "source"
+          }
+        ]
+      }
+    ]
+  }
+}

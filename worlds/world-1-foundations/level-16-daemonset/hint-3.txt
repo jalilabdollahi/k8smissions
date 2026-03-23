@@ -1,0 +1,5 @@
+The control-plane node has taint: node-role.kubernetes.io/control-plane:NoSchedule
+Add a toleration under spec.template.spec.tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule

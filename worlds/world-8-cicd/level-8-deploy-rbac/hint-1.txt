@@ -1,0 +1,2 @@
+Run: kubectl logs <deploy-taskrun-pod> -n k8smissions
+Look for 'deployments' 'is forbidden' in the error.

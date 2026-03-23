@@ -1,0 +1,1 @@
+Start with: nodePort: 8080 (outside 30000-32767 range)

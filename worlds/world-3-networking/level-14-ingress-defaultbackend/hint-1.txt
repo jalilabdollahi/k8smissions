@@ -1,0 +1,2 @@
+Run: kubectl describe ingress app-ingress -n k8smissions
+Look at the Rules section — note the backend service name.

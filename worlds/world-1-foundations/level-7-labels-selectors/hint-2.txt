@@ -1,0 +1,1 @@
+kubectl describe svc labels-svc -n k8smissions → Selector

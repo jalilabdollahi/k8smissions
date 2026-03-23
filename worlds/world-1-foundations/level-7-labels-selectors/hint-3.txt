@@ -1,0 +1,1 @@
+Compare pod labels to service selector — there is a mismatch

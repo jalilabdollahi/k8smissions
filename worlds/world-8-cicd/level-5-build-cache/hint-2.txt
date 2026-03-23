@@ -1,0 +1,2 @@
+Building without a cache PVC means Maven/Gradle/npm downloads all deps from the internet on every run.
+The Task declares a 'cache' workspace — bind it to a PVC.

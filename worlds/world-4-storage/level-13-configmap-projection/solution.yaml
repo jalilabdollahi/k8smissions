@@ -1,0 +1,45 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "config-reader",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "reader",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "cat /config/app.properties; cat /config/logging.properties; sleep 3600"
+        ],
+        "volumeMounts": [
+          {
+            "name": "config",
+            "mountPath": "/config"
+          }
+        ]
+      }
+    ],
+    "volumes": [
+      {
+        "name": "config",
+        "configMap": {
+          "name": "app-config",
+          "items": [
+            {
+              "key": "app.properties",
+              "path": "app.properties"
+            },
+            {
+              "key": "logging.properties",
+              "path": "logging.properties"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

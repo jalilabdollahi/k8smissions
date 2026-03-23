@@ -1,0 +1,1 @@
+Start with: Service selector: version: blue New deployment has label: version: green

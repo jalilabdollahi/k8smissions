@@ -1,0 +1,4 @@
+Each has a different performance root cause:
+1. DNS: ndots:5 default + short hostname = 5 lookups per query
+2. CPU: limits = requests (Guaranteed QoS) = no burst capacity
+3. Rollout: maxSurge:0 = sequential one-pod-at-a-time updates

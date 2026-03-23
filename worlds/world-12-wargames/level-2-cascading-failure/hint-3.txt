@@ -1,0 +1,1 @@
+Scale auth-svc back up: kubectl scale deployment auth-svc --replicas=2 -n k8smissions

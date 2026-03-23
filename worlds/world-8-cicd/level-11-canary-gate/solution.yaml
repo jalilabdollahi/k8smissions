@@ -1,0 +1,57 @@
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "Rollout",
+  "metadata": {
+    "name": "api-rollout",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "replicas": 5,
+    "strategy": {
+      "canary": {
+        "steps": [
+          {
+            "setWeight": 20
+          },
+          {
+            "pause": {
+              "duration": "10m"
+            }
+          },
+          {
+            "setWeight": 50
+          },
+          {
+            "pause": {
+              "duration": "5m"
+            }
+          },
+          {
+            "setWeight": 100
+          }
+        ],
+        "analysis": {}
+      }
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "api"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "api"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "api",
+            "image": "nginx:1.25"
+          }
+        ]
+      }
+    }
+  }
+}

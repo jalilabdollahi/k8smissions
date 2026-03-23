@@ -1,0 +1,16 @@
+{
+  "name": "Node Affinity Mismatch",
+  "description": "A pod remains stuck in Pending state and cannot be scheduled.",
+  "objective": "The nodeAffinity rule requires a label that no node has \u2014 fix the affinity to match labels that actually exist",
+  "xp": 300,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "requiredDuringSchedulingIgnoredDuringExecution",
+    "preferredDuringScheduling",
+    "labelSelector",
+    "matchExpressions"
+  ],
+  "world": "world-5-security",
+  "level": "level-5-node-affinity"
+}

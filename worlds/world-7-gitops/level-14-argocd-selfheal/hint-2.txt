@@ -1,0 +1,3 @@
+GitOps principle: git is the single source of truth.
+With selfHeal: true, manual kubectl changes are drifts to be corrected.
+To allow temporary manual overrides, disable self-healing.

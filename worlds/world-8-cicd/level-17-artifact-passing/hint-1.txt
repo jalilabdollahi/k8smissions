@@ -1,0 +1,2 @@
+Run: kubectl get task build-task -n k8smissions -o yaml | grep results -A10
+Note the exact result name the Task declares.

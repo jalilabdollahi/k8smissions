@@ -1,0 +1,16 @@
+{
+  "name": "The Garbled Token",
+  "description": "An application reads its API token from a mounted Secret file but the token value is corrupted.",
+  "objective": "The Secret has a double-encoded value \u2014 fix the data field so the secret contains the correct plain token",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "Secret",
+    "base64",
+    "data vs stringData",
+    "encoding"
+  ],
+  "world": "world-4-storage",
+  "level": "level-14-secret-corrupt"
+}

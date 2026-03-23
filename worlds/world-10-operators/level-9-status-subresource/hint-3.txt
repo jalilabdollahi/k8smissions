@@ -1,0 +1,6 @@
+Enable the status subresource in the CRD version:
+  versions:
+  - name: v1
+    ...
+    subresources:
+      status: {}

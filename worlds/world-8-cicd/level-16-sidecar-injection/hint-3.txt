@@ -1,0 +1,5 @@
+Disable injection on Task pods via podTemplate labels:
+  spec:
+    podTemplate:
+      labels:
+        sidecar.istio.io/inject: "false"

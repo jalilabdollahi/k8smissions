@@ -1,0 +1,4 @@
+Each pod has a different scheduling problem:
+- team-a: nodeSelector for non-existent node label
+- team-b: required antiAffinity impossible with 5 replicas on 2 nodes
+- team-c: references non-existent PriorityClass

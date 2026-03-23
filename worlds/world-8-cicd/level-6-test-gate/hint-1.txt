@@ -1,0 +1,2 @@
+Run: kubectl get task run-tests -n k8smissions -o yaml | grep -A5 script
+Check the exit code at the end of the test script.

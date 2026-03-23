@@ -1,0 +1,2 @@
+Resume with: kubectl rollout resume deployment/frontend -n k8smissions
+Or patch: kubectl patch deployment frontend -n k8smissions -p '{"spec":{"paused":false}}'

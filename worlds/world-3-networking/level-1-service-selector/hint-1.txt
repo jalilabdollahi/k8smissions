@@ -1,0 +1,1 @@
+Start with: Service selector: app: api Pod labels: app: api-server

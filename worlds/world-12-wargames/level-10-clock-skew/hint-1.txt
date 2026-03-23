@@ -1,0 +1,1 @@
+Check the node-clock-status ConfigMap — it tracks NTP sync state.

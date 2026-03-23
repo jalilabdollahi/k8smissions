@@ -1,0 +1,2 @@
+When multiple PipelineRuns reference the same PVC, they can write to overlapping paths.
+Options: 1) Use volumeClaimTemplate to get a PVC per run, 2) Use unique subPaths, 3) Limit concurrent runs.

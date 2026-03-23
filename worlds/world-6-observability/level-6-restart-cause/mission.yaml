@@ -1,0 +1,17 @@
+{
+  "name": "Why Does It Keep Restarting?",
+  "description": "A pod shows 8 restarts in the last hour with no obvious error message.",
+  "objective": "The pod shows 8 restarts but no obvious error \u2014 use events, describe, and logs to determine the actual restart cause",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Exit codes (137=SIGKILL/OOM",
+    "1=crash",
+    "0=clean)",
+    "kubectl describe lastState",
+    "memory profiling"
+  ],
+  "world": "world-6-observability",
+  "level": "level-6-restart-cause"
+}

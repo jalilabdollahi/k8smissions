@@ -1,0 +1,2 @@
+Run: kubectl describe limitrange -n k8smissions
+This shows what the policy requires. The pod has requests but no limits set.

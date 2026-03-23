@@ -1,0 +1,74 @@
+[
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "name": "auth-svc",
+      "namespace": "k8smissions"
+    },
+    "spec": {
+      "replicas": 2,
+      "selector": {
+        "matchLabels": {
+          "app": "auth-svc"
+        }
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "app": "auth-svc"
+          }
+        },
+        "spec": {
+          "containers": [
+            {
+              "name": "auth-svc",
+              "image": "busybox:1.36",
+              "command": [
+                "/bin/sh",
+                "-c",
+                "sleep 3600"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "name": "api-gateway",
+      "namespace": "k8smissions"
+    },
+    "spec": {
+      "replicas": 2,
+      "selector": {
+        "matchLabels": {
+          "app": "api-gateway"
+        }
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "app": "api-gateway"
+          }
+        },
+        "spec": {
+          "containers": [
+            {
+              "name": "api-gateway",
+              "image": "busybox:1.36",
+              "command": [
+                "/bin/sh",
+                "-c",
+                "sleep 3600"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+]

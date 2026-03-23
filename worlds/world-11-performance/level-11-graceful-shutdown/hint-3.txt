@@ -1,0 +1,7 @@
+Increase grace period and add preStop sleep:
+  terminationGracePeriodSeconds: 60
+  lifecycle:
+    preStop:
+      exec:
+        command: ["/bin/sh", "-c", "sleep 10"]
+The preStop sleep gives kube-proxy time to remove the pod from Service endpoints.

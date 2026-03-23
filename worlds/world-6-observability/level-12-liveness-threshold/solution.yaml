@@ -1,0 +1,32 @@
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "fragile-app",
+    "namespace": "k8smissions"
+  },
+  "spec": {
+    "containers": [
+      {
+        "name": "app",
+        "image": "busybox:1.36",
+        "command": [
+          "/bin/sh",
+          "-c",
+          "sleep 3600"
+        ],
+        "livenessProbe": {
+          "exec": {
+            "command": [
+              "ls",
+              "/"
+            ]
+          },
+          "initialDelaySeconds": 10,
+          "periodSeconds": 10,
+          "failureThreshold": 3
+        }
+      }
+    ]
+  }
+}

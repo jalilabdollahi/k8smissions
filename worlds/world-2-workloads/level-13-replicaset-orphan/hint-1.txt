@@ -1,0 +1,2 @@
+Run: kubectl get replicasets -n k8smissions
+Then: kubectl get replicaset legacy-app-7d8f9 -n k8smissions -o yaml | grep -A5 ownerReferences

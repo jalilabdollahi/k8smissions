@@ -1,0 +1,1 @@
+Start with: 3 pods × 1 CPU = 3 CPU > quota of 2 CPU

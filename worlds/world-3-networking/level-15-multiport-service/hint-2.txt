@@ -1,0 +1,2 @@
+The Ingress references backend port by name: port.name: http
+But the Service ports have no names — the Ingress controller can't resolve the reference.

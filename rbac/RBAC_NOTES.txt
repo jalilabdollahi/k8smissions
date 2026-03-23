@@ -1,0 +1,33 @@
+───────────────────────────────────────────────────────────────
+  RBAC IMPLEMENTATION NOTES
+───────────────────────────────────────────────────────────────
+
+File to create: rbac/k8smissions-rbac.yaml
+
+This file is referenced in install.sh. It must be created before
+running install.sh for the first time.
+
+WHAT TO CREATE:
+  - ServiceAccount "k8smissions-player" in namespace "k8smissions"
+  - Role "k8smissions-player-role" with full CRUD on:
+      pods, deployments, services, configmaps, secrets,
+      persistentvolumeclaims, ingresses, endpoints,
+      statefulsets, replicasets, daemonsets, jobs, cronjobs,
+      horizontalpodautoscalers, networkpolicies,
+      poddisruptionbudgets, serviceaccounts, roles, rolebindings
+  - RoleBinding: bind the role to the ServiceAccount
+  - ClusterRole "k8smissions-viewer" for READ ONLY on:
+      nodes, namespaces, storageclasses, persistentvolumes,
+      clusterroles, clusterrolebindings
+  - ClusterRoleBinding for the viewer role
+
+SAFETY PRINCIPLE:
+  Players should NOT be able to modify:
+  - kube-system namespace
+  - kube-public namespace
+  - Node objects (creation/deletion)
+  - CRDs
+  - ClusterRole / ClusterRoleBinding (write access)
+
+TEMPLATE REFERENCE:
+  Create rbac/k8smissions-rbac.yaml following the structure described above.

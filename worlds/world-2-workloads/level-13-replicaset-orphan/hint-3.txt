@@ -1,0 +1,3 @@
+Delete the orphaned ReplicaSet:
+  kubectl delete replicaset legacy-app-7d8f9 -n k8smissions
+Deleting a ReplicaSet also deletes all pods it manages.

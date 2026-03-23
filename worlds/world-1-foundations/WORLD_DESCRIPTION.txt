@@ -1,0 +1,327 @@
+═══════════════════════════════════════════════════════════════════
+  WORLD 1 — FOUNDATIONS
+  "Learn to walk before you run: mastering Kubernetes basics"
+═══════════════════════════════════════════════════════════════════
+
+OVERVIEW
+────────
+This is the entry point for all players. World 1 covers everything
+a Kubernetes beginner needs to be productive: running Pods, reading
+logs, understanding scheduling, Services, ConfigMaps, and Secrets.
+
+Every level is intentionally broken. Your job is to find the bug
+and fix it. The cluster namespace is "k8smissions".
+
+Difficulty   : Beginner → Early Intermediate
+Total levels : 15
+Total XP     : 2,050
+Cluster type : kind (local)
+
+SKILLS COVERED
+──────────────
+- kubectl get / describe / logs / apply / delete
+- Pod lifecycle (Pending → Running → CrashLoopBackOff → OOMKilled)
+- Namespaces
+- Labels and selectors
+- Services (ClusterIP, targetPort)
+- Environment variables, ConfigMaps, Secrets
+- Multi-container Pods (sidecar pattern)
+- Init containers
+- Resource requests and limits
+- nodeSelector
+- Log-driven debugging
+
+───────────────────────────────────────────────────────────────────
+LEVELS
+───────────────────────────────────────────────────────────────────
+
+LEVEL 1 — first-pod
+  Name        : "Hello, Kubernetes!"
+  Difficulty  : beginner
+  XP          : 100
+  Time est.   : 5m
+  Folder      : worlds/world-1-foundations/level-1-first-pod/
+  Description : A Pod was created but it is stuck in Error state.
+                The user defined a bad entrypoint command.
+  Broken state: nginx Pod with command: ["badcommand"]
+  Fix         : Remove the command override so nginx starts normally
+  Validate    : kubectl get pod hello-pod -n k8smissions → Running
+  Concepts    : pod, command, entrypoint, CrashLoopBackOff
+  Hint 1      : Check what state the pod is in
+  Hint 2      : kubectl describe pod hello-pod -n k8smissions
+  Hint 3      : The command field overrides the container's entrypoint
+  Debrief     : Explain ENTRYPOINT vs CMD in Docker and how Kubernetes
+                command/args maps to them
+
+LEVEL 2 — crashloop
+  Name        : "The Infinite Restart"
+  Difficulty  : beginner
+  XP          : 100
+  Time est.   : 8m
+  Folder      : worlds/world-1-foundations/level-2-crashloop/
+  Description : Pod is in CrashLoopBackOff. The container exits immediately
+                because the args point to a script that does not exist.
+  Broken state: busybox Pod with args: ["/scripts/start.sh"]
+                (the file does not exist in the image)
+  Fix         : Change args to ["/bin/sh", "-c", "sleep 3600"]
+  Validate    : Pod Running for > 30s, restartCount = 0
+  Concepts    : CrashLoopBackOff, args, restartPolicy, exit codes
+  Hint 1      : Look at the RESTARTS column
+  Hint 2      : kubectl logs crashloop-pod -n k8smissions (previous)
+  Hint 3      : The script referenced in args does not exist in busybox
+  Debrief     : Explain exit codes, restartPolicy (Always/OnFailure/Never),
+                back-off delay
+
+LEVEL 3 — imagepull
+  Name        : "Image Not Found"
+  Difficulty  : beginner
+  XP          : 100
+  Time est.   : 5m
+  Folder      : worlds/world-1-foundations/level-3-imagepull/
+  Description : Pod stuck in ImagePullBackOff. Image name has a typo.
+  Broken state: Pod using image: "nginxxx:latest" (typo)
+  Fix         : Change image to "nginx:latest"
+  Validate    : Pod Running, no ImagePullBackOff
+  Concepts    : ImagePullBackOff, ErrImagePull, image registry, tags
+  Hint 1      : kubectl describe pod imagepull-pod -n k8smissions
+  Hint 2      : Look at the Events section for "Failed to pull image"
+  Hint 3      : The image name has extra characters
+  Debrief     : Explain image naming (registry/name:tag), private registries,
+                imagePullSecrets
+
+LEVEL 4 — pending-resources
+  Name        : "Too Greedy"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 10m
+  Folder      : worlds/world-1-foundations/level-4-pending-resources/
+  Description : Pod stuck in Pending. It requests 100 CPUs — far more
+                than any node has available.
+  Broken state: Pod with resources.requests.cpu: "100"
+  Fix         : Set cpu request to "100m" (100 millicores)
+  Validate    : Pod scheduled and Running
+  Concepts    : resource requests, resource limits, scheduling, millicores
+  Hint 1      : kubectl describe pod pending-pod -n k8smissions → Events
+  Hint 2      : "0/1 nodes available: Insufficient cpu"
+  Hint 3      : 1 CPU = 1000m. "100" means 100 full CPUs.
+  Debrief     : Explain requests vs limits, how scheduler uses requests,
+                QoS classes (Guaranteed / Burstable / BestEffort)
+
+LEVEL 5 — env-variables
+  Name        : "Missing the Key"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 10m
+  Folder      : worlds/world-1-foundations/level-5-env-variables/
+  Description : Pod keeps crashing. The app expects DATABASE_URL env var
+                but it is not set in the manifest.
+  Broken state: Pod without DATABASE_URL env var defined
+  Fix         : Add env: [{name: DATABASE_URL, value: "postgres://localhost/app"}]
+  Validate    : Pod Running, no CrashLoop
+  Concepts    : env, environment variables, application config
+  Hint 1      : kubectl logs env-pod -n k8smissions
+  Hint 2      : App prints "DATABASE_URL not set, exiting"
+  Hint 3      : Add the env section to the container spec
+  Debrief     : Three ways to inject config: env literals, envFrom ConfigMap,
+                envFrom Secret
+
+LEVEL 6 — namespace-mismatch
+  Name        : "Lost in Space"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 10m
+  Folder      : worlds/world-1-foundations/level-6-namespace-mismatch/
+  Description : A Pod and its Service were deployed to the "default" namespace
+                but the app expects to be in "k8smissions". Service lookup fails.
+  Broken state: Pod + Service in namespace: default
+  Fix         : Delete and recreate both in namespace: k8smissions
+  Validate    : Pod and Service exist in k8smissions namespace and are reachable
+  Concepts    : namespaces, resource isolation, cross-namespace DNS
+  Hint 1      : kubectl get pods --all-namespaces
+  Hint 2      : Nothing in k8smissions namespace?
+  Hint 3      : Resources exist in "default" — wrong namespace
+  Debrief     : Explain namespace isolation, RBAC per namespace, default namespace
+
+LEVEL 7 — labels-selectors
+  Name        : "No Endpoints"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 10m
+  Folder      : worlds/world-1-foundations/level-7-labels-selectors/
+  Description : Service exists but has zero endpoints. Pod labels don't match
+                the service selector.
+  Broken state: Pod has label app: backend-v1
+                Service selector: app: backend (mismatch)
+  Fix         : Either update pod label to "backend" or service selector to "backend-v1"
+  Validate    : kubectl get endpoints labels-svc -n k8smissions → has IP
+  Concepts    : labels, selectors, service endpoints, kubectl get ep
+  Hint 1      : kubectl get endpoints labels-svc -n k8smissions
+  Hint 2      : kubectl describe svc labels-svc -n k8smissions → Selector
+  Hint 3      : Compare pod labels to service selector — there is a mismatch
+  Debrief     : Explain how Services discover pods via label selectors,
+                importance of consistent labeling strategy
+
+LEVEL 8 — service-ports
+  Name        : "Connection Refused"
+  Difficulty  : beginner
+  XP          : 100
+  Time est.   : 8m
+  Folder      : worlds/world-1-foundations/level-8-service-ports/
+  Description : Service created but connections fail. targetPort points to
+                port 8080 but the container actually listens on 80.
+  Broken state: Service.spec.ports[0].targetPort: 8080
+                Container listens on 80
+  Fix         : Change targetPort to 80
+  Validate    : curl / connection from another pod succeeds
+  Concepts    : port, targetPort, containerPort, service routing
+  Hint 1      : kubectl describe svc ports-svc -n k8smissions
+  Hint 2      : What port does the pod actually listen on?
+  Hint 3      : targetPort must match containerPort, not Service port
+  Debrief     : Explain port vs targetPort vs containerPort, named ports
+
+LEVEL 9 — configmap-basics
+  Name        : "Config Not Found"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 10m
+  Folder      : worlds/world-1-foundations/level-9-configmap-basics/
+  Description : Pod tries to mount a ConfigMap volume that doesn't exist yet.
+                Pod stuck in ContainerCreating.
+  Broken state: Pod references configmap "app-config" which is not created
+  Fix         : Create ConfigMap app-config with key APP_MODE=production
+                and apply it before the pod
+  Validate    : Pod Running, ConfigMap mounted successfully
+  Concepts    : ConfigMap, volumes, volumeMounts, envFrom
+  Hint 1      : kubectl describe pod configmap-pod -n k8smissions
+  Hint 2      : "configmap 'app-config' not found"
+  Hint 3      : Create the ConfigMap first, then apply the pod
+  Debrief     : ConfigMap as env variables vs mounted files, immutable ConfigMaps
+
+LEVEL 10 — secrets-basics
+  Name        : "Forbidden Credentials"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 10m
+  Folder      : worlds/world-1-foundations/level-10-secrets-basics/
+  Description : Pod references Secret "db-credentials" that doesn't exist.
+                Pod fails with CreateContainerConfigError.
+  Broken state: Pod references secret db-credentials (not created)
+  Fix         : Create Secret with username and password (base64 encoded)
+  Validate    : Pod Running, secret values accessible as env vars
+  Concepts    : Secret, base64 encoding, envFrom, secretKeyRef
+  Hint 1      : kubectl describe pod secret-pod -n k8smissions
+  Hint 2      : "secret 'db-credentials' not found"
+  Hint 3      : echo -n 'mypassword' | base64  → use in secret data field
+  Debrief     : Secrets vs ConfigMaps, base64 is NOT encryption,
+                external secret stores (Vault, Sealed Secrets)
+
+LEVEL 11 — multi-container
+  Name        : "Sidecar Sabotage"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 15m
+  Folder      : worlds/world-1-foundations/level-11-multi-container/
+  Description : A Pod has two containers: main app + log-shipper sidecar.
+                The sidecar crashes immediately with exit code 1.
+  Broken state: Sidecar container has a wrong command that errors out
+  Fix         : Fix the sidecar command so it tails the shared log file
+  Validate    : Both containers Running, restartCount sidecar = 0
+  Concepts    : multi-container pods, sidecar pattern, shared volumes,
+                container independence
+  Hint 1      : kubectl get pod multi-pod -n k8smissions (which container?)
+  Hint 2      : kubectl logs multi-pod -c log-shipper -n k8smissions
+  Hint 3      : The log-shipper command references a path that doesn't exist
+  Debrief     : Multi-container patterns (sidecar, ambassador, adapter),
+                shared emptyDir volumes between containers
+
+LEVEL 12 — init-container
+  Name        : "Waiting Forever"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 15m
+  Folder      : worlds/world-1-foundations/level-12-init-container/
+  Description : Pod stuck in Init:0/1 forever. The init container is pinging
+                a service that doesn't exist.
+  Broken state: Init container: nslookup db-service.missing-namespace.svc.cluster.local
+  Fix         : Change the nslookup target to a service that actually exists
+                OR create the missing service
+  Validate    : Init container exits 0, main container starts and runs
+  Concepts    : initContainers, pod initialization, startup ordering,
+                dependency waiting
+  Hint 1      : kubectl describe pod init-pod -n k8smissions → Init Containers
+  Hint 2      : The init container is waiting for a service that doesn't exist
+  Hint 3      : Either fix the service name or create the dependency
+  Debrief     : When to use init containers, common patterns (wait-for-db,
+                git-clone, permission-setup)
+
+LEVEL 13 — oomkilled
+  Name        : "Out of Memory"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 10m
+  Folder      : worlds/world-1-foundations/level-13-oomkilled/
+  Description : Pod keeps restarting with exit code 137 (OOMKilled).
+                Memory limit is set to 10Mi — far too low for the app.
+  Broken state: resources.limits.memory: "10Mi"
+  Fix         : Increase memory limit to "256Mi"
+  Validate    : Pod Running, no OOMKilled events, restartCount steady
+  Concepts    : OOMKilled, memory limits, exit code 137, resource tuning
+  Hint 1      : kubectl describe pod oom-pod -n k8smissions
+  Hint 2      : Look for "OOMKilled" in the State section
+  Hint 3      : The memory limit is 10Mi — this app needs more
+  Debrief     : OOMKilled vs CrashLoopBackOff, how to choose limits,
+                VPA (Vertical Pod Autoscaler) introduction
+
+LEVEL 14 — log-debugging
+  Name        : "Silent Failure"
+  Difficulty  : beginner
+  XP          : 150
+  Time est.   : 12m
+  Folder      : worlds/world-1-foundations/level-14-log-debugging/
+  Description : Pod is in Running state but the app is not serving requests.
+                The problem is only visible in logs: wrong config file path.
+  Broken state: App env var CONFIG_PATH=/etc/config/settings.yml
+                Actual file is at /etc/config/app.yml
+  Fix         : Change CONFIG_PATH to /etc/config/app.yml
+  Validate    : Pod Running AND health check endpoint returns 200
+  Concepts    : kubectl logs, application logs, debugging running pods,
+                exec into container
+  Hint 1      : Pod is Running — but is it actually working?
+  Hint 2      : kubectl logs log-pod -n k8smissions
+  Hint 3      : The log says "config file not found at /etc/config/settings.yml"
+  Debrief     : Difference between Pod Running and App Healthy,
+                why readiness probes matter
+
+LEVEL 15 — node-selector
+  Name        : "Won't Schedule"
+  Difficulty  : intermediate
+  XP          : 200
+  Time est.   : 12m
+  Folder      : worlds/world-1-foundations/level-15-node-selector/
+  Description : Pod stuck in Pending. It has a nodeSelector requiring
+                disktype=ssd, but no node has that label.
+  Broken state: nodeSelector: disktype: ssd (no node has this label)
+  Fix         : Either remove the nodeSelector or add the label to a node:
+                kubectl label node <node> disktype=ssd
+  Validate    : Pod scheduled and Running
+  Concepts    : nodeSelector, node labels, scheduling constraints,
+                affinity vs nodeSelector
+  Hint 1      : kubectl describe pod nodeselector-pod -n k8smissions
+  Hint 2      : "0/1 nodes available: node(s) didn't match nodeSelector"
+  Hint 3      : Check node labels: kubectl get nodes --show-labels
+  Debrief     : nodeSelector vs nodeAffinity, taints vs labels,
+                when to constrain scheduling
+
+═══════════════════════════════
+  TOTAL WORLD 1 XP: 2,050
+  FILES PER LEVEL:
+    mission.yaml
+    broken.yaml
+    solution.yaml
+    validate.sh
+    hint-1.txt
+    hint-2.txt
+    hint-3.txt
+    debrief.md
+    common-mistakes.md
+═══════════════════════════════

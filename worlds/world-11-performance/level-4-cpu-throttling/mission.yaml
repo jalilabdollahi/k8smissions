@@ -1,0 +1,17 @@
+{
+  "name": "Latency Spikes",
+  "description": "An API server shows P99 latency spikes every few seconds with no apparent load increase.",
+  "objective": "CPU throttling due to low CPU limits is causing scheduling jitter \u2014 remove the CPU limit or raise it significantly",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "CPU throttling",
+    "CFS bandwidth",
+    "cpu limits",
+    "latency",
+    "performance"
+  ],
+  "world": "world-11-performance",
+  "level": "level-4-cpu-throttling"
+}

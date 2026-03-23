@@ -1,0 +1,2 @@
+Run: kubectl describe node | grep -E 'Capacity|Allocatable' -A10
+Capacity is total hardware. Allocatable is what pods can use.

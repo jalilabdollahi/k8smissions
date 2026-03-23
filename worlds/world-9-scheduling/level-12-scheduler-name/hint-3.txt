@@ -1,0 +1,3 @@
+Set the scheduler name in the pod spec:
+  spec:
+    schedulerName: ml-scheduler

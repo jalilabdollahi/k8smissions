@@ -1,0 +1,1 @@
+Goal state: kubectl create namespace webapp-prod argocd app sync webapp-app  OR  enable auto-sync in app spec

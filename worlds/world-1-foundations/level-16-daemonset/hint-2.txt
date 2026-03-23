@@ -1,0 +1,2 @@
+Run: kubectl describe pod -l app=log-collector -n k8smissions
+Look for a taint-related warning in the Events section.

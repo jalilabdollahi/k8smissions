@@ -1,0 +1,1 @@
+kubectl logs log-pod -n k8smissions

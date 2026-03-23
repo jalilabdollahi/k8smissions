@@ -1,0 +1,2 @@
+Run: kubectl get task image-push -n k8smissions -o yaml | grep -A10 params
+Note which params have no default and are therefore required.

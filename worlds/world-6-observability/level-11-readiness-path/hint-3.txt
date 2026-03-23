@@ -1,0 +1,5 @@
+Change the readinessProbe path from /healthz to /:
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 80

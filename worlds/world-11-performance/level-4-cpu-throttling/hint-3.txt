@@ -1,0 +1,5 @@
+Option 1: Remove the CPU limit entirely — the container can burst freely.
+Option 2: Set a higher CPU limit:
+  limits:
+    cpu: 1000m  # 10x the request
+Requests stay at 100m for scheduling.

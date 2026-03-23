@@ -1,0 +1,1 @@
+Goal state: Apply metrics-server manifest (bundled in level folder) Wait for it to become Ready, verify kubectl top pods works

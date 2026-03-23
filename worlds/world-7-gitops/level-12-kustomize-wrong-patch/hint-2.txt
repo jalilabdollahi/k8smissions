@@ -1,0 +1,2 @@
+The patch targets 'backend-api' but the Deployment is named 'api-server'.
+A Kustomize patch silently does nothing if the target doesn't match any resource.

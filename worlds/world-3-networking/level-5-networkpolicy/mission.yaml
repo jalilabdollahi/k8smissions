@@ -1,0 +1,17 @@
+{
+  "name": "NetworkPolicy Too Strict",
+  "description": "Both frontend and backend pods are Running and healthy, but the frontend cannot reach the backend.",
+  "objective": "The NetworkPolicy blocks all ingress to the backend \u2014 add a rule that allows traffic from the frontend",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "NetworkPolicy",
+    "default-deny",
+    "ingress rules",
+    "podSelector",
+    "namespaceSelector"
+  ],
+  "world": "world-3-networking",
+  "level": "level-5-networkpolicy"
+}

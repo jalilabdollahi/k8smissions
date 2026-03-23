@@ -1,0 +1,2 @@
+Run: kubectl get deployment frontend -n k8smissions -o yaml | grep paused
+You should see 'paused: true'.

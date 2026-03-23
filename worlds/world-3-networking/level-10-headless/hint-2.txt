@@ -1,0 +1,1 @@
+Goal state: Set clusterIP: None to make service headless

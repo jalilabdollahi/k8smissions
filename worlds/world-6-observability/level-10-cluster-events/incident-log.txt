@@ -1,0 +1,4 @@
+12:00 pod/incident-app OOMKilled
+12:02 node/kind-worker MemoryPressure=True
+12:04 pod/incident-app restarted
+12:07 alerts firing: elevated restart rate

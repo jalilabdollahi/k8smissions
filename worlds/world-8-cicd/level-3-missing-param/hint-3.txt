@@ -1,0 +1,4 @@
+Add the param in the TaskRun spec:
+  params:
+  - name: IMAGE
+    value: registry.example.com/myapp:v1.0.0

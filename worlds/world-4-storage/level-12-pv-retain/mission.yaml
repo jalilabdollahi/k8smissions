@@ -1,0 +1,17 @@
+{
+  "name": "Deleted Data",
+  "description": "After a PVC was deleted, the data is gone \u2014 the PV was automatically deleted along with it.",
+  "objective": "The PV has reclaimPolicy: Delete \u2014 change it to Retain so data survives PVC deletion",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "PersistentVolume",
+    "reclaimPolicy",
+    "Retain",
+    "Delete",
+    "data safety"
+  ],
+  "world": "world-4-storage",
+  "level": "level-12-pv-retain"
+}

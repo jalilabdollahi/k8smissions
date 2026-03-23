@@ -1,0 +1,2 @@
+Run: kubectl get pvc shared-pvc -n k8smissions -o yaml | grep accessModes
+ReadWriteOnce means at most ONE node can mount the volume for writing.

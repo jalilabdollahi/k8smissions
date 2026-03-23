@@ -1,0 +1,1 @@
+kubectl describe pod oom-pod -n k8smissions

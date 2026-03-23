@@ -1,0 +1,1 @@
+Goal state: Convert to StatefulSet with serviceName and stable hostnames

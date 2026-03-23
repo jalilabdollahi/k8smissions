@@ -1,0 +1,1 @@
+Goal state: Set service.spec.sessionAffinity: ClientIP

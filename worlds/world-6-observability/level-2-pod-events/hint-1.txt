@@ -1,0 +1,1 @@
+Start with: Pod with wrong image tag (private registry, auth error)

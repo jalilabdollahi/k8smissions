@@ -1,0 +1,1 @@
+Goal state: Add securityContext.fsGroup: 1000 to pod spec

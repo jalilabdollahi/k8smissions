@@ -1,0 +1,2 @@
+Run: kubectl exec dns-test-pod -n k8smissions -- time nslookup kubernetes.default 2>&1
+Measure the DNS resolution time. Anything above 2ms suggests queries are going to central kube-dns.

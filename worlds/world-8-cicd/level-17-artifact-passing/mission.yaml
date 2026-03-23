@@ -1,0 +1,17 @@
+{
+  "name": "Lost Artifact",
+  "description": "A build Task produces an image digest but the deploy Task can't find the value \u2014 the result isn't passed.",
+  "objective": "The Task result name in the producer doesn't match what the consumer expects \u2014 fix the result reference",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "Tekton",
+    "results",
+    "inter-task data",
+    "param",
+    "Pipeline variables"
+  ],
+  "world": "world-8-cicd",
+  "level": "level-17-artifact-passing"
+}

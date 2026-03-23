@@ -1,0 +1,2 @@
+Run: kubectl get deployment web-server -n k8smissions -o yaml | grep -E 'terminationGracePeriod|preStop'
+Check what shutdown grace period is configured.

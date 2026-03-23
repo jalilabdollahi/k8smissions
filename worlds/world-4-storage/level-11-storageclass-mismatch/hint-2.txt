@@ -1,0 +1,2 @@
+Run: kubectl get storageclass
+Compare the StorageClass name in the PVC with what is actually available.

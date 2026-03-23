@@ -1,0 +1,2 @@
+Without 'subresources: status: {}', the status field is part of the main resource body.
+Updates via the main patch endpoint DON'T persist status in certain scenarios because operators update status via the /status endpoint.
