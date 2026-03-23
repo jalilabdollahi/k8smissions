@@ -1,6 +1,6 @@
 # K8sMissions ☸️⚔️
 
-![platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-blue)
+![platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20-blue)
 ![shell](https://img.shields.io/badge/shell-bash-brightgreen)
 ![kubernetes](https://img.shields.io/badge/kubernetes-learning-6366f1)
 
