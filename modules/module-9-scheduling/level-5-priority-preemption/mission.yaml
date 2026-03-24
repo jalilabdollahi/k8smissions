@@ -1,0 +1,17 @@
+{
+  "name": "Queue Jumped",
+  "description": "A critical workload is stuck Pending while lower-priority pods are running and consuming all resources.",
+  "objective": "The critical pod has the wrong PriorityClass \u2014 assign it the high-priority class so it can preempt lower-priority pods",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "PriorityClass",
+    "preemption",
+    "pod priority",
+    "scheduling",
+    "resource contention"
+  ],
+  "module": "module-9-scheduling",
+  "level": "level-5-priority-preemption"
+}

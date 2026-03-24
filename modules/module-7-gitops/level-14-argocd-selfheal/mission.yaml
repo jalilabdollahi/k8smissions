@@ -1,0 +1,17 @@
+{
+  "name": "The Drift",
+  "description": "A deployment was manually scaled via kubectl but ArgoCD keeps reverting it back \u2014 the change never sticks.",
+  "objective": "ArgoCD self-healing is reverting manual changes \u2014 understand why and disable self-heal for this Application if manual overrides are needed",
+  "xp": 225,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "ArgoCD",
+    "self-healing",
+    "GitOps",
+    "drift",
+    "syncPolicy"
+  ],
+  "module": "module-7-gitops",
+  "level": "level-14-argocd-selfheal"
+}

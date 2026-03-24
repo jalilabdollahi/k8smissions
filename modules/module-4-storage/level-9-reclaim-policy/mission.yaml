@@ -1,0 +1,18 @@
+{
+  "name": "Data Deleted!",
+  "description": "A PVC was deleted and the underlying data has disappeared along with it.",
+  "objective": "The PV's reclaimPolicy is Delete, so data is lost when the PVC is removed \u2014 change it to Retain to preserve data",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Reclaim policies (Delete",
+    "Retain",
+    "Recycle)",
+    "data safety",
+    "PV release lifecycle",
+    "production data protection"
+  ],
+  "module": "module-4-storage",
+  "level": "level-9-reclaim-policy"
+}

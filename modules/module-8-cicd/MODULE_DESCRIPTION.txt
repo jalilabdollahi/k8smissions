@@ -1,0 +1,8 @@
+Module 8: CI/CD & Pipelines
+==========================
+Theme: Pipeline broken states, Tekton tasks, release gates, and deploy automation.
+You are an SRE on call. The deployment pipeline has failed. Releases are blocked.
+Debug broken Tekton Tasks, fix misconfigured Pipelines, clear blocked rollout gates.
+
+XP Range: 250-400 XP per level
+Difficulty: intermediate to advanced

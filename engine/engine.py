@@ -32,8 +32,8 @@ try:
         show_status,
         show_victory,
         show_welcome,
-        show_world_completion,
-        world_title,
+        show_module_completion,
+        module_title,
     )
 except ModuleNotFoundError:
     from certificate import generate_certificate, save_certificate
@@ -50,8 +50,8 @@ except ModuleNotFoundError:
         show_status,
         show_victory,
         show_welcome,
-        show_world_completion,
-        world_title,
+        show_module_completion,
+        module_title,
     )
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -82,9 +82,9 @@ def load_progress() -> dict:
             "player_name": "",
             "total_xp": 0,
             "completed_levels": [],
-            "current_world": "",
+            "current_module": "",
             "current_level": "",
-            "world_certificates": [],
+            "module_certificates": [],
             "time_per_level": {},
             "level_start_time": None,
         }
@@ -99,7 +99,7 @@ def save_progress(progress: dict) -> None:
     PROGRESS_FILE.write_text(json.dumps(progress, indent=2), encoding="utf-8")
 
 
-def load_worlds() -> list[dict]:
+def load_modules() -> list[dict]:
     def sort_key(path: Path) -> tuple[int, str]:
         match = re.search(r"(\d+)", path.name)
         return (int(match.group(1)) if match else 9999, path.name)
@@ -108,8 +108,8 @@ def load_worlds() -> list[dict]:
     if LEVELS_REGISTRY.exists():
         try:
             registry = json.loads(LEVELS_REGISTRY.read_text(encoding="utf-8"))
-            worlds = []
-            for w in registry.get("worlds", []):
+            modules = []
+            for w in registry.get("modules", []):
                 levels = []
                 for lv in w.get("levels", []):
                     level_path = REPO_ROOT / lv["path"]
@@ -121,71 +121,71 @@ def load_worlds() -> list[dict]:
                             "mission": lv["mission"],
                         })
                 if levels:
-                    worlds.append({"name": w["name"], "path": REPO_ROOT / "worlds" / w["name"], "levels": levels})
-            if worlds:
-                return worlds
+                    modules.append({"name": w["name"], "path": REPO_ROOT / "modules" / w["name"], "levels": levels})
+            if modules:
+                return modules
         except Exception:
             pass  # fall through to directory scan
 
     # Fallback: scan directories
-    worlds = []
-    worlds_dir = REPO_ROOT / "worlds"
-    for world_dir in sorted((path for path in worlds_dir.iterdir() if path.is_dir()), key=sort_key):
+    modules = []
+    modules_dir = REPO_ROOT / "modules"
+    for module_dir in sorted((path for path in modules_dir.iterdir() if path.is_dir()), key=sort_key):
         levels = []
-        for level_dir in sorted((path for path in world_dir.iterdir() if path.is_dir()), key=sort_key):
+        for level_dir in sorted((path for path in module_dir.iterdir() if path.is_dir()), key=sort_key):
             mission_file = level_dir / "mission.yaml"
             if not mission_file.exists():
                 continue
             mission = yaml.safe_load(mission_file.read_text(encoding="utf-8")) or {}
             levels.append(
                 {
-                    "id": f"{world_dir.name}/{level_dir.name}",
+                    "id": f"{module_dir.name}/{level_dir.name}",
                     "name": level_dir.name,
                     "path": level_dir,
                     "mission": mission,
                 }
             )
         if levels:
-            worlds.append({"name": world_dir.name, "path": world_dir, "levels": levels})
-    return worlds
+            modules.append({"name": module_dir.name, "path": module_dir, "levels": levels})
+    return modules
 
 
-def compute_max_xp_by_world(worlds: list[dict]) -> dict[str, int]:
-    """Dynamically compute total possible XP per world from mission files (#11)."""
+def compute_max_xp_by_module(modules: list[dict]) -> dict[str, int]:
+    """Dynamically compute total possible XP per module from mission files (#11)."""
     return {
-        world["name"]: sum(int(level["mission"].get("xp", 0)) for level in world["levels"])
-        for world in worlds
+        module["name"]: sum(int(level["mission"].get("xp", 0)) for level in module["levels"])
+        for module in modules
     }
 
 
-def build_world_xp(worlds: list[dict], completed_levels: set[str]) -> dict[str, int]:
+def build_module_xp(modules: list[dict], completed_levels: set[str]) -> dict[str, int]:
     totals: dict[str, int] = {}
-    for world in worlds:
-        world_total = 0
-        for level in world["levels"]:
+    for module in modules:
+        module_total = 0
+        for level in module["levels"]:
             if level["id"] in completed_levels:
-                world_total += int(level["mission"].get("xp", 0))
-        totals[world["name"]] = world_total
+                module_total += int(level["mission"].get("xp", 0))
+        totals[module["name"]] = module_total
     return totals
 
 
-def current_position(worlds: list[dict], progress: dict) -> tuple[int, int]:
-    current_world = progress.get("current_world")
+def current_position(modules: list[dict], progress: dict) -> tuple[int, int]:
+    current_module = progress.get("current_module")
     current_level = progress.get("current_level")
-    for world_index, world in enumerate(worlds):
-        if world["name"] != current_world:
+    for module_index, module in enumerate(modules):
+        if module["name"] != current_module:
             continue
-        for level_index, level in enumerate(world["levels"]):
+        for level_index, level in enumerate(module["levels"]):
             if level["name"] == current_level:
-                return world_index, level_index
+                return module_index, level_index
     return 0, 0
 
 
-def advance(worlds: list[dict], world_index: int, level_index: int) -> tuple[int | None, int | None]:
-    if level_index + 1 < len(worlds[world_index]["levels"]):
-        return world_index, level_index + 1
-    if world_index + 1 < len(worlds):
-        return world_index + 1, 0
+def advance(modules: list[dict], module_index: int, level_index: int) -> tuple[int | None, int | None]:
+    if level_index + 1 < len(modules[module_index]["levels"]):
+        return module_index, level_index + 1
+    if module_index + 1 < len(modules):
+        return module_index + 1, 0
     return None, None
 
 
@@ -243,43 +243,43 @@ def ensure_player_name(progress: dict) -> None:
     save_progress(progress)
 
 
-def ensure_current_level(progress: dict, worlds: list[dict]) -> None:
-    if not worlds:
-        raise RuntimeError("No implemented levels were found in worlds/")
-    world_index, level_index = current_position(worlds, progress)
-    progress["current_world"] = worlds[world_index]["name"]
-    progress["current_level"] = worlds[world_index]["levels"][level_index]["name"]
+def ensure_current_level(progress: dict, modules: list[dict]) -> None:
+    if not modules:
+        raise RuntimeError("No implemented levels were found in modules/")
+    module_index, level_index = current_position(modules, progress)
+    progress["current_module"] = modules[module_index]["name"]
+    progress["current_level"] = modules[module_index]["levels"][level_index]["name"]
     save_progress(progress)
 
 
-def award_world_certificate(progress: dict, worlds: list[dict], world_index: int, completed_levels: set[str]) -> None:
-    world = worlds[world_index]
-    if world["name"] in progress.get("world_certificates", []):
+def award_module_certificate(progress: dict, modules: list[dict], module_index: int, completed_levels: set[str]) -> None:
+    module = modules[module_index]
+    if module["name"] in progress.get("module_certificates", []):
         return
 
-    world_level_ids = {level["id"] for level in world["levels"]}
-    if not world_level_ids.issubset(completed_levels):
+    module_level_ids = {level["id"] for level in module["levels"]}
+    if not module_level_ids.issubset(completed_levels):
         return
 
-    world_xp = sum(int(level["mission"].get("xp", 0)) for level in world["levels"] if level["id"] in completed_levels)
-    w_title = world_title(world["name"])
+    module_xp = sum(int(level["mission"].get("xp", 0)) for level in module["levels"] if level["id"] in completed_levels)
+    w_title = module_title(module["name"])
     # Save markdown certificate to disk
-    certificate_text = generate_certificate(progress["player_name"], world["name"], w_title, world_xp)
-    save_certificate(REPO_ROOT, world["name"], certificate_text)
+    certificate_text = generate_certificate(progress["player_name"], module["name"], w_title, module_xp)
+    save_certificate(REPO_ROOT, module["name"], certificate_text)
     # Show rich panel in terminal (#5)
     try:
         from engine.certificate import render_certificate_panel
     except ModuleNotFoundError:
         from certificate import render_certificate_panel
-    panel = render_certificate_panel(progress["player_name"], w_title, world["name"], world_xp)
-    progress.setdefault("world_certificates", []).append(world["name"])
+    panel = render_certificate_panel(progress["player_name"], w_title, module["name"], module_xp)
+    progress.setdefault("module_certificates", []).append(module["name"])
     save_progress(progress)
-    show_world_completion(panel)
+    show_module_completion(panel)
 
 
-def complete_level(progress: dict, worlds: list[dict], world_index: int, level_index: int, award_xp: bool) -> bool:
+def complete_level(progress: dict, modules: list[dict], module_index: int, level_index: int, award_xp: bool) -> bool:
     completed_levels = set(progress.get("completed_levels", []))
-    level = worlds[world_index]["levels"][level_index]
+    level = modules[module_index]["levels"][level_index]
     level_id = level["id"]
     xp = int(level["mission"].get("xp", 0)) if award_xp and level_id not in completed_levels else 0
 
@@ -296,7 +296,7 @@ def complete_level(progress: dict, worlds: list[dict], world_index: int, level_i
     progress["total_xp"] = int(progress.get("total_xp", 0)) + xp
     save_progress(progress)
     show_victory(
-        worlds[world_index]["name"],
+        modules[module_index]["name"],
         level["mission"].get("name", level["name"]),
         xp,
         progress["total_xp"],
@@ -313,17 +313,17 @@ def complete_level(progress: dict, worlds: list[dict], world_index: int, level_i
             expected_time=level["mission"].get("expected_time"),
         )
 
-    award_world_certificate(progress, worlds, world_index, completed_levels)
+    award_module_certificate(progress, modules, module_index, completed_levels)
 
-    next_world, next_level = advance(worlds, world_index, level_index)
-    if next_world is None:
+    next_module, next_level = advance(modules, module_index, level_index)
+    if next_module is None:
         console.print("[bold bright_green]All missions complete. Mission Control salutes you.[/bold bright_green]")
         return False
 
-    progress["current_world"] = worlds[next_world]["name"]
-    progress["current_level"] = worlds[next_world]["levels"][next_level]["name"]
+    progress["current_module"] = modules[next_module]["name"]
+    progress["current_level"] = modules[next_module]["levels"][next_level]["name"]
     save_progress(progress)
-    prepare_level(REPO_ROOT, worlds[next_world]["levels"][next_level]["path"])
+    prepare_level(REPO_ROOT, modules[next_module]["levels"][next_level]["path"])
     return True
 
 
@@ -395,19 +395,19 @@ def game_loop() -> int:
         return 1
     console.print(" " * 50, end="\r")  # clear the checking message
 
-    worlds = load_worlds()
+    modules = load_modules()
     progress = load_progress()
     ensure_player_name(progress)
-    ensure_current_level(progress, worlds)
+    ensure_current_level(progress, modules)
 
     completed_levels = set(progress.get("completed_levels", []))
-    xp_by_world = build_world_xp(worlds, completed_levels)
-    max_xp_by_world = compute_max_xp_by_world(worlds)
-    max_total_xp = sum(max_xp_by_world.values())
-    show_welcome(progress["player_name"], int(progress.get("total_xp", 0)), worlds, completed_levels, xp_by_world, max_xp_by_world, max_total_xp)
+    xp_by_module = build_module_xp(modules, completed_levels)
+    max_xp_by_module = compute_max_xp_by_module(modules)
+    max_total_xp = sum(max_xp_by_module.values())
+    show_welcome(progress["player_name"], int(progress.get("total_xp", 0)), modules, completed_levels, xp_by_module, max_xp_by_module, max_total_xp)
 
-    world_index, level_index = current_position(worlds, progress)
-    current_level = worlds[world_index]["levels"][level_index]
+    module_index, level_index = current_position(modules, progress)
+    current_level = modules[module_index]["levels"][level_index]
     prepare_level(REPO_ROOT, current_level["path"])
 
     # Record level start time (#6)
@@ -417,12 +417,12 @@ def game_loop() -> int:
 
     hint_index = 0
     while True:
-        worlds = load_worlds()
+        modules = load_modules()
         progress = load_progress()
-        world_index, level_index = current_position(worlds, progress)
-        current_level = worlds[world_index]["levels"][level_index]
+        module_index, level_index = current_position(modules, progress)
+        current_level = modules[module_index]["levels"][level_index]
         mission = current_level["mission"]
-        show_mission_briefing(world_index + 1, len(worlds), level_index + 1, len(worlds[world_index]["levels"]), mission)
+        show_mission_briefing(module_index + 1, len(modules), level_index + 1, len(modules[module_index]["levels"]), mission)
         show_help()
 
         while True:
@@ -447,10 +447,10 @@ def game_loop() -> int:
                 continue
             if command == "status":
                 completed_levels = set(progress.get("completed_levels", []))
-                xp_by_world = build_world_xp(worlds, completed_levels)
-                max_xp_by_world = compute_max_xp_by_world(worlds)
-                max_total_xp = sum(max_xp_by_world.values())
-                show_status(worlds, completed_levels, xp_by_world, int(progress.get("total_xp", 0)), max_xp_by_world, max_total_xp)
+                xp_by_module = build_module_xp(modules, completed_levels)
+                max_xp_by_module = compute_max_xp_by_module(modules)
+                max_total_xp = sum(max_xp_by_module.values())
+                show_status(modules, completed_levels, xp_by_module, int(progress.get("total_xp", 0)), max_xp_by_module, max_total_xp)
                 continue
             if command == "debrief":
                 show_debrief(current_level["path"])
@@ -481,7 +481,7 @@ def game_loop() -> int:
                 if result.stderr:
                     console.print(f"[yellow]{result.stderr.rstrip()}[/yellow]")
                 if result.returncode == 0:
-                    if complete_level(progress, worlds, world_index, level_index, award_xp=True):
+                    if complete_level(progress, modules, module_index, level_index, award_xp=True):
                         progress = load_progress()
                         progress["level_start_time"] = time.time()
                         save_progress(progress)
@@ -504,7 +504,7 @@ def game_loop() -> int:
                 # Watch mode — auto-runs validator every 5s (#7)
                 passed = watch_mode(current_level["path"])
                 if passed:
-                    if complete_level(progress, worlds, world_index, level_index, award_xp=True):
+                    if complete_level(progress, modules, module_index, level_index, award_xp=True):
                         progress = load_progress()
                         progress["level_start_time"] = time.time()
                         save_progress(progress)
@@ -513,7 +513,7 @@ def game_loop() -> int:
                     return 0
                 continue
             if command == "skip":
-                if complete_level(progress, worlds, world_index, level_index, award_xp=False):
+                if complete_level(progress, modules, module_index, level_index, award_xp=False):
                     progress = load_progress()
                     progress["level_start_time"] = time.time()
                     save_progress(progress)
@@ -531,14 +531,14 @@ def game_loop() -> int:
                         "player_name": player,
                         "total_xp": 0,
                         "completed_levels": [],
-                        "current_world": "",
+                        "current_module": "",
                         "current_level": "",
-                        "world_certificates": [],
+                        "module_certificates": [],
                         "time_per_level": {},
                         "level_start_time": time.time(),
                     }
                     save_progress(progress)
-                    console.print("[bright_green]✅ Progress reset. Restarting from World 1 Level 1.[/bright_green]")
+                    console.print("[bright_green]✅ Progress reset. Restarting from Module 1 Level 1.[/bright_green]")
                     hint_index = 0
                     break  # restart outer loop from level 1
                 else:

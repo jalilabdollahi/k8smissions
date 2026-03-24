@@ -1,0 +1,16 @@
+{
+  "name": "Requests Dropped During Rollout",
+  "description": "During rolling updates, users experience connection reset errors.",
+  "objective": "Pods are terminated mid-request during rollouts \u2014 add a preStop hook and set terminationGracePeriodSeconds",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "Pod termination lifecycle (SIGTERM \u2192 grace period \u2192 SIGKILL)",
+    "preStop hooks",
+    "connection draining",
+    "zero-downtime deploys"
+  ],
+  "module": "module-7-gitops",
+  "level": "level-6-graceful-shutdown"
+}

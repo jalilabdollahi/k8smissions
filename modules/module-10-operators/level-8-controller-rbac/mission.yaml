@@ -1,0 +1,17 @@
+{
+  "name": "Permission Denied in Controller",
+  "description": "Operator logs show 'forbidden: User cannot list pods' \u2014 the controller is running but not functioning.",
+  "objective": "The operator's ServiceAccount lacks RBAC permissions to list and watch Pods \u2014 fix the ClusterRole",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "RBAC",
+    "ServiceAccount",
+    "ClusterRole",
+    "ClusterRoleBinding",
+    "operator permissions"
+  ],
+  "module": "module-10-operators",
+  "level": "level-8-controller-rbac"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Critical Pods Can't Schedule",
+  "description": "A critical pod cannot be scheduled despite nodes appearing to be available.",
+  "objective": "The critical pod has no PriorityClass \u2014 assign it a high-priority class so it can preempt lower-priority workloads",
+  "xp": 300,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "PriorityClass",
+    "preemption",
+    "pod priority values",
+    "PriorityClass.globalDefault",
+    "scheduling order"
+  ],
+  "module": "module-5-security",
+  "level": "level-9-priorityclass"
+}

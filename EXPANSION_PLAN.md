@@ -1,36 +1,36 @@
 # K8sMissions — Expansion Plan: 75 → 200 Levels
 
 ## Summary
-- Current: 7 worlds, 75 levels, ~19,000 XP
-- Target:  12 worlds, 200 levels, ~52,000 XP
-- Strategy: +5 levels to each existing world (7×5=35) + 5 brand-new worlds ×18 levels (5×18=90)
+- Current: 7 modules, 75 levels, ~19,000 XP
+- Target:  12 modules, 200 levels, ~52,000 XP
+- Strategy: +5 levels to each existing module (7×5=35) + 5 brand-new modules ×18 levels (5×18=90)
 - Total new: 35 + 90 = 125 new levels → 75 + 125 = 200 levels
 
 ---
 
 ## Status
 
-| Section | Worlds | Status |
+| Section | Modules | Status |
 |---------|--------|--------|
-| Phase 1 | World 1 extensions (levels 16-20) | ✅ DONE |
-| Phase 2 | World 2 extensions (levels 11-15) | ✅ DONE |
-| Phase 3 | World 3 extensions (levels 11-15) | ✅ DONE |
-| Phase 4 | World 4 extensions (levels 11-15) | ✅ DONE |
-| Phase 5 | World 5 extensions (levels 11-15) | ✅ DONE |
-| Phase 6 | World 6 extensions (levels 11-15) | ✅ DONE |
-| Phase 7 | World 7 extensions (levels 11-15) | ✅ DONE |
-| Phase 8 | World 8: CI/CD & Pipelines (18 levels) | ✅ DONE |
-| Phase 9 | World 9: Advanced Scheduling (18 levels) | ✅ DONE |
-| Phase 10 | World 10: Custom Resources & Operators (18 levels) | ✅ DONE |
-| Phase 11 | World 11: Performance & SRE (18 levels) | ✅ DONE |
-| Phase 12 | World 12: Production War Games (18 levels) | ✅ DONE |
-| Phase 13 | Update ui.py XP totals + world titles | ✅ DONE |
+| Phase 1 | Module 1 extensions (levels 16-20) | ✅ DONE |
+| Phase 2 | Module 2 extensions (levels 11-15) | ✅ DONE |
+| Phase 3 | Module 3 extensions (levels 11-15) | ✅ DONE |
+| Phase 4 | Module 4 extensions (levels 11-15) | ✅ DONE |
+| Phase 5 | Module 5 extensions (levels 11-15) | ✅ DONE |
+| Phase 6 | Module 6 extensions (levels 11-15) | ✅ DONE |
+| Phase 7 | Module 7 extensions (levels 11-15) | ✅ DONE |
+| Phase 8 | Module 8: CI/CD & Pipelines (18 levels) | ✅ DONE |
+| Phase 9 | Module 9: Advanced Scheduling (18 levels) | ✅ DONE |
+| Phase 10 | Module 10: Custom Resources & Operators (18 levels) | ✅ DONE |
+| Phase 11 | Module 11: Performance & SRE (18 levels) | ✅ DONE |
+| Phase 12 | Module 12: Production War Games (18 levels) | ✅ DONE |
+| Phase 13 | Update ui.py XP totals + module titles | ✅ DONE |
 | Phase 14 | Update welcome screen (200 levels, new XP total) | ✅ DONE |
 
 ---
 
-## Phase 1 — World 1 Extensions (levels 16–20)
-Directory: `worlds/world-1-foundations/`
+## Phase 1 — Module 1 Extensions (levels 16–20)
+Directory: `modules/module-1-foundations/`
 XP per level: 150–200 (harder than earlier levels)
 
 | # | Folder | Name | Broken State | Fix |
@@ -43,8 +43,8 @@ XP per level: 150–200 (harder than earlier levels)
 
 ---
 
-## Phase 2 — World 2 Extensions (levels 11–15)
-Directory: `worlds/world-2-workloads/`
+## Phase 2 — Module 2 Extensions (levels 11–15)
+Directory: `modules/module-2-workloads/`
 
 | # | Folder | Name | Broken State | Fix |
 |---|--------|------|-------------|-----|
@@ -56,8 +56,8 @@ Directory: `worlds/world-2-workloads/`
 
 ---
 
-## Phase 3 — World 3 Extensions (levels 11–15)
-Directory: `worlds/world-3-networking/`
+## Phase 3 — Module 3 Extensions (levels 11–15)
+Directory: `modules/module-3-networking/`
 
 | # | Folder | Name | Broken State | Fix |
 |---|--------|------|-------------|-----|
@@ -69,8 +69,8 @@ Directory: `worlds/world-3-networking/`
 
 ---
 
-## Phase 4 — World 4 Extensions (levels 11–15)
-Directory: `worlds/world-4-storage/`
+## Phase 4 — Module 4 Extensions (levels 11–15)
+Directory: `modules/module-4-storage/`
 
 | # | Folder | Name | Broken State | Fix |
 |---|--------|------|-------------|-----|
@@ -82,8 +82,8 @@ Directory: `worlds/world-4-storage/`
 
 ---
 
-## Phase 5 — World 5 Extensions (levels 11–15)
-Directory: `worlds/world-5-security/`
+## Phase 5 — Module 5 Extensions (levels 11–15)
+Directory: `modules/module-5-security/`
 
 | # | Folder | Name | Broken State | Fix |
 |---|--------|------|-------------|-----|
@@ -95,8 +95,8 @@ Directory: `worlds/world-5-security/`
 
 ---
 
-## Phase 6 — World 6 Extensions (levels 11–15)
-Directory: `worlds/world-6-observability/`
+## Phase 6 — Module 6 Extensions (levels 11–15)
+Directory: `modules/module-6-observability/`
 
 | # | Folder | Name | Broken State | Fix |
 |---|--------|------|-------------|-----|
@@ -108,8 +108,8 @@ Directory: `worlds/world-6-observability/`
 
 ---
 
-## Phase 7 — World 7 Extensions (levels 11–15)
-Directory: `worlds/world-7-gitops/`
+## Phase 7 — Module 7 Extensions (levels 11–15)
+Directory: `modules/module-7-gitops/`
 
 | # | Folder | Name | Broken State | Fix |
 |---|--------|------|-------------|-----|
@@ -121,8 +121,8 @@ Directory: `worlds/world-7-gitops/`
 
 ---
 
-## Phase 8 — World 8: CI/CD & Pipelines (18 levels)
-Directory: `worlds/world-8-cicd/`
+## Phase 8 — Module 8: CI/CD & Pipelines (18 levels)
+Directory: `modules/module-8-cicd/`
 Theme: Tekton, GitHub Actions proxies, pipeline failures, rollout gates
 
 | # | Folder | Name | Key Concept |
@@ -148,8 +148,8 @@ Theme: Tekton, GitHub Actions proxies, pipeline failures, rollout gates
 
 ---
 
-## Phase 9 — World 9: Advanced Scheduling (18 levels)
-Directory: `worlds/world-9-scheduling/`
+## Phase 9 — Module 9: Advanced Scheduling (18 levels)
+Directory: `modules/module-9-scheduling/`
 Theme: Taints, topology spread, resource classes, GPU, spot eviction
 
 | # | Folder | Name | Key Concept |
@@ -175,8 +175,8 @@ Theme: Taints, topology spread, resource classes, GPU, spot eviction
 
 ---
 
-## Phase 10 — World 10: Custom Resources & Operators (18 levels)
-Directory: `worlds/world-10-operators/`
+## Phase 10 — Module 10: Custom Resources & Operators (18 levels)
+Directory: `modules/module-10-operators/`
 Theme: CRDs, controllers, admission webhooks, Helm operators
 
 | # | Folder | Name | Key Concept |
@@ -202,8 +202,8 @@ Theme: CRDs, controllers, admission webhooks, Helm operators
 
 ---
 
-## Phase 11 — World 11: Performance & SRE (18 levels)
-Directory: `worlds/world-11-performance/`
+## Phase 11 — Module 11: Performance & SRE (18 levels)
+Directory: `modules/module-11-performance/`
 Theme: Latency, VPA, resource tuning, chaos, load testing
 
 | # | Folder | Name | Key Concept |
@@ -229,8 +229,8 @@ Theme: Latency, VPA, resource tuning, chaos, load testing
 
 ---
 
-## Phase 12 — World 12: Production War Games (18 levels)
-Directory: `worlds/world-12-wargames/`
+## Phase 12 — Module 12: Production War Games (18 levels)
+Directory: `modules/module-12-wargames/`
 Theme: Multi-failure scenarios, incident response, chaos drills, full-stack breakage
 
 | # | Folder | Name | Scenario |
@@ -252,13 +252,13 @@ Theme: Multi-failure scenarios, incident response, chaos drills, full-stack brea
 | 15 | level-15-zombie-process | Zombie Pod | Pod reports Running but process is zombie — container runtime issue |
 | 16 | level-16-multi-region-sync | Region Lag | Multi-cluster sync broken — active/passive failover stuck |
 | 17 | level-17-full-incident | P0 Incident | 5 simultaneous failures across storage, network, RBAC, quota, DNS |
-| 18 | level-18-grand-master | Grand Master | All 12 worlds contribute one failure — the ultimate 12-issue incident |
+| 18 | level-18-grand-master | Grand Master | All 12 modules contribute one failure — the ultimate 12-issue incident |
 
 ---
 
 ## XP Plan (updated totals)
 
-| World | Levels | XP/level avg | World Total |
+| Module | Levels | XP/level avg | Module Total |
 |-------|--------|-------------|-------------|
 | 1 - Foundations | 20 | 140 | 2,800 |
 | 2 - Workloads | 15 | 175 | 2,625 |

@@ -1,0 +1,17 @@
+{
+  "name": "Slow Memory Leak",
+  "description": "A pod's memory grows 50MB per hour and eventually gets OOMKilled \u2014 then the cycle repeats.",
+  "objective": "The pod has no memory limit \u2014 setting a limit causes OOMKill at a predictable threshold, giving time to fix the leak",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "memory leak",
+    "OOMKilled",
+    "memory limits",
+    "resource management",
+    "monitoring"
+  ],
+  "module": "module-11-performance",
+  "level": "level-12-memory-leak-limits"
+}

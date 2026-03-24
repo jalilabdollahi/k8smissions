@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""World completion certificates — markdown save + rich terminal render (#5)."""
+"""Module completion certificates — markdown save + rich terminal render (#5)."""
 
 from __future__ import annotations
 
@@ -13,27 +13,27 @@ from rich.rule import Rule
 from rich.text import Text
 
 
-def generate_certificate(player_name: str, world_name: str, world_title: str, earned_xp: int) -> str:
+def generate_certificate(player_name: str, module_name: str, module_title: str, earned_xp: int) -> str:
     """Return the certificate as markdown (for saving to disk)."""
     date = datetime.now().strftime("%B %d, %Y")
-    return f"""# ★ World Complete — {world_title}
+    return f"""# ★ Module Complete — {module_title}
 
 | Field | Value |
 |-------|-------|
 | **Agent** | {player_name} |
-| **World** | {world_title} |
+| **Module** | {module_title} |
 | **Date** | {date} |
 | **XP Earned** | {earned_xp:,} |
 
-> Mission Control recognizes the successful completion of `{world_name}`.
-> You restored every scenario in this world and are cleared for the next one.
+> Mission Control recognizes the successful completion of `{module_name}`.
+> You restored every scenario in this module and are cleared for the next one.
 """
 
 
 def render_certificate_panel(
     player_name: str,
-    world_title_str: str,
-    world_name: str,
+    module_title_str: str,
+    module_name: str,
     earned_xp: int,
 ) -> Panel:
     """Return a beautiful Rich Panel for terminal display (#5)."""
@@ -50,8 +50,8 @@ def render_certificate_panel(
         ("  Agent:      ", "grey70"),
         (player_name, "bold bright_magenta"),
         "\n",
-        ("  World:      ", "grey70"),
-        (world_title_str, "bold bright_yellow"),
+        ("  Module:      ", "grey70"),
+        (module_title_str, "bold bright_yellow"),
         "\n",
         ("  XP Earned:  ", "grey70"),
         (f"{earned_xp:,}", "bold bright_green"),
@@ -60,7 +60,7 @@ def render_certificate_panel(
         (date, "white"),
     )
 
-    cleared = Text("  Cleared for next world. Carry on, Agent.", style="italic grey70")
+    cleared = Text("  Cleared for next module. Carry on, Agent.", style="italic grey70")
 
     content = Group(
         blank,
@@ -82,16 +82,16 @@ def render_certificate_panel(
     )
     return Panel(
         content,
-        title=f"[bold bright_green]  ★  WORLD COMPLETE  ★  [/bold bright_green]",
+        title=f"[bold bright_green]  ★  MODULE COMPLETE  ★  [/bold bright_green]",
         border_style="bright_green",
         box=box.DOUBLE_EDGE,
         padding=(1, 2),
     )
 
 
-def save_certificate(repo_root: Path, world_name: str, certificate_text: str) -> Path:
+def save_certificate(repo_root: Path, module_name: str, certificate_text: str) -> Path:
     output_dir = repo_root / "certificates"
     output_dir.mkdir(exist_ok=True)
-    output_path = output_dir / f"{world_name}-certificate.md"
+    output_path = output_dir / f"{module_name}-certificate.md"
     output_path.write_text(certificate_text, encoding="utf-8")
     return output_path

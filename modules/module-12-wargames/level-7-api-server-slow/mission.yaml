@@ -1,0 +1,16 @@
+{
+  "name": "Control Plane Flood",
+  "description": "The API server is overwhelmed. A deployment is running 50 replicas of a pod that watches the API server in a tight loop without backoff.",
+  "objective": "An over-replicated deployment is flooding the API server with watch requests \u2014 scale it down to a reasonable size",
+  "xp": 350,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "API server load",
+    "watch requests",
+    "deployment scaling",
+    "resource limits"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-7-api-server-slow"
+}

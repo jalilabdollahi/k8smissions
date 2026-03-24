@@ -12,8 +12,8 @@ if [[ "$1" == "--reset" ]]; then
   read -r -p "⚠️  Reset all progress? This cannot be undone. [y/N] " confirm
   if [[ "$confirm" =~ ^[Yy]$ ]]; then
     PLAYER=$(python3 -c "import json; d=json.load(open('progress.json')); print(d.get('player_name',''))" 2>/dev/null || echo "")
-    echo "{\"player_name\":\"$PLAYER\",\"total_xp\":0,\"completed_levels\":[],\"current_world\":\"\",\"current_level\":\"\",\"world_certificates\":[]}" > progress.json
-    echo "✅ Progress reset. Starting from World 1 Level 1."
+    echo "{\"player_name\":\"$PLAYER\",\"total_xp\":0,\"completed_levels\":[],\"current_module\":\"\",\"current_level\":\"\",\"module_certificates\":[]}" > progress.json
+    echo "✅ Progress reset. Starting from Module 1 Level 1."
   else
     echo "Cancelled."
     exit 0

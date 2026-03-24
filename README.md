@@ -8,21 +8,21 @@
 
 K8sMissions is a fully local, game-based Kubernetes training platform with a rich terminal interface. Each mission drops a deliberately broken cluster in front of you. Your job is to diagnose and fix it using real `kubectl` commands.
 
-**200 progressive challenges across 12 worlds — beginner to production SRE.**  
+**200 progressive challenges across 12 modules — beginner to production SRE.**  
 No cloud. No AWS. No costs.
 
 ---
 
 ## ✨ Features
 
-- 🗡️ **200 missions** across 12 worlds — from pod crashes to multi-failure war games
-- 🏆 **XP & progression system** — earn points, unlock worlds, track your journey
+- 🗡️ **200 missions** across 12 modules — from pod crashes to multi-failure war games
+- 🏆 **XP & progression system** — earn points, unlock modules, track your journey
 - 💡 **Progressive hints** — unlock gradually, only if you need them
 - 📖 **Post-mission debriefs** — learn *why* your fix worked, with real-world examples
 - ⏱️ **Time tracking** — see how long each mission takes vs. the estimated time
 - 🧪 **Dry-run mode** — test your fix before applying it, no XP penalty
 - 👁️ **Watch mode** — auto-validates your cluster every 5 seconds
-- 🏅 **World certificates** — earn a rich terminal certificate for each world completed
+- 🏅 **Module certificates** — earn a rich terminal certificate for each module completed
 - 🔒 **Safety guards** — RBAC limits blast radius; critical namespaces are protected
 - 💾 **Auto-save** — progress is saved after every completed mission
 - ⌨️ **Shell completion** — tab-complete all commands in bash and zsh
@@ -97,9 +97,9 @@ K8sMissions includes RBAC-based safety guards, on by default:
 
 ---
 
-## 🗺️ Learning Path — 12 Worlds · 200 Levels · 55,925 XP
+## 🗺️ Learning Path — 12 Modules · 200 Levels · 55,925 XP
 
-| # | World | Levels | XP | Difficulty | Key Topics |
+| # | Module | Levels | XP | Difficulty | Key Topics |
 |---|-------|--------|----|-----------|------------|
 | 1 | 🟢 Foundations | 20 | 3,025 | Beginner | Pods, Services, ConfigMaps, Secrets, Jobs |
 | 2 | 🟢 Workloads | 15 | 2,950 | Beginner | Deployments, HPA, rollouts, StatefulSets |
@@ -144,7 +144,7 @@ k8smissions/
 ├── engine/
 │   ├── engine.py               ← Core game loop
 │   ├── ui.py                   ← Rich terminal UI
-│   ├── certificate.py          ← World completion certificates
+│   ├── certificate.py          ← Module completion certificates
 │   ├── player.py               ← Player state helpers
 │   ├── reset.py                ← Level reset logic
 │   └── safety.py               ← RBAC safety guards
@@ -156,14 +156,14 @@ k8smissions/
 │   ├── k8smissions.zsh         ← zsh completion (manual source)
 │   └── k8smissions.bash        ← bash completion
 ├── rbac/                       ← Namespace safety manifests
-└── worlds/
-    ├── world-1-foundations/
+└── modules/
+    ├── module-1-foundations/
     │   └── level-N-*/
     │       ├── mission.yaml    ← Briefing, hints, debrief, validator
     │       ├── broken.yaml     ← The deliberately broken manifest
     │       └── solution.yaml   ← Reference solution
-    ├── world-2-workloads/
-    └── ...                     ← worlds 3–12
+    ├── module-2-workloads/
+    └── ...                     ← modules 3–12
 ```
 
 ---

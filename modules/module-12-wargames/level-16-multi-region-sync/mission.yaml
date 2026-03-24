@@ -1,0 +1,16 @@
+{
+  "name": "Region Lag",
+  "description": "A multi-cluster setup has active/passive failover. The passive cluster's ConfigMap leader-election is stale \u2014 failover is broken.",
+  "objective": "The leader-election ConfigMap shows the passive cluster is stale and failover is disabled \u2014 update it to enable active failover",
+  "xp": 400,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": [
+    "multi-cluster",
+    "leader election",
+    "failover",
+    "ConfigMap annotations"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-16-multi-region-sync"
+}

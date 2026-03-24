@@ -1,0 +1,16 @@
+{
+  "name": "Missing Parameter",
+  "description": "A Tekton TaskRun fails immediately with 'param IMAGE not set'.",
+  "objective": "The Task requires a param IMAGE but no value is supplied in the TaskRun \u2014 add the required parameter",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "8m",
+  "concepts": [
+    "Tekton",
+    "params",
+    "TaskRun",
+    "required parameters"
+  ],
+  "module": "module-8-cicd",
+  "level": "level-3-missing-param"
+}

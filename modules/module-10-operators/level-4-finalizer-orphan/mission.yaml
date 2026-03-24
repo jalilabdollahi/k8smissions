@@ -1,0 +1,17 @@
+{
+  "name": "Orphaned Controller",
+  "description": "Deleting a custom resource takes 30 minutes and then disappears \u2014 but the backend resources it created still exist.",
+  "objective": "The operator's finalizer logic ran successfully but forgot to actually clean up the backend resources before clearing the finalizer",
+  "xp": 375,
+  "difficulty": "advanced",
+  "expected_time": "18m",
+  "concepts": [
+    "finalizers",
+    "operator cleanup",
+    "garbage collection",
+    "ownerReferences",
+    "controller"
+  ],
+  "module": "module-10-operators",
+  "level": "level-4-finalizer-orphan"
+}

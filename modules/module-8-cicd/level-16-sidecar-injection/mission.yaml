@@ -1,0 +1,17 @@
+{
+  "name": "Injected to Failure",
+  "description": "Pipeline Task pods are failing to start \u2014 an admission webhook is injecting a sidecar that conflicts with Tekton.",
+  "objective": "The sidecar injector webhook conflicts with Tekton's step container management \u2014 disable injection for pipeline pods",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "Tekton",
+    "sidecar",
+    "admission webhook",
+    "label",
+    "injection annotation"
+  ],
+  "module": "module-8-cicd",
+  "level": "level-16-sidecar-injection"
+}

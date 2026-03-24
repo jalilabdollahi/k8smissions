@@ -1,0 +1,17 @@
+{
+  "name": "The Unmovable Update",
+  "description": "A Deployment image update was applied but the rollout is permanently stalled \u2014 no new pods are being created.",
+  "objective": "Both maxSurge and maxUnavailable are set to 0 \u2014 fix the RollingUpdate strategy so the rollout can proceed",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Deployment",
+    "RollingUpdate",
+    "maxSurge",
+    "maxUnavailable",
+    "update strategy"
+  ],
+  "module": "module-2-workloads",
+  "level": "level-14-maxsurge-zero"
+}

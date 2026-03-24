@@ -19,7 +19,7 @@ engine/
   ui.py              ← Mission Control UI (terminal theme — see spec)
   safety.py          ← kubectl command safety guard 
   reset.py           ← Re-apply broken.yaml for current level
-  certificate.py     ← World completion certificate generator
+  certificate.py     ← Module completion certificate generator
   player.py          ← Player name prompt and persistence
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -31,7 +31,7 @@ Design Principles:
   - Inspired by NASA mission control / SRE runbook dashboards
   - Uses rich Panel, Table, Progress, Rule, Columns, Markdown
   - Color palette:
-      Primary   : bright_cyan      (headers, world names)
+      Primary   : bright_cyan      (headers, module names)
       Success   : bright_green     (pass, complete, XP earned)
       Warning   : bright_yellow    (hints, warnings)
       Danger    : bright_red       (errors, broken state, alerts)
@@ -43,7 +43,7 @@ Welcome Screen:
   ┌─────────────────────────────────────────────────┐
   │         K8S MISSIONS — MISSION CONTROL          │
   │         ─────────────────────────────           │
-  │   75 challenges. 7 worlds. Real Kubernetes.     │
+  │   75 challenges. 7 modules. Real Kubernetes.     │
   │                                                 │
   │   Agent: <player_name>    XP: 0 / 19,000        │
   └─────────────────────────────────────────────────┘
@@ -51,7 +51,7 @@ Welcome Screen:
 
 Mission Briefing (shown at start of each level):
   ┌─── MISSION BRIEFING ─────────────────────────────────────────┐
-  │  World 1 • Level 3        [★★☆☆☆] Beginner    Est: 5m        │
+  │  Module 1 • Level 3        [★★☆☆☆] Beginner    Est: 5m        │
   │  ──────────────────────────────────────────────────────────  │
   │  NAME: Image Not Found                                       │
   │  ──────────────────────────────────────────────────────────  │
@@ -64,17 +64,17 @@ Mission Briefing (shown at start of each level):
 Victory Screen (level complete):
   ╔══════════════════════════════════════╗
   ║   ✅  MISSION ACCOMPLISHED           ║
-  ║   World 1 • Level 3 Complete!        ║
+  ║   Module 1 • Level 3 Complete!        ║
   ║   XP Earned: +100  │  Total: 200     ║
   ╚══════════════════════════════════════╝
   Use rich Panel with style="bright_green", border_style="green"
 
-World Complete Screen:
-  Show a "certificate" panel with world name, player name, date,
-  total XP earned in the world. Use box.DOUBLE_EDGE border.
+Module Complete Screen:
+  Show a "certificate" panel with module name, player name, date,
+  total XP earned in the module. Use box.DOUBLE_EDGE border.
 
 Progress Bar (shown in welcome / between levels):
-  World 1 ████████████░░░░ 8/15   [1,050 / 2,050 XP]
+  Module 1 ████████████░░░░ 8/15   [1,050 / 2,050 XP]
   Use rich.progress.Progress or manual progress bar chars
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -85,7 +85,7 @@ Startup sequence:
   1. Load progress.json
   2. If player_name == "" → prompt for name, save
   3. Show welcome screen
-  4. Show current world/level briefing
+  4. Show current module/level briefing
   5. Apply broken.yaml via kubectl (kubectl apply -f broken.yaml -n k8smissions)
   6. Enter COMMAND LOOP
 
@@ -98,7 +98,7 @@ COMMAND LOOP — accepted inputs:
                   else show solution.yaml contents with explanations)
   reset         → Delete k8smissions namespace, recreate, re-apply broken.yaml
   debrief       → Show debrief.md (paginated, press any key to scroll)
-  status        → Show player XP progress bar across all worlds
+  status        → Show player XP progress bar across all modules
   kubectl <cmd> → Pass through to kubectl after safety check
   skip          → Mark level complete (no XP), advance to next
   quit / exit   → Save progress and exit gracefully
@@ -111,7 +111,7 @@ Safety guard:
   PER-LEVEL FILE STRUCTURE (must match this exactly)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-worlds/<world-name>/<level-name>/
+modules/<module-name>/<level-name>/
   mission.yaml         ← Level metadata (REQUIRED)
   broken.yaml          ← Broken Kubernetes manifest (REQUIRED)
   solution.yaml        ← Correct fixed manifest (REQUIRED)
@@ -132,7 +132,7 @@ mission.yaml schema:
   concepts:
     - concept-1
     - concept-2
-  world: <world-directory-name>
+  module: <module-directory-name>
   level: <level-directory-name>
 
 validate.sh:
@@ -154,17 +154,17 @@ validate.sh:
       fi
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  WORLD ORDER & DIRECTORY MAPPING
+  MODULE ORDER & DIRECTORY MAPPING
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-worlds/
-  world-1-foundations/    15 levels  2,050 XP  beginner→intermediate
-  world-2-workloads/      10 levels  2,050 XP  intermediate→advanced
-  world-3-networking/     10 levels  2,350 XP  intermediate
-  world-4-storage/        10 levels  2,450 XP  intermediate→advanced
-  world-5-security/       10 levels  3,150 XP  advanced→expert
-  world-6-observability/  10 levels  2,900 XP  advanced        ← NEW
-  world-7-gitops/         10 levels  4,050 XP  expert          ← NEW
+modules/
+  module-1-foundations/    15 levels  2,050 XP  beginner→intermediate
+  module-2-workloads/      10 levels  2,050 XP  intermediate→advanced
+  module-3-networking/     10 levels  2,350 XP  intermediate
+  module-4-storage/        10 levels  2,450 XP  intermediate→advanced
+  module-5-security/       10 levels  3,150 XP  advanced→expert
+  module-6-observability/  10 levels  2,900 XP  advanced        ← NEW
+  module-7-gitops/         10 levels  4,050 XP  expert          ← NEW
                          ──────────────────────
   TOTAL                   75 levels  19,000 XP
 

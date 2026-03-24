@@ -1,0 +1,17 @@
+{
+  "name": "One-Shot Task",
+  "description": "A Job has been deployed but keeps failing with BackoffLimitExceeded.",
+  "objective": "The Job container command exits non-zero \u2014 fix the command so the Job completes successfully",
+  "xp": 150,
+  "difficulty": "intermediate",
+  "expected_time": "8m",
+  "concepts": [
+    "Job",
+    "backoffLimit",
+    "exit codes",
+    "completions",
+    "batch"
+  ],
+  "module": "module-1-foundations",
+  "level": "level-17-job-completion"
+}

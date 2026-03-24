@@ -1,0 +1,16 @@
+{
+  "name": "Locked Out",
+  "description": "A service account rotation went wrong. The app-sa ServiceAccount now has no RoleBinding and all API calls are rejected with 403.",
+  "objective": "The app-sa ServiceAccount lost its RoleBinding during rotation \u2014 recreate the binding to restore API access",
+  "xp": 400,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "RBAC",
+    "ServiceAccount",
+    "RoleBinding",
+    "403 Forbidden"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-13-rbac-lockout"
+}

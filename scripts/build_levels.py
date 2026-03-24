@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate all K8sMissions level directories from the world descriptions."""
+"""Generate all K8sMissions level directories from the module descriptions."""
 
 from __future__ import annotations
 
@@ -12,17 +12,17 @@ from pathlib import Path
 from common_mistakes_templates import render_common_mistakes
 
 ROOT = Path(__file__).resolve().parents[1]
-WORLDS_DIR = ROOT / "worlds"
+MODULES_DIR = ROOT / "modules"
 NS = "k8smissions"
 TEXT_SUFFIXES = {".yaml", ".yml", ".md", ".txt", ".sh"}
 
 
 
-def clean_world_directories() -> None:
-    for world_dir in WORLDS_DIR.iterdir():
-        if not world_dir.is_dir():
+def clean_module_directories() -> None:
+    for module_dir in MODULES_DIR.iterdir():
+        if not module_dir.is_dir():
             continue
-        for path in world_dir.iterdir():
+        for path in module_dir.iterdir():
             if path.is_dir():
                 shutil.rmtree(path)
 
@@ -31,7 +31,7 @@ def normalize_text(text: str) -> str:
     return text
 
 
-def parse_world_description(path: Path) -> list[dict]:
+def parse_module_description(path: Path) -> list[dict]:
     levels: list[dict] = []
     current: dict | None = None
     current_key: str | None = None
@@ -86,9 +86,9 @@ def parse_world_description(path: Path) -> list[dict]:
     return levels
 
 
-def finalize_level(level: dict, world_name: str) -> dict:
+def finalize_level(level: dict, module_name: str) -> dict:
     folder = level.get("folder") or f"level-{level['number']}-{level['slug']}"
-    level["world"] = world_name
+    level["module"] = module_name
     level["dir_name"] = folder.rstrip("/").split("/")[-1]
     level["xp"] = int(level.get("xp") or 0)
     for key, value in list(level.items()):
@@ -121,7 +121,7 @@ def mission_doc(level: dict) -> str:
         "difficulty": level["difficulty"],
         "expected_time": level["expected_time"],
         "concepts": level["concepts"],
-        "world": level["world"],
+        "module": level["module"],
         "level": level["dir_name"],
     }
     return json.dumps(mission, indent=2, ensure_ascii=False)
@@ -380,7 +380,7 @@ def build_custom_level(level: dict) -> dict:
         "grand-finale": build_grand_finale,
     }
     if slug not in builders:
-        raise KeyError(f"No builder implemented for {level['world']}/{level['dir_name']}")
+        raise KeyError(f"No builder implemented for {level['module']}/{level['dir_name']}")
     return builders[slug](level)
 
 
@@ -1128,18 +1128,18 @@ def build_grand_finale(level: dict) -> dict:
 
 
 def build_all_levels() -> list[Path]:
-    clean_world_directories()
+    clean_module_directories()
     created: list[Path] = []
-    for world_file in sorted(WORLDS_DIR.glob("*/WORLD_DESCRIPTION.txt")):
-        for level in parse_world_description(world_file):
-            target = world_file.parent / level["dir_name"]
+    for module_file in sorted(MODULES_DIR.glob("*/MODULE_DESCRIPTION.txt")):
+        for level in parse_module_description(module_file):
+            target = module_file.parent / level["dir_name"]
             build_level(target, level, build_custom_level(level))
             created.append(target)
     return created
 
 
 def generate_registry() -> Path:
-    """Scan all world/level directories and write levels.json (#12)."""
+    """Scan all module/level directories and write levels.json (#12)."""
     import re as _re
     import yaml as _yaml
     from datetime import datetime
@@ -1148,10 +1148,10 @@ def generate_registry() -> Path:
         m = _re.search(r"(\d+)", name)
         return (int(m.group(1)) if m else 9999, name)
 
-    worlds_out = []
-    for world_dir in sorted((p for p in WORLDS_DIR.iterdir() if p.is_dir()), key=lambda p: sort_key(p.name)):
+    modules_out = []
+    for module_dir in sorted((p for p in MODULES_DIR.iterdir() if p.is_dir()), key=lambda p: sort_key(p.name)):
         levels_out = []
-        for level_dir in sorted((p for p in world_dir.iterdir() if p.is_dir()), key=lambda p: sort_key(p.name)):
+        for level_dir in sorted((p for p in module_dir.iterdir() if p.is_dir()), key=lambda p: sort_key(p.name)):
             mission_file = level_dir / "mission.yaml"
             if not mission_file.exists():
                 continue
@@ -1160,18 +1160,18 @@ def generate_registry() -> Path:
             except Exception:
                 mission = {}
             levels_out.append({
-                "id": f"{world_dir.name}/{level_dir.name}",
+                "id": f"{module_dir.name}/{level_dir.name}",
                 "name": level_dir.name,
-                "path": f"worlds/{world_dir.name}/{level_dir.name}",
+                "path": f"modules/{module_dir.name}/{level_dir.name}",
                 "mission": mission,
             })
         if levels_out:
-            worlds_out.append({"name": world_dir.name, "levels": levels_out})
+            modules_out.append({"name": module_dir.name, "levels": levels_out})
 
     registry = {
         "generated_at": datetime.utcnow().isoformat() + "Z",
-        "level_count": sum(len(w["levels"]) for w in worlds_out),
-        "worlds": worlds_out,
+        "level_count": sum(len(w["levels"]) for w in modules_out),
+        "modules": modules_out,
     }
     out_path = ROOT / "levels.json"
     out_path.write_text(json.dumps(registry, indent=2), encoding="utf-8")
@@ -1180,7 +1180,7 @@ def generate_registry() -> Path:
 
 def main() -> int:
     created = build_all_levels()
-    print(f"Generated {len(created)} levels under {WORLDS_DIR}")
+    print(f"Generated {len(created)} levels under {MODULES_DIR}")
     registry_path = generate_registry()
     print(f"Registry written to {registry_path}")
     return 0

@@ -1,0 +1,17 @@
+{
+  "name": "Forbidden!",
+  "description": "An application pod is crashing with a permissions-related error in its logs.",
+  "objective": "The ServiceAccount has no Role or RoleBinding \u2014 create the missing Role and bind it to the ServiceAccount",
+  "xp": 300,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "RBAC",
+    "Role",
+    "RoleBinding",
+    "ServiceAccount",
+    "least privilege"
+  ],
+  "module": "module-5-security",
+  "level": "level-1-rbac-permission"
+}

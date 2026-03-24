@@ -1,0 +1,16 @@
+{
+  "name": "Data Lost on Restart",
+  "description": "Users report that uploaded files disappear after pod restarts.",
+  "objective": "The app uses an emptyDir volume \u2014 data is lost on every pod restart; replace it with a PersistentVolumeClaim",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "emptyDir lifecycle (tied to pod)",
+    "PVC lifecycle (independent)",
+    "ephemeral vs persistent storage",
+    "when to use each"
+  ],
+  "module": "module-4-storage",
+  "level": "level-10-emptydir-vs-pvc"
+}

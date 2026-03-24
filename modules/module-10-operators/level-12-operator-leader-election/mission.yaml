@@ -1,0 +1,17 @@
+{
+  "name": "Split Brain",
+  "description": "Two operator replicas are both running and both sending conflicting reconciliation commands \u2014 resources flap.",
+  "objective": "Leader election is disabled on the operator \u2014 only one replica should run as leader; others should standby",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "leader election",
+    "operator HA",
+    "lease",
+    "split brain",
+    "controller-runtime"
+  ],
+  "module": "module-10-operators",
+  "level": "level-12-operator-leader-election"
+}

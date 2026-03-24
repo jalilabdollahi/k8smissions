@@ -1,0 +1,16 @@
+{
+  "name": "Ghost Deployment",
+  "description": "A Deployment exists in the cluster but no pods are running.",
+  "objective": "The Deployment replica count is set to zero \u2014 scale it up so pods are actually running",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "8m",
+  "concepts": [
+    "Deployment",
+    "replicas",
+    "ReplicaSet",
+    "desired vs actual state"
+  ],
+  "module": "module-2-workloads",
+  "level": "level-1-deployment-replicas"
+}

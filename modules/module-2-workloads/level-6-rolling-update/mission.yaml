@@ -1,0 +1,16 @@
+{
+  "name": "Zero-Downtime Gone Wrong",
+  "description": "A rolling update was triggered and all pods went down simultaneously, causing an outage.",
+  "objective": "The rolling update strategy allows 100% unavailability \u2014 fix maxUnavailable so at least one pod stays running during updates",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "RollingUpdate strategy",
+    "maxUnavailable",
+    "maxSurge",
+    "Recreate"
+  ],
+  "module": "module-2-workloads",
+  "level": "level-6-rolling-update"
+}

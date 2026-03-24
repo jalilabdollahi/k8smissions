@@ -1,0 +1,16 @@
+{
+  "name": "Connection Refused",
+  "description": "Requests to a Service return 'connection refused' even though the backing pods are running.",
+  "objective": "The Service targetPort does not match the actual container port \u2014 fix the targetPort so traffic reaches the pods",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Service",
+    "targetPort",
+    "containerPort",
+    "port mapping"
+  ],
+  "module": "module-3-networking",
+  "level": "level-11-targetport-mismatch"
+}

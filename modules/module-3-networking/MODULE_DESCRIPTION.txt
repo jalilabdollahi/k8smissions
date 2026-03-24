@@ -1,0 +1,146 @@
+═══════════════════════════════════════════════════════════════════
+  MODULE 3 — NETWORKING
+  "Connect the dots: Services, DNS, Ingress, and Policies"
+═══════════════════════════════════════════════════════════════════
+
+OVERVIEW
+────────
+Module 3 covers Kubernetes networking end-to-end: how pods talk to
+each other, how traffic enters the cluster, DNS resolution, Ingress
+routing, NetworkPolicies, and headless services for StatefulSets.
+
+Difficulty   : Intermediate
+Total levels : 10
+Total XP     : 2,350
+Cluster type : kind (local)
+
+SKILLS COVERED
+──────────────
+- Service types: ClusterIP, NodePort, LoadBalancer, Headless
+- Port mapping: port / targetPort / nodePort / containerPort
+- Kubernetes DNS (CoreDNS): short names and FQDNs
+- Ingress rules and path-based routing
+- NetworkPolicy (ingress/egress, pod selectors)
+- Session affinity (sticky sessions)
+- Cross-namespace service communication
+- Service endpoints and readiness probes
+- LoadBalancer in local (kind) vs cloud
+- Headless services for StatefulSet DNS
+
+───────────────────────────────────────────────────────────────────
+LEVELS
+───────────────────────────────────────────────────────────────────
+
+LEVEL 1 — service-selector  (level-1-service-selector)
+  Name        : "No Endpoints"
+  Difficulty  : intermediate
+  XP          : 200
+  Description : Service exists, pods exist, but endpoints list is empty.
+                Service selector label value doesn't match pod label.
+  Broken state: Service selector: app: api
+                Pod labels: app: api-server
+  Fix         : Update service selector OR pod label to match
+  Concepts    : ClusterIP service, label selectors, endpoints, kubectl get ep
+
+LEVEL 2 — nodeport  (level-2-nodeport)
+  Name        : "NodePort Not Reachable"
+  Difficulty  : intermediate
+  XP          : 200
+  Description : NodePort service created, but the nodePort value is within
+                the reserved range (<30000). Access fails.
+  Broken state: nodePort: 8080 (outside 30000-32767 range)
+  Fix         : Set nodePort: 30080 (or remove to let k8s assign)
+  Concepts    : NodePort range 30000-32767, external access, port forwarding
+
+LEVEL 3 — dns  (level-3-dns)
+  Name        : "Can't Find the Service"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : Pod tries to connect to a service using wrong DNS name.
+                Uses just "db" instead of "db.k8smissions.svc.cluster.local".
+  Broken state: App env var DB_HOST=db (correct only within same namespace)
+                App is in a different namespace
+  Fix         : Set DB_HOST=db.k8smissions.svc.cluster.local
+  Concepts    : DNS FQDN, CoreDNS, ndots, short names vs FQDN,
+                <svc>.<ns>.svc.cluster.local format
+
+LEVEL 4 — ingress  (level-4-ingress)
+  Name        : "Ingress Path Mismatch"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : Ingress created for path /api but the backend service
+                is exposed at /v1/api. All requests return 404.
+  Broken state: Ingress path: /api, Service actually handles /v1/api
+  Fix         : Update Ingress path to /v1/api  OR add path rewriting annotation
+  Concepts    : Ingress rules, pathType (Exact/Prefix/ImplementationSpecific),
+                backend service, nginx-ingress annotations
+
+LEVEL 5 — networkpolicy  (level-5-networkpolicy)
+  Name        : "NetworkPolicy Too Strict"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : A NetworkPolicy blocks all ingress traffic to the backend.
+                Frontend can't reach backend even though both are healthy.
+  Broken state: NetworkPolicy denies all ingress, no explicit allow rule
+  Fix         : Add ingress rule allowing traffic from frontend pod selector
+  Concepts    : NetworkPolicy, default-deny, ingress rules, podSelector,
+                namespaceSelector
+
+LEVEL 6 — session-affinity  (level-6-session-affinity)
+  Name        : "Random Logout"
+  Difficulty  : intermediate
+  XP          : 200
+  Description : Users randomly get logged out. App stores sessions in-memory.
+                Service load-balances to different pods per request.
+  Broken state: Service has no sessionAffinity set (default: None)
+  Fix         : Set service.spec.sessionAffinity: ClientIP
+  Concepts    : Session affinity, sticky sessions, ClientIP, stateful vs
+                stateless apps, shared session stores
+
+LEVEL 7 — cross-namespace  (level-7-cross-namespace)
+  Name        : "Cross-Namespace Dead End"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : Frontend (namespace: frontend-ns) calls backend service
+                using short name "backend-svc". Fails — wrong namespace.
+  Broken state: DB_HOST=backend-svc (missing namespace in DNS name)
+  Fix         : DB_HOST=backend-svc.backend-ns.svc.cluster.local
+  Concepts    : Cross-namespace DNS, FQDN format, namespace isolation
+
+LEVEL 8 — endpoints  (level-8-endpoints)
+  Name        : "Dead Endpoints"
+  Difficulty  : intermediate
+  XP          : 200
+  Description : Service has endpoints but traffic still fails. Pods are
+                Running but not Ready — missing readiness probe.
+  Broken state: Pod Running but no readinessProbe; endpoints include
+                pod IP even when app is not ready
+  Fix         : Add readinessProbe httpGet /ready port 8080
+  Concepts    : Readiness probe, endpoint slice, Not Ready pods,
+                traffic routing only to Ready pods
+
+LEVEL 9 — loadbalancer  (level-9-loadbalancer)
+  Name        : "LoadBalancer Stuck Pending"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : Service type LoadBalancer stays in <pending> on local kind cluster.
+                No cloud provider to provision external IP.
+  Broken state: Service type: LoadBalancer (incompatible with local kind)
+  Fix         : Change to NodePort for local access
+  Concepts    : Service types, cloud provider integration, MetalLB for on-prem,
+                kind limitations
+
+LEVEL 10 — headless  (level-10-headless)
+  Name        : "StatefulSet Can't Reach Itself"
+  Difficulty  : intermediate
+  XP          : 250
+  Description : StatefulSet pods can't find each other via DNS (pod-0.svc-name).
+                Service has a ClusterIP instead of being headless.
+  Broken state: Service has clusterIP: (auto-assigned)
+  Fix         : Set clusterIP: None to make service headless
+  Concepts    : Headless service, clusterIP: None, StatefulSet DNS format,
+                <pod>.<svc>.<ns>.svc.cluster.local
+
+═══════════════════════════════
+  TOTAL MODULE 3 XP: 2,350
+═══════════════════════════════

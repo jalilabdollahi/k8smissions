@@ -1,0 +1,16 @@
+{
+  "name": "THE GRAND FINALE: Zero to Production",
+  "description": "Critical production outage. Multiple layers of the deployment pipeline are broken simultaneously.",
+  "objective": "Multiple deployment layers are broken simultaneously \u2014 fix the Helm values, ArgoCD sync, RBAC, NetworkPolicy, ResourceQuota, readiness probe, PDB, and preStop hook",
+  "xp": 500,
+  "difficulty": "expert",
+  "expected_time": "10m",
+  "concepts": [
+    "Full stack Kubernetes delivery pipeline",
+    "incident response",
+    "production readiness checklist",
+    "SRE principles"
+  ],
+  "module": "module-7-gitops",
+  "level": "level-10-grand-finale"
+}

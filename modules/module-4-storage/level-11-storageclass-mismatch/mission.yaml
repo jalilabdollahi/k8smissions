@@ -1,0 +1,16 @@
+{
+  "name": "The Missing Class",
+  "description": "A PVC has been stuck in Pending for twenty minutes \u2014 no PV has been provisioned.",
+  "objective": "The PVC requests a StorageClass that does not exist in the cluster \u2014 fix the storageClassName to one that exists",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "PVC",
+    "StorageClass",
+    "dynamic provisioning",
+    "Pending PVC"
+  ],
+  "module": "module-4-storage",
+  "level": "level-11-storageclass-mismatch"
+}

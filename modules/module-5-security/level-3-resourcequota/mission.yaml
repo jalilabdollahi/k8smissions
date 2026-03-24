@@ -1,0 +1,17 @@
+{
+  "name": "Quota Exceeded",
+  "description": "One of three identical pods cannot be scheduled despite the other two running.",
+  "objective": "The namespace ResourceQuota is exhausted \u2014 reduce resource requests or remove a pod to free up quota",
+  "xp": 300,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "ResourceQuota",
+    "LimitRange",
+    "requests.cpu",
+    "requests.memory",
+    "namespace-level governance"
+  ],
+  "module": "module-5-security",
+  "level": "level-3-resourcequota"
+}

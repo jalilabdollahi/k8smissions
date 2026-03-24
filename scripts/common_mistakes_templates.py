@@ -16,7 +16,7 @@ def _level_text(level: dict) -> str:
     concepts = " ".join(level.get("concepts", []))
     return " ".join(
         [
-            level.get("world", ""),
+            level.get("module", ""),
             level.get("dir_name", ""),
             level.get("name", ""),
             level.get("description", ""),
@@ -29,18 +29,18 @@ def _level_text(level: dict) -> str:
 
 def _category(level: dict) -> str:
     text = _level_text(level)
-    world = level.get("world", "")
+    module = level.get("module", "")
 
-    world_defaults = {
-        "world-2-workloads": "workload-controllers",
-        "world-3-networking": "service-networking",
-        "world-4-storage": "storage-state",
-        "world-5-security": "security-access",
-        "world-6-observability": "observability-debugging",
-        "world-7-gitops": "gitops-delivery",
+    module_defaults = {
+        "module-2-workloads": "workload-controllers",
+        "module-3-networking": "service-networking",
+        "module-4-storage": "storage-state",
+        "module-5-security": "security-access",
+        "module-6-observability": "observability-debugging",
+        "module-7-gitops": "gitops-delivery",
     }
-    if world in world_defaults:
-        return world_defaults[world]
+    if module in module_defaults:
+        return module_defaults[module]
 
     rules = [
         (

@@ -1,0 +1,16 @@
+{
+  "name": "Registry Gone",
+  "description": "The internal image registry is down. All new pods are stuck in ImagePullBackOff. Existing running pods are unaffected.",
+  "objective": "All new pods reference an unreachable registry \u2014 change the image to a public registry image so pods can start",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "ImagePullBackOff",
+    "image registries",
+    "imagePullPolicy",
+    "Always vs IfNotPresent"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-8-registry-down"
+}

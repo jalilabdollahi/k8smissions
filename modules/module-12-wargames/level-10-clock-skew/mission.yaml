@@ -1,0 +1,16 @@
+{
+  "name": "Time Drift",
+  "description": "JWT tokens are being rejected cluster-wide. Investigation shows a node's clock is 10 minutes ahead of the others.",
+  "objective": "A ConfigMap marks a node as having severe clock skew \u2014 update it to show the clock is synced and skew is resolved",
+  "xp": 350,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "clock skew",
+    "JWT validation",
+    "NTP sync",
+    "node conditions"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-10-clock-skew"
+}

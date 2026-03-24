@@ -1,0 +1,17 @@
+{
+  "name": "Autoscaler Paradox",
+  "description": "A HorizontalPodAutoscaler exists but the Deployment never scales \u2014 the HPA is in an error state.",
+  "objective": "The HPA has minReplicas greater than maxReplicas \u2014 fix the values so minReplicas <= maxReplicas",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "8m",
+  "concepts": [
+    "HPA",
+    "HorizontalPodAutoscaler",
+    "minReplicas",
+    "maxReplicas",
+    "autoscaling"
+  ],
+  "module": "module-7-gitops",
+  "level": "level-11-hpa-invalid"
+}

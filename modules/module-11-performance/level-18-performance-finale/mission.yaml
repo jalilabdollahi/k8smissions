@@ -1,0 +1,17 @@
+{
+  "name": "The Great Slowdown",
+  "description": "The entire platform is slow: DNS resolution takes 50ms, pods are CPU-throttled, and rolling deployments take hours.",
+  "objective": "Fix all three performance issues: set ndots to reduce DNS queries, remove CPU limits causing throttling, and increase maxSurge for faster deployments",
+  "xp": 425,
+  "difficulty": "advanced",
+  "expected_time": "25m",
+  "concepts": [
+    "DNS ndots",
+    "CPU throttling",
+    "maxSurge",
+    "multi-issue",
+    "performance tuning"
+  ],
+  "module": "module-11-performance",
+  "level": "level-18-performance-finale"
+}

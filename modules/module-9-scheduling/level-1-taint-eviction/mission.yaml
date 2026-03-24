@@ -1,0 +1,17 @@
+{
+  "name": "Sudden Eviction",
+  "description": "Running pods are being evicted unexpectedly from a node that just had a taint applied.",
+  "objective": "A NoExecute taint was added to the node \u2014 add a toleration with tolerationSeconds to allow a graceful drain window",
+  "xp": 275,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "taints",
+    "NoExecute",
+    "tolerationSeconds",
+    "eviction",
+    "graceful shutdown"
+  ],
+  "module": "module-9-scheduling",
+  "level": "level-1-taint-eviction"
+}

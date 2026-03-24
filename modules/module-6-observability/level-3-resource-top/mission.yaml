@@ -1,0 +1,16 @@
+{
+  "name": "Who's Eating All the CPU?",
+  "description": "The cluster node is experiencing CPU pressure and overall performance is degraded.",
+  "objective": "A pod is consuming excess CPU and impacting the node \u2014 use kubectl top to find and limit it",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "kubectl top",
+    "resource limits vs requests",
+    "noisy-neighbor",
+    "LimitRange to enforce defaults"
+  ],
+  "module": "module-6-observability",
+  "level": "level-3-resource-top"
+}

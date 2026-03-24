@@ -1,0 +1,16 @@
+{
+  "name": "Bad Config Rollout",
+  "description": "A ConfigMap update was pushed and all 5 pods simultaneously restarted with a bad config. All are now crashing.",
+  "objective": "A bad ConfigMap was deployed that causes all pods to crash \u2014 fix the ConfigMap so pods can read their configuration and start",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "ConfigMap rollout",
+    "pod restarts",
+    "environment variables",
+    "config management"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-3-config-storm"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Build Corruption",
+  "description": "Concurrent pipeline runs are corrupting each other's build artifacts in a shared PVC.",
+  "objective": "Multiple PipelineRuns share a single PVC without locking \u2014 add concurrency limits or per-run PVCs",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "Tekton",
+    "PVC",
+    "concurrency",
+    "workspace isolation",
+    "pipeline runs"
+  ],
+  "module": "module-8-cicd",
+  "level": "level-15-concurrent-pvc"
+}

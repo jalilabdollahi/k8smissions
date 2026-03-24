@@ -1,0 +1,17 @@
+{
+  "name": "Root Rejected",
+  "description": "A pod is rejected at admission with 'container runs as root which is not allowed'.",
+  "objective": "The pod security context requires running as non-root \u2014 set runAsNonRoot and a non-zero runAsUser UID",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "securityContext",
+    "runAsNonRoot",
+    "runAsUser",
+    "pod security",
+    "admission"
+  ],
+  "module": "module-5-security",
+  "level": "level-12-non-root-enforcement"
+}

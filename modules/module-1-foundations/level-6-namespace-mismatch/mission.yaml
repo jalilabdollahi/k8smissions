@@ -1,0 +1,15 @@
+{
+  "name": "Lost in Space",
+  "description": "Application pods are Running, but service discovery is failing.",
+  "objective": "The pod and service are in the wrong namespace \u2014 move both to the k8smissions namespace where the app expects to run",
+  "xp": 150,
+  "difficulty": "beginner",
+  "expected_time": "10m",
+  "concepts": [
+    "namespaces",
+    "resource isolation",
+    "cross-namespace DNS"
+  ],
+  "module": "module-1-foundations",
+  "level": "level-6-namespace-mismatch"
+}

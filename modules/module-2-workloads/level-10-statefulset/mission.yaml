@@ -1,0 +1,17 @@
+{
+  "name": "Database Needs Identity",
+  "description": "A database workload keeps losing its identity and hostname after pod restarts.",
+  "objective": "The database workload is a Deployment \u2014 change it to a StatefulSet so pods get stable, predictable identities",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "18m",
+  "concepts": [
+    "StatefulSet vs Deployment",
+    "stable network IDs",
+    "ordered deploys",
+    "headless service",
+    "VolumeClaimTemplates"
+  ],
+  "module": "module-2-workloads",
+  "level": "level-10-statefulset"
+}

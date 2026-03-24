@@ -1,0 +1,16 @@
+{
+  "name": "Memory Wave",
+  "description": "Multiple pods OOMKilled simultaneously due to a memory leak in a shared library. The entire namespace is thrashing.",
+  "objective": "Multiple deployments have unsafe memory limits that are too low \u2014 increase all memory limits so the OOM storm stops",
+  "xp": 400,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": [
+    "OOMKilled",
+    "memory limits",
+    "resource tuning",
+    "namespace pressure"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-11-oom-storm"
+}

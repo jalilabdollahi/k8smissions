@@ -1,0 +1,16 @@
+{
+  "name": "Credential Void",
+  "description": "A Secret holding database credentials was deleted while pods were running. All pods are now crashing with missing secret errors.",
+  "objective": "The db-credentials Secret was deleted causing pods to fail \u2014 recreate the Secret with valid credentials",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "12m",
+  "concepts": [
+    "Secrets",
+    "pod recovery",
+    "CreateContainerConfigError",
+    "secret rotation"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-4-secret-deleted"
+}

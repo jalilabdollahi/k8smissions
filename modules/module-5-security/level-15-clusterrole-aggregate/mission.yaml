@@ -1,0 +1,16 @@
+{
+  "name": "The Aggregation Gap",
+  "description": "An operator has a ClusterRole that should auto-include read permissions but the permissions are missing.",
+  "objective": "The aggregation label on the source ClusterRole doesn't match the aggregationRule selector \u2014 fix the label",
+  "xp": 250,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": [
+    "ClusterRole",
+    "aggregationRule",
+    "RBAC aggregation",
+    "label selectors"
+  ],
+  "module": "module-5-security",
+  "level": "level-15-clusterrole-aggregate"
+}

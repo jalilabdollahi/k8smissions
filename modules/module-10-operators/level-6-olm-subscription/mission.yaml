@@ -1,0 +1,17 @@
+{
+  "name": "Operator Missing",
+  "description": "A Subscription for an operator exists but no operator pod is running despite waiting 10 minutes.",
+  "objective": "The OLM Subscription references a non-existent CatalogSource \u2014 fix the catalogSourceName to point to the correct catalog",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "OLM",
+    "Operator Lifecycle Manager",
+    "Subscription",
+    "CatalogSource",
+    "operator install"
+  ],
+  "module": "module-10-operators",
+  "level": "level-6-olm-subscription"
+}

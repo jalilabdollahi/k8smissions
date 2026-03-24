@@ -1,0 +1,8 @@
+Module 9: Advanced Scheduling
+=============================
+Theme: Node taints, affinity rules, topology spread, priority preemption, and resource allocation.
+Pods are landing in the wrong places — or not landing at all.
+Master the scheduler: make workloads run where they should, and nowhere else.
+
+XP Range: 275-400 XP per level
+Difficulty: intermediate to advanced

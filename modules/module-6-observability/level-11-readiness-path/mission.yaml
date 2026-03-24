@@ -1,0 +1,16 @@
+{
+  "name": "Never Ready",
+  "description": "A Deployment has been running for ten minutes but the pods show 0/1 READY \u2014 no traffic reaches them.",
+  "objective": "The readiness probe checks the wrong HTTP path \u2014 fix the path so probes succeed and pods become Ready",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "readiness probe",
+    "httpGet",
+    "probe path",
+    "pod readiness"
+  ],
+  "module": "module-6-observability",
+  "level": "level-11-readiness-path"
+}

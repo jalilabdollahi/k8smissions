@@ -1,0 +1,16 @@
+{
+  "name": "DB Down",
+  "description": "The primary database pod has been deleted. The application cannot reconnect and all three app pods are crashing.",
+  "objective": "The primary database pod was deleted \u2014 restore it so the application pods can reconnect and stop crashing",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": [
+    "pod recovery",
+    "database resilience",
+    "readiness probes",
+    "CrashLoopBackOff"
+  ],
+  "module": "module-12-wargames",
+  "level": "level-1-database-failover"
+}

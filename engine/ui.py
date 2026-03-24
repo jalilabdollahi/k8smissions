@@ -27,34 +27,34 @@ else:
 
 console = Console()
 
-WORLD_TOTAL_XP = {
-    "world-1-foundations": 3025,
-    "world-2-workloads": 2950,
-    "world-3-networking": 3275,
-    "world-4-storage": 3375,
-    "world-5-security": 4300,
-    "world-6-observability": 3800,
-    "world-7-gitops": 5100,
-    "world-8-cicd": 5425,
-    "world-9-scheduling": 5775,
-    "world-10-operators": 6225,
-    "world-11-performance": 6075,
-    "world-12-wargames": 6600,
+MODULE_TOTAL_XP = {
+    "module-1-foundations": 3025,
+    "module-2-workloads": 2950,
+    "module-3-networking": 3275,
+    "module-4-storage": 3375,
+    "module-5-security": 4300,
+    "module-6-observability": 3800,
+    "module-7-gitops": 5100,
+    "module-8-cicd": 5425,
+    "module-9-scheduling": 5775,
+    "module-10-operators": 6225,
+    "module-11-performance": 6075,
+    "module-12-wargames": 6600,
 }
 
-WORLD_TITLES = {
-    "world-1-foundations": "Foundations",
-    "world-2-workloads": "Workloads",
-    "world-3-networking": "Networking",
-    "world-4-storage": "Storage",
-    "world-5-security": "Security",
-    "world-6-observability": "Observability",
-    "world-7-gitops": "GitOps",
-    "world-8-cicd": "CI/CD & Pipelines",
-    "world-9-scheduling": "Advanced Scheduling",
-    "world-10-operators": "Operators & CRDs",
-    "world-11-performance": "Performance & SRE",
-    "world-12-wargames": "Production War Games",
+MODULE_TITLES = {
+    "module-1-foundations": "Foundations",
+    "module-2-workloads": "Workloads",
+    "module-3-networking": "Networking",
+    "module-4-storage": "Storage",
+    "module-5-security": "Security",
+    "module-6-observability": "Observability",
+    "module-7-gitops": "GitOps",
+    "module-8-cicd": "CI/CD & Pipelines",
+    "module-9-scheduling": "Advanced Scheduling",
+    "module-10-operators": "Operators & CRDs",
+    "module-11-performance": "Performance & SRE",
+    "module-12-wargames": "Production War Games",
 }
 
 DIFFICULTY_STARS = {
@@ -65,12 +65,12 @@ DIFFICULTY_STARS = {
 }
 
 
-def world_title(world_name: str) -> str:
-    return WORLD_TITLES.get(world_name, world_name.replace("-", " ").title())
+def module_title(module_name: str) -> str:
+    return MODULE_TITLES.get(module_name, module_name.replace("-", " ").title())
 
 
-def total_world_xp(world_name: str) -> int:
-    return WORLD_TOTAL_XP.get(world_name, 0)
+def total_module_xp(module_name: str) -> int:
+    return MODULE_TOTAL_XP.get(module_name, 0)
 
 
 _ASCII_LOGO = """\
@@ -84,7 +84,7 @@ _ASCII_LOGO = """\
 
 def welcome_panel(player_name: str, total_xp: int, max_total_xp: int | None = None) -> Panel:
     logo = Text(_ASCII_LOGO, style="bold bright_cyan")
-    subtitle = Text("  200 challenges  •  12 worlds  •  Real Kubernetes", style="grey70")
+    subtitle = Text("  200 challenges  •  12 modules  •  Real Kubernetes", style="grey70")
     agent = Text.assemble(
         ("  Agent: ", "grey70"),
         (player_name or "Unassigned", "bold bright_magenta"),
@@ -96,27 +96,27 @@ def welcome_panel(player_name: str, total_xp: int, max_total_xp: int | None = No
 
 
 def progress_rows(
-    worlds: list[dict],
+    modules: list[dict],
     completed_levels: set[str],
-    total_xp_by_world: dict[str, int],
-    max_xp_by_world: dict[str, int] | None = None,
+    total_xp_by_module: dict[str, int],
+    max_xp_by_module: dict[str, int] | None = None,
 ) -> Table:
     table = Table(box=box.SIMPLE_HEAVY, expand=True)
-    table.add_column("World", style="bright_cyan", ratio=2)
+    table.add_column("Module", style="bright_cyan", ratio=2)
     table.add_column("Progress", style="white", ratio=3)
     table.add_column("XP", justify="right", style="bright_magenta")
-    for world in worlds:
-        level_ids = {level["id"] for level in world["levels"]}
+    for module in modules:
+        level_ids = {level["id"] for level in module["levels"]}
         completed = len(level_ids & completed_levels)
-        total = len(world["levels"])
-        xp = total_xp_by_world.get(world["name"], 0)
+        total = len(module["levels"])
+        xp = total_xp_by_module.get(module["name"], 0)
         # Use dynamic max XP if provided, fall back to hardcoded dict (#11)
-        if max_xp_by_world is not None:
-            max_xp = max_xp_by_world.get(world["name"], total_world_xp(world["name"]))
+        if max_xp_by_module is not None:
+            max_xp = max_xp_by_module.get(module["name"], total_module_xp(module["name"]))
         else:
-            max_xp = total_world_xp(world["name"])
+            max_xp = total_module_xp(module["name"])
         table.add_row(
-            world_title(world["name"]),
+            module_title(module["name"]),
             f"{completed}/{total}",
             f"{xp:,} / {max_xp:,}",
         )
@@ -126,21 +126,21 @@ def progress_rows(
 def show_welcome(
     player_name: str,
     total_xp: int,
-    worlds: list[dict],
+    modules: list[dict],
     completed_levels: set[str],
-    total_xp_by_world: dict[str, int],
-    max_xp_by_world: dict[str, int] | None = None,
+    total_xp_by_module: dict[str, int],
+    max_xp_by_module: dict[str, int] | None = None,
     max_total_xp: int | None = None,
 ) -> None:
-    effective_max = max_total_xp or sum(WORLD_TOTAL_XP.values())
+    effective_max = max_total_xp or sum(MODULE_TOTAL_XP.values())
     console.print(welcome_panel(player_name, total_xp, effective_max))
-    console.print(progress_rows(worlds, completed_levels, total_xp_by_world, max_xp_by_world))
+    console.print(progress_rows(modules, completed_levels, total_xp_by_module, max_xp_by_module))
 
 
-def show_mission_briefing(world_index: int, world_count: int, level_index: int, level_count: int, mission: dict) -> None:
+def show_mission_briefing(module_index: int, module_count: int, level_index: int, level_count: int, mission: dict) -> None:
     difficulty = mission.get("difficulty", "beginner")
     meta_line = Text.assemble(
-        (f"World {world_index}/{world_count} • Level {level_index}/{level_count}", "bright_cyan"),
+        (f"Module {module_index}/{module_count} • Level {level_index}/{level_count}", "bright_cyan"),
         ("    ", ""),
         (DIFFICULTY_STARS.get(difficulty, "★★☆☆☆"), "bright_yellow"),
         ("  ", ""),
@@ -170,7 +170,7 @@ def show_mission_briefing(world_index: int, world_count: int, level_index: int, 
 
 
 def show_victory(
-    world_name: str,
+    module_name: str,
     level_name: str,
     xp_earned: int,
     total_xp: int,
@@ -187,29 +187,29 @@ def show_victory(
         time_line.append(Text(f"Time: {actual_str}" + (f"  (est. {expected_time})" if expected_time else ""), style="grey70"))
     body = Group(
         Text(status, style=f"bold {color}"),
-        Text(f"{world_title(world_name)} • {level_name}", style="white"),
+        Text(f"{module_title(module_name)} • {level_name}", style="white"),
         Text(f"XP Earned: +{xp_earned}  |  Total: {total_xp}", style="bright_magenta"),
         *time_line,
     )
     console.print(Panel(body, border_style=color, box=box.DOUBLE, padding=(1, 2)))
 
 
-def show_world_completion(certificate_panel: object) -> None:
+def show_module_completion(certificate_panel: object) -> None:
     """Display the certificate panel returned by render_certificate_panel()."""
     console.print(certificate_panel)
 
 
 def show_status(
-    worlds: list[dict],
+    modules: list[dict],
     completed_levels: set[str],
-    total_xp_by_world: dict[str, int],
+    total_xp_by_module: dict[str, int],
     total_xp: int,
-    max_xp_by_world: dict[str, int] | None = None,
+    max_xp_by_module: dict[str, int] | None = None,
     max_total_xp: int | None = None,
 ) -> None:
-    effective_max = max_total_xp or sum(WORLD_TOTAL_XP.values())
+    effective_max = max_total_xp or sum(MODULE_TOTAL_XP.values())
     console.print(Rule("[bright_cyan]Mission Progress[/bright_cyan]"))
-    console.print(progress_rows(worlds, completed_levels, total_xp_by_world, max_xp_by_world))
+    console.print(progress_rows(modules, completed_levels, total_xp_by_module, max_xp_by_module))
     console.print(Panel(Text(f"Total XP: {total_xp:,} / {effective_max:,}", style="bold bright_magenta"), border_style="bright_magenta"))
 
 
@@ -394,7 +394,7 @@ def show_help() -> None:
     navigation = _section(
         "NAVIGATION",
         [
-            ("7", "status",         "Show XP progress across all worlds"),
+            ("7", "status",         "Show XP progress across all modules"),
             ("8", "skip",           "Advance to next level  (no XP awarded)"),
             ("9", "quit",           "Save progress and exit"),
             ("0", "reset-progress", "Wipe all XP and start over from Level 1"),

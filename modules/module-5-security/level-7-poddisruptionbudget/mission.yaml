@@ -1,0 +1,16 @@
+{
+  "name": "PDB Blocks Node Drain",
+  "description": "A node drain is failing and reporting it cannot safely evict pods.",
+  "objective": "The PDB's minAvailable is higher than the Deployment replica count \u2014 lower minAvailable so drain can proceed",
+  "xp": 300,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "PodDisruptionBudget",
+    "voluntary disruption",
+    "cluster upgrades",
+    "kubectl drain --ignore-daemonsets"
+  ],
+  "module": "module-5-security",
+  "level": "level-7-poddisruptionbudget"
+}

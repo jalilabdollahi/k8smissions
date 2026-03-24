@@ -1,6 +1,6 @@
 # Contributing to K8sMissions
 
-Thank you for improving K8sMissions! This guide explains how the project is structured and how to add new levels, worlds, and engine features.
+Thank you for improving K8sMissions! This guide explains how the project is structured and how to add new levels, modules, and engine features.
 
 ---
 
@@ -8,9 +8,9 @@ Thank you for improving K8sMissions! This guide explains how the project is stru
 
 1. [Project Structure](#project-structure)
 2. [Level Format](#level-format)
-3. [WORLD_DESCRIPTION.txt Format](#world_descriptiontxt-format)
+3. [MODULE_DESCRIPTION.txt Format](#moduledescriptiontxt-format)
 4. [Adding a New Level](#adding-a-new-level)
-5. [Adding a New World](#adding-a-new-world)
+5. [Adding a New Module](#adding-a-new-module)
 6. [Engine Architecture](#engine-architecture)
 7. [Regenerating the Level Registry](#regenerating-the-level-registry)
 8. [Code Style](#code-style)
@@ -28,13 +28,13 @@ k8smissions/
 ├── engine/
 │   ├── engine.py            # Main game loop
 │   ├── ui.py                # Rich terminal UI helpers
-│   ├── certificate.py       # World completion certificates
+│   ├── certificate.py       # Module completion certificates
 │   ├── player.py            # Player name prompt
 │   ├── reset.py             # Level reset / broken state setup
 │   └── safety.py            # kubectl safety guards
-├── worlds/
-│   ├── world-1-foundations/
-│   │   ├── WORLD_DESCRIPTION.txt
+├── modules/
+│   ├── module-1-foundations/
+│   │   ├── MODULE_DESCRIPTION.txt
 │   │   ├── level-1-first-pod/
 │   │   │   ├── mission.yaml
 │   │   │   ├── broken.yaml
@@ -48,19 +48,19 @@ k8smissions/
 │   │   └── ...
 │   └── ...
 ├── scripts/
-│   ├── build_levels.py      # Regenerates level directories from WORLD_DESCRIPTION.txt
+│   ├── build_levels.py      # Regenerates level directories from MODULE_DESCRIPTION.txt
 │   └── generate_registry.py # Regenerates levels.json registry
 ├── completion/
 │   ├── k8smissions.bash     # Bash tab completion
 │   └── k8smissions.zsh      # Zsh tab completion
-└── certificates/            # Generated world certificates (auto-created)
+└── certificates/            # Generated module certificates (auto-created)
 ```
 
 ---
 
 ## Level Format
 
-Each level lives in its own directory under `worlds/<world-name>/level-N-<slug>/` and contains **9 required files**:
+Each level lives in its own directory under `modules/<module-name>/level-N-<slug>/` and contains **9 required files**:
 
 ### `mission.yaml`
 
@@ -75,7 +75,7 @@ JSON (parsed as YAML) describing the mission metadata:
   "difficulty": "beginner|intermediate|advanced|expert",
   "expected_time": "10m",
   "concepts": ["pod lifecycle", "readiness probes"],
-  "world": "world-1-foundations",
+  "module": "module-1-foundations",
   "level": "level-3-readiness"
 }
 ```
@@ -144,9 +144,9 @@ A list of common errors players make on this level. Use `## ❌` headers for eac
 
 ---
 
-## `WORLD_DESCRIPTION.txt` Format
+## `MODULE_DESCRIPTION.txt` Format
 
-Each world directory contains a `WORLD_DESCRIPTION.txt` used by `scripts/build_levels.py` to scaffold level directories. Format:
+Each module directory contains a `MODULE_DESCRIPTION.txt` used by `scripts/build_levels.py` to scaffold level directories. Format:
 
 ```
 LEVEL 1 — level-slug
@@ -175,7 +175,7 @@ Folder:       level-1-slug-name
 
 1. Create the directory:
    ```bash
-   mkdir -p worlds/world-N-name/level-M-slug
+   mkdir -p modules/module-N-name/level-M-slug
    ```
 
 2. Create all 9 files (`mission.yaml`, `broken.yaml`, `solution.yaml`, `validate.sh`, `hint-1/2/3.txt`, `debrief.md`, `common-mistakes.md`)
@@ -191,29 +191,29 @@ Folder:       level-1-slug-name
    # Navigate to your level with 'skip', then test it
    ```
 
-### Option B: Via WORLD_DESCRIPTION.txt (for scaffolding)
+### Option B: Via MODULE_DESCRIPTION.txt (for scaffolding)
 
-1. Add a new `LEVEL N — slug` block to the world's `WORLD_DESCRIPTION.txt`
-2. Run `python3 scripts/build_levels.py` (⚠️ this **clears** existing level directories in that world)
+1. Add a new `LEVEL N — slug` block to the module's `MODULE_DESCRIPTION.txt`
+2. Run `python3 scripts/build_levels.py` (⚠️ this **clears** existing level directories in that module)
 3. Fill in generated stub files with real content
 
 ---
 
-## Adding a New World
+## Adding a New Module
 
-1. Create the world directory: `worlds/world-N-name/`
-2. Add a `WORLD_DESCRIPTION.txt` describing the theme
+1. Create the module directory: `modules/module-N-name/`
+2. Add a `MODULE_DESCRIPTION.txt` describing the theme
 3. Create level directories with all 9 files each
-4. Add the world to `engine/ui.py` `WORLD_TITLES` dict (used as display name fallback):
+4. Add the module to `engine/ui.py` `MODULE_TITLES` dict (used as display name fallback):
    ```python
-   WORLD_TITLES = {
+   MODULE_TITLES = {
        ...
-       "world-N-name": "Human Readable Title",
+       "module-N-name": "Human Readable Title",
    }
    ```
 5. Regenerate the registry: `python3 scripts/generate_registry.py`
 
-> **XP totals** are now computed dynamically from `mission.yaml` files — no need to update `WORLD_TOTAL_XP` manually.
+> **XP totals** are now computed dynamically from `mission.yaml` files — no need to update `MODULE_TOTAL_XP` manually.
 
 ---
 
@@ -223,7 +223,7 @@ The engine is fully event-driven with a simple inner/outer loop:
 
 ```
 game_loop()
-  └── outer while: load worlds, load progress, show briefing
+  └── outer while: load modules, load progress, show briefing
         └── inner while: Prompt.ask → dispatch command
               ├── check      → run_validator() → complete_level() on pass
               ├── check-dry  → run_validator() (no XP)
@@ -243,10 +243,10 @@ game_loop()
 |-------|------|-------------|
 | `player_name` | string | Agent callsign |
 | `total_xp` | int | Accumulated XP |
-| `completed_levels` | list[str] | Level IDs (`world/level` format) |
-| `current_world` | string | Active world directory name |
+| `completed_levels` | list[str] | Level IDs (`module/level` format) |
+| `current_module` | string | Active module directory name |
 | `current_level` | string | Active level directory name |
-| `world_certificates` | list[str] | Worlds with earned certificates |
+| `module_certificates` | list[str] | Modules with earned certificates |
 | `time_per_level` | dict[str, int] | Seconds taken per level ID |
 | `level_start_time` | float\|null | Unix timestamp when current level started |
 

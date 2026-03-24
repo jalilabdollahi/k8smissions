@@ -11,7 +11,7 @@ from pathlib import Path
 from common_mistakes_templates import render_common_mistakes
 
 ROOT = Path(__file__).resolve().parents[1]
-WORLDS = ROOT / "worlds"
+MODULES = ROOT / "modules"
 
 
 def extract_validate(debrief_text: str) -> str:
@@ -29,7 +29,7 @@ def level_payload(level_dir: Path) -> dict:
     mission = json.loads((level_dir / "mission.yaml").read_text(encoding="utf-8"))
     debrief = (level_dir / "debrief.md").read_text(encoding="utf-8")
     return {
-        "world": level_dir.parent.name,
+        "module": level_dir.parent.name,
         "dir_name": level_dir.name,
         "name": mission.get("name", level_dir.name),
         "description": mission.get("description", ""),
@@ -49,7 +49,7 @@ def main() -> None:
     args = parser.parse_args()
 
     created = 0
-    for level_dir in sorted(WORLDS.glob("world-*/level-*")):
+    for level_dir in sorted(MODULES.glob("module-*/level-*")):
         target = level_dir / "common-mistakes.md"
         if target.exists() and not args.overwrite:
             continue

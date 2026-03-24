@@ -1,0 +1,15 @@
+{
+  "name": "Too Eager",
+  "description": "Deployment is running but users are seeing intermittent 502 errors on startup.",
+  "objective": "There is no readiness probe \u2014 pods receive traffic before they are ready, causing errors; add a readiness probe",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "readinessProbe vs livenessProbe",
+    "pod readiness gates",
+    "service endpoint management"
+  ],
+  "module": "module-2-workloads",
+  "level": "level-4-readiness-probe"
+}

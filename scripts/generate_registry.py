@@ -18,4 +18,4 @@ if __name__ == "__main__":
     print(f"✅ Registry written → {out.relative_to(ROOT)}")
     import json
     reg = json.loads(out.read_text())
-    print(f"   {len(reg['worlds'])} worlds, {reg['level_count']} levels")
+    print(f"   {len(reg['modules'])} modules, {reg['level_count']} levels")

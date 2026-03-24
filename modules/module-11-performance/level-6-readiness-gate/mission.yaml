@@ -1,0 +1,17 @@
+{
+  "name": "Traffic to Cold Pods",
+  "description": "After deployment, users see errors for 30 seconds \u2014 new pods receive traffic before they've warmed up.",
+  "objective": "Add a readiness probe with initialDelaySeconds to prevent traffic routing to pods before they're ready",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "readiness probe",
+    "initialDelaySeconds",
+    "traffic routing",
+    "rolling deployment",
+    "graceful startup"
+  ],
+  "module": "module-11-performance",
+  "level": "level-6-readiness-gate"
+}

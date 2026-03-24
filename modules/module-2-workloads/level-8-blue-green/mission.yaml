@@ -1,0 +1,16 @@
+{
+  "name": "Blue-Green Gone Wrong",
+  "description": "A new deployment version is healthy and running, but traffic is not reaching it.",
+  "objective": "The Service selector still points to the old deployment \u2014 update it to route traffic to the new green version",
+  "xp": 200,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "Blue-green strategy",
+    "service selectors",
+    "zero-downtime switch",
+    "rollback by switching selector back"
+  ],
+  "module": "module-2-workloads",
+  "level": "level-8-blue-green"
+}

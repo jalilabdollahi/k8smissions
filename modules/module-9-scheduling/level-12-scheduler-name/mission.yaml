@@ -1,0 +1,16 @@
+{
+  "name": "Wrong Scheduler",
+  "description": "Pods for a machine learning workload are not being scheduled by the custom ML-aware scheduler.",
+  "objective": "The pod uses the default scheduler instead of the custom 'ml-scheduler' \u2014 set the schedulerName field",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "schedulerName",
+    "custom scheduler",
+    "multiple schedulers",
+    "pod spec"
+  ],
+  "module": "module-9-scheduling",
+  "level": "level-12-scheduler-name"
+}

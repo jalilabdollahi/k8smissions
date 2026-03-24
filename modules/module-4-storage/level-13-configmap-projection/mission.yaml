@@ -1,0 +1,17 @@
+{
+  "name": "The Missing File",
+  "description": "A pod mounts a ConfigMap as a volume but the expected config file is absent from the container.",
+  "objective": "The volume only projects a single key \u2014 add the missing key projection so all config files appear",
+  "xp": 175,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "ConfigMap",
+    "volume projection",
+    "items",
+    "key-to-path",
+    "volume mount"
+  ],
+  "module": "module-4-storage",
+  "level": "level-13-configmap-projection"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Runbook: DB Migration Rollout",
+  "description": "A database migration needs to be executed safely in a production-like environment.",
+  "objective": "Run the database migration safely: scale down the app, apply the migration job, verify it completes, then scale back up",
+  "xp": 450,
+  "difficulty": "expert",
+  "expected_time": "10m",
+  "concepts": [
+    "Kubernetes Jobs",
+    "initContainers for DB migration",
+    "runbook execution",
+    "ordered operations",
+    "Job completions/backoffLimit"
+  ],
+  "module": "module-7-gitops",
+  "level": "level-9-production-runbook"
+}

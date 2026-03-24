@@ -1,0 +1,17 @@
+{
+  "name": "Uneven Spread",
+  "description": "All pods from a Deployment are landing on the same node \u2014 node failure would take down the entire service.",
+  "objective": "Add a TopologySpreadConstraint to evenly distribute pods across nodes with maxSkew: 1",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "TopologySpreadConstraint",
+    "maxSkew",
+    "topologyKey",
+    "topology spread",
+    "HA"
+  ],
+  "module": "module-9-scheduling",
+  "level": "level-2-topology-spread"
+}

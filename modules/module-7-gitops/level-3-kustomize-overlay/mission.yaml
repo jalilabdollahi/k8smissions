@@ -1,0 +1,17 @@
+{
+  "name": "Wrong Overlay Applied",
+  "description": "Something looks wrong with the staging environment \u2014 investigate and correct it.",
+  "objective": "The production overlay was applied to staging \u2014 apply the correct staging overlay to restore the right replica count",
+  "xp": 350,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": [
+    "Kustomize base/overlay pattern",
+    "kustomization.yaml",
+    "patches",
+    "strategic merge patch",
+    "replicas patch"
+  ],
+  "module": "module-7-gitops",
+  "level": "level-3-kustomize-overlay"
+}

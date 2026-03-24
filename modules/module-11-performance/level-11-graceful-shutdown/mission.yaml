@@ -1,0 +1,17 @@
+{
+  "name": "In-Flight Request Drop",
+  "description": "During rolling deployments, in-flight requests are dropped \u2014 clients receive connection reset errors.",
+  "objective": "Add preStop hook and terminationGracePeriodSeconds to allow graceful request completion before pod shutdown",
+  "xp": 325,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": [
+    "preStop hook",
+    "terminationGracePeriodSeconds",
+    "graceful shutdown",
+    "SIGTERM",
+    "connection draining"
+  ],
+  "module": "module-11-performance",
+  "level": "level-11-graceful-shutdown"
+}

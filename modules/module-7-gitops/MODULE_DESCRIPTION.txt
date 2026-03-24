@@ -1,0 +1,186 @@
+═══════════════════════════════════════════════════════════════════
+  MODULE 7 — GITOPS & PRODUCTION  ★ NEW MODULE ★
+  "Ship safely: Helm, Kustomize, ArgoCD, and production patterns"
+═══════════════════════════════════════════════════════════════════
+
+OVERVIEW
+────────
+Module 7 is the most advanced module. It covers production Kubernetes
+practices: Helm chart packaging, Kustomize overlays, GitOps with
+ArgoCD, multi-environment config management, cluster autoscaling,
+and a grand finale that combines everything.
+
+Players graduate from "fix it manually" to "fix the delivery pipeline"
+— mirroring real senior engineer / DevOps / platform engineer work.
+
+Difficulty   : Expert
+Total levels : 10
+Total XP     : 4,050
+Cluster type : kind (local) + ArgoCD (installed via level setup)
+New tools    : helm, kustomize, argocd CLI (installed in install.sh if present)
+
+SKILLS COVERED
+──────────────
+- Helm: values.yaml, chart templates, releases, hooks, rollback
+- Kustomize: base, overlays, patches, namePrefix, commonLabels
+- ArgoCD: Application CRD, sync policy, health status, manual sync
+- Multi-environment config: dev / staging / prod differences
+- Cluster resource management: quotas across environments
+- Graceful shutdown and preStop hooks
+- External Secrets and secret management pipeline
+- Cluster autoscaling (node-level scaling)
+- Comprehensive production runbook simulation
+
+───────────────────────────────────────────────────────────────────
+LEVELS
+───────────────────────────────────────────────────────────────────
+
+LEVEL 1 — helm-broken-values  (level-1-helm-broken-values)
+  Name        : "Helm Values Gone Wrong"
+  Difficulty  : advanced
+  XP          : 300
+  Description : A Helm chart was deployed with wrong values. The image.tag
+                value is empty ("") in values.yaml, so the pod pulls "latest"
+                in production — against policy. Chart also fails linting.
+  Broken state: values.yaml image.tag: "" (empty — should be pinned version)
+  Fix         : Set image.tag: "1.2.3" in values.yaml
+                helm upgrade myapp ./charts/myapp -n k8smissions
+  Validate    : helm status myapp → deployed, pod uses correct image tag
+  Concepts    : Helm values, chart templates ({{ .Values.image.tag }}),
+                helm install/upgrade/status/get-values
+
+LEVEL 2 — helm-rollback  (level-2-helm-rollback)
+  Name        : "Bad Release — Roll Back Helm"
+  Difficulty  : advanced
+  XP          : 350
+  Description : Helm release "webapp" was upgraded and all pods started
+                crashing (bad config in the new chart version). Must rollback.
+  Broken state: current helm release v2 is broken (bad env var in chart)
+  Fix         : helm rollback webapp 1 -n k8smissions
+  Validate    : helm history webapp shows rollback, pods Running on v1
+  Concepts    : helm history, helm rollback, helm get manifest,
+                revision history, atomic deploys
+
+LEVEL 3 — kustomize-overlay  (level-3-kustomize-overlay)
+  Name        : "Wrong Overlay Applied"
+  Difficulty  : advanced
+  XP          : 350
+  Description : Developer accidentally applied the production overlay to
+                the staging cluster. Production replicas (10) running in staging.
+                Resources: base/, overlays/staging/, overlays/production/
+  Broken state: staging cluster running production overlay manifest
+  Fix         : kubectl delete -k overlays/production
+                kubectl apply -k overlays/staging
+  Validate    : Deployment replicas = 2 (staging), not 10 (production)
+  Concepts    : Kustomize base/overlay pattern, kustomization.yaml,
+                patches, strategic merge patch, replicas patch
+
+LEVEL 4 — argocd-sync  (level-4-argocd-sync)
+  Name        : "ArgoCD Out of Sync"
+  Difficulty  : advanced
+  XP          : 400
+  Description : ArgoCD application shows "OutOfSync" and "Degraded".
+                Git has updated manifests but ArgoCD auto-sync is disabled.
+                Additionally, the target namespace doesn't exist in the cluster.
+  Broken state: ArgoCD app OutOfSync; target namespace missing
+  Fix         : kubectl create namespace webapp-prod
+                argocd app sync webapp-app  OR  enable auto-sync in app spec
+  Validate    : argocd app get webapp-app → Synced, Healthy
+  Concepts    : ArgoCD Application CRD, sync status, health status,
+                auto-sync, self-heal, prune, GitOps principles
+
+LEVEL 5 — multi-env-config  (level-5-multi-env)
+  Name        : "Dev Config in Production"
+  Difficulty  : advanced
+  XP          : 400
+  Description : Production deployment is using development values:
+                debug logging enabled, replicas=1, no resource limits.
+                Kustomize overlay wasn't applied correctly.
+  Broken state: prod cluster running dev ConfigMap values (LOG_LEVEL=debug,
+                replicas=1, no limits)
+  Fix         : Apply production overlay which sets LOG_LEVEL=info,
+                replicas=3, cpu limit=500m, memory limit=512Mi
+  Concepts    : Environment promotion, config drift, GitOps single source of
+                truth, Kustomize strategic merge patches
+
+LEVEL 6 — graceful-shutdown  (level-6-graceful-shutdown)
+  Name        : "Requests Dropped During Rollout"
+  Difficulty  : advanced
+  XP          : 350
+  Description : During rolling update, in-flight HTTP requests fail with
+                connection reset. Pod termination kills process without drain.
+  Broken state: No terminationGracePeriodSeconds, no preStop hook
+  Fix         : Add lifecycle.preStop: exec sleep 15
+                Set terminationGracePeriodSeconds: 60
+  Validate    : Rolling update completes with zero dropped connections
+  Concepts    : Pod termination lifecycle (SIGTERM → grace period → SIGKILL),
+                preStop hooks, connection draining, zero-downtime deploys
+
+LEVEL 7 — external-secrets  (level-7-external-secrets)
+  Name        : "Secrets in Git? Never."
+  Difficulty  : expert
+  XP          : 500
+  Description : Team committed plain-text secrets to Git — a security
+                incident. Must migrate to External Secrets Operator (ESO).
+                Secrets should come from a secret store, not YAML files.
+  Broken state: Secret manifest with plain base64 values committed in Git
+  Fix         : Install External Secrets Operator (bundled manifest)
+                Create SecretStore pointing to local fake backend
+                Create ExternalSecret that pulls values from the store
+  Validate    : Secret exists in cluster but source is ESO, not Git
+  Concepts    : External Secrets Operator, SecretStore, ExternalSecret,
+                Vault integration, Sealed Secrets alternative, secret rotation
+
+LEVEL 8 — cluster-autoscaler  (level-8-autoscaler)
+  Name        : "Nodes Won't Scale Up"
+  Difficulty  : expert
+  XP          : 450
+  Description : HPA scaled pods to 20 but nodes can't fit them all.
+                Cluster Autoscaler is installed but not scaling up new nodes.
+                Root cause: Cluster Autoscaler has wrong node group annotation.
+  Broken state: Cluster Autoscaler deployment has wrong node group name in args
+  Fix         : Patch Cluster Autoscaler deployment with correct node group
+                (or on kind: demonstrate concept with node taints simulation)
+  Validate    : All pods eventually scheduled (or CA behavior explained)
+  Concepts    : Cluster Autoscaler, node groups, scale-up triggers,
+                cloud provider integration, kind simulation limitations
+
+LEVEL 9 — production-runbook  (level-9-production-runbook)
+  Name        : "Runbook: DB Migration Rollout"
+  Difficulty  : expert
+  XP          : 450
+  Description : Player must execute a safe database migration rollout:
+                1. Scale down app to 0 replicas
+                2. Apply DB migration job (initContainer pattern)
+                3. Verify migration job completes successfully
+                4. Scale app back up
+                All while maintaining data integrity and namespace quota.
+  Broken state: Migration Job has wrong image + missing env vars
+  Fix         : Fix Job spec, run in correct order, validate each step
+  Concepts    : Kubernetes Jobs, initContainers for DB migration,
+                runbook execution, ordered operations, Job completions/backoffLimit
+
+LEVEL 10 — grand-finale  (level-10-grand-finale)
+  Name        : "THE GRAND FINALE: Zero to Production"
+  Difficulty  : expert
+  XP          : 500
+  Description : The ultimate challenge. A complete production deployment
+                pipeline is broken at multiple layers simultaneously:
+                1. Helm chart has wrong values (tag empty)
+                2. ArgoCD app stuck OutOfSync
+                3. RBAC: app ServiceAccount missing permissions
+                4. NetworkPolicy blocking service mesh traffic
+                5. ResourceQuota exceeded
+                6. No readiness probe (traffic to unready pods)
+                7. PDB too strict (blocking upgrade)
+                8. No preStop hook (dropped connections on rollout)
+                
+                Fix all layers in the right order. Earn the Grand Master certificate.
+  Concepts    : Full stack Kubernetes delivery pipeline, incident response,
+                production readiness checklist, SRE principles
+
+═══════════════════════════════
+  TOTAL MODULE 7 XP: 4,050
+  
+  GRAND TOTAL (all 7 modules): 19,000 XP
+═══════════════════════════════

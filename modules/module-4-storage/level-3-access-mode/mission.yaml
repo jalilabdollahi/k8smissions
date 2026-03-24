@@ -1,0 +1,18 @@
+{
+  "name": "Only One Can Write",
+  "description": "Multiple pods are failing to start with volume-related errors.",
+  "objective": "The PVC uses ReadWriteOnce but multiple pods on different nodes need to write \u2014 change the access mode to allow shared writes",
+  "xp": 250,
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": [
+    "Access modes (RWO",
+    "RWX",
+    "ROX)",
+    "PVC immutability",
+    "multi-pod shared storage",
+    "NFS/EFS for RWX"
+  ],
+  "module": "module-4-storage",
+  "level": "level-3-access-mode"
+}

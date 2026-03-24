@@ -1,0 +1,13 @@
+MODULE 12 — Production War Games
+════════════════════════════════
+
+OVERVIEW
+────────
+Module 12 covers multi-failure incident response, chaos engineering drills, and
+production war games. Each level simulates a real production outage with multiple
+concurrent failures. Players must triage, isolate, and fix issues under pressure
+using all skills from previous modules.
+
+Difficulty   : Expert
+XP per level : 300–500
+Total XP     : 6,550

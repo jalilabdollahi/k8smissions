@@ -1,0 +1,17 @@
+{
+  "name": "Blocked Deploy",
+  "description": "The pipeline's deploy Task fails with 'Forbidden' when trying to apply manifests.",
+  "objective": "The pipeline ServiceAccount lacks permission to create Deployments \u2014 add the required RBAC role",
+  "xp": 300,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": [
+    "Tekton",
+    "RBAC",
+    "ServiceAccount",
+    "deploy permissions",
+    "kubectl apply"
+  ],
+  "module": "module-8-cicd",
+  "level": "level-8-deploy-rbac"
+}
