@@ -9,6 +9,8 @@ import shutil
 import textwrap
 from pathlib import Path
 
+from common_mistakes_templates import render_common_mistakes
+
 ROOT = Path(__file__).resolve().parents[1]
 WORLDS_DIR = ROOT / "worlds"
 NS = "k8smissions"
@@ -329,6 +331,7 @@ def write_level_docs(level: dict, target: Path) -> None:
     write_text(target / "hint-2.txt", level["hint_2"])
     write_text(target / "hint-3.txt", level["hint_3"])
     write_text(target / "debrief.md", debrief_doc(level))
+    write_text(target / "common-mistakes.md", render_common_mistakes(level))
 
 
 def build_level(target: Path, level: dict, payload: dict) -> None:
