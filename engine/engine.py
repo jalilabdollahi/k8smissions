@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import readline  # noqa: F401 — enables arrow keys and history in Prompt.ask()
 import shlex
 import subprocess
 import sys
@@ -234,6 +235,134 @@ def run_kubectl(raw_command: str) -> None:
     if result.stderr:
         style = "red" if result.returncode else "yellow"
         console.print(f"[{style}]{result.stderr.rstrip()}[/{style}]")
+
+
+def _find_editor() -> str:
+    """Return the first usable terminal editor found on PATH."""
+    for editor in ("nano", "vim", "vi"):
+        if subprocess.run(["which", editor], capture_output=True, check=False).returncode == 0:
+            return editor
+    return "vi"
+
+
+def run_edit_resource(resource_spec: str) -> None:
+    """Dump a resource to a temp YAML file, open in $EDITOR, then kubectl apply."""
+    import tempfile
+
+    parts = resource_spec.strip().split()
+    if not parts:
+        console.print("[yellow]Usage: edit <type> <name> [-n namespace]  (e.g.  edit pod nginx-broken -n k8smissions)[/yellow]")
+        return
+
+    # Extract -n / --namespace if provided, otherwise default to k8smissions
+    namespace = "k8smissions"
+    filtered = []
+    i = 0
+    while i < len(parts):
+        if parts[i] in ("-n", "--namespace") and i + 1 < len(parts):
+            namespace = parts[i + 1]
+            i += 2
+        elif parts[i].startswith("--namespace="):
+            namespace = parts[i].split("=", 1)[1]
+            i += 1
+        else:
+            filtered.append(parts[i])
+            i += 1
+    parts = filtered
+
+    # Fetch current live YAML
+    get_args = ["kubectl", "get"] + parts + ["-n", namespace, "-o", "yaml"]
+    result = subprocess.run(get_args, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        console.print(f"[red]{result.stderr.rstrip()}[/red]")
+        return
+
+    # Strip server-managed read-only fields so the file is cleanly editable
+    try:
+        doc = yaml.safe_load(result.stdout) or {}
+        doc.pop("status", None)
+        meta = doc.get("metadata", {})
+        for field in ("resourceVersion", "uid", "creationTimestamp", "generation", "managedFields"):
+            meta.pop(field, None)
+        annotations = meta.get("annotations", {})
+        annotations.pop("kubectl.kubernetes.io/last-applied-configuration", None)
+        if not annotations:
+            meta.pop("annotations", None)
+        clean = yaml.dump(doc, default_flow_style=False, allow_unicode=True)
+    except Exception:
+        clean = result.stdout
+
+    # Write to temp file
+    with tempfile.NamedTemporaryFile(
+        suffix=".yaml", prefix="k8smissions-", mode="w",
+        delete=False, encoding="utf-8",
+    ) as tmp:
+        tmp.write(clean)
+        tmp_path = tmp.name
+
+    console.print(f"[grey70]Resource written to [bold]{tmp_path}[/bold] — opening editor...[/grey70]")
+
+    editor = os.environ.get("EDITOR") or os.environ.get("VISUAL") or _find_editor()
+    start = time.time()
+    subprocess.run(shlex.split(editor) + [tmp_path], check=False)
+    elapsed = time.time() - start
+
+    # If editor returned almost instantly it's likely a GUI app; wait for user
+    if elapsed < 2.0:
+        console.print(
+            f"[yellow]If you opened a GUI editor, finish editing [bold]{tmp_path}[/bold] "
+            "then press Enter to continue.[/yellow]"
+        )
+        try:
+            input()
+        except EOFError:
+            pass
+
+    from rich.prompt import Confirm
+    if not Confirm.ask("[bold bright_cyan]Apply edited manifest?[/bold bright_cyan]", default=True):
+        console.print(f"[grey70]Cancelled. Temp file at {tmp_path}[/grey70]")
+        return
+
+    apply = subprocess.run(
+        ["kubectl", "apply", "-f", tmp_path],
+        capture_output=True, text=True, check=False,
+    )
+    if apply.stdout:
+        console.print(apply.stdout.rstrip())
+
+    # Pods are mostly immutable — kubectl apply will fail when changing env vars,
+    # volumes, etc.  Offer to delete-and-recreate via kubectl replace --force.
+    if apply.returncode != 0 and "may not change fields" in apply.stderr:
+        console.print(
+            "[yellow]Pods are immutable after creation — the changed fields require "
+            "the pod to be deleted and recreated.[/yellow]"
+        )
+        if Confirm.ask(
+            "[bold bright_cyan]Delete and recreate the pod with your changes?[/bold bright_cyan]",
+            default=True,
+        ):
+            replace = subprocess.run(
+                ["kubectl", "replace", "--force", "-f", tmp_path],
+                capture_output=True, text=True, check=False,
+            )
+            if replace.stdout:
+                console.print(replace.stdout.rstrip())
+            if replace.stderr:
+                style = "red" if replace.returncode else "yellow"
+                console.print(f"[{style}]{replace.stderr.rstrip()}[/{style}]")
+            if replace.returncode == 0:
+                console.print("[bright_green]✅ Pod recreated with your changes.[/bright_green]")
+            else:
+                console.print(f"[grey70]Temp file kept at {tmp_path}[/grey70]")
+        return
+
+    if apply.returncode == 0:
+        console.print("[bright_green]✅ Changes applied.[/bright_green]")
+    else:
+        if apply.stderr:
+            style = "red"
+            console.print(f"[{style}]{apply.stderr.rstrip()}[/{style}]")
+        console.print(f"[grey70]Temp file kept at {tmp_path}[/grey70]")
 
 
 def ensure_player_name(progress: dict) -> None:
@@ -549,6 +678,19 @@ def game_loop() -> int:
                 continue
             if command.startswith("kubectl "):
                 run_kubectl(command[len("kubectl "):])
+                continue
+            if command == "edit":
+                console.print("[yellow]Usage: edit <type> <name>  (e.g.  edit pod nginx-broken)[/yellow]")
+                continue
+            if command.startswith("edit "):
+                run_edit_resource(command[5:])
+                continue
+            # shortcut: "e pod nginx-broken" → edit
+            if command.startswith("e "):
+                run_edit_resource(command[2:])
+                continue
+            if command == "e":
+                console.print("[yellow]Usage: e <type> <name>  (e.g.  e pod nginx-broken)[/yellow]")
                 continue
 
             # Helpful catch for bare kubectl subcommands like "get po -A"
