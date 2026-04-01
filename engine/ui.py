@@ -283,7 +283,7 @@ class PaginatedDisplay:
 
     # ── render ────────────────────────────────────────────────────────────────
     def _render(self, content: str, title: str, border: str, page: int, total: int) -> None:
-        console.print("\033[2J\033[H", end="")  # clear screen
+        console.clear()  # clear screen
         page_tag = f"  [Page {page}/{total}]" if total > 1 else ""
         console.print(
             Panel(
@@ -385,8 +385,9 @@ def show_help() -> None:
     cluster = _section(
         "CLUSTER",
         [
-            ("5", "kubectl <cmd>", "Pass kubectl command through safety guards"),
-            ("6", "reset",         "Rebuild the broken scenario from scratch"),
+            ("5", "kubectl <cmd>",    "Pass kubectl command through safety guards"),
+            ("e", "edit <type> <name>", "Dump resource to file, edit, then apply"),
+            ("6", "reset",            "Rebuild the broken scenario from scratch"),
         ],
         "bright_yellow",
     )
