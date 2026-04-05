@@ -7,6 +7,33 @@ kubectl describe pod <pod> -n k8smissions
 kubectl logs <pod> -n k8smissions --previous
 ```
 
+## How to See All Containers in a Pod
+
+A multi-container pod has several containers running side by side. To list them:
+
+```bash
+# Shows all container names under .spec.containers[*].name
+kubectl get pod app-with-logging -n k8smissions -o jsonpath='{.spec.containers[*].name}'
+
+# Or read them from describe output (look for "Containers:" section)
+kubectl describe pod app-with-logging -n k8smissions
+```
+
+Once you know the container names, target a specific one with `-c`:
+
+```bash
+# View logs of a specific container
+kubectl logs app-with-logging -n k8smissions -c log-sidecar
+
+# View previous (crashed) logs of a specific container
+kubectl logs app-with-logging -n k8smissions -c log-sidecar --previous
+
+# Open a shell into a specific container
+kubectl exec -it app-with-logging -n k8smissions -c log-sidecar -- sh
+```
+
+Without `-c`, kubectl defaults to the first container and may silently miss the broken one.
+
 ## ❌ Mistake #1: Treating the status as the root cause
 
 **What players try:**

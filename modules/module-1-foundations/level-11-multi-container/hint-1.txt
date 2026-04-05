@@ -1,1 +1,1 @@
-kubectl get pod multi-pod -n k8smissions (which container?)
+kubectl get pod app-with-logging -n k8smissions (which container is crashing?)

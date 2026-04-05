@@ -1,1 +1,1 @@
-kubectl logs multi-pod -c log-shipper -n k8smissions
+kubectl logs app-with-logging -c log-sidecar -n k8smissions
