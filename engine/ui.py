@@ -85,13 +85,15 @@ _ASCII_LOGO = """\
 def welcome_panel(player_name: str, total_xp: int, max_total_xp: int | None = None) -> Panel:
     logo = Text(_ASCII_LOGO, style="bold bright_cyan")
     subtitle = Text("  200 challenges  •  12 modules  •  Real Kubernetes", style="grey70")
+    attribution = Text("  Design and implementation by: Jalil Abdollahi", style="bold white")
+    contact = Text("  jalil.abdollahi@gmail.com", style="bright_magenta")
     agent = Text.assemble(
         ("  Agent: ", "grey70"),
         (player_name or "Unassigned", "bold bright_magenta"),
         ("    XP: ", "grey70"),
         (f"{total_xp:,} / {(max_total_xp or 55925):,}", "bold bright_magenta"),
     )
-    body = Group(logo, Text(""), subtitle, Text(""), agent)
+    body = Group(logo, Text(""), attribution, contact, Text(""), subtitle, Text(""), agent)
     return Panel(body, border_style="bright_cyan", box=box.ROUNDED, padding=(1, 2))
 
 

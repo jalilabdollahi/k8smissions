@@ -11,6 +11,9 @@ K8sMissions is a fully local, game-based Kubernetes training platform with a ric
 **200 progressive challenges across 12 modules — beginner to production SRE.**  
 No cloud. No AWS. No costs.
 
+**Design and implementation by: Jalil Abdollahi**  
+Email: `jalil.abdollahi@gmail.com`
+
 ---
 
 ## ✨ Features
@@ -207,3 +210,9 @@ If K8sMissions helped you learn Kubernetes:
 ## 📖 Contributing
 
 Want to add missions or improve existing ones? See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide — including `mission.yaml` field rules, level format, and engine architecture.
+
+---
+
+## 📄 License
+
+MIT License. See [LICENSE](LICENSE).
