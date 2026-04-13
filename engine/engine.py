@@ -131,6 +131,8 @@ def load_modules() -> list[dict]:
     # Fallback: scan directories
     modules = []
     modules_dir = REPO_ROOT / "modules"
+    if not modules_dir.is_dir():
+        return modules
     for module_dir in sorted((path for path in modules_dir.iterdir() if path.is_dir()), key=sort_key):
         levels = []
         for level_dir in sorted((path for path in module_dir.iterdir() if path.is_dir()), key=sort_key):
@@ -217,10 +219,11 @@ def show_guide(level_path: Path) -> None:
     console.print(syntax)
 
 
-def run_validator(level_path: Path) -> subprocess.CompletedProcess[str]:
+def run_validator(level_path: Path) -> subprocess.CompletedProcess[str] | None:
     validator = level_path / "validate.sh"
     if not validator.exists():
-        raise FileNotFoundError(f"validate.sh missing in {level_path}")
+        console.print(f"[red]validate.sh missing in {level_path}[/red]")
+        return None
     return subprocess.run(["bash", str(validator)], cwd=level_path, capture_output=True, text=True, check=False)
 
 
@@ -358,6 +361,7 @@ def run_edit_resource(resource_spec: str) -> None:
 
     if apply.returncode == 0:
         console.print("[bright_green]✅ Changes applied.[/bright_green]")
+        os.unlink(tmp_path)
     else:
         if apply.stderr:
             style = "red"
@@ -456,6 +460,13 @@ def complete_level(progress: dict, modules: list[dict], module_index: int, level
     return True
 
 
+_KUBECTL_VERBS: frozenset[str] = frozenset({
+    "get", "describe", "logs", "exec", "apply", "delete",
+    "patch", "scale", "rollout", "set", "label",
+    "annotate", "top", "drain", "cordon", "uncordon",
+    "port-forward", "proxy", "cp", "auth", "config",
+})
+
 _NUMBER_CMDS: dict[str, str] = {
     "1": "check",
     "d": "check-dry",
@@ -490,6 +501,8 @@ def watch_mode(level_path: Path) -> bool:
         while True:
             attempt += 1
             result = run_validator(level_path)
+            if result is None:
+                return False
             if result.stdout:
                 console.print(result.stdout.rstrip())
             if result.returncode == 0:
@@ -605,6 +618,8 @@ def game_loop() -> int:
                 continue
             if command == "check":
                 result = run_validator(current_level["path"])
+                if result is None:
+                    continue
                 if result.stdout:
                     console.print(result.stdout.rstrip())
                 if result.stderr:
@@ -621,6 +636,8 @@ def game_loop() -> int:
             if command == "check-dry":
                 # Dry-run validator — shows output without awarding XP (#4)
                 result = run_validator(current_level["path"])
+                if result is None:
+                    continue
                 console.print("[bold grey70]── Dry Run (no XP awarded) ──[/bold grey70]")
                 if result.stdout:
                     console.print(result.stdout.rstrip())
@@ -694,10 +711,6 @@ def game_loop() -> int:
                 continue
 
             # Helpful catch for bare kubectl subcommands like "get po -A"
-            _KUBECTL_VERBS = {"get", "describe", "logs", "exec", "apply", "delete",
-                              "edit", "patch", "scale", "rollout", "set", "label",
-                              "annotate", "top", "drain", "cordon", "uncordon",
-                              "port-forward", "proxy", "cp", "auth", "config"}
             first_word = command.split()[0] if command.split() else ""
             if first_word in _KUBECTL_VERBS:
                 console.print(
