@@ -1,1 +1,6 @@
-Check node labels: kubectl get nodes --show-labels
+Run:
+  edit pod selector-pod
+Replace its nodeSelector with a label present on the kind node:
+  nodeSelector:
+    kubernetes.io/os: linux
+Save and approve the replacement.

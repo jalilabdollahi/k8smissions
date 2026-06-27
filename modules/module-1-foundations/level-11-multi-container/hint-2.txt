@@ -1,1 +1,3 @@
-kubectl logs app-with-logging -c log-sidecar -n k8smissions
+Read only the failing sidecar's logs:
+  kubectl logs app-with-logging -c log-sidecar -n k8smissions --previous
+It is trying to follow a file that does not exist.

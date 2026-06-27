@@ -1,7 +1,7 @@
 {
   "name": "The Noisy Neighbour",
-  "description": "A pod fails to create with a Forbidden error referencing a LimitRange policy.",
-  "objective": "A LimitRange in the namespace requires resource limits \u2014 add limits to the pod spec to comply",
+  "description": "A memory-hungry Pod keeps restarting with OOMKilled even though its manifest does not declare a memory limit.",
+  "objective": "Find the namespace LimitRange that injected a small default limit, then give the Pod an explicit memory limit large enough for the workload",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",
@@ -9,7 +9,8 @@
     "LimitRange",
     "resource limits",
     "resource requests",
-    "namespace policy"
+    "namespace policy",
+    "admission defaults"
   ],
   "module": "module-1-foundations",
   "level": "level-19-limitrange"

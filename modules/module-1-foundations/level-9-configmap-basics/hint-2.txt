@@ -1,1 +1,3 @@
-configmap 'app-config' not found
+The event says configmap "app-config" was not found. See what name the Pod
+expects with:
+  kubectl get pod configmap-pod -n k8smissions -o yaml

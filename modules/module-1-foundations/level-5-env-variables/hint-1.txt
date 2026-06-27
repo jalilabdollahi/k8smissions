@@ -1,1 +1,3 @@
-kubectl logs env-pod -n k8smissions
+Check the Pod and read the application error:
+  kubectl get pod env-pod -n k8smissions
+  kubectl logs env-pod -n k8smissions --previous

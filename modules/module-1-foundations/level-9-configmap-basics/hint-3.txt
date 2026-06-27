@@ -1,1 +1,4 @@
-Create the ConfigMap first, then apply the pod
+Create the missing ConfigMap:
+  kubectl create configmap app-config -n k8smissions \
+    --from-literal=APP_MODE=production
+The existing Pod should start automatically after the ConfigMap appears.

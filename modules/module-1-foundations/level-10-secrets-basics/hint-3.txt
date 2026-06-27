@@ -1,1 +1,5 @@
-echo -n 'mypassword' | base64  → use in secret data field
+Create the missing Secret without manually encoding values:
+  kubectl create secret generic db-credentials -n k8smissions \
+    --from-literal=username=appuser \
+    --from-literal=password=mypassword
+kubectl encodes literal Secret values for you.

@@ -1,1 +1,5 @@
-targetPort must match containerPort, not Service port
+Run:
+  edit service web-service
+Set:
+  targetPort: 80
+Save and apply the Service.

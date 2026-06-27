@@ -1,1 +1,3 @@
-secret 'db-credentials' not found
+The Pod uses envFrom and expects a Secret named db-credentials:
+  kubectl get pod secret-pod -n k8smissions -o yaml
+  kubectl get secret db-credentials -n k8smissions

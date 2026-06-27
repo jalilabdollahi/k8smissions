@@ -1,15 +1,15 @@
 {
   "name": "Silent Failure",
-  "description": "Pod is in Running state but requests to the application are not being served.",
-  "objective": "The app is Running but serving nothing \u2014 check the logs to find the misconfigured path, then fix it",
+  "description": "A PostgreSQL Pod repeatedly exits during startup and never becomes Ready.",
+  "objective": "Use the container logs to identify the required PostgreSQL setting, then add the missing environment variable",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "12m",
   "concepts": [
     "kubectl logs",
     "application logs",
-    "debugging running pods",
-    "exec into container"
+    "debugging startup failures",
+    "environment variables"
   ],
   "module": "module-1-foundations",
   "level": "level-14-log-debugging"

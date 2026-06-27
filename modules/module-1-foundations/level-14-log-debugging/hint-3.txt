@@ -1,1 +1,7 @@
-The log says "config file not found at /etc/config/settings.yml"
+Run:
+  edit pod database-app
+Under the postgres container add:
+  env:
+  - name: POSTGRES_PASSWORD
+    value: mysecretpassword
+Save and approve the replacement.

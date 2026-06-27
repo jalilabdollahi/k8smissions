@@ -1,2 +1,3 @@
-Run: kubectl describe pod noisy-pod -n k8smissions
-Look for a LimitRange error in Events or pod status.
+Check how the container last terminated:
+  kubectl describe pod noisy-pod -n k8smissions
+OOMKilled means it used more memory than its effective limit.

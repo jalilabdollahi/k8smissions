@@ -1,1 +1,4 @@
-kubectl logs crashloop-pod -n k8smissions (previous)
+Read the output from the previous failed container:
+  kubectl logs crashloop-pod -n k8smissions --previous
+Then inspect its startup fields:
+  kubectl get pod crashloop-pod -n k8smissions -o yaml

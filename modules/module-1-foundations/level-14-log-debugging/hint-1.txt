@@ -1,1 +1,3 @@
-Pod is Running — but is it actually working?
+Do not guess from the manifest first. Read the failed application's own output:
+  kubectl get pod database-app -n k8smissions
+  kubectl logs database-app -n k8smissions --previous

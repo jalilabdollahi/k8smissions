@@ -1,1 +1,5 @@
-The script referenced in args does not exist in busybox
+The referenced script is not in the busybox image. Run:
+  edit pod crashloop-pod
+Replace the current args with:
+  command: ["/bin/sh", "-c", "sleep 3600"]
+Save and approve the replacement.

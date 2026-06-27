@@ -1,1 +1,7 @@
-Add the env section to the container spec
+Run:
+  edit pod env-pod
+Under the container, add:
+  env:
+  - name: DATABASE_URL
+    value: postgres://localhost/app
+Save and approve the replacement.

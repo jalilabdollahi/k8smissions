@@ -1,1 +1,2 @@
-kubectl logs log-pod -n k8smissions
+PostgreSQL refuses to initialize without a superuser password. Its log names
+the POSTGRES_PASSWORD environment variable explicitly.

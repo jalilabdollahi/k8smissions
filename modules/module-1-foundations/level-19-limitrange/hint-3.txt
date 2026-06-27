@@ -1,9 +1,9 @@
-Add a limits block to the container resources:
+Run:
+  edit pod noisy-pod
+Give the container enough memory while staying below the LimitRange maximum:
   resources:
     requests:
-      cpu: "100m"
-      memory: "64Mi"
+      memory: 64Mi
     limits:
-      cpu: "500m"
-      memory: "256Mi"
-Limits must be <= LimitRange max (cpu:1, memory:512Mi).
+      memory: 128Mi
+Save and approve the replacement.

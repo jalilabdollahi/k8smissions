@@ -1,1 +1,4 @@
-kubectl get pod app-with-logging -n k8smissions (which container is crashing?)
+See the readiness state of both containers:
+  kubectl get pod app-with-logging -n k8smissions
+  kubectl get pod app-with-logging -n k8smissions \
+    -o jsonpath='{range .status.containerStatuses[*]}{.name}{": ready="}{.ready}{", restarts="}{.restartCount}{"\n"}{end}'

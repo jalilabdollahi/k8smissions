@@ -1,1 +1,3 @@
-Look at the RESTARTS column
+Confirm that the Pod is repeatedly restarting:
+  kubectl get pod crashloop-pod -n k8smissions
+Look at STATUS and RESTARTS.

@@ -1,1 +1,4 @@
-kubectl describe pod oom-pod -n k8smissions
+Check why the container last terminated:
+  kubectl get pod oom-pod -n k8smissions
+  kubectl describe pod oom-pod -n k8smissions
+Look under Last State, not only the current State.

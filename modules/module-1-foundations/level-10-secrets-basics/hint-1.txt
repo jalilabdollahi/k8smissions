@@ -1,1 +1,3 @@
-kubectl describe pod secret-pod -n k8smissions
+Inspect the waiting container and its Events:
+  kubectl get pod secret-pod -n k8smissions
+  kubectl describe pod secret-pod -n k8smissions

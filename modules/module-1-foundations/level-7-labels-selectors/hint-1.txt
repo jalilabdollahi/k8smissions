@@ -1,1 +1,3 @@
-kubectl get endpoints labels-svc -n k8smissions
+Check whether the Service found any backend Pod:
+  kubectl get endpoints backend-service -n k8smissions
+An empty ENDPOINTS value means its selector matched no ready Pods.

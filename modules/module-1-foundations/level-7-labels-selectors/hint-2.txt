@@ -1,1 +1,3 @@
-kubectl describe svc labels-svc -n k8smissions → Selector
+Compare the Service selector with the Pod labels:
+  kubectl describe service backend-service -n k8smissions
+  kubectl get pod backend-app -n k8smissions --show-labels
