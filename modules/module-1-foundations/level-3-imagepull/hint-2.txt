@@ -1,1 +1,2 @@
-Look at the Events section for "Failed to pull image"
+Inspect Events and note the exact image name Kubernetes tried to pull:
+  kubectl describe pod web-app -n k8smissions

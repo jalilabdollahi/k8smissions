@@ -1,1 +1,7 @@
-Resources exist in "default" — wrong namespace
+Create equivalent resources in the correct namespace:
+  kubectl run client-app --image=busybox:1.36 -n k8smissions \
+    --labels=app=client --command -- sleep 3600
+  kubectl create service clusterip backend-service -n k8smissions --tcp=80:80
+Then remove the misplaced copies:
+  kubectl delete pod client-app -n default
+  kubectl delete service backend-service -n default

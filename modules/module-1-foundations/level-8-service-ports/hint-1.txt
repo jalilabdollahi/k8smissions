@@ -1,1 +1,4 @@
-kubectl describe svc ports-svc -n k8smissions
+Inspect both sides of the connection:
+  kubectl describe service web-service -n k8smissions
+  kubectl get pod web-server -n k8smissions -o yaml
+Compare port, targetPort, and containerPort.

@@ -1,3 +1,6 @@
-Replace the command with something that exits 0:
+Run:
+  edit job db-init
+Replace the container command with something that exits 0:
   command: ["/bin/sh", "-c", "echo DB initialised; exit 0"]
+Save and approve the Job replacement.
 In production you would build an image containing the actual script.

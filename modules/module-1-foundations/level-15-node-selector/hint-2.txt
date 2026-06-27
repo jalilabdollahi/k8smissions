@@ -1,1 +1,4 @@
-0/1 nodes available: node(s) didn't match nodeSelector
+Compare the Pod's required labels with the labels that actually exist:
+  kubectl get pod selector-pod -n k8smissions -o jsonpath='{.spec.nodeSelector}{"\n"}'
+  kubectl get nodes --show-labels
+No node has mission=moon-base.

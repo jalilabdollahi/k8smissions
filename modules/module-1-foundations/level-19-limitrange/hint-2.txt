@@ -1,2 +1,5 @@
-Run: kubectl describe limitrange -n k8smissions
-This shows what the policy requires. The pod has requests but no limits set.
+The original Pod manifest declared no resources, so find where its 32Mi limit
+came from:
+  kubectl describe limitrange default-limits -n k8smissions
+  kubectl get pod noisy-pod -n k8smissions -o jsonpath='{.spec.containers[0].resources}{"\n"}'
+LimitRange defaults are injected when a Pod is admitted.

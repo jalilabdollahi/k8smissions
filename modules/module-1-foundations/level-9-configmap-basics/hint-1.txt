@@ -1,1 +1,4 @@
-kubectl describe pod configmap-pod -n k8smissions
+Inspect why the Pod is still waiting:
+  kubectl get pod configmap-pod -n k8smissions
+  kubectl describe pod configmap-pod -n k8smissions
+Read the Events section from bottom to top.

@@ -281,6 +281,7 @@ def run_edit_resource(resource_spec: str) -> None:
         return
 
     # Strip server-managed read-only fields so the file is cleanly editable
+    doc = {}
     try:
         doc = yaml.safe_load(result.stdout) or {}
         doc.pop("status", None)
@@ -326,8 +327,21 @@ def run_edit_resource(resource_spec: str) -> None:
         console.print(f"[grey70]Cancelled. Temp file at {tmp_path}[/grey70]")
         return
 
+    # Most Pod spec fields (image, command, resources, volumes, and so on)
+    # are immutable after creation. Beginner missions edit these fields often,
+    # so applying the edited Pod would fail even when the answer is correct.
+    # Recreate only standalone Pods; controllers and other resources remain a
+    # normal declarative apply.
+    resource_kind = str(doc.get("kind", "")).lower() if isinstance(doc, dict) else ""
+    recreate_kinds = {"pod", "job"}
+    kubectl_action = ["replace", "--force"] if resource_kind in recreate_kinds else ["apply"]
+    if resource_kind in recreate_kinds:
+        console.print(
+            f"[grey70]Recreating {doc.get('kind')} to apply immutable spec changes...[/grey70]"
+        )
+
     apply = subprocess.run(
-        ["kubectl", "apply", "-f", tmp_path],
+        ["kubectl", *kubectl_action, "-f", tmp_path],
         capture_output=True, text=True, check=False,
     )
     if apply.stdout:

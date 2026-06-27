@@ -1,1 +1,3 @@
-kubectl describe pod imagepull-pod -n k8smissions
+Check the Pod status:
+  kubectl get pod web-app -n k8smissions
+ImagePullBackOff means Kubernetes cannot download the configured image.

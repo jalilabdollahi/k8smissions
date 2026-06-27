@@ -1,1 +1,3 @@
-kubectl get pods --all-namespaces
+The namespace is part of a resource's address. Search all namespaces:
+  kubectl get pod client-app --all-namespaces
+  kubectl get service backend-service --all-namespaces

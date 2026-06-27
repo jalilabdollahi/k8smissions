@@ -1,1 +1,6 @@
-Compare pod labels to service selector — there is a mismatch
+The Pod has app=backend, but the Service selects app=frontend. Run:
+  edit service backend-service
+Change its selector to:
+  app: backend
+  tier: api
+Save and apply it.

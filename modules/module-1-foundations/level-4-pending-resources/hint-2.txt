@@ -1,1 +1,3 @@
-0/1 nodes available: Insufficient cpu
+Read the scheduler message in Events:
+  kubectl describe pod hungry-app -n k8smissions
+Compare its requested CPU and memory with what a local kind node can provide.

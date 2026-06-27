@@ -1,1 +1,5 @@
-The log-shipper command references a path that doesn't exist
+Run:
+  edit pod app-with-logging
+Change log-sidecar's command to a long-running command, for example:
+  command: ["sh", "-c", "while true; do echo 'Logging...' >> /var/log/app.log; sleep 5; done"]
+Save and approve the replacement.

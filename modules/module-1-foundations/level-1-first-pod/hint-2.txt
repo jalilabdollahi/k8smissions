@@ -1,1 +1,4 @@
-kubectl describe pod hello-pod -n k8smissions
+Inspect the last failed container and its events:
+  kubectl logs nginx-broken -n k8smissions --previous
+  kubectl describe pod nginx-broken -n k8smissions
+The error mentions an executable named "nginxzz".

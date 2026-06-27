@@ -1,1 +1,4 @@
-The memory limit is 10Mi — this app needs more
+The app allocates about 128Mi, but its limit is only 64Mi. Run:
+  edit pod oom-pod
+Set memory request to 64Mi and memory limit to 256Mi, then save and approve
+the replacement.

@@ -1,1 +1,4 @@
-kubectl describe pod init-pod -n k8smissions → Init Containers
+Check the init-container state:
+  kubectl get pod web-with-init -n k8smissions
+  kubectl describe pod web-with-init -n k8smissions
+A Pod cannot start its main container until every init container succeeds.

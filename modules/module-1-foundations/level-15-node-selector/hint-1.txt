@@ -1,1 +1,4 @@
-kubectl describe pod nodeselector-pod -n k8smissions
+Confirm that the Pod has no assigned node:
+  kubectl get pod selector-pod -n k8smissions -o wide
+  kubectl describe pod selector-pod -n k8smissions
+Read the scheduler event at the bottom.

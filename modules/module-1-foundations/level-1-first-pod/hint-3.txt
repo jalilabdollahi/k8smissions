@@ -1,1 +1,4 @@
-The command field overrides the container's entrypoint
+The command field replaces nginx's normal startup command. Open the Pod:
+  edit pod nginx-broken
+Delete this line, save, and approve the replacement:
+  command: ["nginxzz"]

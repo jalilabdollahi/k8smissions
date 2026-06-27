@@ -1,1 +1,3 @@
-App prints "DATABASE_URL not set, exiting"
+The app prints "DATABASE_URL not set, exiting". Inspect the container spec:
+  kubectl get pod env-pod -n k8smissions -o yaml
+There is no env entry named DATABASE_URL.

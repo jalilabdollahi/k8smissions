@@ -1,1 +1,5 @@
-The image name has extra characters
+The configured tag does not exist. Run:
+  edit pod web-app
+Change the container image to:
+  image: nginx:latest
+Save and approve the replacement.

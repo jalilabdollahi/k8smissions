@@ -1,1 +1,3 @@
-kubectl describe pod pending-pod -n k8smissions → Events
+Confirm that the Pod is Pending:
+  kubectl get pod hungry-app -n k8smissions
+Pending with no NODE usually means the scheduler cannot place it.

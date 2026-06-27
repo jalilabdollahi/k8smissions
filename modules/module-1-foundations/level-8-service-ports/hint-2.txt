@@ -1,1 +1,2 @@
-What port does the pod actually listen on?
+The nginx container listens on port 80, but the Service forwards traffic to
+targetPort 8080. A Service can have endpoints and still use the wrong port.
