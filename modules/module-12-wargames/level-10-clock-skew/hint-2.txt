@@ -1,1 +1,1 @@
-kubectl get configmap node-clock-status -n k8smissions -o yaml
+The ConfigMap shows `ntp_sync: false` and `skew_seconds: 600`. With a 600-second clock skew, JWT tokens issued by a node with a correct clock appear to have been issued 10 minutes in the future from the skewed node's perspective — making them look expired when Kubernetes validates the `exp` claim.

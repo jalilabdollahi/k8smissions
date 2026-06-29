@@ -1,3 +1,5 @@
-Run: kubectl get pods -n k8smissions -l job-name=db-init
-Then: kubectl logs <pod-name> -n k8smissions
-The container tries to run a script that doesn't exist in the image.
+The pods are in Error state. Read the logs from one of them:
+
+  kubectl logs -n k8smissions -l job-name=db-init
+
+What command ran? What exit code did it produce and why?

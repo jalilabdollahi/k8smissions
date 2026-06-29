@@ -1,2 +1,1 @@
-NodeLocal DNSCache runs on every node (link-local IP: 169.254.20.10).
-When disabled (enabled: false), pods query kube-dns across the network — adding network RTT to every DNS lookup.
+The ConfigMap shows `enabled: 'false'`. NodeLocal DNSCache runs as a DaemonSet on each node, listening on a link-local IP (169.254.20.10). When disabled, pods still use the regular kube-dns path, which requires network traversal to the kube-dns pod.

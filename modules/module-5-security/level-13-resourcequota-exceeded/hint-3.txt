@@ -1,3 +1,1 @@
-The pod requests 400m CPU and 400Mi memory.
-The quota only allows 500m CPU total — there is little room for other pods.
-Reduce the pod's requests to cpu: 100m, memory: 100Mi
+The `quota-buster` pod's `resources.requests.cpu` is set to 400m in a namespace with a 500m total CPU quota. That leaves only 100m for all other pods, making most scheduling requests fail.

@@ -1,1 +1,1 @@
-Start with: Cluster Autoscaler deployment has wrong node group name in args
+Check the Cluster Autoscaler logs to see what node groups it's discovering: `kubectl logs -n k8smissions -l app=cluster-autoscaler | grep -i 'discovery\|group'`

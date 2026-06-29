@@ -1,7 +1,7 @@
 {
   "name": "Wrong Scheduler",
-  "description": "Pods for a machine learning workload are not being scheduled by the custom ML-aware scheduler.",
-  "objective": "The pod uses the default scheduler instead of the custom 'ml-scheduler' \u2014 set the schedulerName field",
+  "description": "A machine learning workload pod is being scheduled by the default Kubernetes scheduler instead of the custom ML-aware scheduler deployed for these workloads. Without specifying which scheduler to use, every pod defaults to `default-scheduler` — bypassing all GPU-topology and ML-specific placement logic.",
+  "objective": "The pod uses the default scheduler instead of the custom 'ml-scheduler' — set the schedulerName field",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

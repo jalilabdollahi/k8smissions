@@ -1,10 +1,1 @@
-Set up a conversion webhook:
-  conversion:
-    strategy: Webhook
-    webhook:
-      conversionReviewVersions: ["v1"]
-      clientConfig:
-        service:
-          name: db-operator-webhook
-          namespace: operators
-          port: 443
+The CRD needs two changes: set `storage: true` on v1beta1 (and `storage: false` on v1alpha1), and change `conversion.strategy` from `None` to `Webhook` with a webhook pointing to the conversion service.

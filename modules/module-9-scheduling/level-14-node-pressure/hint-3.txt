@@ -1,4 +1,1 @@
-Fix the pod's memory limit to a realistic value:
-  limits:
-    memory: 128Mi
-Also fix the command — allocating 1GB of zeros is the direct cause of pressure.
+The `memory-hog` pod runs `dd if=/dev/zero bs=1M count=1000` which allocates ~1GB, but its `resources.requests.memory` is only `50Mi` and `limits.memory` is `2Gi`. Change the command to `sleep 3600` and reduce the memory limit to `128Mi`.

@@ -1,7 +1,7 @@
 {
   "name": "Quota Flood",
-  "description": "A CI/CD bug created 50 identical pod copies in the namespace, exhausting the ResourceQuota. New deployments can't create pods.",
-  "objective": "Stale duplicate pods from a CI/CD bug have exhausted the namespace quota \u2014 delete all the duplicate ci-test-pod-* pods",
+  "description": "A CI/CD pipeline retry bug fired 20 times — each retry created a new `ci-test-pod-*` pod that completed successfully but was never deleted. The pods (all with `restartPolicy: Never`) are completed and doing nothing, but they each count against the namespace's ResourceQuota. New legitimate Deployments can't create pods because quota is exhausted.",
+  "objective": "Stale duplicate pods from a CI/CD bug have exhausted the namespace quota — delete all the duplicate ci-test-pod-* pods",
   "xp": 350,
   "difficulty": "expert",
   "expected_time": "15m",

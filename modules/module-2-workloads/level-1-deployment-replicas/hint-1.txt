@@ -1,1 +1,7 @@
-Start with: spec.replicas: 0
+The Deployment was created successfully — Kubernetes accepted it without errors. But zero pods appeared. This means the Deployment is not asking for any pods.
+
+Check the Deployment's current desired state:
+
+  kubectl get deployment ghost-deployment -n k8smissions
+
+Look at the READY and DESIRED columns.

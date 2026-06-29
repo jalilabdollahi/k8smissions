@@ -1,7 +1,7 @@
 {
-  "name": "Bad Release \u2014 Roll Back Helm",
-  "description": "All pods crashed immediately after a Helm upgrade.",
-  "objective": "A Helm upgrade deployed a broken image \u2014 roll back the release to the previous working revision",
+  "name": "Bad Release — Roll Back Helm",
+  "description": "All pods crashed immediately after a Helm upgrade. The upgrade pushed a broken image tag (`nginx:broken-tag`) to production. In a real environment the recovery is `helm rollback` — here you need to fix the manifest directly to restore the last known good state.",
+  "objective": "A Helm upgrade deployed a broken image — roll back the release to the previous working revision",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "10m",

@@ -1,7 +1,7 @@
 {
   "name": "Scheduler Deadlock",
-  "description": "All pods in the cluster are stuck Pending \u2014 even tiny pods with minimal resource requests can't schedule.",
-  "objective": "A misconfigured admission webhook is rejecting all scheduling decisions \u2014 identify and disable the broken webhook",
+  "description": "All pods in the cluster are stuck in Pending — even tiny pods with minimal resource requests that should schedule immediately. Nodes have available capacity. This is not a resource problem. A misconfigured admission webhook is blocking every pod creation request cluster-wide.",
+  "objective": "A misconfigured admission webhook is rejecting all scheduling decisions — identify and disable the broken webhook",
   "xp": 375,
   "difficulty": "advanced",
   "expected_time": "20m",

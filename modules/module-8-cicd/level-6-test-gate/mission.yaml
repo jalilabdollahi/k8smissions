@@ -1,7 +1,7 @@
 {
   "name": "Gate Blocks Deploy",
-  "description": "The deploy stage never runs \u2014 it is blocked by a test stage that always fails.",
-  "objective": "The test Task has a wrong test command exit code \u2014 fix the command so successful tests return exit 0",
+  "description": "The deploy stage in a CI pipeline never runs. A test Task sits before the deploy stage and acts as a gate — but the test script has `exit 1` hardcoded, which means the gate always fails regardless of whether the actual tests pass. The deploy stage is permanently blocked.",
+  "objective": "The test Task has a wrong test command exit code — fix the command so successful tests return exit 0",
   "xp": 275,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -1,1 +1,1 @@
-Delete all at once using label selectors: kubectl delete pod -l job=ci-test -n k8smissions
+Delete all stale CI pods: `kubectl delete pod -l job=ci-test -n k8smissions`. This frees 20 quota slots. To prevent future occurrences, add `spec.ttlSecondsAfterFinished: 300` to all CI Job specs.

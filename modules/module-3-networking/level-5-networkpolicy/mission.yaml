@@ -1,7 +1,7 @@
 {
   "name": "NetworkPolicy Too Strict",
-  "description": "Both frontend and backend pods are Running and healthy, but the frontend cannot reach the backend.",
-  "objective": "The NetworkPolicy blocks all ingress to the backend \u2014 add a rule that allows traffic from the frontend",
+  "description": "Pod frontend is Running and trying to reach the backend API every 5 seconds. Pod backend is Running. But requests are being silently dropped. Run kubectl logs frontend -n k8smissions.",
+  "objective": "The NetworkPolicy blocks all ingress to the backend — add a rule that allows traffic from the frontend",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

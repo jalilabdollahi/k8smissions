@@ -1,7 +1,7 @@
 {
   "name": "Time Drift",
-  "description": "JWT tokens are being rejected cluster-wide. Investigation shows a node's clock is 10 minutes ahead of the others.",
-  "objective": "A ConfigMap marks a node as having severe clock skew \u2014 update it to show the clock is synced and skew is resolved",
+  "description": "Authentication is broken cluster-wide. JWT tokens are being rejected with 'token expired' — but the tokens are freshly issued. The root cause is a 10-minute clock skew on a cluster node: NTP is not syncing, the node's clock is 10 minutes ahead, and when it issues or validates tokens, the timestamps appear far in the future compared to other components.",
+  "objective": "A ConfigMap marks a node as having severe clock skew — update it to show the clock is synced and skew is resolved",
   "xp": 350,
   "difficulty": "expert",
   "expected_time": "15m",

@@ -1,2 +1,1 @@
-Run: kubectl get clusterrole operator-role -o yaml
-Look at aggregationRule.clusterRoleSelectors — note the label it is matching for.
+Inspect the operator's ClusterRole to see if it has any rules: `kubectl get clusterrole operator-role -o yaml`

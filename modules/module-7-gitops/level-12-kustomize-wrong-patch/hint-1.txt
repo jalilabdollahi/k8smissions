@@ -1,2 +1,1 @@
-When a Kustomize patch is applied but has no effect, the patch target likely doesn't match any resource.
-Check: what is the exact name of the Deployment? What name does the patch target?
+Check the actual replica count on the Deployment: `kubectl get deployment -n k8smissions`. Compare it against what the Kustomize patch intended to set.

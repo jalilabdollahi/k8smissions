@@ -1,2 +1,1 @@
-PriorityClass defines a pod's importance. Higher priority pods preempt (evict) lower priority pods when resources are tight.
-The critical pod uses low-priority — it waits behind everything else.
+The pod is using `low-priority` class. Check what PriorityClasses exist: `kubectl get priorityclass`. The `critical-workload` pod should be using a high-priority class so the scheduler will preempt lower-priority pods to schedule it.

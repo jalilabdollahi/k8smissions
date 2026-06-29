@@ -1,7 +1,7 @@
 {
   "name": "Orphaned Resources",
-  "description": "Deleting a custom resource leaves behind Deployments and Services that belong to it.",
-  "objective": "The owned resources lack ownerReferences pointing to the CR \u2014 add ownerReferences for automatic garbage collection",
+  "description": "Deleting a custom resource leaves behind Deployments, Services, and other resources that were created by the operator for that CR. The owned resources have no `ownerReferences` pointing back to the CR — so Kubernetes garbage collection doesn't know to delete them when the parent is gone.",
+  "objective": "The owned resources lack ownerReferences pointing to the CR — add ownerReferences for automatic garbage collection",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "15m",

@@ -1,1 +1,1 @@
-Check which deployment has an unusually high replica count.
+Check API server responsiveness: `time kubectl get pods -A`. Then look for any unusually large Deployments: `kubectl get deployment -n k8smissions`

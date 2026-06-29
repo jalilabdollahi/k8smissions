@@ -1,7 +1,3 @@
-Run:
-  edit pod database-app
-Under the postgres container add:
-  env:
-  - name: POSTGRES_PASSWORD
-    value: mysecretpassword
-Save and approve the replacement.
+There is no `env` section. PostgreSQL requires at least one specific environment variable to be set before it will start. The log message names it directly.
+
+Add the missing variable to spec.containers[0] in manifest.yaml.

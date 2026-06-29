@@ -1,7 +1,7 @@
 {
   "name": "Data Lost on Restart",
-  "description": "Users report that uploaded files disappear after pod restarts.",
-  "objective": "The app uses an emptyDir volume \u2014 data is lost on every pod restart; replace it with a PersistentVolumeClaim",
+  "description": "Users report that uploaded files disappear every time the pod restarts. Run kubectl logs data-app -n k8smissions and look for the warning message about storage type.",
+  "objective": "The app uses an emptyDir volume — data is lost on every pod restart; replace it with a PersistentVolumeClaim",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "10m",

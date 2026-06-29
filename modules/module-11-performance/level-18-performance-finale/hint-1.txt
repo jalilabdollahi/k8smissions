@@ -1,4 +1,1 @@
-Three performance problems:
-1. kubectl exec dns-pod -- time nslookup api-svc -- should show slow DNS
-2. kubectl top pods -l app=tapi -- CPU at limit = throttling
-3. kubectl rollout status deployment/slow-rollout -- very slow progress
+Start with observation: `kubectl top pods -n k8smissions` for CPU usage, `kubectl rollout status deployment/slow-rollout -n k8smissions` for rollout progress, and `kubectl exec dns-pod -n k8smissions -- cat /etc/resolv.conf` for DNS config. Identify all three problems before touching anything.

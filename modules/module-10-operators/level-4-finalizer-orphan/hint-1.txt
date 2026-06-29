@@ -1,2 +1,1 @@
-Run: kubectl get database prod-db -n k8smissions -o yaml | grep -A3 finalizers
-If it's stuck with a finalizer, the operator is failing to clear it.
+Check why the deletion is blocked: `kubectl get database prod-db -n k8smissions -o yaml | grep -A5 finalizers`

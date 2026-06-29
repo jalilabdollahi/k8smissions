@@ -1,4 +1,1 @@
-Add a workspace binding in the PipelineRun:
-  workspaces:
-  - name: source
-    emptyDir: {}
+The PipelineRun has `workspaces: []` but the Pipeline it references declares a workspace named `source`. You need to add a workspace binding that maps the `source` name to actual storage (an `emptyDir` or a PVC).

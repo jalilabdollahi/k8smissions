@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The client pod's command in manifest.yaml uses `-h database` (the pod name). It needs to use `-h database-service` (the Service name) instead.
+
+Find the args field in spec.containers[0] of the app-client pod in manifest.yaml.

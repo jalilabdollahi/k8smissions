@@ -1,4 +1,1 @@
-In the controller's reconciliation loop:
-  1. Read current generation and observedGeneration
-  2. If equal, skip reconciliation (no spec change)
-  3. After successful reconciliation, update status.observedGeneration = metadata.generation
+The `status.observedGeneration` field is set to `1` but the resource is at `generation: 5`. Update `observedGeneration` to `5` in the status to reflect that the operator has processed the current spec version.

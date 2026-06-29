@@ -1,2 +1,1 @@
-CPU throttling: when a container hits its CPU limit, Linux CFS (Completely Fair Scheduler) bandwidth control kicks in.
-It suspends the container for the rest of the 100ms scheduling period — causing latency spikes in P99 measurements.
+You should see `requests.cpu: 100m` and `limits.cpu: 100m`. When a traffic spike hits, the nginx process tries to use more than 100 millicores — but the Linux CFS throttle blocks it. The throttle continues for the rest of the 100ms scheduling window, causing latency spikes.

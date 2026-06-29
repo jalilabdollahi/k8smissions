@@ -1,7 +1,7 @@
 {
   "name": "Zombie Namespace",
-  "description": "A namespace has been stuck in Terminating state for over an hour \u2014 it cannot be deleted.",
-  "objective": "Objects with finalizers inside the namespace are blocking deletion \u2014 find and remove the finalizers",
+  "description": "A namespace has been stuck in Terminating state for over an hour. `kubectl delete namespace zombie-ns` completed without error but the namespace never disappeared. A ConfigMap inside holds a finalizer registered by a controller that was deleted — and since no controller will ever clear that finalizer, the namespace is stuck forever.",
+  "objective": "Objects with finalizers inside the namespace are blocking deletion — find and remove the finalizers",
   "xp": 250,
   "difficulty": "advanced",
   "expected_time": "15m",

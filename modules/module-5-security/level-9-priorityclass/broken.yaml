@@ -32,8 +32,6 @@ spec:
       requests:
         cpu: "500m"  # Needs resources
         memory: "512Mi"
-  # ❌ No priorityClassName!
-  # ❌ No PriorityClass defined!
   # Can't preempt dev-workload-1 even though it's critical
   
 # Result: If resources full, critical-api stays Pending

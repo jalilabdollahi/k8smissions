@@ -1,7 +1,7 @@
 {
   "name": "StatefulSet Can't Reach Itself",
-  "description": "StatefulSet pods cannot resolve each other by hostname via DNS.",
-  "objective": "The StatefulSet service has a ClusterIP \u2014 remove it to make the service headless and enable per-pod DNS records",
+  "description": "StatefulSet web has 3 pods running, but pods cannot resolve each other by hostname. The application expects to reach web-0 at web-0.web-cluster.k8smissions.svc.cluster.local. Run kubectl exec web-0 -n k8smissions -- nslookup web-0.web-cluster.",
+  "objective": "The StatefulSet service has a ClusterIP — remove it to make the service headless and enable per-pod DNS records",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

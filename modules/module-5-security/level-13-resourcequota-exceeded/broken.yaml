@@ -26,8 +26,8 @@ spec:
     - sleep 3600
     resources:
       requests:
-        cpu: 400m      # ❌ BUG: Requests 400m of the 500m CPU quota — leaves almost nothing for other pods.
-        memory: 400Mi  # ❌ BUG: Requests 400Mi of the 512Mi memory quota — other pods cannot schedule.
+        cpu: 400m
+        memory: 400Mi
       limits:
         cpu: 800m
         memory: 900Mi

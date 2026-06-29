@@ -1,2 +1,1 @@
-A Pipeline declares workspaces that Tasks use to share data.
-A PipelineRun must bind each workspace to an actual volume source.
+The status should say something like 'workspace source not bound' or 'expected workspace source'. Look at the `workspaces` field in the PipelineRun spec — it's an empty list.

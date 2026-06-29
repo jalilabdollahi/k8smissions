@@ -1,6 +1,6 @@
 {
   "name": "P0 Incident",
-  "description": "Five simultaneous failures: Secret deleted, Deployment scaled to 0, NetworkPolicy blocking DNS, PVC pending, and node labeled incorrectly.",
+  "description": "A P0 incident: five separate failures hit the namespace simultaneously. A missing Secret prevents pods from starting, a missing ServiceAccount blocks the Deployment spec from being satisfied, the Deployment itself is scaled to 0 with an impossible nodeSelector, a NetworkPolicy blocks DNS resolution for all pods, and a PVC requests an impossibly large storage size. Fix all five in the correct dependency order.",
   "objective": "Fix five simultaneous production failures: missing Secret, zero-replica Deployment, DNS-blocking NetworkPolicy, Pending PVC, and bad nodeSelector",
   "xp": 500,
   "difficulty": "expert",

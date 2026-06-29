@@ -1,1 +1,1 @@
-Goal state: Either remove affinity OR label a node: kubectl label node <name> zone=gpu-zone
+The events should say 'didn't match Pod's node affinity/selector'. Now check what labels your nodes actually carry: `kubectl get nodes --show-labels`. Compare those labels against what the affinity rule requires.

@@ -1,7 +1,7 @@
 {
   "name": "Why Does It Keep Restarting?",
-  "description": "A pod shows 8 restarts in the last hour with no obvious error message.",
-  "objective": "The pod shows 8 restarts but no obvious error \u2014 use events, describe, and logs to determine the actual restart cause",
+  "description": "A pod shows 8 restarts in the past hour but the current logs show nothing — no crash message, no application error. The restarts happen silently. You need to read the pod's history to determine what actually killed it each time.",
+  "objective": "The pod shows 8 restarts but no obvious error — use events, describe, and logs to determine the actual restart cause",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

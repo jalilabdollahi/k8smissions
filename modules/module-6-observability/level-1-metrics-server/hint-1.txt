@@ -1,1 +1,1 @@
-Start with: No metrics-server component in cluster
+Check whether the metrics-server is actually running any pods: `kubectl get pods -n k8smissions -l app=metrics-server`

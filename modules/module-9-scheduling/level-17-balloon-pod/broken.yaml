@@ -13,7 +13,6 @@ spec:
     image: registry.k8s.io/pause:3.9
     resources:
       requests:
-        # ❌ BUG: Oversized requests of 2000m CPU and 4Gi memory on a no-op pause
         # container. This balloon pod silently consumes node scheduling capacity,
         # blocking real workloads from scheduling without any visible CPU/memory usage.
         cpu: 2000m

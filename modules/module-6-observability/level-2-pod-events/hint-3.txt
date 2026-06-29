@@ -1,1 +1,1 @@
-Validation target: Pod Running
+The pod's `image` field specifies a tag that does not exist in the registry. The container image reference needs to be updated to a valid tag.

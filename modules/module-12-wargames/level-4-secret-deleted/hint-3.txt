@@ -1,1 +1,1 @@
-Create the Secret: kubectl create secret generic db-credentials --from-literal=username=appuser --from-literal=password=securepass123 -n k8smissions
+Recreate the Secret with the correct key names: `username` and `password` (matching what `secretKeyRef.key` expects). Once the Secret exists, Kubernetes will automatically retry the pod creation and it will transition to Running.

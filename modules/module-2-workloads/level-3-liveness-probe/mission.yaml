@@ -1,7 +1,7 @@
 {
   "name": "The Restart Loop",
-  "description": "Pods in the Deployment keep restarting despite the application appearing to start.",
-  "objective": "The liveness probe path doesn't match any endpoint the app exposes \u2014 fix the probe path so it stops killing healthy pods",
+  "description": "Pods in Deployment api-server keep restarting despite the container starting up cleanly. The RESTARTS column keeps climbing. Run kubectl get pods -n k8smissions.",
+  "objective": "The liveness probe path doesn't match any endpoint the app exposes — fix the probe path so it stops killing healthy pods",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

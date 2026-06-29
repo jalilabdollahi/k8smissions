@@ -1,2 +1,1 @@
-Run: kubectl rollout status deployment/java-app -n k8smissions
-Watch pods becoming ready during rollout — are they immediately marked ready?
+Watch pod status during a rollout: `kubectl rollout status deployment/java-app -n k8smissions`. Notice pods transition to Ready very quickly, but check if they actually respond: `kubectl exec <pod> -- curl -f http://localhost:8080/health/ready`

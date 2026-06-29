@@ -1,3 +1,7 @@
-Inspect the waiting container and its Events:
-  kubectl get pod secret-pod -n k8smissions
+CreateContainerConfigError means Kubernetes cannot assemble the configuration the container needs before launching it. The error happens before the container runs.
+
+Read the Events:
+
   kubectl describe pod secret-pod -n k8smissions
+
+What does the Events section say?

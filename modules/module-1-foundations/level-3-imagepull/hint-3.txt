@@ -1,5 +1,1 @@
-The configured tag does not exist. Run:
-  edit pod web-app
-Change the container image to:
-  image: nginx:latest
-Save and approve the replacement.
+The image is `nginx:nonexistent-tag-xyz-123`. This tag does not exist on Docker Hub. The fix is in the `image` field inside spec.containers[0] in manifest.yaml.

@@ -1,1 +1,9 @@
-Validation target: Use the validator to confirm the repaired state.
+The fix is adding `fsGroup: 1000` to the pod-level `securityContext` (not the container-level securityContext).
+
+In manifest.yaml, add this at `spec.securityContext`:
+
+```yaml
+spec:
+  securityContext:
+    fsGroup: 1000
+```

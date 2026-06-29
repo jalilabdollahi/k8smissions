@@ -1,7 +1,7 @@
 {
   "name": "ArgoCD Out of Sync",
-  "description": "The ArgoCD application shows OutOfSync and Degraded status.",
-  "objective": "ArgoCD shows OutOfSync and the target namespace is missing \u2014 create the namespace and trigger a sync",
+  "description": "An ArgoCD application shows OutOfSync and Degraded status. The application is configured to deploy resources into a namespace called `webapp-prod`, but that namespace doesn't exist. Until the namespace exists, ArgoCD has nowhere to put the resources and the sync fails.",
+  "objective": "ArgoCD shows OutOfSync and the target namespace is missing — create the namespace and trigger a sync",
   "xp": 400,
   "difficulty": "advanced",
   "expected_time": "10m",

@@ -1,1 +1,1 @@
-Goal state: kubectl describe node → identify pressure condition Identify and remove / limit high-memory pods OR cordon node and reschedule workloads
+You should see `MemoryPressure: True`. Now find which pod is responsible: `kubectl top pods -n k8smissions`. Then inspect the memory-hog Deployment to see how many replicas are running and what each container does.

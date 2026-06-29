@@ -1,4 +1,3 @@
-# ❌ BUG: Deployment scaled to 50 replicas — each pod holds a persistent watch connection
 # to the Kubernetes API server. 50 concurrent watchers overwhelm the API server,
 # causing cluster-wide latency spikes for all kubectl commands and controllers.
 # Symptoms: kubectl commands hang, controllers slow to reconcile, pod scheduling delays.
@@ -8,7 +7,7 @@ metadata:
   name: api-watcher
   namespace: k8smissions
 spec:
-  replicas: 50  # ❌ BUG: 50 replicas × 1 persistent watch each = API server connection flood
+  replicas: 50
   selector:
     matchLabels:
       app: api-watcher

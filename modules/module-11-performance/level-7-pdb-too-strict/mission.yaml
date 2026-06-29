@@ -1,7 +1,7 @@
 {
   "name": "Deployment Stuck",
-  "description": "A rolling deployment is completely blocked \u2014 no pods can be rotated even though the cluster has capacity.",
-  "objective": "The PodDisruptionBudget requires all 3 pods available at all times \u2014 relax it to allow one disruption",
+  "description": "Node maintenance is blocked — `kubectl drain` fails with 'Cannot evict pod as it would violate the pod's disruption budget'. The PodDisruptionBudget requires a minimum of 3 pods available, but the deployment only has 3 replicas total. This means zero pods can ever be evicted, making node maintenance impossible.",
+  "objective": "The PodDisruptionBudget requires all 3 pods available at all times — relax it to allow one disruption",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

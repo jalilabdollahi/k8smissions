@@ -1,1 +1,5 @@
-Start with: Secret with password in base64 AND no RBAC restriction
+The Secret data shows base64-encoded values. Many engineers assume this is a form of encryption. Test that assumption — decode one of the values right now:
+
+  kubectl get secret db-credentials -n k8smissions -o jsonpath='{.data.password}' | base64 -d
+
+What do you see?

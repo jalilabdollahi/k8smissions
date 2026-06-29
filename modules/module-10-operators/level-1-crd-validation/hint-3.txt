@@ -1,5 +1,1 @@
-Fix the CRD schema to allow minimum: 1:
-  replicas:
-    type: integer
-    minimum: 1
-Or update the CR to set replicas: 5 or higher.
+The CRD's OpenAPI schema has `minimum: 5` on the `replicas` field. Change it to `minimum: 1` so that valid replica counts like 1, 2, or 3 are accepted.

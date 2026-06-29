@@ -1,7 +1,7 @@
 {
   "name": "Permission Denied",
-  "description": "Pod is crashing after mounting a volume \u2014 inspect the logs to investigate.",
-  "objective": "The volume is owned by root but the container runs as a non-root user \u2014 set fsGroup or fix permissions so the container can write",
+  "description": "Pod writer-app crashes immediately after the volume mounts. Run kubectl logs writer-app -n k8smissions to read the error.",
+  "objective": "The volume is owned by root but the container runs as a non-root user — set fsGroup or fix permissions so the container can write",
   "xp": 300,
   "difficulty": "advanced",
   "expected_time": "10m",

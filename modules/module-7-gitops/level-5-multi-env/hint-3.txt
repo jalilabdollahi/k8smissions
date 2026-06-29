@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+Three things are wrong at once: the ConfigMap has `LOG_LEVEL: debug` (should be `info`), the Deployment has `replicas: 1` (should be `3`), and the container has no `resources.limits` block at all.

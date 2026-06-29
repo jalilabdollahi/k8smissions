@@ -1,3 +1,1 @@
-Set the scheduler name in the pod spec:
-  spec:
-    schedulerName: ml-scheduler
+The pod spec has no `schedulerName` field. Without it, Kubernetes always uses `default-scheduler`. Add `schedulerName: ml-scheduler` to the pod spec to route it to the correct scheduler.

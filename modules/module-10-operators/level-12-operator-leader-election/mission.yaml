@@ -1,7 +1,7 @@
 {
   "name": "Split Brain",
-  "description": "Two operator replicas are both running and both sending conflicting reconciliation commands \u2014 resources flap.",
-  "objective": "Leader election is disabled on the operator \u2014 only one replica should run as leader; others should standby",
+  "description": "Two operator replicas are running simultaneously and both are actively reconciling the same custom resources. They produce conflicting updates — resources flip back and forth between states as each replica overwrites the other's changes. Leader election is disabled, causing a split-brain condition.",
+  "objective": "Leader election is disabled on the operator — only one replica should run as leader; others should standby",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "15m",

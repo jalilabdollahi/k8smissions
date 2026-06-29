@@ -1,7 +1,7 @@
 {
   "name": "Chicken and Egg",
-  "description": "A new pod is stuck Pending \u2014 it requires affinity to a pod that doesn't exist yet.",
-  "objective": "The podAffinity rule requires a pod with label 'tier: cache' but no such pod exists \u2014 the affinity creates a deadlock. Fix it using preferredDuringScheduling instead",
+  "description": "A new pod is stuck in Pending. It requires affinity to a pod with the label `tier: cache` — but no such pod exists in the cluster yet. The hard affinity rule creates a deadlock: the app pod can't start without the cache pod, but nothing is deploying the cache pod either.",
+  "objective": "The podAffinity rule requires a pod with label 'tier: cache' but no such pod exists — the affinity creates a deadlock. Fix it using preferredDuringScheduling instead",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

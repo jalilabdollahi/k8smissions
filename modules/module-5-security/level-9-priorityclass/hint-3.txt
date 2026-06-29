@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The critical pod spec has no `priorityClassName` field, and no PriorityClass resource exists in the cluster. Without a higher numeric priority, the scheduler has no basis for preempting the dev pods.

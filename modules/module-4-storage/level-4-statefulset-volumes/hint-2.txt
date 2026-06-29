@@ -1,1 +1,5 @@
-Goal state: Remove the shared PVC reference, add volumeClaimTemplates so Kubernetes creates one PVC per pod automatically
+There is only one PVC — `database-storage` — shared by all 3 postgres pods. All pods are writing to the same location, which means each pod overwrites the other's data. This is never correct for a database cluster.
+
+Check the StatefulSet spec to see how the volume is defined:
+
+  kubectl get statefulset postgres-cluster -n k8smissions -o yaml | grep -A10 'volumes'

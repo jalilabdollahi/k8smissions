@@ -1,1 +1,1 @@
-Validation target: Rolling update completes with zero dropped connections
+Two fields are missing: `lifecycle.preStop` on the container (to introduce a short delay before SIGTERM, giving kube-proxy time to update) and `terminationGracePeriodSeconds` on the pod spec (to give the app enough time to finish draining active connections).

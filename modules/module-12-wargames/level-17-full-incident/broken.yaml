@@ -1,4 +1,3 @@
-# ❌ BUG: P0 Incident — 5 simultaneous failures. Fix in dependency order:
 # 1. Secret p0-secret is missing (pod cannot start without it)
 # 2. ServiceAccount p0-sa is missing (pod spec references it)
 # 3. Deployment has replicas:0 AND nodeSelector pointing to non-existent label
@@ -11,7 +10,7 @@ metadata:
   name: p0-app
   namespace: k8smissions
 spec:
-  replicas: 0  # ❌ BUG: Deployment scaled to zero — no running pods
+  replicas: 0
   selector:
     matchLabels:
       app: p0-app
@@ -20,9 +19,9 @@ spec:
       labels:
         app: p0-app
     spec:
-      serviceAccountName: p0-sa  # ❌ BUG: ServiceAccount p0-sa does not exist in cluster
+      serviceAccountName: p0-sa
       nodeSelector:
-        environment: prod-zone-nonexistent  # ❌ BUG: No node has this label — pods would be Unschedulable
+        environment: prod-zone-nonexistent
       containers:
       - name: p0-app
         image: busybox:1.36
@@ -34,10 +33,9 @@ spec:
         - name: DB_PASS
           valueFrom:
             secretKeyRef:
-              name: p0-secret  # ❌ BUG: Secret p0-secret does not exist — CreateContainerConfigError
+              name: p0-secret
               key: password
 ---
-# ❌ BUG: NetworkPolicy only allows TCP:80 egress — DNS (UDP/TCP port 53) is blocked.
 # Pods cannot resolve any service names — all DNS lookups fail.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -51,9 +49,8 @@ spec:
   egress:
   - ports:
     - port: 80
-      protocol: TCP  # ❌ BUG: Only TCP:80 allowed — DNS port 53 UDP+TCP is blocked
+      protocol: TCP
 ---
-# ❌ BUG: PVC requests 999Ti storage — impossible to provision on any standard storage class.
 # PVC will remain Pending forever, blocking any pod that mounts it.
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -65,5 +62,5 @@ spec:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 999Ti  # ❌ BUG: Impossibly large storage request — PVC stuck in Pending
+      storage: 999Ti
   storageClassName: standard

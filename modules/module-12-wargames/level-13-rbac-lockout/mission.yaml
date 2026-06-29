@@ -1,7 +1,7 @@
 {
   "name": "Locked Out",
-  "description": "A service account rotation went wrong. The app-sa ServiceAccount now has no RoleBinding and all API calls are rejected with 403.",
-  "objective": "The app-sa ServiceAccount lost its RoleBinding during rotation \u2014 recreate the binding to restore API access",
+  "description": "An application is returning 403 Forbidden on all Kubernetes API calls — it can't list pods or read ConfigMaps. During a ServiceAccount rotation, the RoleBinding connecting the ServiceAccount to its Role was accidentally deleted. The ServiceAccount and Role both exist, but without the RoleBinding there's no grant of permissions.",
+  "objective": "The app-sa ServiceAccount lost its RoleBinding during rotation — recreate the binding to restore API access",
   "xp": 400,
   "difficulty": "expert",
   "expected_time": "15m",

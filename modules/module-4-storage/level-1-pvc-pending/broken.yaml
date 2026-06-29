@@ -4,7 +4,6 @@ kind: Namespace
 metadata:
   name: k8smissions
 ---
-# ❌ BROKEN: PVC requests 5Gi but PV only provides 1Gi
 # Also, PVC requests storage class "fast" but PV has "standard"
 apiVersion: v1
 kind: PersistentVolume
@@ -12,11 +11,11 @@ metadata:
   name: app-storage
 spec:
   capacity:
-    storage: 1Gi  # ❌ Too small! PVC needs 5Gi
+    storage: 1Gi
   accessModes:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
-  storageClassName: standard  # ❌ Wrong class! PVC needs "fast"
+  storageClassName: standard
   hostPath:
     path: /tmp/k8smissions-data
     type: DirectoryOrCreate
@@ -29,10 +28,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: fast  # ❌ No PV with this storage class!
+  storageClassName: fast
   resources:
     requests:
-      storage: 5Gi  # ❌ No PV has this much capacity!
+      storage: 5Gi
 ---
 apiVersion: v1
 kind: Pod

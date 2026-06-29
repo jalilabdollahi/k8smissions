@@ -6,4 +6,4 @@ metadata:
 spec:
   taskRef:
     name: image-push
-  params: []  # ❌ BUG: Task 'image-push' requires param IMAGE with no default — empty params causes validation failure at admission time
+  params: []

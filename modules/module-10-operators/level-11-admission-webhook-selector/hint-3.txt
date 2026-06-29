@@ -1,6 +1,1 @@
-Add a namespaceSelector to exclude system namespaces:
-  namespaceSelector:
-    matchExpressions:
-    - key: kubernetes.io/metadata.name
-      operator: NotIn
-      values: [kube-system, kube-public, kube-node-lease]
+The webhook has no `namespaceSelector`. Add one that excludes `kube-system`, `kube-public`, and `kube-node-lease` so system pods are never sent through the webhook.

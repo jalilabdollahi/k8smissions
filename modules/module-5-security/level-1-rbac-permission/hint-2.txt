@@ -1,1 +1,1 @@
-Goal state: Create Role (verbs: get, list, watch on pods) + RoleBinding
+You should see something like 'User cannot list resource pods'. Now check which RBAC objects exist for the ServiceAccount being used: `kubectl get role,rolebinding -n k8smissions`

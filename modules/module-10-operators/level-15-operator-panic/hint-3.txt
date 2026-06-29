@@ -1,8 +1,1 @@
-Add an init container that waits for the CRD to exist:
-  initContainers:
-  - name: wait-for-crd
-    image: bitnami/kubectl:latest
-    command:
-    - /bin/sh
-    - -c
-    - until kubectl get crd workloads.example.com; do sleep 5; done
+The operator Deployment has `initContainers: []`. Add an init container that polls `kubectl get crd workloads.example.com` in a loop until it succeeds — this blocks the main operator container from starting until the CRD is registered.

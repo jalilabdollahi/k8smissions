@@ -1,7 +1,7 @@
 {
   "name": "Dev Config in Production",
-  "description": "Production deployment is running, but something about its configuration does not look right.",
-  "objective": "Production is running with dev config (debug logging, 1 replica, no limits) \u2014 apply the production Kustomize overlay",
+  "description": "Production is running, but the configuration was never promoted from development settings. The log level is DEBUG, there is only 1 replica, and there are no resource limits — all hallmarks of the dev overlay being applied to production instead of the production overlay.",
+  "objective": "Production is running with dev config (debug logging, 1 replica, no limits) — apply the production Kustomize overlay",
   "xp": 400,
   "difficulty": "advanced",
   "expected_time": "10m",

@@ -1,2 +1,1 @@
-Run: kubectl argo rollouts get rollout web-rollout -n k8smissions
-Status 'Degraded' means it was aborted and rolled back to stable.
+Check the Rollout status and event history: `kubectl argo rollouts get rollout web-rollout -n k8smissions`

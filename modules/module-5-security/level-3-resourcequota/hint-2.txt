@@ -1,1 +1,1 @@
-Goal state: Reduce CPU request per pod to 600m OR delete unused pods OR request quota increase (update ResourceQuota)
+The events should say 'exceeded quota: compute-quota, requested: requests.cpu=2500m'. Now check what the namespace quota allows in total: `kubectl describe resourcequota compute-quota -n k8smissions`

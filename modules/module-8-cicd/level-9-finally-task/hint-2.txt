@@ -1,2 +1,1 @@
-Tekton 'finally' tasks always run regardless of pipeline success or failure.
-Tasks in 'tasks:' only run when their runAfter dependencies succeed.
+The cleanup Task is in `spec.tasks` with `runAfter: [build]`. This means it only runs when `build` succeeds — `runAfter` is a dependency, not a guarantee. Tekton has a different section for guaranteed cleanup.

@@ -1,1 +1,1 @@
-Validation target: Player outputs the crash reason from previous logs
+The pod's `args` field references `/missing.sh` which does not exist inside the busybox image. Every time the container starts, the shell fails immediately with a 'not found' error and exits.

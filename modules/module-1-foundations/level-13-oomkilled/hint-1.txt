@@ -1,4 +1,5 @@
-Check why the container last terminated:
-  kubectl get pod oom-pod -n k8smissions
+Multiple restarts with no obvious crash message usually means the container was killed by the OS, not by the application itself. Get the details of the last termination:
+
   kubectl describe pod oom-pod -n k8smissions
-Look under Last State, not only the current State.
+
+Look at the 'Last State' section under the container.

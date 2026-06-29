@@ -1,7 +1,7 @@
 {
   "name": "Blocked Deploy",
-  "description": "The pipeline's deploy Task fails with 'Forbidden' when trying to apply manifests.",
-  "objective": "The pipeline ServiceAccount lacks permission to create Deployments \u2014 add the required RBAC role",
+  "description": "The pipeline's deploy Task runs `kubectl apply` to push new manifests to the cluster, but it fails with '403 Forbidden'. The Task pod runs as the `deploy-sa` ServiceAccount, which has no RBAC permissions — it can't create or update any Kubernetes resources.",
+  "objective": "The pipeline ServiceAccount lacks permission to create Deployments — add the required RBAC role",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "12m",

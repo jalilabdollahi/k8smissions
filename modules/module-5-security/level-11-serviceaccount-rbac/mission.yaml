@@ -1,7 +1,7 @@
 {
   "name": "Forbidden Access",
-  "description": "A pod that lists ConfigMaps is crashing with a 403 Forbidden error from the Kubernetes API.",
-  "objective": "The pod's ServiceAccount has no Role/RoleBinding \u2014 create the RBAC resources to grant configmap read access",
+  "description": "A pod that reads ConfigMaps at startup to load application configuration is printing FORBIDDEN and exiting. The ServiceAccount it uses was created and assigned, but it was deployed without any RBAC permissions — making every API call it attempts a 403 error.",
+  "objective": "The pod's ServiceAccount has no Role/RoleBinding — create the RBAC resources to grant configmap read access",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

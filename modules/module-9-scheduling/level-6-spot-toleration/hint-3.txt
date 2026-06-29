@@ -1,10 +1,1 @@
-Remove the nodeSelector (or make it a soft preference) and add toleration for on-demand nodes:
-  tolerations:
-  - key: spot
-    operator: Equal
-    value: true
-    effect: NoSchedule
-  - key: on-demand
-    operator: Equal
-    value: true
-    effect: NoSchedule
+Two things need fixing: the `nodeSelector: {node-type: spot}` blocks rescheduling to on-demand nodes, and there is no toleration for the `on-demand=true:NoSchedule` taint. Remove the nodeSelector and add the on-demand toleration.

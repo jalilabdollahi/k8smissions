@@ -1,2 +1,5 @@
-A database PV was deleted along with its PVC during an upgrade. The team lost all data.
-Check what policy controls whether the underlying volume is preserved when a PVC is deleted.
+Look at the `persistentVolumeReclaimPolicy` field in the PV spec:
+
+  kubectl get pv db-data-pv -o yaml | grep 'persistentVolumeReclaimPolicy'
+
+What happens to this PV when the PVC that binds to it is deleted?

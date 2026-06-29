@@ -1,2 +1,5 @@
-Run: kubectl get pvc shared-pvc -n k8smissions -o yaml | grep accessModes
-ReadWriteOnce means at most ONE node can mount the volume for writing.
+Check the PVC's access mode:
+
+  kubectl get pvc shared-pvc -n k8smissions -o yaml | grep 'accessModes'
+
+What does `ReadWriteOnce` actually mean? Does it allow multiple pods on different nodes to mount the same volume?

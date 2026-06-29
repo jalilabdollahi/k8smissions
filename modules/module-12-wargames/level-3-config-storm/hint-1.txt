@@ -1,1 +1,1 @@
-All pods are crashing — check what env vars they expect and compare to the ConfigMap.
+Check the CrashLoopBackOff pods: `kubectl logs -n k8smissions -l app=config-app`. You should see the container exiting immediately with code 1.

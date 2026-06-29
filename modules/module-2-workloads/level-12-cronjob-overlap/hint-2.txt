@@ -1,2 +1,5 @@
-concurrencyPolicy: Allow means new jobs start even if the previous one is still running.
-For a job that takes 120s but fires every 60s, the backlog grows without limit.
+Each pod runs for 120 seconds (the `sleep 120` command). The CronJob fires every 60 seconds. This means a new job starts every minute, but the previous one is still running — and because `concurrencyPolicy: Allow` is set, Kubernetes allows multiple jobs to run at the same time.
+
+Check the CronJob spec:
+
+  kubectl get cronjob data-processor -n k8smissions -o yaml | grep 'concurrencyPolicy'

@@ -1,4 +1,1 @@
-Create a Role and RoleBinding:
-  Role: allow get/list/watch on configmaps
-  RoleBinding: bind the Role to config-reader-sa ServiceAccount
-Then: kubectl auth can-i list configmaps --as=... should return 'yes'
+The `config-reader-sa` ServiceAccount has no Role and no RoleBinding. Kubernetes ServiceAccounts have zero API access by default — every permission must be explicitly granted.

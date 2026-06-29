@@ -1,7 +1,1 @@
-Increase replicas to 5 with topology spread:
-  replicas: 5
-  topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-With 5 replicas, losing 50% leaves 3 — enough for degraded service.
+Increase `replicas` from 2 to 5. Add `topologySpreadConstraints` with `topologyKey: kubernetes.io/hostname` and `maxSkew: 1` to force pods to spread evenly across nodes — so no single node failure can take down more than ~20% of capacity.

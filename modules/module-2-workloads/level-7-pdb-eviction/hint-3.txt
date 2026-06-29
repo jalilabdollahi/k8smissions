@@ -1,1 +1,3 @@
-Validation target: kubectl drain succeeds without error
+The PDB `minAvailable: 3` equals the total replica count. You need to lower `minAvailable` to a number that allows at least one pod to be evicted.
+
+Find spec.minAvailable in the PodDisruptionBudget in manifest.yaml.

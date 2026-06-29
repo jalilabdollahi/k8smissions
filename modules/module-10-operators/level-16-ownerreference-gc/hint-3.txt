@@ -1,8 +1,1 @@
-Add ownerReferences to child resources pointing to the CR:
-  ownerReferences:
-  - apiVersion: example.com/v1
-    kind: MyApp
-    name: my-app
-    uid: <uid-of-cr>   # get from the CR
-    controller: true
-    blockOwnerDeletion: true
+The Deployment has no `ownerReferences` field. Add an `ownerReferences` entry pointing to the parent `MyApp` CR with `controller: true` and `blockOwnerDeletion: true` to enable cascading garbage collection.

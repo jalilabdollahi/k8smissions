@@ -1,4 +1,1 @@
-For each stuck object:
-  kubectl patch <kind> <name> -n zombie-ns \
-    -p '{"metadata":{"finalizers":[]}}' --type=merge
-Once all object finalizers are cleared, the namespace finalizer resolves and deletion completes.
+The ConfigMap `stuck-resource` has a finalizer `some.controller.io/cleanup` that will never be cleared automatically. You need to patch the ConfigMap to set `finalizers: []`, which removes the block and allows the namespace deletion to complete.

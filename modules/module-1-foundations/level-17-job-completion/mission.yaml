@@ -1,7 +1,7 @@
 {
   "name": "One-Shot Task",
-  "description": "A Job has been deployed but keeps failing with BackoffLimitExceeded.",
-  "objective": "The Job container command exits non-zero \u2014 fix the command so the Job completes successfully",
+  "description": "Job db-init has reached BackoffLimitExceeded. Run kubectl get jobs -n k8smissions to see its current state.",
+  "objective": "The Job container command exits non-zero — fix the command so the Job completes successfully",
   "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "8m",

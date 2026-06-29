@@ -1,7 +1,7 @@
 {
   "name": "Manual Block",
-  "description": "A release pipeline has been waiting for an approval for two days \u2014 the approver left the company.",
-  "objective": "A pipeline run is stuck pending approval \u2014 configure the approval step to auto-approve or override it",
+  "description": "A release pipeline has been stuck for two days waiting for a manual approval that will never come — the approver left the company. The pipeline has a Task that loops forever polling for an approval file. It needs to be overridden so the pipeline can proceed.",
+  "objective": "A pipeline run is stuck pending approval — configure the approval step to auto-approve or override it",
   "xp": 275,
   "difficulty": "intermediate",
   "expected_time": "8m",

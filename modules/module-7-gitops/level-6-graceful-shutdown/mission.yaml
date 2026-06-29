@@ -1,12 +1,12 @@
 {
   "name": "Requests Dropped During Rollout",
-  "description": "During rolling updates, users experience connection reset errors.",
-  "objective": "Pods are terminated mid-request during rollouts \u2014 add a preStop hook and set terminationGracePeriodSeconds",
+  "description": "Users experience connection reset errors during rolling updates. Pods are being killed while they still have active connections. There is nothing telling Kubernetes to wait before sending SIGTERM or to give the application time to drain — so in-flight requests are dropped the moment the pod is removed from the endpoints list.",
+  "objective": "Pods are terminated mid-request during rollouts — add a preStop hook and set terminationGracePeriodSeconds",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "10m",
   "concepts": [
-    "Pod termination lifecycle (SIGTERM \u2192 grace period \u2192 SIGKILL)",
+    "Pod termination lifecycle (SIGTERM → grace period → SIGKILL)",
     "preStop hooks",
     "connection draining",
     "zero-downtime deploys"

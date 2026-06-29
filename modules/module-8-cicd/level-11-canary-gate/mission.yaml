@@ -1,7 +1,7 @@
 {
   "name": "Frozen Canary",
-  "description": "A canary deployment is stuck at 20% traffic \u2014 it never promotes to 100% despite all metrics showing green.",
-  "objective": "The Argo Rollout analysis run is paused waiting for a manual approval \u2014 approve it to promote",
+  "description": "A canary deployment is stuck at 50% traffic and never promotes to 100%. All metrics are green, no errors are detected, but the rollout has been frozen for hours. A `pause` step in the canary strategy has no duration — making it an indefinite manual gate that waits forever.",
+  "objective": "The Argo Rollout analysis run is paused waiting for a manual approval — approve it to promote",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

@@ -12,7 +12,7 @@ spec:
   capacity:
     storage: 5Gi
   accessModes:
-    - ReadWriteOnce  # ❌ Wrong! Only allows one node to mount at a time
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: standard
   hostPath:
@@ -25,7 +25,7 @@ metadata:
   namespace: k8smissions
 spec:
   accessModes:
-    - ReadWriteOnce  # ❌ Wrong! Should be ReadWriteMany for shared access
+    - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi

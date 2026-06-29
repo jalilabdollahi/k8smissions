@@ -1,6 +1,6 @@
 {
   "name": "Uneven Spread",
-  "description": "All pods from a Deployment are landing on the same node \u2014 node failure would take down the entire service.",
+  "description": "All pods from a 4-replica Deployment are landing on the same node. If that node fails, the entire service goes down simultaneously. There is no constraint telling the scheduler to spread pods across nodes — so it packs them wherever there is space.",
   "objective": "Add a TopologySpreadConstraint to evenly distribute pods across nodes with maxSkew: 1",
   "xp": 300,
   "difficulty": "intermediate",

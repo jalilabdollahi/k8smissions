@@ -4,7 +4,7 @@ metadata:
   name: approval-gate
   namespace: k8smissions
   annotations:
-    awaiting-approval: "true"  # ❌ BUG: annotation marks this as awaiting approval — the step loops forever waiting for /approval/approved file
+    awaiting-approval: "true"
 spec:
   taskSpec:
     steps:
@@ -12,7 +12,7 @@ spec:
       image: busybox:1.36
       script: |
         #!/bin/sh
-        while [ ! -f /approval/approved ]; do sleep 5; done  # ❌ BUG: infinite polling loop — blocks pipeline indefinitely; approver is unavailable
+        while [ ! -f /approval/approved ]; do sleep 5; done
   workspaces:
   - name: approval
     emptyDir: {}

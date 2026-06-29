@@ -14,7 +14,6 @@ spec:
     resources:
       requests:
         cpu: 100m
-        # ❌ BUG: Memory request of 5Gi is close to the node's total capacity (6Gi)
         # but exceeds the allocatable memory (capacity minus kubelet/system reserves).
         # The scheduler sees Insufficient memory even though the node looks available.
         memory: 5Gi

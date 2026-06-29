@@ -16,7 +16,7 @@ spec:
       runAsUser: 1000
       capabilities:
         drop:
-        - ALL          # ❌ BUG: ALL capabilities are dropped, including NET_BIND_SERVICE.
+        - ALL
                        # A non-root process needs NET_BIND_SERVICE to bind ports < 1024.
                        # Without it, binding port 80 returns: "permission denied".
                        # Fix: add NET_BIND_SERVICE back under capabilities.add.

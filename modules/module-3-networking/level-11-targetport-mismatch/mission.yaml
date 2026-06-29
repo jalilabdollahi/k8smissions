@@ -1,7 +1,7 @@
 {
   "name": "Connection Refused",
-  "description": "Requests to a Service return 'connection refused' even though the backing pods are running.",
-  "objective": "The Service targetPort does not match the actual container port \u2014 fix the targetPort so traffic reaches the pods",
+  "description": "Pod web is Running and Service web-svc has endpoints. But every curl to the Service returns 'Connection refused'. Run kubectl get endpoints web-svc -n k8smissions to confirm endpoints are populated.",
+  "objective": "The Service targetPort does not match the actual container port — fix the targetPort so traffic reaches the pods",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

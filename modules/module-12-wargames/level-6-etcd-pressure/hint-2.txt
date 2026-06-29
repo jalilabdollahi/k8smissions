@@ -1,1 +1,1 @@
-kubectl get configmap -n k8smissions | grep ci-run
+You should see 20 `ci-run-XXXX` ConfigMaps all with `status: completed`. These are artifacts from past CI runs that serve no purpose — no running workload references them. Each object takes up etcd storage and slows down list queries.

@@ -1,2 +1,1 @@
-Run: kubectl get pdb my-pdb -n k8smissions
-If ALLOWED DISRUPTIONS is 0, no voluntary disruptions (like rolling updates) can proceed.
+Try draining a node and read the error: `kubectl drain <node> --ignore-daemonsets`. Check the PDB: `kubectl get pdb my-pdb -n k8smissions -o yaml`

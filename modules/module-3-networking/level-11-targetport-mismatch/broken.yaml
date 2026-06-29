@@ -22,4 +22,4 @@ spec:
     app: web
   ports:
   - port: 80
-    targetPort: 8080  # ❌ BUG: container listens on port 80, not 8080
+    targetPort: 8080

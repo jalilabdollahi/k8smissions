@@ -1,2 +1,1 @@
-Option 1: Delete the balloon pod: kubectl delete pod balloon-pod -n k8smissions
-Option 2: Reduce its requests to a minimal size: cpu: 100m, memory: 128Mi
+The `balloon-pod` has `resources.requests.cpu: 2000m` and `resources.requests.memory: 4Gi` on a `pause` container that consumes zero real resources. Reduce these to minimal values — `100m` CPU and `128Mi` memory — to free up scheduling capacity.

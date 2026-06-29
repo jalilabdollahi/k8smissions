@@ -1,2 +1,1 @@
-Istio/Linkerd sidecar injection intercepts all containers in a namespace.
-Tekton Tasks run short-lived init/step containers — sidecars interfere with this lifecycle.
+You should see an `istio-proxy` container alongside the Tekton step containers. Tekton uses an init-container and entrypoint mechanism to sequence steps — the injected sidecar interferes with this mechanism.

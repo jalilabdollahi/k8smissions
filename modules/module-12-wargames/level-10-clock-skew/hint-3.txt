@@ -1,1 +1,1 @@
-Update ntp_sync to 'true' and skew_seconds to '0' in the ConfigMap.
+The node has `ntp_sync: false` and `skew_seconds: 600`. Fix the real node clock first (`sudo systemctl restart systemd-timesyncd` on the node), then update the ConfigMap to `ntp_sync: true` and `skew_seconds: 0` to reflect the corrected state.

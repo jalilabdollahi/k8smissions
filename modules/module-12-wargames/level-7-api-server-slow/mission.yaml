@@ -1,7 +1,7 @@
 {
   "name": "Control Plane Flood",
-  "description": "The API server is overwhelmed. A deployment is running 50 replicas of a pod that watches the API server in a tight loop without backoff.",
-  "objective": "An over-replicated deployment is flooding the API server with watch requests \u2014 scale it down to a reasonable size",
+  "description": "kubectl commands are hanging for 10–30 seconds. Pod scheduling is delayed. Controller reconciliation loops are backed up. The root cause: a Deployment was accidentally scaled to 50 replicas — and each pod holds a persistent watch connection to the API server. 50 concurrent watchers are overwhelming the API server's connection handler.",
+  "objective": "An over-replicated deployment is flooding the API server with watch requests — scale it down to a reasonable size",
   "xp": 350,
   "difficulty": "expert",
   "expected_time": "15m",

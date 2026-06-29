@@ -13,7 +13,6 @@ spec:
     - sleep 3600
     resources:
       limits:
-        # ❌ BUG: Wrong extended resource name 'my.company/fpga' — the device
         # plugin registered 'company.io/fpga'. Names must match exactly.
         # No node reports 'my.company/fpga' capacity → pod stuck Pending.
         my.company/fpga: '1'

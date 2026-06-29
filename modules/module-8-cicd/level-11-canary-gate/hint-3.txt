@@ -1,2 +1,1 @@
-Option 1 (immediate fix): kubectl argo rollouts promote api-rollout -n k8smissions
-Option 2 (fix design): change pause: {} to pause: {duration: 5m} to auto-promote after 5 minutes.
+The second `pause` step has no `duration` field. Without a duration, Argo Rollouts waits indefinitely for a human to run `kubectl argo rollouts promote`. Add `duration: 5m` to make the pause time-bounded.

@@ -1,2 +1,5 @@
-Run: kubectl describe ingress app-ingress -n k8smissions
-Look at the Rules section — note the backend service name.
+Read the Ingress rules output carefully:
+
+  kubectl describe ingress app-ingress -n k8smissions
+
+Look at the Backend column in the Rules section. Does the service name shown there match any Service that actually exists?

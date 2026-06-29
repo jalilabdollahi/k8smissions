@@ -1,2 +1,1 @@
-Run: kubectl get configs -A 2>&1 | head
-If you see 'no kind is registered' or conversion errors, stored objects reference a removed version.
+Check the CRD's current version configuration: `kubectl get crd configs.example.com -o yaml | grep -A10 versions`

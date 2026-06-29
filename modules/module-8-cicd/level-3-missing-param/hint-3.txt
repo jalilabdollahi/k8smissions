@@ -1,4 +1,1 @@
-Add the param in the TaskRun spec:
-  params:
-  - name: IMAGE
-    value: registry.example.com/myapp:v1.0.0
+The TaskRun has `params: []` but the `image-push` Task requires a parameter named `IMAGE` with no default. Add a params entry with `name: IMAGE` and the target image reference as the value.

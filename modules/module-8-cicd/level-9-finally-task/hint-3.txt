@@ -1,5 +1,1 @@
-Move cleanup from spec.tasks to spec.finally:
-  finally:
-  - name: cleanup
-    taskRef:
-      name: cleanup-task
+The cleanup Task needs to be in `spec.finally`, not `spec.tasks`. Tasks in `spec.finally` run unconditionally after the main task DAG completes or fails — they cannot have `runAfter` dependencies.

@@ -1,1 +1,1 @@
-Start with: No terminationGracePeriodSeconds, no preStop hook
+Look for any lifecycle configuration in the Deployment: `kubectl get deployment graceful-app -n k8smissions -o yaml | grep -A10 lifecycle`

@@ -1,2 +1,1 @@
-Run: kubectl get catalogsource -n olm
-List all available CatalogSources and find the right name.
+The status should show an error about the CatalogSource not being found. List available CatalogSources: `kubectl get catalogsource -n olm`. Compare against what the Subscription's `source` field references.

@@ -1,5 +1,1 @@
-Add NET_BIND_SERVICE while keeping the full drop:
-  securityContext:
-    capabilities:
-      drop: ["ALL"]
-      add: ["NET_BIND_SERVICE"]
+The `securityContext.capabilities` block drops ALL capabilities but has no `add:` section. The `NET_BIND_SERVICE` capability was dropped along with everything else, and without it a non-root process cannot bind to any port below 1024.

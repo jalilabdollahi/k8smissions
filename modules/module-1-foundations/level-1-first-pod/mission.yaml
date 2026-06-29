@@ -1,7 +1,7 @@
 {
   "name": "Hello, Kubernetes!",
-  "description": "A Pod has been deployed to the cluster but immediately enters Error state.",
-  "objective": "The pod has a command field that overrides the image entrypoint and causes it to fail \u2014 fix the command so nginx starts normally",
+  "description": "Pod nginx-broken exits immediately after creation. Run kubectl get pods -n k8smissions and check the STATUS and RESTARTS columns.",
+  "objective": "The pod has a command field that overrides the image entrypoint and causes it to fail — fix the command so nginx starts normally",
   "xp": 100,
   "difficulty": "beginner",
   "expected_time": "5m",

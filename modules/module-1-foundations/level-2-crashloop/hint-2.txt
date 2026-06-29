@@ -1,4 +1,7 @@
-Read the output from the previous failed container:
-  kubectl logs crashloop-pod -n k8smissions --previous
-Then inspect its startup fields:
+The log shows something like '/scripts/start.sh: not found'. The container tried to execute a shell script that does not exist inside the busybox image.
+
+Confirm what the container is actually trying to run:
+
   kubectl get pod crashloop-pod -n k8smissions -o yaml
+
+Look at spec.containers[0].args

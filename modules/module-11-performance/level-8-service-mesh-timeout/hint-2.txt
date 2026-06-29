@@ -1,2 +1,1 @@
-Istio VirtualService timeout overrides the default envoy timeout.
-For long-running API calls (file upload, batch processing), 15s is too short.
+The VirtualService has `timeout: 15s`. Check the backend logs to see if requests are completing: `kubectl logs -n k8smissions -l app=backend --tail=50`. You should see successful responses after 30–60 seconds — but the VirtualService is canceling them at 15 seconds.

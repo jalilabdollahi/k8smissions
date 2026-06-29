@@ -25,5 +25,4 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-    # ❌ WRONG! NodePort not specified, gets random high port
     # Users expect standard port access

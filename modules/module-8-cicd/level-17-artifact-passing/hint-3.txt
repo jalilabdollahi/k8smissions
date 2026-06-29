@@ -1,2 +1,1 @@
-Fix the result reference to match the Task declaration exactly:
-  value: "$(tasks.build.results.imageDigest)"
+The Pipeline references `$(tasks.build.results.image-digest)` (hyphenated) but the build Task declares the result as `imageDigest` (camelCase). Tekton result names are case-sensitive and must match exactly.

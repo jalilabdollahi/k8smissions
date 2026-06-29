@@ -1,4 +1,7 @@
-Read the init container's output and inspect its command:
-  kubectl logs web-with-init -c wait-for-service -n k8smissions
-  kubectl get pod web-with-init -n k8smissions -o yaml
-It repeatedly looks up backend-service, which does not exist.
+The init container is running `nslookup backend-service.k8smissions.svc.cluster.local` in a loop. It will only exit when that DNS name resolves.
+
+Check if that Service exists:
+
+  kubectl get services -n k8smissions
+
+Is `backend-service` there?

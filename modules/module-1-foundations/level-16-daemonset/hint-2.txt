@@ -1,2 +1,5 @@
-Run: kubectl describe pod -l app=log-collector -n k8smissions
-Look for a taint-related warning in the Events section.
+The control-plane node has a taint `node-role.kubernetes.io/control-plane:NoSchedule`. This taint repels any pod that does not explicitly tolerate it.
+
+Check whether the DaemonSet spec has any tolerations:
+
+  kubectl get daemonset log-collector -n k8smissions -o yaml | grep -A8 'tolerations'

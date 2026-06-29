@@ -1,2 +1,9 @@
-Run: kubectl get endpoints web-svc -n k8smissions
-If ENDPOINTS shows <none>, the Service has no healthy backends — check pod readiness and port matching.
+Endpoints exist — the Service found the pod by label. The problem is further down the routing path. Test the pod directly, bypassing the Service:
+
+  kubectl port-forward pod/web 8080:80 -n k8smissions
+
+Then in another terminal:
+
+  curl http://localhost:8080
+
+Does the pod respond?

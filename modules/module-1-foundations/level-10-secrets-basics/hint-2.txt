@@ -1,3 +1,5 @@
-The Pod uses envFrom and expects a Secret named db-credentials:
-  kubectl get pod secret-pod -n k8smissions -o yaml
-  kubectl get secret db-credentials -n k8smissions
+The Events reference a Secret that could not be found. Check what Secrets exist:
+
+  kubectl get secrets -n k8smissions
+
+Is `db-credentials` in the list?

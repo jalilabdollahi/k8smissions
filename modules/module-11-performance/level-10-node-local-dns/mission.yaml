@@ -1,6 +1,6 @@
 {
   "name": "DNS Latency Spike",
-  "description": "Pod DNS resolution takes 5-30ms intermittently \u2014 well above the 1ms target.",
+  "description": "DNS resolution latency is high cluster-wide — even simple service lookups take 5–10ms. NodeLocal DNSCache is installed but not active. All DNS queries still travel from pods through the pod network to kube-dns, adding unnecessary network hops. The feature is installed but disabled by a flag.",
   "objective": "Enable NodeLocal DNSCache to cache DNS responses on each node and reduce latency",
   "xp": 350,
   "difficulty": "advanced",

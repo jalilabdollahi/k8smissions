@@ -1,2 +1,1 @@
-Run: kubectl get pipelineruns -n k8smissions | head
-If multiple runs are active simultaneously, they may share a PVC and overwrite each other.
+Check how many PipelineRuns are running at once and what PVC they use: `kubectl get pipelinerun -n k8smissions` and `kubectl get pipelinerun ci-run-001 -n k8smissions -o yaml | grep claimName`

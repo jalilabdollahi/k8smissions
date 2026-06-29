@@ -1,7 +1,7 @@
 {
   "name": "Reserved Space",
-  "description": "A node shows low utilization but new pods won't schedule \u2014 something is silently consuming capacity.",
-  "objective": "A 'balloon pod' is holding node capacity \u2014 delete it to free resources for real workloads",
+  "description": "A node shows low CPU and memory *utilization* but new pods won't schedule — the scheduler reports `Insufficient cpu` and `Insufficient memory`. A balloon pod is running a no-op pause container but has declared enormous resource *requests*, silently consuming node scheduling capacity without using any real resources.",
+  "objective": "A 'balloon pod' is holding node capacity — delete it to free resources for real workloads",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

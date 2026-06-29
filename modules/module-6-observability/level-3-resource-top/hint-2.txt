@@ -1,1 +1,1 @@
-Goal state: Use kubectl top pods to identify the culprit Add resources.limits.cpu: "200m" to the greedy pod
+The cpu-hog pod will show extremely high CPU usage. Inspect its resource configuration: `kubectl describe pod -n k8smissions -l app=cpu-hog | grep -A10 Resource`

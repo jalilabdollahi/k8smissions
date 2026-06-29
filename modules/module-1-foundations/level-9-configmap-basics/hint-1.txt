@@ -1,4 +1,7 @@
-Inspect why the Pod is still waiting:
-  kubectl get pod configmap-pod -n k8smissions
+ContainerCreating that does not progress usually means Kubernetes cannot prepare something the pod needs before starting the container — often a Volume, ConfigMap, or Secret.
+
+Read the Events:
+
   kubectl describe pod configmap-pod -n k8smissions
-Read the Events section from bottom to top.
+
+Scroll to the bottom and read the Events section.

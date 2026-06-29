@@ -1,7 +1,7 @@
 {
   "name": "Deployment Takes Hours",
-  "description": "A Deployment rollout is taking 3+ hours \u2014 only one pod is being updated at a time.",
-  "objective": "The rolling update strategy has maxSurge: 0 and maxUnavailable: 1 \u2014 increase maxSurge for faster rollout",
+  "description": "Deploying a new image to a 100-replica deployment is taking over 30 minutes. The rolling update strategy has `maxSurge: 0` and `maxUnavailable: 1` — meaning only one pod is replaced at a time, sequentially. Each pod replacement takes 15–20 seconds, so 100 replacements take 25–33 minutes.",
+  "objective": "The rolling update strategy has maxSurge: 0 and maxUnavailable: 1 — increase maxSurge for faster rollout",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

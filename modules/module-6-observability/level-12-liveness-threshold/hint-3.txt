@@ -1,5 +1,1 @@
-Increase failureThreshold to 3 (standard default):
-  livenessProbe:
-    failureThreshold: 3
-    periodSeconds: 10
-This allows 3 consecutive failures before restarting.
+The `livenessProbe.failureThreshold` is set to 1. This is far too sensitive. One transient probe timeout is enough to kill and restart the container, causing the constant restart loop you observe.

@@ -1,7 +1,7 @@
 {
   "name": "Pipeline Locked Out",
-  "description": "A CI pipeline ServiceAccount cannot create PipelineRuns \u2014 it lacks permission to manage Tekton resources.",
-  "objective": "The pipeline SA needs RBAC to create PipelineRuns and TaskRuns \u2014 add the required Role and RoleBinding",
+  "description": "A Tekton EventListener fires when GitHub webhooks arrive and tries to create PipelineRuns, but it fails with 403 Forbidden. The `trigger-sa` ServiceAccount the EventListener uses has no RBAC permissions to create resources in the `tekton.dev` API group.",
+  "objective": "The pipeline SA needs RBAC to create PipelineRuns and TaskRuns — add the required Role and RoleBinding",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "12m",

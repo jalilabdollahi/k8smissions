@@ -1,7 +1,7 @@
 {
   "name": "Quota Breached",
-  "description": "New pods fail to create with 'exceeded quota' even though the cluster has free capacity.",
-  "objective": "Namespace ResourceQuota limits are exceeded \u2014 reduce resource requests or remove the over-requesting pod",
+  "description": "New pods in this namespace fail to schedule with 'exceeded quota' errors even though the node has plenty of free CPU. The problem is not node capacity — one existing pod is consuming nearly all of the namespace's CPU quota allocation, leaving almost nothing for other workloads.",
+  "objective": "Namespace ResourceQuota limits are exceeded — reduce resource requests or remove the over-requesting pod",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

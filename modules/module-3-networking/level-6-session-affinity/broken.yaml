@@ -61,7 +61,6 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 8080
-  # ❌ MISSING: sessionAffinity: ClientIP
   # Without this, each request may go to a different pod
   # Result: Sessions get lost as requests hit different pods
 ---

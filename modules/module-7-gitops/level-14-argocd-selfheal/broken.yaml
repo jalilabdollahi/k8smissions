@@ -14,7 +14,7 @@ spec:
     namespace: k8smissions
   syncPolicy:
     automated:
-      selfHeal: true  # ❌ BUG: selfHeal: true means ArgoCD reverts ANY manual kubectl change within seconds
+      selfHeal: true
       prune: true
     syncOptions:
     - CreateNamespace=true

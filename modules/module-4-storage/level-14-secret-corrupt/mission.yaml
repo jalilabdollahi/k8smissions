@@ -1,7 +1,7 @@
 {
   "name": "The Garbled Token",
-  "description": "An application reads its API token from a mounted Secret file but the token value is corrupted.",
-  "objective": "The Secret has a double-encoded value \u2014 fix the data field so the secret contains the correct plain token",
+  "description": "Pod api-consumer reads its API token from a mounted Secret, but every API call fails with 'authentication error'. Run kubectl exec -it <pod> -n k8smissions -- cat /secrets/token and look at what value is actually there.",
+  "objective": "The Secret has a double-encoded value — fix the data field so the secret contains the correct plain token",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

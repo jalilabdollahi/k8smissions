@@ -1,2 +1,1 @@
-Run: kubectl describe nodes | grep -A5 'Allocatable'
-The pod requests 100Gi but no node has that much allocatable memory.
+The events should say 'Insufficient memory' on all nodes. Check each node's allocatable memory: `kubectl describe node | grep -E 'Name:|memory'`. Compare against the pod's `resources.requests.memory`.

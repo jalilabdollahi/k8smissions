@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The `affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms` block specifies the wrong label key and value. The key in the manifest doesn't match any label key on any node.

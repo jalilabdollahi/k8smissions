@@ -10,7 +10,6 @@ spec:
     command:
     - /bin/sh
     - -c
-    # ❌ BUG: Polls 'non-existent-db-host:5432' which never resolves.
     # The init container loops forever → main container never starts.
     - until nc -z non-existent-db-host 5432; do sleep 5; done
   containers:

@@ -1,1 +1,7 @@
-Start with: image: nginx:broken-tag
+The image used in the update does not exist. The fastest recovery is not to edit the manifest — it is to roll back to the last working revision that Kubernetes already has recorded.
+
+Check the rollout history:
+
+  kubectl rollout history deployment/web-app -n k8smissions
+
+How many revisions are there?

@@ -1,7 +1,1 @@
-Add a startupProbe that allows up to 150s for startup:
-  startupProbe:
-    exec:
-      command: ["test", "-f", "/tmp/ready"]
-    failureThreshold: 30
-    periodSeconds: 5
-The liveness probe is paused until startupProbe passes.
+The pod has no `startupProbe`. Without one, the liveness probe begins after `initialDelaySeconds: 10` and kills the container after 3 × 10s = 30 more seconds — at 40s total. The app needs 120s to boot, so it is always killed 80 seconds too early.

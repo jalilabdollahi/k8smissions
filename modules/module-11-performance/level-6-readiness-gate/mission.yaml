@@ -1,6 +1,6 @@
 {
   "name": "Traffic to Cold Pods",
-  "description": "After deployment, users see errors for 30 seconds \u2014 new pods receive traffic before they've warmed up.",
+  "description": "After deploying a new version of a Java application, users experience 502 errors for 30–60 seconds. The rolling update is replacing pods, and new pods are immediately marked Ready and receive traffic — but the JVM is still warming up and the application hasn't finished loading its caches yet. Requests hit a pod that isn't truly ready.",
   "objective": "Add a readiness probe with initialDelaySeconds to prevent traffic routing to pods before they're ready",
   "xp": 300,
   "difficulty": "intermediate",

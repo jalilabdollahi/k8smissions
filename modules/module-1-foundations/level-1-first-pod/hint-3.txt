@@ -1,4 +1,3 @@
-The command field replaces nginx's normal startup command. Open the Pod:
-  edit pod nginx-broken
-Delete this line, save, and approve the replacement:
-  command: ["nginxzz"]
+There is a 'command' field in spec.containers[0]. When 'command' is set, Kubernetes replaces the image's ENTRYPOINT with whatever you wrote there.
+
+Open manifest.yaml and find this field.

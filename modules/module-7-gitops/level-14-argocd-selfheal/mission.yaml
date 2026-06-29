@@ -1,7 +1,7 @@
 {
   "name": "The Drift",
-  "description": "A deployment was manually scaled via kubectl but ArgoCD keeps reverting it back \u2014 the change never sticks.",
-  "objective": "ArgoCD self-healing is reverting manual changes \u2014 understand why and disable self-heal for this Application if manual overrides are needed",
+  "description": "A Deployment was manually scaled via `kubectl scale` to respond to a sudden traffic spike, but ArgoCD reverted it back to the Git value within seconds. Every manual `kubectl` change disappears moments after it's applied. ArgoCD is behaving exactly as configured — `selfHeal: true` is working as designed, which is the problem.",
+  "objective": "ArgoCD self-healing is reverting manual changes — understand why and disable self-heal for this Application if manual overrides are needed",
   "xp": 225,
   "difficulty": "advanced",
   "expected_time": "12m",

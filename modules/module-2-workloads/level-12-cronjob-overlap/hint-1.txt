@@ -1,2 +1,9 @@
-Run: kubectl get cronjob data-processor -n k8smissions -o yaml | grep concurrencyPolicy
-Also check: kubectl get pods -n k8smissions | grep data-processor | wc -l
+Count how many pods this CronJob has created:
+
+  kubectl get pods -n k8smissions -l job-name
+
+Also check how long each pod has been running:
+
+  kubectl get pods -n k8smissions --sort-by=.metadata.creationTimestamp
+
+What is the relationship between the pod runtime and the CronJob schedule interval?

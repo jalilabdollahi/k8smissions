@@ -1,4 +1,3 @@
-Patch the finalizers list to empty:
-  kubectl patch configmap stuck-config -n k8smissions \
-    -p '{"metadata":{"finalizers":[]}}' --type=merge
-Then delete the object normally.
+The operator that should clear this finalizer does not exist in the cluster. Kubernetes will wait forever.
+
+This level cannot be solved by editing manifest.yaml and applying it — the object is already being deleted. You need a different kubectl command to remove the finalizer directly.

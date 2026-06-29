@@ -1,1 +1,1 @@
-Start with: securityContext.runAsUser: 0, privileged: true
+Check the events to see the admission error: `kubectl get events -n k8smissions --sort-by=.lastTimestamp | tail -10`

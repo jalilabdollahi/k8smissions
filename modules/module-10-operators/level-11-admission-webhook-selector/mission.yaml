@@ -1,7 +1,7 @@
 {
   "name": "System Pod Blocked",
-  "description": "After installing an admission webhook, kube-dns pods fail to start and cluster DNS breaks.",
-  "objective": "The MutatingWebhookConfiguration applies to all namespaces including kube-system \u2014 add a namespaceSelector to exclude system namespaces",
+  "description": "After installing a MutatingWebhookConfiguration, kube-dns pods fail to start and cluster DNS breaks. The webhook applies to all namespaces including `kube-system` — when the webhook service is restarted or slow, DNS pods can't be created, which breaks DNS, which breaks the webhook service itself. It's a deadlock.",
+  "objective": "The MutatingWebhookConfiguration applies to all namespaces including kube-system — add a namespaceSelector to exclude system namespaces",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "15m",

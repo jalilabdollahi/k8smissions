@@ -1,7 +1,3 @@
-Add the second key to the items list:
-  items:
-  - key: app.properties
-    path: app.properties
-  - key: logging.properties
-    path: logging.properties
-Or remove 'items:' entirely to mount ALL ConfigMap keys.
+The `items` list under the configMap volume only includes `app.properties`. When `items` is used, ONLY the listed keys are projected into the container — everything else is excluded.
+
+You need to add `logging.properties` to the items list in manifest.yaml.

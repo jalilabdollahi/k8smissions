@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: nginx:nonexistent-v2.0-xyz  # ❌ This image doesn't exist!
+        image: nginx:nonexistent-v2.0-xyz
         ports:
         - containerPort: 80
         resources:

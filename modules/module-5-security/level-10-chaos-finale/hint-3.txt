@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The broken fields span multiple resources: `requests.cpu` is too high for the quota, `spec.replicas` exceeds what the quota can fit, `runAsUser: 0` violates the security policy, no Role or RoleBinding exists for `app-sa`, the NetworkPolicy has no rules, and `pdb.spec.minAvailable` is 5 for a 2-replica deployment.

@@ -1,1 +1,7 @@
-Goal state: Change storageClassName to "standard" (kind default) OR create the "fast-ssd" StorageClass
+There is no StorageClass named `premium-ssd`. Without a matching StorageClass, no provisioner responds, no PV is created, and the PVC stays Pending forever.
+
+See which StorageClasses actually exist:
+
+  kubectl get storageclass
+
+Note which one is marked `(default)`.

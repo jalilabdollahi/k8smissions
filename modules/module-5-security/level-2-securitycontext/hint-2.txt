@@ -1,1 +1,1 @@
-Goal state: Add securityContext: runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false
+The events should say 'container has runAsNonRoot and image will run as root'. The manifest enforces non-root but never specifies *which* non-root user ID to use, so Kubernetes falls back to the image's default — which is UID 0.

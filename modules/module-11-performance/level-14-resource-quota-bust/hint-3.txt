@@ -1,5 +1,1 @@
-Option 1: Increase the quota for the namespace:
-  hard:
-    requests.cpu: "8"
-    requests.memory: 16Gi
-Option 2: Reduce over-provisioned requests in existing pods
+The ResourceQuota has `requests.cpu: 4` which is too low for the current workload. Increase it to `requests.cpu: 8` and `requests.memory: 16Gi` (and the corresponding limits) to give the namespace room to grow.

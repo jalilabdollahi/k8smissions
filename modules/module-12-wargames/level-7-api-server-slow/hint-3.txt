@@ -1,1 +1,1 @@
-Scale it down: kubectl scale deployment api-watcher --replicas=2 -n k8smissions
+The `api-watcher` Deployment has `replicas: 50`. Scale it down to `replicas: 2`. This immediately drops the watch connection count from 50 to 2, relieving API server pressure.

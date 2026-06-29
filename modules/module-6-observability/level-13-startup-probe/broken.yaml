@@ -17,8 +17,8 @@ spec:
         - test
         - -f
         - /tmp/ready
-      initialDelaySeconds: 10   # ❌ BUG: Only 10s initial delay before liveness probing begins.
+      initialDelaySeconds: 10
       periodSeconds: 10
-      failureThreshold: 3       # ❌ BUG: With delay=10 + 3×10=30s, the liveness probe kills the
+      failureThreshold: 3
                                 #         container after 40s total — but the app needs 120s to boot.
                                 #         No startupProbe exists to protect the slow startup window.

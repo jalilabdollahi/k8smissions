@@ -1,7 +1,7 @@
 {
   "name": "Locked Down Too Hard",
-  "description": "After a recent security change, the entire application stack has stopped responding.",
-  "objective": "A default-deny NetworkPolicy blocks all traffic \u2014 add targeted allow rules to restore the required service connections",
+  "description": "After the security team applied a new NetworkPolicy, the backend service stopped reaching the database. Both pods are running, the Service exists, and DNS resolves correctly — but every connection attempt times out. The policy that was applied is too broad.",
+  "objective": "A default-deny NetworkPolicy blocks all traffic — add targeted allow rules to restore the required service connections",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "10m",

@@ -1,3 +1,1 @@
-Cancel the stuck run and create a new one with auto-approve:
-  kubectl delete taskrun approval-gate -n k8smissions
-Then recreate with the override script that exits 0.
+The script loops indefinitely with `while [ ! -f /approval/approved ]; do sleep 5; done`. The annotation `awaiting-approval: "true"` documents the block. Change the script to `exit 0` immediately to override the gate and update the annotation to record the override reason.

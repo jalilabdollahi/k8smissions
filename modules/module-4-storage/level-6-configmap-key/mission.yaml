@@ -1,7 +1,7 @@
 {
   "name": "Missing Config Key",
-  "description": "Pod fails to start with a configuration-related error.",
-  "objective": "The pod references a ConfigMap key that doesn't match what the ConfigMap actually contains \u2014 fix the key name",
+  "description": "Pod web-app shows CreateContainerConfigError and will not start. Run kubectl describe pod web-app -n k8smissions and read the Events section.",
+  "objective": "The pod references a ConfigMap key that doesn't match what the ConfigMap actually contains — fix the key name",
   "xp": 200,
   "difficulty": "beginner",
   "expected_time": "10m",

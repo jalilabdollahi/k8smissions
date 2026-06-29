@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The `memory-hog` Deployment has 4 replicas with no `resources.limits.memory`. Each container runs a `dd` command writing large amounts of data, and with 4 replicas and no cap, they collectively exhaust the node's available memory.

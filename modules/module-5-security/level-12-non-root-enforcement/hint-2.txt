@@ -1,4 +1,1 @@
-The namespace enforces a policy that rejects root containers.
-Add to spec.securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
+The error should say 'container runs as root which is not allowed'. The fix does not require changing the image — you need to add a `securityContext` block to the pod spec that sets a non-root user.

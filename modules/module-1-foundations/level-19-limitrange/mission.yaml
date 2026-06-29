@@ -1,6 +1,6 @@
 {
   "name": "The Noisy Neighbour",
-  "description": "A memory-hungry Pod keeps restarting with OOMKilled even though its manifest does not declare a memory limit.",
+  "description": "Pod noisy-pod keeps getting OOMKilled, but there is no memory limit defined in its spec. Run kubectl get pod noisy-pod -n k8smissions.",
   "objective": "Find the namespace LimitRange that injected a small default limit, then give the Pod an explicit memory limit large enough for the workload",
   "xp": 175,
   "difficulty": "intermediate",

@@ -1,6 +1,1 @@
-Increase the timeout in the VirtualService:
-  timeout: 120s
-Also add retries for transient failures:
-  retries:
-    attempts: 3
-    perTryTimeout: 30s
+The `timeout: 15s` is too short for operations that take up to 120 seconds. Increase it to `timeout: 120s` and add a `retries` block with `attempts: 3`, `perTryTimeout: 30s`, and `retryOn: 5xx,reset,connect-failure` to handle transient failures.

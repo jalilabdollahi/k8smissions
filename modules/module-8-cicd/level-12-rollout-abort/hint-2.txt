@@ -1,2 +1,1 @@
-When a rollout is Degraded, fix the root cause first (the bad image) then retry.
-Update the image: kubectl argo rollouts set image web-rollout web=nginx:1.25 -n k8smissions
+The status shows `Degraded` and the history shows an aborted revision. Look at the image being used by the canary pods: `kubectl describe pod -n k8smissions -l app=web | grep Image`

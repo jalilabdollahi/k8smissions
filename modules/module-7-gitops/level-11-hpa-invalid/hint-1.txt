@@ -1,2 +1,1 @@
-Run: kubectl get hpa api-hpa -n k8smissions
-If the TARGETS column shows 'unknown' and MINPODS > MAXPODS, the HPA configuration is invalid.
+Inspect the HPA status and conditions: `kubectl describe hpa api-hpa -n k8smissions`

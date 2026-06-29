@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+Neither pod has a readinessProbe. Both get added to Service endpoints the instant they start. If traffic arrives during a brief startup window, the request fails.
+
+Add a readinessProbe to spec.containers[0] in both pod definitions in manifest.yaml.

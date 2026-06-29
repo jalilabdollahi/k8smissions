@@ -1,1 +1,1 @@
-Scale auth-svc back up: kubectl scale deployment auth-svc --replicas=2 -n k8smissions
+The `auth-svc` Deployment has `replicas: 0`. Scale it back up: change to `replicas: 2`. Once auth-svc pods become Running, the Service gains healthy endpoints and all downstream timeouts resolve — the cascade stops.

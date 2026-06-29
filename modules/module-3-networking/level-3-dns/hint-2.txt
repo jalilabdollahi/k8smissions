@@ -1,1 +1,5 @@
-Goal state: Set DB_HOST=db.k8smissions.svc.cluster.local
+There is a pod named `database` and a Service named `database-service`. CoreDNS creates DNS records for **Services**, not for individual pods. So `database` (pod name) does not resolve — but `database-service` (service name) does.
+
+Verify DNS resolution from inside the cluster:
+
+  kubectl exec app-client -n k8smissions -- nslookup database-service

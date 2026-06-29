@@ -1,2 +1,7 @@
-Run: kubectl get svc dual-svc -n k8smissions -o yaml
-When a Service has multiple ports, they MUST have names — otherwise port references are ambiguous.
+The Ingress status shows an error about the backend port. Read the Ingress spec:
+
+  kubectl get ingress dual-ingress -n k8smissions -o yaml
+
+The backend references port by `name: http`. Now check the Service ports:
+
+  kubectl get service dual-svc -n k8smissions -o yaml | grep -A5 'ports'

@@ -1,1 +1,5 @@
-Goal state: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/... (or bundled metrics-server manifest in level folder)
+The HPA says 'unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API'. This means the Metrics Server — the component that collects pod resource usage — is not available.
+
+Check if metrics-server is running:
+
+  kubectl get pods -n k8smissions -l app=metrics-server

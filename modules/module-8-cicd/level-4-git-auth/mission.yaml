@@ -1,7 +1,7 @@
 {
   "name": "Clone Denied",
-  "description": "A Tekton git-clone Task fails with 'authentication required' \u2014 the repository is private.",
-  "objective": "The git-clone Task needs SSH credentials \u2014 bind the SSH secret to the ServiceAccount used by the TaskRun",
+  "description": "A Tekton git-clone Task fails with 'authentication required'. The repository is private and the pipeline's ServiceAccount has no SSH credentials attached. Without credentials, the git-clone Task can't authenticate against the remote.",
+  "objective": "The git-clone Task needs SSH credentials — bind the SSH secret to the ServiceAccount used by the TaskRun",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "12m",

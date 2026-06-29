@@ -1,1 +1,1 @@
-Start with: Migration Job has wrong image + missing env vars
+Check the status of the migration Job: `kubectl get job db-migration -n k8smissions` and read its logs: `kubectl logs -n k8smissions -l job-name=db-migration`

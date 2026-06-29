@@ -8,7 +8,7 @@ spec:
     storage: 10Gi
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete  # ❌ Dangerous! Will delete data when PVC removed
+  persistentVolumeReclaimPolicy: Delete
   storageClassName: standard
   hostPath:
     path: /mnt/data/important

@@ -1,2 +1,1 @@
-Run: kubectl get pods -o wide -n k8smissions | awk '{print $7}' | sort | uniq -c
-If one node has many more pods than others, the cluster is imbalanced.
+Check the Descheduler policy configuration in the manifest and look for the `enabled` field: `kubectl get configmap -n k8smissions -o yaml | grep -A10 LowNodeUtilization`

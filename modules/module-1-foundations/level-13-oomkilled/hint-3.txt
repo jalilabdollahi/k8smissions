@@ -1,4 +1,3 @@
-The app allocates about 128Mi, but its limit is only 64Mi. Run:
-  edit pod oom-pod
-Set memory request to 64Mi and memory limit to 256Mi, then save and approve
-the replacement.
+The memory limit is 64Mi. The Python program allocates 128 arrays of 1MB each — that is about 128MB. The container hits the limit and gets killed.
+
+Find spec.containers[0].resources.limits.memory in manifest.yaml.

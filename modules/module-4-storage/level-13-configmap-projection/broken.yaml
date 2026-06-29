@@ -34,4 +34,3 @@ spec:
       items:
       - key: app.properties
         path: app.properties
-        # ❌ BUG: logging.properties key is not listed here — it will be missing from /config/

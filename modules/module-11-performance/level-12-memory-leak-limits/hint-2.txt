@@ -1,2 +1,1 @@
-Without a memory limit, a leaky pod can consume all node memory.
-This triggers node-level memory pressure and evicts OTHER pods — a cascading failure.
+The pod shows growing memory usage and the `resources` section only has `requests` — there are no `limits`. Without a memory limit, the container can consume all available memory on the node. When node memory is exhausted, the OOM killer terminates processes — often killing neighboring pods.

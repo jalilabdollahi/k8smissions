@@ -1,2 +1,1 @@
-TopologySpreadConstraint distributes pods across topology domains (nodes, zones).
-maxSkew: 1 means at most 1 pod difference between the most and least loaded domain.
+All 4 pods should show the same NODE. Look at the Deployment's pod spec — there are no `topologySpreadConstraints` defined. Without them, the scheduler is free to place all replicas on a single node.

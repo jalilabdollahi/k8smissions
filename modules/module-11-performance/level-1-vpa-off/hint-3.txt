@@ -1,4 +1,1 @@
-Change updateMode to Auto:
-  updatePolicy:
-    updateMode: Auto
-VPA will restart pods with improved resource requests/limits based on historical usage.
+The VPA has `updatePolicy.updateMode: Off`. This means VPA only observes and reports — it never acts. Change it to `updateMode: Auto` so VPA will evict and restart pods with right-sized resource requests.

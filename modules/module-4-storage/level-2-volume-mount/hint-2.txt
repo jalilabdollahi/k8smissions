@@ -1,1 +1,5 @@
-Goal state: Change mountPath to /app/config
+The volumeMount shows `mountPath: /data`. The container expects files at `/app/config`. The volume exists and is bound, but the mount point is wrong — the config files are written to `/data` but the app reads from `/app/config`.
+
+Also check the init container's mountPath:
+
+  kubectl get pod web-app -n k8smissions -o yaml | grep -A20 'initContainers'

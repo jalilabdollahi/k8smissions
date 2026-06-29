@@ -1,1 +1,5 @@
-Start with: Service has no sessionAffinity set (default: None)
+Read the client logs to see which backend pod is responding to each request:
+
+  kubectl logs client -n k8smissions
+
+Do consecutive requests always go to the same pod, or do they alternate between 'Session Pod 1', 'Session Pod 2', 'Session Pod 3'?

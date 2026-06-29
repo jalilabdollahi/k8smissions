@@ -1,7 +1,7 @@
 {
   "name": "Autoscaler Paradox",
-  "description": "A HorizontalPodAutoscaler exists but the Deployment never scales \u2014 the HPA is in an error state.",
-  "objective": "The HPA has minReplicas greater than maxReplicas \u2014 fix the values so minReplicas <= maxReplicas",
+  "description": "A HorizontalPodAutoscaler exists for the API Deployment, but the Deployment never scales up or down. The HPA entered an error state at creation time because its configuration contains an impossible constraint — the minimum replica count is set higher than the maximum.",
+  "objective": "The HPA has minReplicas greater than maxReplicas — fix the values so minReplicas <= maxReplicas",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "8m",

@@ -1,1 +1,6 @@
-Start with: StatefulSet using a pre-created PVC (shared)
+In a healthy StatefulSet, each pod should have its OWN dedicated PVC. Check how many PVCs exist compared to the number of pods:
+
+  kubectl get pvc -n k8smissions
+  kubectl get pods -n k8smissions -l app=postgres
+
+Are there 3 PVCs (one per pod) or just 1?

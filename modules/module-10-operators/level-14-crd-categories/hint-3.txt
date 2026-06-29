@@ -1,9 +1,1 @@
-Add categories and shortNames to the CRD:
-  names:
-    plural: apps
-    singular: app
-    kind: App
-    shortNames:
-    - ap
-    categories:
-    - all
+The CRD's `names` block has no `categories` field. Add `categories: [all]` to make App resources appear when running `kubectl get all`. Optionally add `shortNames: [ap]` for `kubectl get ap`.

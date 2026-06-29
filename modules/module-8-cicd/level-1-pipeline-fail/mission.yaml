@@ -1,7 +1,7 @@
 {
   "name": "Broken Stage",
-  "description": "A Tekton Pipeline run has failed \u2014 the build stage exits immediately with an error.",
-  "objective": "The Tekton Task uses a non-existent image \u2014 fix the image reference so the Task succeeds",
+  "description": "A Tekton Pipeline run has failed and the build stage exits immediately — before any build command even runs. The problem isn't in the build script. The step container itself can't start because the image it references doesn't exist in the registry.",
+  "objective": "The Tekton Task uses a non-existent image — fix the image reference so the Task succeeds",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

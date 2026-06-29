@@ -22,7 +22,7 @@ metadata:
   namespace: k8smissions
 spec:
   selector:
-    app: frontend  # Wrong! Should be 'backend'
+    app: frontend
     tier: api
   ports:
   - port: 80

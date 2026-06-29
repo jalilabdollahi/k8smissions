@@ -1,7 +1,7 @@
 {
   "name": "Restart Storm",
-  "description": "Pods are being repeatedly restarted \u2014 RESTARTS counter keeps climbing every few minutes.",
-  "objective": "The liveness probe has a failureThreshold of 1, causing restarts on any transient delay \u2014 increase the threshold",
+  "description": "A pod's RESTARTS counter keeps climbing every few minutes even though the application is working correctly and the logs show no errors. The restarts are being triggered by the health check configuration — a single transient delay is enough to cause a restart.",
+  "objective": "The liveness probe has a failureThreshold of 1, causing restarts on any transient delay — increase the threshold",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

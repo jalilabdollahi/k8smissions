@@ -1,10 +1,1 @@
-Step 1: Re-add the old version as served: true, storage: false:
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: false
-  - name: v1
-    served: true
-    storage: true
-Step 2: Migrate all stored objects: kubectl get configs --all-namespaces -o yaml | kubectl apply -f -
-Step 3: Clear status.storedVersions via patch
+Add `v1alpha1` back to the CRD versions list with `served: true` and `storage: false`. This allows existing v1alpha1 objects to be read and migrated, while new objects are stored as v1.

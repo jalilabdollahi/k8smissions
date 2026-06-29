@@ -1,1 +1,1 @@
-Start with: staging cluster running production overlay manifest
+Check how many replicas are currently running in staging: `kubectl get deployment kustomize-app -n k8smissions`

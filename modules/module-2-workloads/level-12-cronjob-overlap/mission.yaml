@@ -1,7 +1,7 @@
 {
   "name": "The Flood",
-  "description": "The cluster is filling with identical pods from the same CronJob \u2014 hundreds are running simultaneously.",
-  "objective": "The CronJob has concurrencyPolicy: Allow, causing job pile-up \u2014 change it to Forbid to prevent overlapping runs",
+  "description": "The cluster is filling up with pods from CronJob data-processor. Dozens of identical pods are running simultaneously and resource pressure is building. Run kubectl get pods -n k8smissions.",
+  "objective": "The CronJob has concurrencyPolicy: Allow, causing job pile-up — change it to Forbid to prevent overlapping runs",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

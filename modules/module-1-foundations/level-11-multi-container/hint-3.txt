@@ -1,5 +1,3 @@
-Run:
-  edit pod app-with-logging
-Change log-sidecar's command to a long-running command, for example:
-  command: ["sh", "-c", "while true; do echo 'Logging...' >> /var/log/app.log; sleep 5; done"]
-Save and approve the replacement.
+The sidecar runs `tail -f /var/log/nonexistent.log`. The file does not exist in the shared emptyDir volume — `tail` exits with an error immediately.
+
+The fix is in spec.containers[1].command in manifest.yaml.

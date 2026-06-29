@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The ConfigMap has `app_name` and `app_version` but is missing `database_host`. The pod env references `database_host` via configMapKeyRef — and since the key is absent, the container cannot start.
+
+You need to add the `database_host` key to the ConfigMap data in manifest.yaml.

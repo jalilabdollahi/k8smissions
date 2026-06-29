@@ -1,5 +1,1 @@
-Set WATCH_NAMESPACE to empty string to watch all namespaces:
-  env:
-  - name: WATCH_NAMESPACE
-    value: ""
-Or set it to 'k8smissions' to watch the target namespace.
+The operator's `WATCH_NAMESPACE` env var is set to `operators`. Change it to an empty string (`value: ''`) to make the operator watch all namespaces cluster-wide.

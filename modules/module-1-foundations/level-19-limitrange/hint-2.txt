@@ -1,5 +1,5 @@
-The original Pod manifest declared no resources, so find where its 32Mi limit
-came from:
-  kubectl describe limitrange default-limits -n k8smissions
-  kubectl get pod noisy-pod -n k8smissions -o jsonpath='{.spec.containers[0].resources}{"\n"}'
-LimitRange defaults are injected when a Pod is admitted.
+A LimitRange exists. Get its details:
+
+  kubectl describe limitrange -n k8smissions
+
+What is the default memory limit it injects into containers? How much memory does the program actually use?

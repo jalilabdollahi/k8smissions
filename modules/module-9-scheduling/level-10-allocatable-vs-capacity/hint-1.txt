@@ -1,2 +1,1 @@
-Run: kubectl describe node | grep -E 'Capacity|Allocatable' -A10
-Capacity is total hardware. Allocatable is what pods can use.
+Check the node's actual allocatable memory vs. its total capacity: `kubectl describe node kind-control-plane | grep -E 'Capacity|Allocatable' -A6`

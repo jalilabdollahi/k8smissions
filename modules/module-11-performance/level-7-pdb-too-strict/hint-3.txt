@@ -1,5 +1,1 @@
-Lower minAvailable to allow one disruption:
-  minAvailable: 2
-Or use maxUnavailable: 1 (equivalent, more expressive):
-  spec:
-    maxUnavailable: 1
+The PDB has `minAvailable: 3` but the deployment only has 3 replicas — no disruptions are ever allowed. Change `minAvailable` to `2` to allow 1 pod to be evicted at a time while keeping 2 available.

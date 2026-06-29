@@ -1,2 +1,1 @@
-VPA updateMode: Off means recommendations are calculated but never applied.
-Off mode is good for observation; Auto mode applies recommendations by restarting pods.
+The VPA shows recommendations like 'request 500m CPU and 512Mi memory' but the pod is still running with the original values. Look at the VPA's `updatePolicy` section — it controls whether recommendations are applied.

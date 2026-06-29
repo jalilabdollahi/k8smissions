@@ -1,7 +1,7 @@
 {
   "name": "HPA Can't Scale",
-  "description": "An HPA exists but shows 'unknown' for current CPU and never changes replica count.",
-  "objective": "The Metrics Server is not installed \u2014 HPA requires metrics-server to read CPU utilization from pods",
+  "description": "An HPA is scaling the deployment up under load — but after load drops, it scales back down too fast and too aggressively, causing a saw-tooth pattern of over-scaling and under-scaling. The HPA has no scale-down behavior configured, so it uses the Kubernetes default: remove as many replicas as possible as fast as possible.",
+  "objective": "The Metrics Server is not installed — HPA requires metrics-server to read CPU utilization from pods",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -1,2 +1,1 @@
-Run: kubectl describe pod -l tekton.dev/task=injected-task -n k8smissions
-If you see extra containers like 'istio-proxy', a sidecar injector is adding them.
+Describe a failing Task pod to see all its containers: `kubectl describe pod -n k8smissions -l tekton.dev/task=injected-task | grep -E 'Container|Image'`

@@ -1,2 +1,3 @@
-The Ingress references backend port by name: port.name: http
-But the Service ports have no names — the Ingress controller can't resolve the reference.
+The Service has two ports (80 and 443) but neither has a `name` field. When an Ingress references a backend port by name (e.g. `name: http`), the Service port must have a matching name. Without names, the Ingress controller cannot find a port called `http`.
+
+Note: for a Service with multiple ports, all ports must be named — it is required by the Kubernetes API.

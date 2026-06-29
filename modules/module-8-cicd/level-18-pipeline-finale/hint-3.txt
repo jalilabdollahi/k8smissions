@@ -1,3 +1,1 @@
-Fix 1: change image to alpine/git:latest
-Fix 2: add default to the git-url param
-Fix 3: create role + rolebinding for the SA to create/get taskruns
+Three things need fixing: the step `image: alpine/git:999` (change to `alpine/git:latest`), the `git-url` param needs a `default` value so it's not required, and `multi-sa` needs a Role granting access to `tekton.dev` resources plus a RoleBinding.

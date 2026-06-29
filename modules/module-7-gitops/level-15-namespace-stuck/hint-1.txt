@@ -1,3 +1,1 @@
-Run: kubectl get namespace zombie-ns -o yaml
-Look at metadata.finalizers and status.conditions.
-Stuck namespaces almost always have resources inside with uncleaned finalizers.
+Find what's blocking deletion inside the namespace: `kubectl get all,configmap -n zombie-ns` and look for resources with finalizers: `kubectl get configmap stuck-resource -n zombie-ns -o yaml | grep -A5 finalizers`

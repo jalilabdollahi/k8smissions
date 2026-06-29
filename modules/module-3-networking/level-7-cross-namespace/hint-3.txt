@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The frontend-app pod's command uses `http://api-service` — which CoreDNS cannot resolve from k8smissions namespace. The URL in the command needs to be the full address.
+
+Find the command field in spec.containers[0] of the frontend-app pod in manifest.yaml.

@@ -1,1 +1,5 @@
-Start with: nodePort: 8080 (outside 30000-32767 range)
+Look at the PORT(S) column in the Service output. The nodePort is shown after the colon. Then check if it is in the valid NodePort range:
+
+  kubectl get service web-nodeport -n k8smissions
+
+Is the port stable and predictable, or randomly assigned?

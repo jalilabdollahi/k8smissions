@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The pod spec has no `tolerations` block at all. Without a toleration that matches the node's taint key, value, and effect, the scheduler treats every tainted node as off-limits.

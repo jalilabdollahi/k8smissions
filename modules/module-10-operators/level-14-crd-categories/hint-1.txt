@@ -1,2 +1,1 @@
-Run: kubectl get all -n k8smissions
-Count whether your custom resource type appears in the output.
+Verify that App resources exist: `kubectl get apps.example.com -n k8smissions`. Then run `kubectl get all -n k8smissions` and notice App resources are absent from the output.

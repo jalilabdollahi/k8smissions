@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The Service spec has no `nodePort` field set — Kubernetes picked one at random. You need to pin it to a specific value in the 30000–32767 range.
+
+Find the ports section in manifest.yaml and add the explicit nodePort.

@@ -1,7 +1,7 @@
 {
   "name": "The Aggregation Gap",
-  "description": "An operator has a ClusterRole that should auto-include read permissions but the permissions are missing.",
-  "objective": "The aggregation label on the source ClusterRole doesn't match the aggregationRule selector \u2014 fix the label",
+  "description": "An operator's ClusterRole is supposed to automatically accumulate permissions from other ClusterRoles using Kubernetes' label-based aggregation mechanism. The source ClusterRole exists and has the correct rules, but the permissions never appear in the operator's role. The aggregation selector and the label on the source role don't match.",
+  "objective": "The aggregation label on the source ClusterRole doesn't match the aggregationRule selector — fix the label",
   "xp": 250,
   "difficulty": "advanced",
   "expected_time": "15m",

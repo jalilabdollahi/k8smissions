@@ -1,7 +1,7 @@
 {
   "name": "Pressure Evictions",
-  "description": "Pods are being evicted from a node that appears healthy \u2014 CPU is low but memory pods keep disappearing.",
-  "objective": "Node memory pressure is triggering kubelet eviction \u2014 the node has too many high-memory pods. Remove or reschedule some pods",
+  "description": "Pods are being unexpectedly evicted from a node that appears healthy — CPU utilization is low but memory pods keep disappearing. One pod is allocating nearly 1GB of memory using a `dd` command while declaring only 50Mi in its requests. This mismatch triggers the kubelet's eviction manager.",
+  "objective": "Node memory pressure is triggering kubelet eviction — the node has too many high-memory pods. Remove or reschedule some pods",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

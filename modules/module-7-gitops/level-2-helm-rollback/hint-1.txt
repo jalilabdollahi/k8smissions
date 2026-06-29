@@ -1,1 +1,1 @@
-Start with: current helm release v2 is broken (bad env var in chart)
+Check what image the failing pods are trying to use: `kubectl describe pod -n k8smissions -l app=webapp | grep -A3 Image`

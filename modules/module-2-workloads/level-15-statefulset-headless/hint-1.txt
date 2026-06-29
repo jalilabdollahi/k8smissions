@@ -1,2 +1,5 @@
-Run: kubectl get statefulset db -n k8smissions -o yaml | grep serviceName
-Then: kubectl get service <serviceName> -n k8smissions -o yaml | grep clusterIP
+Pending without resource pressure usually means a volume, scheduler constraint, or configuration problem. Read the pod events:
+
+  kubectl describe pod db-0 -n k8smissions
+
+Scroll to the Events section — what reason does Kubernetes give for not starting the pod?

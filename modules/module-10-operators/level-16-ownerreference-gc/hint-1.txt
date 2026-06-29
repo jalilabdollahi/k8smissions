@@ -1,3 +1,1 @@
-Run: kubectl delete myapp my-app -n k8smissions
-Then: kubectl get deployments -n k8smissions | grep my-app-deploy
-If the Deployment survives, ownerReferences are missing.
+Delete the custom resource and check if its owned Deployment is also deleted: `kubectl delete myapp my-app -n k8smissions` then `kubectl get deployment my-app-deploy -n k8smissions`

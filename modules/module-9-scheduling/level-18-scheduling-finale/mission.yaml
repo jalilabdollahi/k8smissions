@@ -1,7 +1,7 @@
 {
   "name": "Scheduler Overload",
-  "description": "The cluster has three separate scheduling problems \u2014 pods from three different teams are all stuck Pending for different reasons.",
-  "objective": "Fix all three scheduling issues: bad node selector, anti-affinity impossible constraint, and misconfigured priority \u2014 to unblock all teams",
+  "description": "Three teams are reporting scheduling problems simultaneously, each for a different reason. Team A's pod has a nodeSelector pointing to a nonexistent label. Team B's Deployment needs more unique nodes than exist. Team C's pod references a PriorityClass that was never created. All three are stuck Pending and must be diagnosed and fixed independently.",
+  "objective": "Fix all three scheduling issues: bad node selector, anti-affinity impossible constraint, and misconfigured priority — to unblock all teams",
   "xp": 400,
   "difficulty": "advanced",
   "expected_time": "20m",

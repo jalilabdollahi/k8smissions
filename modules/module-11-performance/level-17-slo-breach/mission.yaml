@@ -1,6 +1,6 @@
 {
   "name": "SLO Breach Alert",
-  "description": "Error rate SLO is 99.9% availability but monitoring shows 98.5% \u2014 1.4% of requests are failing.",
+  "description": "An application with a 99.9% availability SLO is regularly breaching its error budget. Instances crash due to application bugs, but the liveness probe's `failureThreshold: 10` means Kubernetes waits 100 seconds (10 checks × 10 seconds) before restarting the container. Each crash consumes 100 seconds of the monthly error budget.",
   "objective": "Investigate and fix the root cause: a misbehaving pod is not being restarted due to incorrect liveness probe configuration",
   "xp": 375,
   "difficulty": "advanced",

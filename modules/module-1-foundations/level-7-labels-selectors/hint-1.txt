@@ -1,3 +1,5 @@
-Check whether the Service found any backend Pod:
+When a Service exists but traffic does not arrive, the first thing to check is whether the Service has any Endpoints:
+
   kubectl get endpoints backend-service -n k8smissions
-An empty ENDPOINTS value means its selector matched no ready Pods.
+
+If the Endpoints column shows `<none>`, the Service cannot find any matching pod. Services select pods using labels.

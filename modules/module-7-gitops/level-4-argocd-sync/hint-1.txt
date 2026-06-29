@@ -1,1 +1,1 @@
-Start with: ArgoCD app OutOfSync; target namespace missing
+Check whether the target namespace exists: `kubectl get namespace webapp-prod`

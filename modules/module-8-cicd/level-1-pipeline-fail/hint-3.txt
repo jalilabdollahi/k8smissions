@@ -1,2 +1,1 @@
-Fix: change the image to 'golang:1.21' — a valid, published tag.
-Verify with: docker pull golang:1.21 or check hub.docker.com
+The Task's step `image` field references `golang:99.9-nonexistent` — a tag that doesn't exist. Replace it with a valid published tag like `golang:1.21`.

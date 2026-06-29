@@ -1,7 +1,7 @@
 {
   "name": "Too Greedy",
-  "description": "Pod has been submitted but remains in Pending state with no node assigned.",
-  "objective": "The Pod requests far more CPU and memory than any node can provide \u2014 reduce both requests to schedulable values",
+  "description": "Pod hungry-app was submitted but has been in Pending ever since — no node has been assigned to it. Run kubectl get pods -n k8smissions.",
+  "objective": "The Pod requests far more CPU and memory than any node can provide — reduce both requests to schedulable values",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "10m",

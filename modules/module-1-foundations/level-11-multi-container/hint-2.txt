@@ -1,3 +1,5 @@
-Read only the failing sidecar's logs:
-  kubectl logs app-with-logging -c log-sidecar -n k8smissions --previous
-It is trying to follow a file that does not exist.
+The log-sidecar container is crashing. Read its logs specifically — in a multi-container pod you must use -c to pick the container:
+
+  kubectl logs app-with-logging -n k8smissions -c log-sidecar
+
+What command is the sidecar running and why does it fail?

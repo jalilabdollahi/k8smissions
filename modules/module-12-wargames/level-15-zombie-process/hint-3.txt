@@ -1,1 +1,1 @@
-Add both a readinessProbe and livenessProbe with httpGet on port 8080 path /
+The Deployment has no probes. Add a `readinessProbe` (to remove the pod from Service endpoints when failing) and a `livenessProbe` (to restart the container when it's zombie). Both should use `httpGet` on path `/` port `8080`.

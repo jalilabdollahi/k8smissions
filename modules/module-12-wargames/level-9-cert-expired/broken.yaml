@@ -1,4 +1,3 @@
-# ❌ BUG: The cluster-cert-status Secret annotation shows cert-status: expired with a
 # past expiry date of 2024-01-01. In a real cluster this manifests as x509 certificate
 # has expired errors on kubectl commands, kubeconfig auth rejections, and mTLS failures
 # between cluster components. All API calls fail until certs are renewed.
@@ -8,8 +7,8 @@ metadata:
   name: cluster-cert-status
   namespace: k8smissions
   annotations:
-    cert-status: expired   # ❌ BUG: Certificate is expired — cluster auth is broken
-    expiry: '2024-01-01'   # ❌ BUG: Expiry date is in the past (over 2 years ago)
+    cert-status: expired
+    expiry: '2024-01-01'
 type: Opaque
 stringData:
   status: expired

@@ -1,2 +1,1 @@
-Run: kubectl describe taskrun push-run -n k8smissions
-The error message will name the missing parameter.
+Check the TaskRun status for the validation error: `kubectl describe taskrun push-run -n k8smissions`

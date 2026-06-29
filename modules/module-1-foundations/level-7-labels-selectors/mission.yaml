@@ -1,7 +1,7 @@
 {
   "name": "No Endpoints",
-  "description": "A Service has been created and pods are Running, but the endpoints list is empty.",
-  "objective": "The service selector label doesn't match the pod's labels \u2014 align them so the service routes traffic to the pod",
+  "description": "Pod backend-app is Running and the Service exists — but traffic is not reaching the pod. Start with kubectl get endpoints backend-service -n k8smissions.",
+  "objective": "The service selector label doesn't match the pod's labels — align them so the service routes traffic to the pod",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "10m",

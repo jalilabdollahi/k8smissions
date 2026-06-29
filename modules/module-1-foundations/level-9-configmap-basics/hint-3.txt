@@ -1,4 +1,3 @@
-Create the missing ConfigMap:
-  kubectl create configmap app-config -n k8smissions \
-    --from-literal=APP_MODE=production
-The existing Pod should start automatically after the ConfigMap appears.
+The ConfigMap `app-config` does not exist yet. The pod declares a Volume that references it in spec.volumes.
+
+The solution is to add the missing ConfigMap to manifest.yaml — above the Pod definition, separated by `---`.

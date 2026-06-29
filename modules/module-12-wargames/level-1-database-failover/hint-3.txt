@@ -1,1 +1,1 @@
-Create a Pod named db-primary with label app=db, a Service named db-service selecting it, then redeploy the app.
+Both `db-primary` (Pod with label `app: db`) and `db-service` (Service selecting `app: db` on port 5432) are missing. Recreate them. Once `db-service` has a healthy endpoint, the readinessProbe will pass and app pods will become Ready automatically.

@@ -37,4 +37,4 @@ spec:
       mountPath: /data
   volumes:
   - name: data
-    emptyDir: {}  # ❌ Ephemeral! Data lost when pod deleted/restarted
+    emptyDir: {}

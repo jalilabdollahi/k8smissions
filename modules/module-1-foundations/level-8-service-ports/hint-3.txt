@@ -1,5 +1,5 @@
-Run:
-  edit service web-service
-Set:
-  targetPort: 80
-Save and apply the Service.
+The container declares `containerPort: 80`. Now look at the Service spec:
+
+  kubectl get service web-service -n k8smissions -o yaml | grep -A5 'ports'
+
+Pay attention to the difference between `port` and `targetPort`.

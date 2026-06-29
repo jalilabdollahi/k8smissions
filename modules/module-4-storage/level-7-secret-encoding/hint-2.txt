@@ -1,1 +1,5 @@
-Goal state: echo "dmFsdWU=" | base64 -d  (show it decodes instantly) Apply Role restricting secret access to specific SA only
+The decoded output is the plaintext password — readable by anyone with `kubectl get secret` access. Base64 is an encoding scheme, not encryption. Anyone with access to the namespace can decode every Secret trivially.
+
+Check who currently has access to read Secrets:
+
+  kubectl auth can-i get secrets -n k8smissions --as=system:serviceaccount:k8smissions:default

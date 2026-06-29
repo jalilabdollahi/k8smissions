@@ -1,3 +1,4 @@
-Correct base64 of the token:
-  echo -n 'supersecret-api-token-12345' | base64
-That output goes into data.token. Apply the fix with kubectl apply.
+The real token is `supersecret-api-token-12345`. In manifest.yaml, the `data.token` field currently holds the base64 of that real token encoded again. It needs to hold ONLY the single base64 encoding of the real token.
+
+Replace the value in manifest.yaml with the correct single-encoded base64:
+`c3VwZXJzZWNyZXQtYXBpLXRva2VuLTEyMzQ1`

@@ -1,7 +1,7 @@
 {
   "name": "PDB Blocks Node Drain",
-  "description": "A node drain is failing and reporting it cannot safely evict pods.",
-  "objective": "The PDB's minAvailable is higher than the Deployment replica count \u2014 lower minAvailable so drain can proceed",
+  "description": "A routine node maintenance procedure is failing. The operator runs `kubectl drain` but it errors immediately saying pod eviction would violate the disruption budget. The Deployment is running but its replica count and the PDB's minimum availability requirement are mathematically incompatible.",
+  "objective": "The PDB's minAvailable is higher than the Deployment replica count — lower minAvailable so drain can proceed",
   "xp": 300,
   "difficulty": "advanced",
   "expected_time": "10m",

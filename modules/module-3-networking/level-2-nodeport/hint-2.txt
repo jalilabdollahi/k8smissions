@@ -1,1 +1,5 @@
-Goal state: Set nodePort: 30080 (or remove to let k8s assign)
+Without an explicit `nodePort` field, Kubernetes assigns a random port from the 30000–32767 range each time the Service is recreated. This makes it impossible to set up consistent firewall rules or tell users where to connect.
+
+Check what the Service spec looks like:
+
+  kubectl get service web-nodeport -n k8smissions -o yaml | grep -A5 'ports'

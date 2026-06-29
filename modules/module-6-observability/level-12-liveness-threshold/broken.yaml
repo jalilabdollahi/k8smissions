@@ -18,6 +18,6 @@ spec:
         - /
       initialDelaySeconds: 5
       periodSeconds: 5
-      failureThreshold: 1  # ❌ BUG: failureThreshold of 1 means a single probe miss triggers an immediate restart.
+      failureThreshold: 1
                            # Any transient system load or scheduling delay causes the pod to restart.
                            # The RESTARTS counter will keep climbing every few minutes.

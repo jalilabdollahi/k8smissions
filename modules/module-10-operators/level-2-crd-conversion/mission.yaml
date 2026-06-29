@@ -1,7 +1,7 @@
 {
   "name": "Version Migration",
-  "description": "Custom resources created with v1alpha1 are not visible when querying v1beta1 version.",
-  "objective": "The CRD has two versions but no conversion webhook \u2014 stored v1alpha1 resources won't auto-convert to v1beta1 format",
+  "description": "A CRD has two versions — `v1alpha1` and `v1beta1`. Resources created with v1alpha1 are invisible when querying the v1beta1 API. The CRD has `conversion.strategy: None`, which means Kubernetes makes no attempt to convert objects between versions. The storage version also needs to move to v1beta1.",
+  "objective": "The CRD has two versions but no conversion webhook — stored v1alpha1 resources won't auto-convert to v1beta1 format",
   "xp": 375,
   "difficulty": "advanced",
   "expected_time": "18m",

@@ -1,1 +1,1 @@
-Check if there's a RoleBinding for the app-sa service account — it's missing.
+Test the permission: `kubectl auth can-i get pods --as=system:serviceaccount:k8smissions:app-sa -n k8smissions`. Then check what RBAC objects exist: `kubectl get sa,role,rolebinding -n k8smissions`

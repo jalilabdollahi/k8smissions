@@ -1,1 +1,1 @@
-Goal state: Option A: Increase initialDelaySeconds: 90 Option B (better): Add startupProbe with failureThreshold: 30, periodSeconds: 5 (= 150s max wait)
+The events show the liveness probe failing during startup. Look at `initialDelaySeconds` — that is when the first probe fires. If the app takes longer than that to start, every startup attempt will be killed by the liveness probe.

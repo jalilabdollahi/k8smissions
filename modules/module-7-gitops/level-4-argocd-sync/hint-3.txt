@@ -1,1 +1,1 @@
-Validation target: argocd app get webapp-app → Synced, Healthy
+The broken manifest shows `status: OutOfSync` and references `targetNamespace: webapp-prod`. You need to create that namespace and deploy a Deployment into it to bring the application to Synced state.

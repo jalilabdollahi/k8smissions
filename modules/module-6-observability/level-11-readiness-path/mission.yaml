@@ -1,7 +1,7 @@
 {
   "name": "Never Ready",
-  "description": "A Deployment has been running for ten minutes but the pods show 0/1 READY \u2014 no traffic reaches them.",
-  "objective": "The readiness probe checks the wrong HTTP path \u2014 fix the path so probes succeed and pods become Ready",
+  "description": "A Deployment has been running for ten minutes but all pods show `0/1 READY`. No traffic is reaching them through the Service even though the containers are up. The readiness probe is failing because it is checking a path that this web server does not serve.",
+  "objective": "The readiness probe checks the wrong HTTP path — fix the path so probes succeed and pods become Ready",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

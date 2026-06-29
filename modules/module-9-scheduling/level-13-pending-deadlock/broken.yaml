@@ -20,7 +20,6 @@ webhooks:
     - CREATE
     resources:
     - pods
-  # ❌ BUG: failurePolicy: Fail means if the webhook service is unreachable,
   # ALL pod creation is blocked cluster-wide. The validator-svc is down,
   # causing every pod CREATE to timeout and fail — a full scheduling deadlock.
   failurePolicy: Fail

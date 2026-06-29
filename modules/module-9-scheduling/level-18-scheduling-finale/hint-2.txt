@@ -1,4 +1,1 @@
-Each pod has a different scheduling problem:
-- team-a: nodeSelector for non-existent node label
-- team-b: required antiAffinity impossible with 5 replicas on 2 nodes
-- team-c: references non-existent PriorityClass
+Each pod has a different failure reason: team-a sees 'didn't match node selector', team-b sees 'didn't match pod anti-affinity rules' (not enough nodes), team-c sees an API rejection for the unknown PriorityClass. Fix them independently — each has a different root cause.

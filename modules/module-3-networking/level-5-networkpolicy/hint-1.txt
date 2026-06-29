@@ -1,1 +1,7 @@
-Start with: NetworkPolicy denies all ingress, no explicit allow rule
+When packets are silently dropped (no connection refused, just timeout), a NetworkPolicy is usually responsible. Check if any NetworkPolicies exist in the namespace:
+
+  kubectl get networkpolicy -n k8smissions
+
+If one exists, read it:
+
+  kubectl describe networkpolicy backend-network-policy -n k8smissions

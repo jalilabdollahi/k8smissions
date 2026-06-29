@@ -13,7 +13,6 @@ spec:
       labels:
         app: ha-app
     spec:
-      # ❌ BUG: No topologySpreadConstraints defined — the scheduler can place
       # all 4 pods on the same node, creating a single point of failure.
       containers:
       - name: app

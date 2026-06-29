@@ -1,2 +1,1 @@
-The Descheduler's LowNodeUtilization strategy evicts pods from high-utilization nodes.
-If 'enabled: false', it never runs and imbalance persists.
+You should see `enabled: false` on the `LowNodeUtilization` strategy. This means the descheduler never acts, even though the policy thresholds are configured. The `enabled` field is the on/off switch for the entire strategy.

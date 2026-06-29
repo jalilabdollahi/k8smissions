@@ -1,4 +1,3 @@
-The PVC requests 'fast-nvme' but no such StorageClass exists.
-Delete the PVC and recreate it with a valid StorageClass:
-  storageClassName: standard
-(or whatever kubectl get storageclass shows)
+The PVC in manifest.yaml requests `storageClassName: fast-nvme` which does not exist. Change it to a class that is actually installed — `standard` is available in this cluster.
+
+Find `spec.storageClassName` in the PVC in manifest.yaml.

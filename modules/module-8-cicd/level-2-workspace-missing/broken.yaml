@@ -6,4 +6,4 @@ metadata:
 spec:
   pipelineRef:
     name: build-pipeline
-  workspaces: []  # ❌ BUG: Pipeline declares a 'source' workspace but no binding is provided — Tekton fails with 'workspace not bound'
+  workspaces: []

@@ -1,2 +1,1 @@
-Run: kubectl create -f my-apptemplate.yaml 2>&1 | head -5
-The API server returns a validation error with the field and constraint that failed.
+Try applying a custom resource and read the exact validation error: `kubectl apply -f ~/.k8smissions/sandbox/manifest.yaml`

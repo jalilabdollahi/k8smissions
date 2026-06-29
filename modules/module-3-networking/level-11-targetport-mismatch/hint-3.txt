@@ -1,2 +1,3 @@
-The Service targetPort: 8080 but container listens on 80.
-Fix: kubectl patch svc web-svc -n k8smissions -p '{"spec":{"ports":[{"port":80,"targetPort":80}]}}'
+The container listens on port 80 (`containerPort: 80`). The Service has `targetPort: 8080`. Traffic arrives at the pod on port 8080, where nothing is listening — connection refused.
+
+Find `spec.ports[0].targetPort` in the Service in manifest.yaml.

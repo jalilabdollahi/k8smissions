@@ -1,1 +1,1 @@
-Goal state: Apply production overlay which sets LOG_LEVEL=info, replicas=3, cpu limit=500m, memory limit=512Mi
+You should see `LOG_LEVEL: debug`, `replicas: 1`, and no resource limits defined. Production needs: INFO log level, 3 replicas for availability, and resource limits to prevent noisy-neighbor impact.

@@ -1,1 +1,6 @@
-Start with: PVC requests 5Gi, PV only provides 1Gi
+ContainerCreating that never progresses usually means a Volume cannot be prepared. The Volume here depends on a PVC. Check the PVC status:
+
+  kubectl get pvc app-storage-claim -n k8smissions
+  kubectl describe pvc app-storage-claim -n k8smissions
+
+What does the Events section say about why it cannot bind?

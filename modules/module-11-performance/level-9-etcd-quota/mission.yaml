@@ -1,7 +1,7 @@
 {
   "name": "API Server Writes Fail",
-  "description": "kubectl apply fails with 'etcdserver: mvcc: database space exceeded'.",
-  "objective": "etcd has hit its storage quota (default 2GB) \u2014 defragment etcd and raise the quota",
+  "description": "The API server is returning 'etcdserver: mvcc: database space exceeded' errors and all write operations are failing. etcd's storage backend has hit its quota limit of 2GB. The cluster has been running long enough that accumulated key/value data (ConfigMaps, Secrets, events, old object revisions) has filled the quota.",
+  "objective": "etcd has hit its storage quota (default 2GB) — defragment etcd and raise the quota",
   "xp": 375,
   "difficulty": "advanced",
   "expected_time": "18m",

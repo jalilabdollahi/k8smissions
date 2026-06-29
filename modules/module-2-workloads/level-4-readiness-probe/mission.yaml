@@ -1,7 +1,7 @@
 {
   "name": "Too Eager",
-  "description": "Deployment is running but users are seeing intermittent 502 errors on startup.",
-  "objective": "There is no readiness probe \u2014 pods receive traffic before they are ready, causing errors; add a readiness probe",
+  "description": "Deployment slow-startup-app is running and pods show Ready, but users are hitting intermittent 502 errors immediately after a pod starts. Run kubectl get pods -n k8smissions.",
+  "objective": "There is no readiness probe — pods receive traffic before they are ready, causing errors; add a readiness probe",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

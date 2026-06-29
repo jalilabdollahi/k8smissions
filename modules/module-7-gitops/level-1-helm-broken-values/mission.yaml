@@ -1,7 +1,7 @@
 {
   "name": "Helm Values Gone Wrong",
-  "description": "A Helm release has been deployed but the pods are misbehaving.",
-  "objective": "The Helm values.yaml has an empty image.tag \u2014 set a pinned tag so the chart deploys a specific version",
+  "description": "A Helm release was deployed but pods are running `nginx:latest` instead of a specific version. In the Helm chart template, the image tag is read from `values.yaml` — but the tag value was left empty, so the template resolved to `latest` as a fallback. Unpinned tags make deployments non-reproducible.",
+  "objective": "The Helm values.yaml has an empty image.tag — set a pinned tag so the chart deploys a specific version",
   "xp": 300,
   "difficulty": "advanced",
   "expected_time": "10m",

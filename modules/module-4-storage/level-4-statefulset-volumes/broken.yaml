@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: database-storage  # ❌ Single PVC for all pods!
+  name: database-storage
   namespace: k8smissions
 spec:
   accessModes:
@@ -44,5 +44,4 @@ spec:
       volumes:
       - name: database-storage
         persistentVolumeClaim:
-          claimName: database-storage  # ❌ All pods share same PVC!
-  # ❌ Missing volumeClaimTemplates!
+          claimName: database-storage

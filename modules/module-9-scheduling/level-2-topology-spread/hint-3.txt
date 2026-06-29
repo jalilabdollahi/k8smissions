@@ -1,8 +1,1 @@
-Add under spec.template.spec:
-  topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: kubernetes.io/hostname
-    whenUnsatisfiable: DoNotSchedule
-    labelSelector:
-      matchLabels:
-        app: ha-app
+The pod spec has no `topologySpreadConstraints` block. Add one with `maxSkew: 1` and `topologyKey: kubernetes.io/hostname` to enforce that no node has more than 1 extra pod compared to any other node.

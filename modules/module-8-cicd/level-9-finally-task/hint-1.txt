@@ -1,2 +1,1 @@
-Run: kubectl get pipeline build-and-clean -n k8smissions -o yaml | grep -A10 finally
-If 'finally' is empty, cleanup never runs on failure.
+Inspect the Pipeline spec to see where the cleanup Task is defined: `kubectl get pipeline build-and-clean -n k8smissions -o yaml | grep -A20 tasks`

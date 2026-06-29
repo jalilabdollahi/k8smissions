@@ -1,1 +1,3 @@
-Validation target: Pods Running, RESTARTS count not increasing
+The livenessProbe is configured with `path: /nonexistent-healthz`. Nginx does not serve anything at that path — it returns 404 on every probe check.
+
+The fix is in `spec.template.spec.containers[0].livenessProbe.httpGet.path` in manifest.yaml.

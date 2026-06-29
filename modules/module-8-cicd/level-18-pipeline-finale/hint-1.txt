@@ -1,2 +1,1 @@
-Run: kubectl describe task multi-task -n k8smissions
-Look for all problems: non-existent image version, missing defaults.
+Start with a broad diagnosis: `kubectl describe taskrun -n k8smissions` and `kubectl get events -n k8smissions --sort-by=.lastTimestamp | tail -20`. Identify each distinct failure type before touching the manifest.

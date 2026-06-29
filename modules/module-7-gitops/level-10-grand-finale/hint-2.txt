@@ -1,1 +1,1 @@
-Goal state: Apply the corrected manifest or patch so the workload matches the expected healthy state.
+You should find: image uses `:latest` (unpinned), replicas is 1 (not production-ready), no resource limits, no readinessProbe, no lifecycle preStop hook, no terminationGracePeriodSeconds, and PDB minAvailable: 3 is impossible with only 1 replica.

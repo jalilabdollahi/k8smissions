@@ -1,7 +1,7 @@
 {
   "name": "Rejected by the API",
-  "description": "Attempts to create a custom resource are rejected with a validation error.",
-  "objective": "The CRD's OpenAPI validation schema marks 'replicas' as having minimum: 5 but the resource sets 2 \u2014 fix the CR or the CRD schema",
+  "description": "Every attempt to create a custom resource of type `AppTemplate` is rejected by the API server with a validation error. The CRD defines an OpenAPI schema, and the schema has a constraint that makes normal use impossible — the minimum allowed replica count is set too high.",
+  "objective": "The CRD's OpenAPI validation schema marks 'replicas' as having minimum: 5 but the resource sets 2 — fix the CR or the CRD schema",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -1,1 +1,1 @@
-Goal state: kubectl get events -n k8smissions --sort-by='.lastTimestamp' Find the ImagePullBackOff event → fix image reference
+The Events section shows Warning events with reasons like `ErrImagePull` or `ImagePullBackOff`. These include the exact error from the container runtime. Look at what image the pod is trying to pull.

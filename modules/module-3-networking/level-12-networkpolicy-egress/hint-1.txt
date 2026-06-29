@@ -1,2 +1,9 @@
-Run: kubectl get networkpolicy -n k8smissions
-A policy with empty egress: [] blocks ALL outgoing traffic including DNS.
+DNS failures across all pods at once usually mean either CoreDNS is down or a NetworkPolicy is blocking outbound traffic to port 53.
+
+Check if any NetworkPolicy exists in this namespace:
+
+  kubectl get networkpolicy -n k8smissions
+
+If one exists, read it carefully:
+
+  kubectl describe networkpolicy deny-all-egress -n k8smissions

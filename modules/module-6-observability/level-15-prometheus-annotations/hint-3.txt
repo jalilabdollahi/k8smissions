@@ -1,5 +1,1 @@
-Patch the annotations:
-  kubectl annotate pod metrics-app -n k8smissions \
-    prometheus.io/scrape=true \
-    prometheus.io/port=9090 \
-    prometheus.io/path=/metrics
+The pod's `metadata.annotations` block is missing entirely. Three annotations are needed: `prometheus.io/scrape` to enable discovery, `prometheus.io/port` to specify which port to scrape, and `prometheus.io/path` to specify the metrics endpoint path.

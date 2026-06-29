@@ -1,1 +1,5 @@
-Start with: App env var DB_HOST=db (correct only within same namespace) App is in a different namespace
+The log shows the app is connecting to host `database`. Read what resources actually exist:
+
+  kubectl get pods,services -n k8smissions
+
+Look at the NAME column for each resource type. What is the difference between a pod name and a service name?

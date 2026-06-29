@@ -1,2 +1,1 @@
-Run: kubectl get pod logger-app -n k8smissions -o yaml | grep -A5 env
-Note the LOG_LEVEL environment variable value.
+You should see `LOG_LEVEL: DEBUG` in the environment variables. DEBUG logging emits every internal state change and is appropriate only during active development. Look at the manifest's `env` block to find where to change this.

@@ -1,3 +1,7 @@
-Run: kubectl get pvc data-pvc -n k8smissions
-Check STATUS — Pending means no PV matched or was created.
-Run: kubectl describe pvc data-pvc -n k8smissions | grep Events -A10
+The describe output should show in Events why no provisioner has responded. Look for messages about the StorageClass.
+
+Then list what StorageClasses are installed in this cluster:
+
+  kubectl get storageclass
+
+Is `fast-nvme` in the list?

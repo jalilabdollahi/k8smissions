@@ -1,2 +1,1 @@
-Check WATCH_NAMESPACE: kubectl describe deployment my-operator -n operators | grep WATCH_NAMESPACE
-If set to 'operators', the controller only sees resources in that namespace.
+You should see `WATCH_NAMESPACE: operators`. The operator uses this value to scope its informers. Any CR in a different namespace (like `k8smissions`) is outside the watch scope and never triggers a reconciliation.

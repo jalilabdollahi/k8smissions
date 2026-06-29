@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The container's `resources.limits.memory` is set to 64Mi, but the Python command inside allocates 128 MB of data. Every time the container starts, it exceeds the memory limit and is killed by the kernel.

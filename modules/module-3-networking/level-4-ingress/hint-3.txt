@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The pod responds at `/` but the Ingress only routes requests to `/api`. No traffic from the root path ever reaches the backend.
+
+Find `spec.rules[0].http.paths[0].path` in the Ingress in manifest.yaml.

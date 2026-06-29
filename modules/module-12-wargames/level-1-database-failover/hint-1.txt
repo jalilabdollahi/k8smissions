@@ -1,1 +1,1 @@
-Check what pods exist in the namespace — something that should be there is missing.
+Check what's missing: `kubectl get pods,services -n k8smissions`. Then look at why the app pods are NotReady: `kubectl describe pod -n k8smissions -l app=app-server | grep -A10 Readiness`

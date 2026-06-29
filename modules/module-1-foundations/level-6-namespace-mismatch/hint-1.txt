@@ -1,3 +1,6 @@
-The namespace is part of a resource's address. Search all namespaces:
-  kubectl get pod client-app --all-namespaces
-  kubectl get service backend-service --all-namespaces
+If k8smissions is empty, the resources were probably created somewhere else. Check all namespaces at once:
+
+  kubectl get pods --all-namespaces
+  kubectl get services --all-namespaces
+
+Note which namespace client-app and backend-service actually ended up in.

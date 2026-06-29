@@ -5,4 +5,4 @@ metadata:
   name: api-secret
   namespace: k8smissions
 data:
-  token: YzNWd1pYSnpaV055WlhRdFlYQnBMWFJ2YTJWdUxURXlNelEx  # ❌ BUG: double-encoded base64 (base64 of base64)
+  token: YzNWd1pYSnpaV055WlhRdFlYQnBMWFJ2YTJWdUxURXlNelEx

@@ -1,1 +1,1 @@
-kubectl get configmap leader-election -n k8smissions -o yaml
+The `renewTime: 2024-01-01` is far in the past — the primary cluster hasn't renewed its lease in over 2 years, indicating it's dead. But `failover-enabled: false` prevents the failover controller from promoting the secondary. The system is stuck with no active leader.

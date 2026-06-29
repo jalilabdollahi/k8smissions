@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The default ServiceAccount in k8smissions can read Secrets — meaning any pod in this namespace can read all Secrets. The risk is not in how the values are stored (base64), but in who is allowed to access the Secret object.
+
+The fix for this level is demonstrating you understand the risk: use `stringData` instead of `data` in the Secret so you do not have to manually base64-encode values, and note that real protection requires RBAC restrictions or an external secrets manager.

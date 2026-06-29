@@ -1,2 +1,1 @@
-Run: kubectl create pod test --image=busybox --dry-run=server -n k8smissions 2>&1
-If it hangs or returns an error about webhooks, a validation webhook is blocking pod creation.
+Try to create any pod and observe the error: `kubectl apply -f ~/.k8smissions/sandbox/manifest.yaml`. Also check admission webhooks: `kubectl get validatingwebhookconfiguration`

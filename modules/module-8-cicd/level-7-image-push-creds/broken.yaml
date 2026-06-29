@@ -3,4 +3,3 @@ kind: ServiceAccount
 metadata:
   name: ci-sa
   namespace: k8smissions
-# ❌ BUG: no imagePullSecrets or secrets attached — image push step in the pipeline Task receives 401 Unauthorized from the registry

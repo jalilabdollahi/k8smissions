@@ -1,3 +1,1 @@
-Fix 1 (Webhook): failurePolicy: Ignore + namespaceSelector
-Fix 2 (CRD): add v1 served: true, storage: false to CRD versions list
-Fix 3 (Operator): --leader-elect=true
+Three fixes needed: (1) add `namespaceSelector` to exclude kube-system and change `failurePolicy: Ignore`; (2) add v1 back to CRD with `served: true, storage: false`; (3) change operator args to `--leader-elect=true`.

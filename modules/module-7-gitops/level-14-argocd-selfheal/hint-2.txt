@@ -1,3 +1,1 @@
-GitOps principle: git is the single source of truth.
-With selfHeal: true, manual kubectl changes are drifts to be corrected.
-To allow temporary manual overrides, disable self-healing.
+You should see `selfHeal: true` under `automated`. Self-healing means ArgoCD continuously compares live cluster state to Git and immediately reverts any drift — including your intentional manual changes.

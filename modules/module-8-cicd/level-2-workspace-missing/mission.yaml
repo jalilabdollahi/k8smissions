@@ -1,7 +1,7 @@
 {
   "name": "No Workspace",
-  "description": "A Tekton Pipeline run fails immediately \u2014 a required workspace is not bound.",
-  "objective": "The Pipeline workspace is declared but no PVC or emptyDir is provided in the PipelineRun \u2014 bind a workspace",
+  "description": "A Tekton PipelineRun fails immediately at startup — not during any Task execution. The Pipeline declares a workspace named `source` for sharing files between Tasks, but the PipelineRun provides no binding for it. Tekton validates workspace bindings at admission time and rejects the run before it starts.",
+  "objective": "The Pipeline workspace is declared but no PVC or emptyDir is provided in the PipelineRun — bind a workspace",
   "xp": 275,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -1,6 +1,1 @@
-Set ndots: 2 in pod dnsConfig:
-  dnsConfig:
-    options:
-    - name: ndots
-      value: "2"
-Or use FQDNs with trailing dot: nslookup db.k8smissions.svc.cluster.local.
+Add `dnsConfig.options` with `ndots: 2` to reduce the search suffix attempts. Also change the DNS lookup in the container command to use the full FQDN `db.k8smissions.svc.cluster.local` instead of `db`.

@@ -1,2 +1,5 @@
-To share a PVC across multiple pods on different nodes, you need ReadWriteMany.
-Not all StorageClasses support RWX — check kubectl get storageclass for support.
+`ReadWriteOnce` means only one node can have the volume mounted read-write at a time. In a multi-node cluster, the second pod on a different node cannot mount an RWO volume that is already mounted elsewhere.
+
+For shared access across multiple pods, you need `ReadWriteMany`.
+
+Note: you cannot edit the accessMode of an existing bound PVC — the PVC must be deleted and recreated with the new mode.

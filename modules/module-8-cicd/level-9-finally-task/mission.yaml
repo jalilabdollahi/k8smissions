@@ -1,7 +1,7 @@
 {
   "name": "Cleanup Skipped",
-  "description": "Pipeline runs succeed but the cleanup step never runs \u2014 temporary resources pile up after each build.",
-  "objective": "The cleanup Task is in the tasks list, not the finally list \u2014 move it to spec.finally so it always runs",
+  "description": "A Pipeline runs a cleanup Task after each build to remove temporary resources. But the cleanup only runs when the build succeeds — if the build fails, the cleanup is skipped and temporary resources accumulate. The cleanup is in the wrong section of the Pipeline spec.",
+  "objective": "The cleanup Task is in the tasks list, not the finally list — move it to spec.finally so it always runs",
   "xp": 275,
   "difficulty": "intermediate",
   "expected_time": "10m",

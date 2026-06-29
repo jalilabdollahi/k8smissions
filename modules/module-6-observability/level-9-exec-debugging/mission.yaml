@@ -1,7 +1,7 @@
 {
   "name": "Diagnose the Live Pod",
-  "description": "Pod is Running but the application returns 500 errors with no useful log output.",
-  "objective": "The app returns 500 errors with no logs \u2014 exec into the container and inspect its config files to find the misconfiguration",
+  "description": "A pod is Running and passing health checks, but the application returns 500 errors with no useful log output. The problem is in the configuration file the app loaded at startup — not in the code itself. You need to exec into the live container and read what configuration it actually has.",
+  "objective": "The app returns 500 errors with no logs — exec into the container and inspect its config files to find the misconfiguration",
   "xp": 300,
   "difficulty": "advanced",
   "expected_time": "10m",

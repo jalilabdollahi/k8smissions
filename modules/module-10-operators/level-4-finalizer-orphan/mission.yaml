@@ -1,6 +1,6 @@
 {
   "name": "Orphaned Controller",
-  "description": "Deleting a custom resource takes 30 minutes and then disappears \u2014 but the backend resources it created still exist.",
+  "description": "Deleting a custom resource takes forever — or it enters Terminating state and stays there indefinitely. The CR has a finalizer registered by an operator that no longer exists. Since no controller will ever clear the finalizer, the object is stuck in Terminating permanently.",
   "objective": "The operator's finalizer logic ran successfully but forgot to actually clean up the backend resources before clearing the finalizer",
   "xp": 375,
   "difficulty": "advanced",

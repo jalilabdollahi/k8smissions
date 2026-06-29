@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The `deny-all` NetworkPolicy applies to every pod in the namespace (empty podSelector) and lists both Ingress and Egress as policy types, but defines no `ingress:` or `egress:` rules — which in Kubernetes means *deny everything*.

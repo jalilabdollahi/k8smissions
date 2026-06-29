@@ -1,5 +1,1 @@
-Set selfHeal to false:
-  syncPolicy:
-    automated:
-      selfHeal: false
-Better long-term: make your change in git and let ArgoCD sync it.
+The Application's `syncPolicy.automated.selfHeal` is `true`. This causes ArgoCD to detect any deviation from Git (including your scale command) as drift and auto-revert it within its next sync cycle (typically seconds to minutes). Set it to `false` to allow manual overrides to persist.

@@ -1,2 +1,5 @@
-Run: kubectl get configmap stuck-config -n k8smissions -o yaml
-Look at metadata.finalizers. kubectl delete waits for all finalizers to be removed.
+A resource stuck in Terminating means `kubectl delete` was called but Kubernetes cannot finish deleting it. Something is blocking removal. Get the details:
+
+  kubectl describe configmap stuck-config -n k8smissions
+
+Look at the Finalizers field.

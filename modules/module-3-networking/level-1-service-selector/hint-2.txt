@@ -1,1 +1,5 @@
-Goal state: Update service selector OR pod label to match
+The pod has label `app: backend`. Now check what the Service selector requires:
+
+  kubectl get service backend-service -n k8smissions -o yaml | grep -A5 'selector'
+
+Do the values match exactly — including spacing and capitalization?

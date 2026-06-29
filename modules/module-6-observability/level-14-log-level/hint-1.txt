@@ -1,2 +1,1 @@
-Run: kubectl logs logger-app -n k8smissions --tail=10
-If every line says [DEBUG], the verbosity is too high.
+Check the current log output: `kubectl logs logger-app -n k8smissions | head -20`. Then look at the pod's environment variables: `kubectl get pod logger-app -n k8smissions -o yaml | grep -A5 env`

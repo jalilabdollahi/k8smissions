@@ -1,7 +1,7 @@
 {
   "name": "Full Pipeline Down",
-  "description": "The production CI/CD pipeline is completely broken \u2014 multiple issues are preventing any run from succeeding.",
-  "objective": "Fix all three pipeline issues: wrong image tag, missing workspace binding, and broken RBAC \u2014 to restore the pipeline",
+  "description": "The production CI/CD pipeline is completely broken. Multiple independent failures prevent any run from succeeding: a Task step uses a non-existent image tag, a required parameter has no default making the TaskRun fail validation, and the pipeline's ServiceAccount lacks RBAC to create TaskRuns. All three must be fixed before any pipeline run can complete.",
+  "objective": "Fix all three pipeline issues: wrong image tag, missing workspace binding, and broken RBAC — to restore the pipeline",
   "xp": 400,
   "difficulty": "advanced",
   "expected_time": "20m",

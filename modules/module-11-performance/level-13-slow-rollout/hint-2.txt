@@ -1,3 +1,1 @@
-With 100 replicas, maxSurge: 0, maxUnavailable: 1:
-- Update 1 pod → wait → update 1 pod → ... = 100 sequential updates
-- If each pod takes 2 minutes to start, 100 * 2min = 200 min = 3+ hours
+Check the rolling update strategy: `kubectl get deployment slow-deploy -n k8smissions -o yaml | grep -A5 rollingUpdate`. With `maxSurge: 0` and `maxUnavailable: 1`, the deployment creates no extra capacity and removes/replaces exactly 1 pod at a time.

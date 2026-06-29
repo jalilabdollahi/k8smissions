@@ -1,1 +1,7 @@
-Start with: Service selector: app: api Pod labels: app: api-server
+Empty endpoints always mean the Service selector matched zero pods. Start there:
+
+  kubectl get endpoints backend-service -n k8smissions
+
+Then compare the Service selector with the pod labels:
+
+  kubectl get pod backend-pod -n k8smissions --show-labels

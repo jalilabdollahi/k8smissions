@@ -1,2 +1,1 @@
-Run: kubectl logs -n operators deployment/my-operator | grep -i forbidden
-Operator logs reveal exactly which resources and verbs are missing.
+Read the operator logs to see which resource it's being forbidden from: `kubectl logs -n operators -l app=my-operator | grep -i forbidden`

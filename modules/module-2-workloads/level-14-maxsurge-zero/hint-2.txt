@@ -1,3 +1,6 @@
-RollingUpdate requires either maxSurge > 0 OR maxUnavailable > 0.
-maxSurge=0 means no new pods above replicas count. maxUnavailable=0 means no pods can go down.
-Both zero means there is no room for any change.
+The strategy shows `Max Unavailable: 0` and `Max Surge: 0`. Think about what this means:
+
+- `maxUnavailable: 0` → no existing pods can be removed
+- `maxSurge: 0` → no extra pods can be added beyond the current count
+
+If you cannot remove old pods and cannot create new ones, how can the update ever progress?

@@ -1,1 +1,5 @@
-Validation target: All pods Running on previous revision
+Revision 1 used a working image. You can roll back to it without touching manifest.yaml at all:
+
+  kubectl rollout undo deployment/web-app -n k8smissions
+
+After rolling back, update manifest.yaml to match the restored state so the next apply does not re-break it.

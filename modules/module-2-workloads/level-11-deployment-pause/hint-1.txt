@@ -1,2 +1,7 @@
-Run: kubectl rollout status deployment/frontend -n k8smissions
-A paused deployment shows 'Waiting for deployment spec update to be observed'.
+The rollout status command may say 'Waiting for deployment to finish: 0 out of 3 new replicas have been updated'. This is different from a failed rollout — the Deployment is not progressing at all.
+
+Get more detail:
+
+  kubectl describe deployment frontend -n k8smissions
+
+Look for any mention of 'paused' in the output.

@@ -1,6 +1,1 @@
-Create the ResourceClass or fix the reference:
-  apiVersion: resource.k8s.io/v1alpha2
-  kind: ResourceClass
-  metadata:
-    name: fpga-class
-  driverName: fpga.example.com
+The ResourceClaim references `resourceClassName: non-existent-fpga-class` but no such ResourceClass exists. Create a ResourceClass named `fpga-class` with the correct driver name, then update the ResourceClaim to reference it.

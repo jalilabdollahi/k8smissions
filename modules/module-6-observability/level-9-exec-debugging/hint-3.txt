@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The ConfigMap's `config.json` value has `DB_HOST` set to a hardcoded IP address. It should be set to the cluster DNS name of the database Service: `database.k8smissions.svc.cluster.local`.

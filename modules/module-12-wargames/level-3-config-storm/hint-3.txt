@@ -1,1 +1,1 @@
-Set APP_MODE=production and DB_HOST=postgres.k8smissions.svc.cluster.local in the ConfigMap.
+The ConfigMap has empty values for `APP_MODE` and `DB_HOST`. Set them to valid non-empty values (`APP_MODE: production`, `DB_HOST: postgres.k8smissions.svc.cluster.local`). Then run `kubectl rollout restart deployment/config-app -n k8smissions` so pods pick up the updated values.

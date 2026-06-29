@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The frontend has label `app: frontend` — not `app: admin-tool`. The NetworkPolicy ingress rule allows `admin-tool` but the actual caller is `frontend`. The labels do not match.
+
+Find the podSelector inside the ingress rule in the NetworkPolicy in manifest.yaml.

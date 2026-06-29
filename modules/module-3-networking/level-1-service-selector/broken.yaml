@@ -20,7 +20,7 @@ metadata:
   namespace: k8smissions
 spec:
   selector:
-    app: backend-app  # ❌ WRONG! Pod has label "app: backend"
+    app: backend-app
     tier: api
   ports:
   - protocol: TCP

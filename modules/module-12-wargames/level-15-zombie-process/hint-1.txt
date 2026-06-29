@@ -1,1 +1,1 @@
-The pod is Running but has no readiness or liveness probes — Kubernetes can't detect if the app is actually healthy.
+Check if the pod is actually serving traffic: `kubectl exec -n k8smissions <zombie-app-pod> -- wget -qO- http://localhost:8080`. Then check whether the container has any probes: `kubectl get deployment zombie-app -n k8smissions -o yaml | grep -i probe`

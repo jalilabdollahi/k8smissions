@@ -1,2 +1,1 @@
-Run: kubectl describe pod -n kube-system -l k8s-app=kube-dns
-If you see webhook rejection errors, the mutating webhook is intercepting kube-dns pod creation.
+The DNS pods may show `Pending` or errors. Look at the webhook configuration: `kubectl get mutatingwebhookconfiguration pod-mutator -o yaml | grep namespaceSelector`. There is no selector — the webhook intercepts pods from every namespace.

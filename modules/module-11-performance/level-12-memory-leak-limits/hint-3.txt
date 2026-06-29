@@ -1,7 +1,1 @@
-Add a memory limit:
-  resources:
-    requests:
-      memory: 256Mi
-    limits:
-      memory: 512Mi
-This caps the leak impact and OOMKills the pod before it affects the node.
+The `leaky-app` container has no `limits` defined. Add `limits.memory: 512Mi` to cap the container's memory usage. When it hits the limit, the OOM killer restarts only this container, not neighboring pods.

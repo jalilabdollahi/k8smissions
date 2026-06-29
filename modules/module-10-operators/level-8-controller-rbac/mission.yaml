@@ -1,7 +1,7 @@
 {
   "name": "Permission Denied in Controller",
-  "description": "Operator logs show 'forbidden: User cannot list pods' \u2014 the controller is running but not functioning.",
-  "objective": "The operator's ServiceAccount lacks RBAC permissions to list and watch Pods \u2014 fix the ClusterRole",
+  "description": "The operator is running but its logs show '403 Forbidden' errors when it tries to list pods. The operator's ClusterRole only grants access to its own CRD resources — it's missing permissions for the standard Kubernetes resources it needs to manage: Pods, Deployments, Services, ConfigMaps, and the status subresource.",
+  "objective": "The operator's ServiceAccount lacks RBAC permissions to list and watch Pods — fix the ClusterRole",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

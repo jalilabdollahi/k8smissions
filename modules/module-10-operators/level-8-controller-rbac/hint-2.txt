@@ -1,1 +1,1 @@
-The ClusterRole grants permissions on the CRD itself (workloads) but not on the Kubernetes resources the operator needs to create/manage (Pods, Deployments, Services).
+The logs will show forbidden errors for pods, services, or deployments. Look at the current ClusterRole: `kubectl get clusterrole my-operator-role -o yaml`. Compare the rules against what the operator actually manages.

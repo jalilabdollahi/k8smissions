@@ -26,4 +26,4 @@ spec:
   workspaces:
   - name: source
     persistentVolumeClaim:
-      claimName: shared-build-pvc  # ❌ BUG: hardcoded shared PVC name — concurrent runs write to the same paths, corrupting each other's build artifacts
+      claimName: shared-build-pvc

@@ -1,2 +1,1 @@
-Run: kubectl top pods -l app=api-server -n k8smissions
-If CPU usage equals the limit (100m), the pod is being throttled.
+Check CPU throttle metrics: `kubectl top pod -n k8smissions -l app=api-server`. Then look at the resource configuration: `kubectl get deployment api-server -n k8smissions -o yaml | grep -A8 resources`

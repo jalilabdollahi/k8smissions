@@ -1,1 +1,1 @@
-Goal state: kubectl delete -k overlays/production kubectl apply -k overlays/staging
+You should see DESIRED: 10. That's a production-scale replica count running in staging. In a Kustomize overlay setup, a staging overlay would set this to a much lower value. Look at the `replicas` field in the manifest.

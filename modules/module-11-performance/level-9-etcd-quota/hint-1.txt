@@ -1,2 +1,1 @@
-Run: kubectl get events -n kube-system | grep etcd | head -5
-Look for 'database space exceeded' events.
+Check the etcd quota configuration: `kubectl get configmap etcd-config -n kube-system -o yaml | grep quota-backend-bytes`

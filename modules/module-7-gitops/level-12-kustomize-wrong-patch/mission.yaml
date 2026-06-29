@@ -1,7 +1,7 @@
 {
   "name": "Ghost Patch",
-  "description": "A Kustomize overlay was applied but the expected replica count change never took effect.",
-  "objective": "The Kustomize patch targets the wrong resource name \u2014 fix the patch target to match the actual Deployment name",
+  "description": "A Kustomize overlay was applied and appeared to succeed, but the Deployment replica count never changed. The patch exists, the kustomization.yaml looks correct, and no error was reported. The silent failure is caused by a name mismatch: the patch targets a resource that doesn't exist.",
+  "objective": "The Kustomize patch targets the wrong resource name — fix the patch target to match the actual Deployment name",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "10m",

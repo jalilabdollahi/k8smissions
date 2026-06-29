@@ -1,7 +1,7 @@
 {
   "name": "Webhook Ignored",
-  "description": "Git pushes are not triggering pipeline runs \u2014 the Tekton Trigger appears to receive events but nothing happens.",
-  "objective": "The TriggerBinding body field name doesn't match the webhook payload \u2014 fix the field reference",
+  "description": "Git pushes are not triggering pipeline runs. The Tekton Trigger EventListener is receiving webhook events from GitHub, but the pipeline runs it creates are failing silently — because the TriggerBinding is extracting data from the wrong field in the webhook payload.",
+  "objective": "The TriggerBinding body field name doesn't match the webhook payload — fix the field reference",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "15m",

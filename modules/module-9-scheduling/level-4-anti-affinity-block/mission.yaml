@@ -1,7 +1,7 @@
 {
   "name": "Anti-Affinity Trap",
-  "description": "A Deployment with 3 replicas has 2 pods running but the third is permanently Pending.",
-  "objective": "A required podAntiAffinity rule combined with a single-node cluster prevents 3 pods from scheduling \u2014 fix the constraint",
+  "description": "A Deployment with 3 replicas has 2 pods running but the third is permanently Pending. The anti-affinity rule requires each pod to land on a unique node — but there are only 2 nodes in the cluster. The third pod has no valid node to go to.",
+  "objective": "A required podAntiAffinity rule combined with a single-node cluster prevents 3 pods from scheduling — fix the constraint",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "12m",

@@ -15,7 +15,6 @@ spec:
   - name: app
     image: nginx:latest
     command: ['sh', '-c', 'echo "Application running"; nginx -g "daemon off;"']
-  # ❌ No tolerations!
   # Pod can't schedule on tainted nodes
   
 # Node has taint: dedicated=gpu:NoSchedule

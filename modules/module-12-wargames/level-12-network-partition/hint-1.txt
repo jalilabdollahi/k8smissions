@@ -1,1 +1,1 @@
-List NetworkPolicies — there's a deny-all that blocks everything including required service traffic.
+Test connectivity: `kubectl exec -n k8smissions <frontend-pod> -- wget -qO- http://backend:8080`. Then check what NetworkPolicies are active: `kubectl get networkpolicy -n k8smissions`

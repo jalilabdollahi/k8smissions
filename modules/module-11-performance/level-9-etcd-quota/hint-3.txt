@@ -1,5 +1,1 @@
-Defragment etcd:
-  kubectl exec -n kube-system etcd-master -- etcdctl \
-    --endpoints=https://localhost:2379 defrag
-Then raise the quota in etcd config:
-  quota-backend-bytes: 8589934592  # 8GB
+The `quota-backend-bytes` is set to 2GB (`2147483648`). Increase it to 8GB (`8589934592`) — the recommended production value. Also verify `auto-compaction-retention: 1h` is set to prevent accumulation of old revisions.

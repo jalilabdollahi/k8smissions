@@ -1,4 +1,3 @@
-Create the Service the init container is waiting for:
-  kubectl create service clusterip backend-service -n k8smissions \
-    --tcp=80:8080
-DNS will then resolve and the init container can finish.
+The init container is waiting for `backend-service` — which does not exist. The init container itself is not the problem. The dependency it is waiting for is the problem.
+
+Rather than removing the init container, look at what you need to add to manifest.yaml.

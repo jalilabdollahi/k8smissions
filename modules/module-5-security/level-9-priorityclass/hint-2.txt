@@ -1,1 +1,1 @@
-Goal state: Create PriorityClass "high-priority" (value: 1000000) and assign to critical pod spec
+The events will say 'Insufficient cpu'. Now check the priority of all pods in the namespace: `kubectl get pods -n k8smissions -o custom-columns=NAME:.metadata.name,PRIORITY:.spec.priority`. Notice the critical pod has no priority set.

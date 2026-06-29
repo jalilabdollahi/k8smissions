@@ -1,7 +1,7 @@
 {
   "name": "THE GRAND FINALE: Zero to Production",
-  "description": "Critical production outage. Multiple layers of the deployment pipeline are broken simultaneously.",
-  "objective": "Multiple deployment layers are broken simultaneously \u2014 fix the Helm values, ArgoCD sync, RBAC, NetworkPolicy, ResourceQuota, readiness probe, PDB, and preStop hook",
+  "description": "Critical production outage. The grand-finale-app Deployment has multiple simultaneous problems: unpinned image tag, only 1 replica, no resource limits, no readiness probe, no graceful shutdown, and a PDB that is mathematically impossible to satisfy. This is a production readiness checklist failure — identify every issue before making any changes.",
+  "objective": "Multiple deployment layers are broken simultaneously — fix the Helm values, ArgoCD sync, RBAC, NetworkPolicy, ResourceQuota, readiness probe, PDB, and preStop hook",
   "xp": 500,
   "difficulty": "expert",
   "expected_time": "10m",

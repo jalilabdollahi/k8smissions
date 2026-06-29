@@ -1,7 +1,7 @@
 {
   "name": "Registry Gone",
-  "description": "The internal image registry is down. All new pods are stuck in ImagePullBackOff. Existing running pods are unaffected.",
-  "objective": "All new pods reference an unreachable registry \u2014 change the image to a public registry image so pods can start",
+  "description": "The internal container registry went offline. New pod creations are failing with `ImagePullBackOff` — all images reference `internal-registry.company.local` which is unreachable. Worse, `imagePullPolicy: Always` forces every pod creation (even on previously-cached nodes) to contact the registry. No new pods can start.",
+  "objective": "All new pods reference an unreachable registry — change the image to a public registry image so pods can start",
   "xp": 300,
   "difficulty": "expert",
   "expected_time": "15m",

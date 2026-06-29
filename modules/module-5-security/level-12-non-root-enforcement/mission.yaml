@@ -1,7 +1,7 @@
 {
   "name": "Root Rejected",
-  "description": "A pod is rejected at admission with 'container runs as root which is not allowed'.",
-  "objective": "The pod security context requires running as non-root \u2014 set runAsNonRoot and a non-zero runAsUser UID",
+  "description": "A pod is rejected at admission and never starts. The manifest has no explicit security settings — the container has no securityContext at all. Without one, the image runs as its default user, which is root, and this namespace's admission controller forbids root containers.",
+  "objective": "The pod security context requires running as non-root — set runAsNonRoot and a non-zero runAsUser UID",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

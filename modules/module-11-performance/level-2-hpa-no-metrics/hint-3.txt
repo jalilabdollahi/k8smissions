@@ -1,3 +1,1 @@
-Install metrics-server:
-  kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
-For local clusters, add --kubelet-insecure-tls to metrics-server args.
+The HPA is missing a `behavior.scaleDown` configuration. Add `stabilizationWindowSeconds: 300` to wait 5 minutes before scaling down, and a policy capping scale-down at 10% of replicas per minute.

@@ -1,7 +1,7 @@
 {
   "name": "Stored Version Gone",
-  "description": "kubectl get produces an error: 'no kind is registered for the type in scheme'.",
-  "objective": "A CRD version was removed while stored objects still reference it \u2014 complete the storage migration first",
+  "description": "`kubectl get configs` returns an error: 'no kind is registered for the type in scheme'. The CRD was updated to only list `v1` — but existing objects in etcd were stored as `v1alpha1`. The old version was removed from the CRD before the stored objects were migrated, making them unreadable.",
+  "objective": "A CRD version was removed while stored objects still reference it — complete the storage migration first",
   "xp": 400,
   "difficulty": "advanced",
   "expected_time": "20m",

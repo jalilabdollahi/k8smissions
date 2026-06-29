@@ -1,1 +1,1 @@
-Validation target: Deployment replicas = 2 (staging), not 10 (production)
+The Deployment's `spec.replicas` is set to 10 — this is the production overlay value. In the staging overlay, this field should be patched to 2.

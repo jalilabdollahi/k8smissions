@@ -1,2 +1,5 @@
-Run: kubectl get pod config-reader -n k8smissions -o yaml | grep -A20 volumes
-When you specify 'items:' in a configMap volume, ONLY the listed keys are mounted — all others are excluded.
+Only `app.properties` is in `/config/`. The ConfigMap has both `app.properties` and `logging.properties` — but only one appears. This happens when a ConfigMap volume uses the `items` field to selectively project keys.
+
+Read the volume definition:
+
+  kubectl get pod config-reader -n k8smissions -o yaml | grep -A15 'volumes'

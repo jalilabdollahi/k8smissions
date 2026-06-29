@@ -1,6 +1,1 @@
-Change antiAffinity to preferredDuringScheduling:
-  preferredDuringSchedulingIgnoredDuringExecution:
-  - weight: 100
-    podAffinityTerm:
-      labelSelector: ...
-      topologyKey: kubernetes.io/hostname
+The `podAntiAffinity` uses `requiredDuringSchedulingIgnoredDuringExecution` with `topologyKey: kubernetes.io/hostname`. With 3 replicas and 2 nodes, the third pod can never satisfy this hard constraint. Change it to `preferredDuringSchedulingIgnoredDuringExecution`.

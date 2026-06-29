@@ -1,2 +1,1 @@
-Enable the strategy: change 'enabled: false' to 'enabled: true' in the DeschedulerPolicy ConfigMap.
-Restart the descheduler: kubectl rollout restart deployment/descheduler -n kube-system
+The `LowNodeUtilization` strategy has `enabled: false`. Change it to `enabled: true` to allow the descheduler to evict pods from nodes above the `targetThresholds` and rebalance them to nodes below `thresholds`.

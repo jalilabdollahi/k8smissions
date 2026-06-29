@@ -1,1 +1,5 @@
-Start with: Service has clusterIP: (auto-assigned)
+The nslookup fails. For StatefulSet pods to get individual DNS entries, the governing Service must be headless.
+
+Check the current Service type:
+
+  kubectl get service web-cluster -n k8smissions -o yaml | grep 'clusterIP'

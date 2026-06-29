@@ -1,1 +1,1 @@
-Validation target: Secret exists in cluster but source is ESO, not Git
+The Secret has `stringData` with plain credential values and no annotation indicating external management. Add the `managed-by: external-secrets` annotation and update the credentials to reflect they are now managed externally.

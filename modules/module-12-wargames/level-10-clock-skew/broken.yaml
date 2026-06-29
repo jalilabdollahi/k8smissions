@@ -1,4 +1,3 @@
-# ❌ BUG: Node clock is 600 seconds (10 minutes) ahead of actual time.
 # NTP sync is not running (ntp_sync: false). JWT tokens include iat/exp timestamps.
 # A 10-minute clock skew makes tokens appear expired before they are, causing
 # all authentication requests to fail with "token expired" errors cluster-wide.
@@ -10,6 +9,6 @@ metadata:
   namespace: k8smissions
 data:
   node: kind-worker
-  ntp_sync: 'false'    # ❌ BUG: NTP is not syncing — clock is drifting uncorrected
-  skew_seconds: '600'  # ❌ BUG: 600 seconds (10 min) skew — far exceeds 5 min Kubernetes tolerance
+  ntp_sync: 'false'
+  skew_seconds: '600'
   status: critical

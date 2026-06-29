@@ -1,1 +1,1 @@
-Patch the secret: kubectl patch secret cluster-cert-status -n k8smissions -p '{"metadata":{"annotations":{"cert-status":"valid","expiry":"2027-01-01"}}}'
+Update the `cluster-cert-status` Secret to reflect renewed certificates: set `cert-status: valid`, `expiry: 2027-01-01`, and `stringData.status: valid`. In a real cluster this follows `kubeadm certs renew all` and a restart of static pod components.

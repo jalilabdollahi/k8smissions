@@ -1,1 +1,1 @@
-Fix order: Secret → remove nodeSelector → scale deployment → fix NetworkPolicy DNS egress → fix PVC storage size.
+Fix in order: create `p0-secret` (Secret) → create `p0-sa` (ServiceAccount) → set `replicas: 2` and remove `nodeSelector` on p0-app → replace the NetworkPolicy to allow DNS (UDP+TCP 53) plus TCP 80/443 → change PVC storage to `1Gi`.

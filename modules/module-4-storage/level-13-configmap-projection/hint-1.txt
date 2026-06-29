@@ -1,2 +1,5 @@
-Run: kubectl exec config-reader -n k8smissions -- ls /config/
-You should see both app.properties and logging.properties — if one is missing, check the volume definition.
+The logs show `cat: /config/logging.properties: No such file or directory`. The ConfigMap has this file — so why is it not in the container?
+
+Check what files are actually present at the mount path:
+
+  kubectl exec config-reader -n k8smissions -- ls /config/

@@ -1,17 +1,16 @@
-# ❌ BUG: A default-deny NetworkPolicy was applied to the entire namespace with no allow rules.
 # This blocks ALL ingress and egress for every pod, including DNS (UDP/TCP 53).
 # The frontend cannot reach the backend — and neither can reach CoreDNS for name resolution.
 # This is good security posture but catastrophic without corresponding allow rules.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: deny-all   # ❌ BUG: Applied with no allow rules — blocks all traffic including DNS
+  name: deny-all
   namespace: k8smissions
 spec:
-  podSelector: {}  # ❌ BUG: Empty selector matches ALL pods in the namespace
+  podSelector: {}
   policyTypes:
   - Ingress
-  - Egress         # ❌ BUG: Blocking Egress also kills DNS lookups (port 53 UDP/TCP)
+  - Egress
 ---
 apiVersion: apps/v1
 kind: Deployment

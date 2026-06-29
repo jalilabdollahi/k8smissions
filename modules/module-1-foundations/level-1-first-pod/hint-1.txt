@@ -1,2 +1,5 @@
-Start by listing the Pod and checking its status and restart count:
-  kubectl get pod nginx-broken -n k8smissions
+The pod is crashing — the container starts and exits right away. Read what it printed before dying:
+
+  kubectl logs nginx-broken -n k8smissions --previous
+
+The --previous flag reads from the last terminated container, not the current one (which may not have output yet).

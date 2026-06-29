@@ -1,2 +1,1 @@
-Run: kubectl get subscription my-operator-sub -n operators -o yaml | grep status -A10
-OLM reports errors when the CatalogSource can't be found.
+Check the Subscription status: `kubectl describe subscription my-operator-sub -n operators`

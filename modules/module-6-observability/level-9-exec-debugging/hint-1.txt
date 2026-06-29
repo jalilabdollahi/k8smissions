@@ -1,1 +1,1 @@
-Start with: App config file has wrong DB host IP (hardcoded)
+Exec into the running container to inspect its config: `kubectl exec -it debug-pod -n k8smissions -- /bin/sh`. Then read the mounted config file: `cat /app/config.json`

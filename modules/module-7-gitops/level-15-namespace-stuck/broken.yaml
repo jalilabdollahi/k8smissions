@@ -3,9 +3,9 @@ kind: Namespace
 metadata:
   name: zombie-ns
   finalizers:
-  - kubernetes          # ❌ BUG: namespace finalizer 'kubernetes' blocks deletion until all objects inside are gone
+  - kubernetes
 status:
-  phase: Terminating    # ❌ BUG: namespace is stuck Terminating — waiting for object finalizers to clear
+  phase: Terminating
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -13,6 +13,6 @@ metadata:
   name: stuck-resource
   namespace: zombie-ns
   finalizers:
-  - some.controller.io/cleanup  # ❌ BUG: operator finalizer registered but operator is deleted — never cleared; blocks namespace deletion
+  - some.controller.io/cleanup
 data:
   key: value

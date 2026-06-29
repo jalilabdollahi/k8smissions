@@ -1,7 +1,7 @@
 {
   "name": "Can't Find the Service",
-  "description": "An application pod cannot connect to a database service despite both being Running.",
-  "objective": "The app uses a short DNS name that doesn't resolve across namespaces \u2014 use the fully-qualified service DNS name",
+  "description": "Pod app-client tries to reach the database but keeps printing 'Connection failed'. Both pods are Running. Run kubectl logs app-client -n k8smissions and read what hostname it is trying to reach.",
+  "objective": "The app uses a short DNS name that doesn't resolve across namespaces — use the fully-qualified service DNS name",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

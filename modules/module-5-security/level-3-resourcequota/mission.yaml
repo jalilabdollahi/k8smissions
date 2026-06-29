@@ -1,7 +1,7 @@
 {
   "name": "Quota Exceeded",
-  "description": "One of three identical pods cannot be scheduled despite the other two running.",
-  "objective": "The namespace ResourceQuota is exhausted \u2014 reduce resource requests or remove a pod to free up quota",
+  "description": "A pod has been sitting in Pending for several minutes, but `kubectl get nodes` shows the cluster has available capacity. There is a ResourceQuota on this namespace and the pod is making a resource request that exceeds what the quota allows in total.",
+  "objective": "The namespace ResourceQuota is exhausted — reduce resource requests or remove a pod to free up quota",
   "xp": 300,
   "difficulty": "advanced",
   "expected_time": "10m",

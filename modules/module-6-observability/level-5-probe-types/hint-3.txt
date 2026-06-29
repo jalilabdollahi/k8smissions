@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The `livenessProbe.httpGet.path` is set to `/api/v1/ready`, which is a readiness endpoint. Liveness probes should point to a lightweight, always-fast `/healthz` endpoint. The `/api/v1/ready` check belongs in a separate `readinessProbe` block.

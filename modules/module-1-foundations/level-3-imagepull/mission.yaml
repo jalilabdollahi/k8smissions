@@ -1,7 +1,7 @@
 {
   "name": "Image Not Found",
-  "description": "Pod is stuck in ImagePullBackOff and cannot start.",
-  "objective": "The image name contains a typo that prevents Kubernetes from pulling it \u2014 correct the image reference",
+  "description": "Pod web-app is stuck in ImagePullBackOff and will never start. Run kubectl get pods -n k8smissions to confirm the status.",
+  "objective": "The image name contains a typo that prevents Kubernetes from pulling it — correct the image reference",
   "xp": 100,
   "difficulty": "beginner",
   "expected_time": "5m",

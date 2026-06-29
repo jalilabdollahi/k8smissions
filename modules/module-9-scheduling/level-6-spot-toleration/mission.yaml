@@ -1,7 +1,7 @@
 {
   "name": "Spot Survivor",
-  "description": "Pods on spot/preemptible nodes are being evicted and not rescheduling to on-demand nodes.",
-  "objective": "Pods lack tolerations for the on-demand node taint \u2014 add tolerations so they can reschedule anywhere",
+  "description": "Batch pods running on spot/preemptible nodes are being reclaimed by the cloud provider. When the spot node disappears, the pods should reschedule to on-demand nodes — but they can't. A `nodeSelector` pins them exclusively to spot nodes, and they lack a toleration for the on-demand node taint.",
+  "objective": "Pods lack tolerations for the on-demand node taint — add tolerations so they can reschedule anywhere",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

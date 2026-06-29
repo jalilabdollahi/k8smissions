@@ -1,2 +1,1 @@
-Run: kubectl get deployment resilient-app -n k8smissions
-With only 2 replicas, losing 50% = 1 pod = 50% capacity reduction = service degradation.
+Check pod distribution across nodes: `kubectl get pods -n k8smissions -l app=resilient -o wide`. How many unique nodes are in the NODE column?

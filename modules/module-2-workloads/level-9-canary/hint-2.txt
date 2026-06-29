@@ -1,1 +1,9 @@
-Goal state: stable: replicas: 9, canary: replicas: 1 (10% canary)
+Both app-stable and app-canary have 5 replicas. The total is 10 pods. 5 are canary — that is 50% of traffic going to an unvalidated version.
+
+For a proper canary, only 10% of traffic should go to canary. With a total of 10 pods, that means:
+- stable: 9 pods
+- canary: 1 pod
+
+Check the Deployments:
+
+  kubectl get deployments -n k8smissions

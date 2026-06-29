@@ -1,4 +1,1 @@
-Fix the values so minReplicas <= maxReplicas:
-  minReplicas: 2
-  maxReplicas: 10
-The Deployment starts at minReplicas and scales up to maxReplicas based on CPU.
+The HPA has `minReplicas: 10` and `maxReplicas: 3`. This is logically impossible — the minimum cannot exceed the maximum. Kubernetes rejects this configuration and the HPA cannot reconcile.

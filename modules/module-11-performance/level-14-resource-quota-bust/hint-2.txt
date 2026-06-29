@@ -1,2 +1,1 @@
-Run: kubectl get pods -n k8smissions -o json | python3 -c "import json,sys; pods=json.load(sys.stdin)['items']; [print(p['metadata']['name'], p['spec']['containers'][0].get('resources',{}).get('requests',{})) for p in pods]"
-Identify pods with over-provisioned requests.
+You should see the `Used` values at or near the `Hard` limits. The quota has `requests.cpu: 4` and `requests.memory: 8Gi` but the sum of all pod requests exceeds these values. Any new pod or scale-up is rejected.

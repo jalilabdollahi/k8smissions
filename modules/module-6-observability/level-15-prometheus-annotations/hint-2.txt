@@ -1,4 +1,1 @@
-Three annotations are needed:
-  prometheus.io/scrape: "true"   -- enables scraping
-  prometheus.io/port: "9090"     -- port to scrape
-  prometheus.io/path: "/metrics" -- HTTP path for metrics
+There are no annotations at all. Prometheus uses specific pod annotations to discover which pods to scrape. Without `prometheus.io/scrape: 'true'`, Prometheus ignores this pod entirely regardless of whether the metrics endpoint works.

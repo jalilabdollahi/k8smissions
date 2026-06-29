@@ -14,7 +14,6 @@ spec:
     resources:
       requests:
         cpu: 1000m
-        # ❌ BUG: Memory request of 100Gi exceeds any node's allocatable memory.
         # The scheduler finds Insufficient memory on every node → pod stuck Pending.
         memory: 100Gi
       limits:

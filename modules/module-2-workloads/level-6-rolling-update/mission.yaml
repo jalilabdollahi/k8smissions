@@ -1,7 +1,7 @@
 {
   "name": "Zero-Downtime Gone Wrong",
-  "description": "A rolling update was triggered and all pods went down simultaneously, causing an outage.",
-  "objective": "The rolling update strategy allows 100% unavailability \u2014 fix maxUnavailable so at least one pod stays running during updates",
+  "description": "A rolling update was triggered on Deployment critical-api and all pods went down at once, causing a complete outage. Run kubectl get pods -n k8smissions.",
+  "objective": "The rolling update strategy allows 100% unavailability — fix maxUnavailable so at least one pod stays running during updates",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

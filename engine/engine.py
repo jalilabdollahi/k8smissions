@@ -58,6 +58,7 @@ except ModuleNotFoundError:
 REPO_ROOT = Path(__file__).resolve().parent.parent
 PROGRESS_FILE = REPO_ROOT / "progress.json"
 LEVELS_REGISTRY = REPO_ROOT / "levels.json"
+SANDBOX_FILE = Path.home() / ".k8smissions" / "sandbox" / "manifest.yaml"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -238,6 +239,44 @@ def run_kubectl(raw_command: str) -> None:
     if result.stderr:
         style = "red" if result.returncode else "yellow"
         console.print(f"[{style}]{result.stderr.rstrip()}[/{style}]")
+
+
+def _print_sandbox_path() -> None:
+    if SANDBOX_FILE.exists():
+        console.print(
+            f"[grey50]Working file → [bold white]{SANDBOX_FILE}[/bold white][/grey50]"
+        )
+
+
+def _handle_reveal(level_path: Path, hint_index: int, progress: dict) -> None:
+    if hint_index < 3:
+        remaining = 3 - hint_index
+        console.print(
+            f"[yellow]ابتدا همه hint ها رو امتحان کن. "
+            f"{remaining} hint دیگه مونده — تایپ کن [bold]hint[/bold][/yellow]"
+        )
+        return
+
+    if progress.get("revealed_current"):
+        console.print("[grey50]جواب قبلاً نشون داده شده.[/grey50]")
+    else:
+        progress["revealed_current"] = True
+        save_progress(progress)
+
+    reveal_path = level_path / "reveal.md"
+    if reveal_path.exists():
+        render_markdown("جواب  (−50% XP)", read_text(reveal_path), "red")
+    else:
+        solution_path = level_path / "solution.yaml"
+        if solution_path.exists():
+            console.print(
+                "[bold red]─── جواب (−50% XP) ───[/bold red]\n"
+                "[grey50]فایل solution.yaml:[/grey50]"
+            )
+            console.print(Syntax(solution_path.read_text(encoding="utf-8"), "yaml",
+                                 theme="ansi_dark", line_numbers=False))
+        else:
+            console.print("[yellow]فایل reveal برای این مرحله موجود نیست.[/yellow]")
 
 
 def _find_editor() -> str:
@@ -428,7 +467,9 @@ def complete_level(progress: dict, modules: list[dict], module_index: int, level
     completed_levels = set(progress.get("completed_levels", []))
     level = modules[module_index]["levels"][level_index]
     level_id = level["id"]
-    xp = int(level["mission"].get("xp", 0)) if award_xp and level_id not in completed_levels else 0
+    base_xp = int(level["mission"].get("xp", 0)) if award_xp and level_id not in completed_levels else 0
+    revealed = progress.pop("revealed_current", False)
+    xp = base_xp // 2 if revealed else base_xp
 
     # Time tracking (#6): compute elapsed seconds for this level
     elapsed_seconds: int | None = None
@@ -565,6 +606,7 @@ def game_loop() -> int:
     module_index, level_index = current_position(modules, progress)
     current_level = modules[module_index]["levels"][level_index]
     prepare_level(REPO_ROOT, current_level["path"])
+    _print_sandbox_path()
 
     # Record level start time (#6)
     if not progress.get("level_start_time"):
@@ -625,10 +667,11 @@ def game_loop() -> int:
             if command == "reset":
                 prepare_level(REPO_ROOT, current_level["path"])
                 hint_index = 0
-                # Reset start time on scenario reset (#6)
+                progress.pop("revealed_current", None)
                 progress["level_start_time"] = time.time()
                 save_progress(progress)
                 console.print("[green]Level reset complete.[/green]")
+                _print_sandbox_path()
                 continue
             if command == "check":
                 result = run_validator(current_level["path"])
@@ -710,18 +753,8 @@ def game_loop() -> int:
             if command.startswith("kubectl "):
                 run_kubectl(command[len("kubectl "):])
                 continue
-            if command == "edit":
-                console.print("[yellow]Usage: edit <type> <name>  (e.g.  edit pod nginx-broken)[/yellow]")
-                continue
-            if command.startswith("edit "):
-                run_edit_resource(command[5:])
-                continue
-            # shortcut: "e pod nginx-broken" → edit
-            if command.startswith("e "):
-                run_edit_resource(command[2:])
-                continue
-            if command == "e":
-                console.print("[yellow]Usage: e <type> <name>  (e.g.  e pod nginx-broken)[/yellow]")
+            if command == "reveal":
+                _handle_reveal(current_level["path"], hint_index, progress)
                 continue
 
             # Helpful catch for bare kubectl subcommands like "get po -A"

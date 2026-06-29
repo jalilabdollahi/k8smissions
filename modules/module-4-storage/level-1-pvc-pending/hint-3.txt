@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The PV offers 1Gi with storageClassName: standard. The PVC requests 5Gi with storageClassName: fast. There are two mismatches — both the size and the storage class.
+
+Fix both the PV's capacity and storageClassName in manifest.yaml to match what the PVC requires.

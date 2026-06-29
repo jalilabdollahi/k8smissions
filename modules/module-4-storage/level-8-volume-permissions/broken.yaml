@@ -43,8 +43,6 @@ spec:
     securityContext:
       runAsUser: 1000  # App runs as user 1000
       runAsGroup: 1000
-      # ❌ Volume owned by root, user 1000 can't write!
-  # ❌ Missing fsGroup to change volume ownership!
   volumes:
   - name: data
     persistentVolumeClaim:

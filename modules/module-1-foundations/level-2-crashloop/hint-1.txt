@@ -1,3 +1,5 @@
-Confirm that the Pod is repeatedly restarting:
-  kubectl get pod crashloop-pod -n k8smissions
-Look at STATUS and RESTARTS.
+CrashLoopBackOff means the container starts, crashes, and Kubernetes restarts it with an increasing delay (10s → 20s → 40s...). Read the output from the last crash:
+
+  kubectl logs crashloop-pod -n k8smissions --previous
+
+Without --previous you may see nothing — the new container just started.

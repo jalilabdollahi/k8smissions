@@ -1,7 +1,7 @@
 {
   "name": "Deleted Data",
-  "description": "After a PVC was deleted, the data is gone \u2014 the PV was automatically deleted along with it.",
-  "objective": "The PV has reclaimPolicy: Delete \u2014 change it to Retain so data survives PVC deletion",
+  "description": "PV db-data-pv exists and is currently Available. A new team is about to bind a PVC to it, but a senior engineer noticed a dangerous setting before any data was written. Run kubectl get pv db-data-pv -o yaml.",
+  "objective": "The PV has reclaimPolicy: Delete — change it to Retain so data survives PVC deletion",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "10m",

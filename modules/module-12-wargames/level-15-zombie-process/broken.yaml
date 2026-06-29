@@ -1,4 +1,3 @@
-# ❌ BUG: No readiness or liveness probes configured.
 # The app process can become a zombie (Z state) — container stays Running because
 # PID 1 is technically alive, but the app serves no requests.
 # Without probes, Kubernetes cannot detect the unhealthy state:
@@ -28,5 +27,3 @@ spec:
         - -listen=:8080
         ports:
         - containerPort: 8080
-        # ❌ BUG: readinessProbe is absent — zombie pod stays in Service endpoints
-        # ❌ BUG: livenessProbe is absent — zombie pod is never restarted by Kubernetes

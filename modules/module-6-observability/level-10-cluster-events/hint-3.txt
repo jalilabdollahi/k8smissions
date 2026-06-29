@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The container's `resources.limits.memory` is set too low. The application's memory usage exceeds the limit, triggering repeated OOM kills that appear as restarts in the event stream.

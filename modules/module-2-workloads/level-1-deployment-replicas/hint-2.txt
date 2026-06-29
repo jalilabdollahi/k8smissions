@@ -1,1 +1,5 @@
-Goal state: Set replicas: 3
+The DESIRED column shows 0. Kubernetes is doing exactly what was asked — running zero replicas.
+
+Get the full spec to see where this is set:
+
+  kubectl get deployment ghost-deployment -n k8smissions -o yaml | grep 'replicas'

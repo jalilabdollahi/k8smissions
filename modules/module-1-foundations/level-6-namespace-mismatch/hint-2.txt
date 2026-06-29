@@ -1,3 +1,5 @@
-Both resources are in default, but this mission expects them in k8smissions.
-Namespaces cannot be changed in place, so create new resources in the correct
-namespace and then remove the old copies.
+The resources are in the `default` namespace. Now look at why:
+
+  kubectl get pod client-app -n default -o yaml | grep 'namespace'
+
+Then open manifest.yaml and find the same field.

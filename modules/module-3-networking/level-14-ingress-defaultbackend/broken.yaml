@@ -24,6 +24,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: app-serv  # ❌ BUG: service is named "app-service", not "app-serv"
+            name: app-serv
             port:
               number: 80

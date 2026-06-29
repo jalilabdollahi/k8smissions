@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The `securityContext` block has `runAsNonRoot: true` but is missing the `runAsUser` field. Without an explicit UID, Kubernetes cannot satisfy the constraint and rejects the pod.

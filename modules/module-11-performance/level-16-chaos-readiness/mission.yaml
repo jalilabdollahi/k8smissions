@@ -1,7 +1,7 @@
 {
   "name": "Chaos Unready",
-  "description": "A chaos engineering experiment killed 50% of pods \u2014 the service went down completely instead of degrading gracefully.",
-  "objective": "Pod replicas and PDBs were not configured for resilience \u2014 fix PDB and ensure minimum replica count for chaos tolerance",
+  "description": "During chaos engineering testing, simulating the failure of a single node took down the application entirely. The deployment only has 2 replicas and no topology spread constraints — both pods happened to be scheduled on the same node. When that node failed, all capacity was lost simultaneously.",
+  "objective": "Pod replicas and PDBs were not configured for resilience — fix PDB and ensure minimum replica count for chaos tolerance",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "15m",

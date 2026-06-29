@@ -1,7 +1,7 @@
 {
   "name": "The Exclusive Mount",
-  "description": "Multiple pods need to share a single PVC but only one pod can mount it at a time \u2014 others are stuck waiting.",
-  "objective": "The PVC uses ReadWriteOnce which only allows one node to mount it \u2014 change the access mode to ReadWriteMany",
+  "description": "Multiple pods need to read from and write to a shared PVC simultaneously, but only one pod can mount it at a time. Others are stuck waiting. Run kubectl get pvc shared-pvc -n k8smissions.",
+  "objective": "The PVC uses ReadWriteOnce which only allows one node to mount it — change the access mode to ReadWriteMany",
   "xp": 225,
   "difficulty": "advanced",
   "expected_time": "12m",

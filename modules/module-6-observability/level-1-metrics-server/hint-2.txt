@@ -1,1 +1,1 @@
-Goal state: Apply metrics-server manifest (bundled in level folder) Wait for it to become Ready, verify kubectl top pods works
+If you see no pods (or 0/0 ready), inspect the Deployment directly: `kubectl get deployment metrics-server -n k8smissions -o yaml | grep replicas`

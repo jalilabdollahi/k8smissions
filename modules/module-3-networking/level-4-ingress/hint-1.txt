@@ -1,1 +1,7 @@
-Start with: Ingress path: /api, Service actually handles /v1/api
+A 404 from an Ingress controller usually means the request matched the host rule but not any path rule — so the Ingress has no rule for what was requested.
+
+See what paths are configured:
+
+  kubectl describe ingress web-ingress -n k8smissions
+
+Look at the Rules section — what path is the Ingress listening on?

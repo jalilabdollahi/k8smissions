@@ -1,7 +1,7 @@
 {
   "name": "Restricted Policy Violation",
-  "description": "A pod is being rejected and will not start in this namespace.",
-  "objective": "The pod violates the namespace's restricted Pod Security Standard (runs as root, privileged) \u2014 fix the securityContext to comply",
+  "description": "A pod is rejected before it even starts — there are no image pull errors and the YAML is syntactically valid, but the pod never appears in `kubectl get pods`. This namespace enforces strict Pod Security Standards, and the pod's security configuration violates several rules simultaneously.",
+  "objective": "The pod violates the namespace's restricted Pod Security Standard (runs as root, privileged) — fix the securityContext to comply",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "10m",

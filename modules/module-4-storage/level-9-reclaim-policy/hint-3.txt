@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The PV's `persistentVolumeReclaimPolicy` field needs to be changed from `Delete` to `Retain`. With Retain, deleting the PVC releases the PV but does not destroy the data — a human must manually recover or clean up.
+
+Find this field in the PV spec in manifest.yaml.

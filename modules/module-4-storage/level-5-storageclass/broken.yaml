@@ -10,7 +10,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: premium-ssd  # ❌ This StorageClass doesn't exist!
+  storageClassName: premium-ssd
 ---
 apiVersion: v1
 kind: Pod

@@ -1,2 +1,1 @@
-CRD names.categories controls which kubectl shorthand categories include this resource.
-The built-in 'all' category is what kubectl get all uses.
+The difference is the `categories` field. Run `kubectl get crd apps.example.com -o yaml | grep categories`. You should see nothing — no categories are defined.

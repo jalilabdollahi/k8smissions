@@ -1,7 +1,7 @@
 {
   "name": "Wrong Probe, Wrong Job",
-  "description": "Pods keep restarting during startup in what appears to be an infinite restart loop.",
-  "objective": "The liveness probe is checking a readiness endpoint, killing the pod during startup \u2014 move that check to a readiness probe",
+  "description": "Pods in this Deployment restart in an infinite loop and never stabilize. The liveness probe is configured, but it is checking an endpoint that only becomes available late in the startup sequence — so the probe kills the container during startup before the app ever becomes ready.",
+  "objective": "The liveness probe is checking a readiness endpoint, killing the pod during startup — move that check to a readiness probe",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -71,8 +71,6 @@ spec:
   policyTypes:
   - Ingress
   - Egress
-  # ❌ No ingress rules = block all incoming
-  # ❌ No egress rules = block all outgoing
   
 # Result: Backend can't connect to database (egress blocked)
 # Result: Database can't receive connections (ingress blocked)

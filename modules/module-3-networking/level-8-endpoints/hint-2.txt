@@ -1,1 +1,5 @@
-Goal state: Add readinessProbe httpGet /ready port 8080
+The pods may show as Running but temporarily unready at startup. Without a readiness probe, Kubernetes adds the pod to the Service endpoints the moment the container process starts — even if the application inside is still initializing.
+
+Verify whether readiness probes exist:
+
+  kubectl get pod web-app-1 -n k8smissions -o yaml | grep -A8 'readinessProbe'

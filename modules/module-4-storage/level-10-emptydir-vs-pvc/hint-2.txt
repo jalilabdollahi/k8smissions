@@ -1,1 +1,7 @@
-Goal state: Replace emptyDir with PVC-backed persistent volume
+The volume is `emptyDir: {}`. An emptyDir volume is created when the pod starts and destroyed when the pod is deleted or rescheduled — its lifecycle is tied to the pod, not to the data.
+
+Verify by deleting and recreating the pod:
+
+  kubectl delete pod data-app -n k8smissions
+
+After it restarts, check if the file is still there.

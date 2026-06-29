@@ -1,7 +1,7 @@
 {
   "name": "DNS Flood",
-  "description": "The cluster DNS is overwhelmed \u2014 kube-dns CPU is pegged at 100% from an app that makes thousands of DNS lookups.",
-  "objective": "The app uses short hostnames triggering FQDN search list expansion \u2014 set ndots: 2 to reduce unnecessary DNS lookups",
+  "description": "A high-throughput application makes hundreds of DNS lookups per second using short names like `db`, `cache`, `api`. These lookups are generating massive load on kube-dns and have high latency. The default `ndots: 5` setting causes each short name to be searched across 5 DNS suffixes before resolving, multiplying DNS traffic by 5x.",
+  "objective": "The app uses short hostnames triggering FQDN search list expansion — set ndots: 2 to reduce unnecessary DNS lookups",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

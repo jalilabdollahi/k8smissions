@@ -1,9 +1,3 @@
-Run:
-  edit pod noisy-pod
-Give the container enough memory while staying below the LimitRange maximum:
-  resources:
-    requests:
-      memory: 64Mi
-    limits:
-      memory: 128Mi
-Save and approve the replacement.
+The LimitRange sets a default memory limit of 32Mi. The program allocates 64MB. Because there is no explicit limit in the pod spec, the LimitRange default is applied and the container gets OOMKilled.
+
+To override the default, add an explicit `resources` section to the pod in manifest.yaml.
