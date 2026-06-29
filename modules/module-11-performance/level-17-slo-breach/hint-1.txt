@@ -1,2 +1,1 @@
-Run: kubectl get pods -n k8smissions -l app=slo-app
-Look for pods in Error or with high restart counts.
+Check the current liveness probe configuration: `kubectl get deployment slo-app -n k8smissions -o yaml | grep -A10 livenessProbe`

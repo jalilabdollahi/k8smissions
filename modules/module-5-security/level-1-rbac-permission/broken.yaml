@@ -5,8 +5,6 @@ metadata:
   name: pod-reader
   namespace: k8smissions
 ---
-# ❌ Missing Role! ServiceAccount has no permissions
-# ❌ Missing RoleBinding! ServiceAccount not bound to any Role
 ---
 apiVersion: v1
 kind: Pod

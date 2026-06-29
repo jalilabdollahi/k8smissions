@@ -1,1 +1,3 @@
-Validation target: kubectl get statefulset, pods have predictable names (db-0, db-1)
+The resource is a `kind: Deployment`. For stateful workloads that need stable, predictable pod names like `database-0`, `database-1`, `database-2`, you need a `kind: StatefulSet`.
+
+Open manifest.yaml — you need to change the kind and add the required `serviceName` field.

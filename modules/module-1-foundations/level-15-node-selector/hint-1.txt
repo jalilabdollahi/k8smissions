@@ -1,4 +1,5 @@
-Confirm that the Pod has no assigned node:
-  kubectl get pod selector-pod -n k8smissions -o wide
+The scheduler explains why it could not place the pod. Look at Events:
+
   kubectl describe pod selector-pod -n k8smissions
-Read the scheduler event at the bottom.
+
+Find the line that says 'node(s) didn't match' or similar. What constraint could not be satisfied?

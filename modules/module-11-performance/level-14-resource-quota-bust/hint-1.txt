@@ -1,2 +1,1 @@
-Run: kubectl describe resourcequota compute-resources -n k8smissions
-View 'Used' vs 'Hard' for each resource type.
+Check namespace quota usage: `kubectl describe resourcequota compute-resources -n k8smissions`. Look at the `Used` vs `Hard` values for `requests.cpu` and `requests.memory`.

@@ -1,2 +1,1 @@
-Run: kubectl describe node | grep Taints
-A NoExecute taint immediately evicts pods without a matching toleration.
+Check the node's current taints: `kubectl describe node kind-control-plane | grep -A5 Taints`

@@ -1,1 +1,1 @@
-Check the node-clock-status ConfigMap — it tracks NTP sync state.
+Check the clock status: `kubectl get configmap node-clock-status -n k8smissions -o yaml`. Look at the `skew_seconds` and `ntp_sync` values.

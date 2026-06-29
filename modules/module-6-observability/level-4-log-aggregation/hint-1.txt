@@ -1,1 +1,1 @@
-Start with: Pod restarting; current logs show startup only
+Check the pod's restart count: `kubectl get pod logs-pod -n k8smissions`. Then retrieve logs from the terminated container run: `kubectl logs logs-pod -n k8smissions --previous`

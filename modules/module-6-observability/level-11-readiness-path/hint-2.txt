@@ -1,2 +1,1 @@
-Run: kubectl get deployment web-app -n k8smissions -o yaml | grep -A10 readinessProbe
-Note the path the probe is checking. nginx serves / but not /healthz by default.
+The probe is checking `/healthz` on port 80. Nginx does not serve `/healthz` by default — that path returns a 404, which the readiness probe treats as a failure. Check what nginx actually serves by looking at the image documentation or testing the path directly.

@@ -1,1 +1,1 @@
-The image golang:99.9-nonexistent does not exist — the Task pod will fail with ImagePullBackOff.
+The events should show `ErrImagePull` — the container runtime tried to pull `golang:99.9-nonexistent` and got a 404 from the registry. Find the `image` field in the Task spec.

@@ -1,2 +1,1 @@
-NoExecute taints evict existing pods unless they have a matching toleration.
-tolerationSeconds allows the pod to stay for N seconds before eviction.
+You should see a `NoExecute` taint like `maintenance=draining:NoExecute`. Look at the pod spec — it has no `tolerations` block at all. Without a toleration, a `NoExecute` taint causes instant eviction.

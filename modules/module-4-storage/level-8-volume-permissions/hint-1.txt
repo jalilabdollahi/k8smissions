@@ -1,1 +1,5 @@
-Start with: No securityContext on pod; volume owned by root (uid 0)
+The logs print 'ERROR: Permission denied writing to /data'. The container is running as a non-root user and the mounted volume directory is owned by root.
+
+Check what user the container runs as:
+
+  kubectl get pod writer-app -n k8smissions -o yaml | grep -A5 'securityContext'

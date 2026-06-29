@@ -1,7 +1,7 @@
 {
   "name": "Bad Config Rollout",
-  "description": "A ConfigMap update was pushed and all 5 pods simultaneously restarted with a bad config. All are now crashing.",
-  "objective": "A bad ConfigMap was deployed that causes all pods to crash \u2014 fix the ConfigMap so pods can read their configuration and start",
+  "description": "A CI/CD pipeline pushed a bad ConfigMap — someone merged a config change with empty values for `APP_MODE` and `DB_HOST`. All 3 replicas crashed simultaneously on the next pod restart, creating a namespace-wide CrashLoopBackOff storm. The application's startup check fails immediately when either variable is empty.",
+  "objective": "A bad ConfigMap was deployed that causes all pods to crash — fix the ConfigMap so pods can read their configuration and start",
   "xp": 300,
   "difficulty": "expert",
   "expected_time": "15m",

@@ -1,2 +1,1 @@
-Run: kubectl get deployment web-server -n k8smissions -o yaml | grep -E 'terminationGracePeriod|preStop'
-Check what shutdown grace period is configured.
+Time how long in-flight requests take: `kubectl exec <pod> -n k8smissions -- curl -s -w '%{time_total}' http://localhost:80/slow-endpoint`. Then check the termination config: `kubectl get deployment web-server -n k8smissions -o yaml | grep -A5 terminationGrace`

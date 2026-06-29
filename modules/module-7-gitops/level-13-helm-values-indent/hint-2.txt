@@ -1,3 +1,1 @@
-In YAML, hierarchy is defined purely by indentation.
-'tag: v2.0.0' at the same level as 'image:' makes it a separate top-level key.
-It should be indented 2 spaces under 'image:'.
+The old image tag is still in use. In the broken values YAML, `tag: v2.0.0` appears at the same indentation level as `image:` — not indented under it. YAML uses whitespace as structure, so `tag` becomes a separate root-level key, not `image.tag`.

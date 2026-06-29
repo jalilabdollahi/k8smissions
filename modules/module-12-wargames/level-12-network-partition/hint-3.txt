@@ -1,1 +1,1 @@
-Create a NetworkPolicy that allows ingress to the backend pod from the frontend pod.
+The `deny-all` policy is correct to keep. Add a new `allow-frontend-to-backend` NetworkPolicy that specifically allows ingress to `backend` pods from `frontend` pods. NetworkPolicy rules are additive — the new allow rule stacks on top of the deny-all.

@@ -1,2 +1,1 @@
-The Deployment has nodeSelector: node-type: spot AND only tolerates the spot taint.
-When spot nodes are evicted, pods can't reschedule on on-demand nodes (different taint, no toleration).
+The events show 'node(s) had untolerated taint' or 'didn't match node selector'. Look at the pod spec — it has both a `nodeSelector: {node-type: spot}` and tolerations only for spot nodes. On-demand nodes have their own taint that isn't tolerated.

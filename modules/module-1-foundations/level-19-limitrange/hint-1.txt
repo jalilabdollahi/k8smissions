@@ -1,3 +1,5 @@
-Check how the container last terminated:
-  kubectl describe pod noisy-pod -n k8smissions
-OOMKilled means it used more memory than its effective limit.
+A pod with no explicit memory limit should not be OOMKilled unless something else is injecting a limit. Check if the namespace has a LimitRange:
+
+  kubectl get limitrange -n k8smissions
+
+Does anything show up?

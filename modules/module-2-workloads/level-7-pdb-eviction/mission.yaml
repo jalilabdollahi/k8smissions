@@ -1,7 +1,7 @@
 {
   "name": "Maintenance is Stuck",
-  "description": "A node drain operation is failing and cannot be completed.",
-  "objective": "The PodDisruptionBudget requires more available pods than the Deployment has replicas \u2014 reconcile the PDB with the actual replica count",
+  "description": "A node needs to be drained for maintenance but kubectl drain keeps failing. Run kubectl drain <node-name> --ignore-daemonsets and read the error.",
+  "objective": "The PodDisruptionBudget requires more available pods than the Deployment has replicas — reconcile the PDB with the actual replica count",
   "xp": 250,
   "difficulty": "advanced",
   "expected_time": "15m",

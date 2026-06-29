@@ -4,7 +4,6 @@ metadata:
   name: ml-pod
   namespace: k8smissions
 spec:
-  # ❌ BUG: No schedulerName specified — the pod defaults to 'default-scheduler'.
   # The ML-aware custom scheduler ('ml-scheduler') never processes this pod,
   # so GPU-topology and ML-specific placement logic is bypassed.
   containers:

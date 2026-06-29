@@ -1,7 +1,7 @@
 {
   "name": "Wrong Overlay Applied",
-  "description": "Something looks wrong with the staging environment \u2014 investigate and correct it.",
-  "objective": "The production overlay was applied to staging \u2014 apply the correct staging overlay to restore the right replica count",
+  "description": "The staging environment is running 10 replicas — far more than appropriate for staging. The wrong Kustomize overlay was applied: production settings were pushed to the staging environment, inflating the replica count from the correct staging value of 2.",
+  "objective": "The production overlay was applied to staging — apply the correct staging overlay to restore the right replica count",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "10m",

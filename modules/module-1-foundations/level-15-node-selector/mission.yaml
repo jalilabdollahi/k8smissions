@@ -1,7 +1,7 @@
 {
   "name": "Won't Schedule",
-  "description": "Pod has been submitted but remains stuck in Pending with no node assigned.",
-  "objective": "The pod requires a node label that no node in the cluster has \u2014 either remove the nodeSelector or label a node to match",
+  "description": "Pod selector-pod has been Pending since it was created. No node was assigned. Run kubectl describe pod selector-pod -n k8smissions and read the Events.",
+  "objective": "The pod requires a node label that no node in the cluster has — either remove the nodeSelector or label a node to match",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

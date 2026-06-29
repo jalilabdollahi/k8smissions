@@ -1,2 +1,1 @@
-Run: kubectl describe pod fragile-app -n k8smissions | grep -A5 Liveness
-Note failureThreshold: 1 — a single probe failure triggers a restart immediately.
+Note the `failureThreshold` value. With `failureThreshold: 1`, a single missed probe check — caused by any momentary system load or scheduling delay — immediately triggers a container restart. The Kubernetes default is 3.

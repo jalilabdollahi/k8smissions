@@ -1,7 +1,1 @@
-Reduce resource requests to realistic values:
-  requests:
-    cpu: 100m
-    memory: 256Mi
-  limits:
-    cpu: 200m
-    memory: 512Mi
+The pod's `resources.requests.memory` is set to `100Gi` which exceeds every node's allocatable memory. Reduce it to something that actually fits within the available node capacity — like `256Mi`.

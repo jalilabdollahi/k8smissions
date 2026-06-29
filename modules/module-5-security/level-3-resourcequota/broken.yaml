@@ -28,7 +28,7 @@ spec:
     image: nginx:latest
     resources:
       requests:
-        cpu: "2500m"  # ❌ Requests 2.5 CPUs but quota only allows 2 total!
+        cpu: "2500m"
         memory: "1Gi"
       limits:
         cpu: "3"

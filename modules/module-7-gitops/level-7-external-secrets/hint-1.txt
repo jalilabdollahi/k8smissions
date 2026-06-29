@@ -1,1 +1,1 @@
-Start with: Secret manifest with plain base64 values committed in Git
+Look at the current Secret: `kubectl get secret app-secret -n k8smissions -o yaml`. Note that `stringData` contains readable credentials that are also stored in Git.

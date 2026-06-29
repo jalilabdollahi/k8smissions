@@ -1,1 +1,1 @@
-Start with: NetworkPolicy denies all ingress/egress
+Check the backend container's output to confirm it's failing to connect: `kubectl logs backend -n k8smissions`

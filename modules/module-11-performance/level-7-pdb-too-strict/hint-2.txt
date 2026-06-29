@@ -1,3 +1,1 @@
-PDB with minAvailable: 3 on a 3-replica Deployment means:
-0 pods can be disrupted at any time.
-Rolling update needs to evict one pod first — blocked by PDB.
+The PDB shows `minAvailable: 3` and the deployment has `replicas: 3`. With 3 pods required minimum and 3 total, evicting any single pod would drop below 3 — so the PDB blocks all evictions. `kubectl describe pdb my-pdb -n k8smissions` should show `ALLOWED DISRUPTIONS: 0`.

@@ -5,7 +5,6 @@ metadata:
   namespace: k8smissions
   labels:
     app: metrics-app
-  # ❌ BUG: No Prometheus scrape annotations present.
   # Prometheus uses pod annotations to discover scrape targets.
   # Without prometheus.io/scrape: "true", this pod is invisible to Prometheus
   # and its metrics will never appear in dashboards.

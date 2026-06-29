@@ -1,2 +1,5 @@
-Run: kubectl describe cronjob report-generator -n k8smissions
-Look for 'Suspend: true' in the spec.
+No Jobs have been created at all. Confirm this:
+
+  kubectl get jobs -n k8smissions
+
+Is there anything there? What does the Suspend field tell you about why the CronJob is not running?

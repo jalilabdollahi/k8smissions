@@ -1,2 +1,1 @@
-Run: kubectl get resourceclaim my-fpga-claim -n k8smissions -o yaml
-Then: kubectl get resourceclass -- see if the referenced class exists.
+Check the pod's events and the ResourceClaim status: `kubectl describe pod -n k8smissions | grep -A5 Events` and `kubectl get resourceclaim my-fpga-claim -n k8smissions -o yaml`

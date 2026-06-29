@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The pod references a ServiceAccount, but that ServiceAccount has no Role granting it any permissions and no RoleBinding connecting it to one. Both resources are entirely absent from the manifest.

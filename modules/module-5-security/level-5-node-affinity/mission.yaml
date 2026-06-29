@@ -1,7 +1,7 @@
 {
   "name": "Node Affinity Mismatch",
-  "description": "A pod remains stuck in Pending state and cannot be scheduled.",
-  "objective": "The nodeAffinity rule requires a label that no node has \u2014 fix the affinity to match labels that actually exist",
+  "description": "An ML workload pod is stuck in Pending and won't schedule anywhere. There are nodes available and no resource pressure — the scheduling constraint in the manifest itself is what prevents placement. The affinity rule references a node label that doesn't exist on any node in the cluster.",
+  "objective": "The nodeAffinity rule requires a label that no node has — fix the affinity to match labels that actually exist",
   "xp": 300,
   "difficulty": "advanced",
   "expected_time": "10m",

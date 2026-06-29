@@ -1,7 +1,7 @@
 {
   "name": "Split Cluster",
-  "description": "A NetworkPolicy was applied too broadly and now blocks all traffic between two critical services.",
-  "objective": "A NetworkPolicy is blocking all inter-service traffic \u2014 add a targeted allow rule to restore required connectivity",
+  "description": "A security team applied a 'default deny all' NetworkPolicy to the namespace — which is excellent security posture. But they forgot to add the corresponding allow rules. Now ALL traffic is blocked: frontend cannot reach backend, and both cannot even resolve DNS names (port 53 UDP/TCP is also blocked by the egress deny). The namespace is completely network-isolated.",
+  "objective": "A NetworkPolicy is blocking all inter-service traffic — add a targeted allow rule to restore required connectivity",
   "xp": 400,
   "difficulty": "expert",
   "expected_time": "20m",

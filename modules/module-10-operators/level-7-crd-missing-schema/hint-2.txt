@@ -1,2 +1,1 @@
-x-kubernetes-preserve-unknown-fields: true disables validation entirely.
-Any field with any value is accepted — operators see garbage data and behave unpredictably.
+Look at the CRD schema: `kubectl get crd workloads.example.com -o yaml | grep -A10 openAPIV3Schema`. You should see only `x-kubernetes-preserve-unknown-fields: true` with no property definitions or constraints.

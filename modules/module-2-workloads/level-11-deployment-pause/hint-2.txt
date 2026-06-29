@@ -1,2 +1,5 @@
-Run: kubectl get deployment frontend -n k8smissions -o yaml | grep paused
-You should see 'paused: true'.
+The Deployment description shows `Paused: True`. This is a deliberate Deployment feature — you can pause a rollout to apply multiple changes before continuing.
+
+Check the spec directly:
+
+  kubectl get deployment frontend -n k8smissions -o yaml | grep 'paused'

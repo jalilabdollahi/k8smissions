@@ -1,1 +1,3 @@
-Validation target: curl to service returns green deployment response
+The Service selector is `version: blue` — it only routes to the old Deployment. The green pods exist and are healthy, but no traffic reaches them because the Service ignores them.
+
+Find the selector field inside the Service spec in manifest.yaml.

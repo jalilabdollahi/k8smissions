@@ -1,1 +1,1 @@
-Validation target: helm history webapp shows rollback, pods Running on v1
+The container `image` field references a non-existent tag. Replace `nginx:broken-tag` with `nginx:1.27.4` to restore the working state.

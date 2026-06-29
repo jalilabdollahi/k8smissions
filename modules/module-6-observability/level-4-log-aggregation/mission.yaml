@@ -1,7 +1,7 @@
 {
   "name": "Logs Across Restarts",
-  "description": "An app has restarted multiple times and you need to investigate what caused the crashes.",
-  "objective": "The pod has restarted and the current logs show nothing \u2014 use kubectl logs --previous to read the crashed container's output",
+  "description": "An application pod has restarted multiple times and you need to understand what caused the crashes. The current `kubectl logs` output is empty because the container just restarted and hasn't written anything yet. The evidence is in the previous container's logs.",
+  "objective": "The pod has restarted and the current logs show nothing — use kubectl logs --previous to read the crashed container's output",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -1,7 +1,7 @@
 {
   "name": "Node Under Pressure",
-  "description": "Pods are being unexpectedly evicted from a node.",
-  "objective": "Pods are being evicted \u2014 check node conditions for MemoryPressure and reduce or limit the workload causing it",
+  "description": "Pods from multiple workloads are being unexpectedly evicted from the node. One Deployment is running several replicas of a memory-intensive command with no resource cap, pushing the node into MemoryPressure. Until the pressure is relieved, the kubelet will keep evicting pods.",
+  "objective": "Pods are being evicted — check node conditions for MemoryPressure and reduce or limit the workload causing it",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "10m",

@@ -13,6 +13,6 @@ spec:
     - while true; do echo "[$LOG_LEVEL] log line"; sleep 0.1; done
     env:
     - name: LOG_LEVEL
-      value: DEBUG  # ❌ BUG: LOG_LEVEL is set to DEBUG, producing ~10 log lines per second.
+      value: DEBUG
                     # This floods the logging pipeline, consuming excessive storage and
                     # making it impossible to find meaningful log entries.

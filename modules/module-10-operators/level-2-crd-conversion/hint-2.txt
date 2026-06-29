@@ -1,2 +1,1 @@
-With strategy: None, Kubernetes only returns a resource in the version it was stored under.
-v1alpha1 resources are invisible when queried as v1beta1.
+Resources show `apiVersion: example.com/v1alpha1`. When you query `v1beta1`, the API server tries to convert the stored v1alpha1 objects — but `strategy: None` means no conversion is performed and the objects are invisible.

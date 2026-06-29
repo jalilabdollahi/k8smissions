@@ -1,3 +1,1 @@
-Run: kubectl auth can-i list configmaps -n k8smissions \
-  --as=system:serviceaccount:k8smissions:config-reader-sa
-This shows what the SA is actually allowed to do.
+The logs should show 'FORBIDDEN' after `kubectl get configmaps`. Verify what RBAC is attached to the ServiceAccount: `kubectl get role,rolebinding -n k8smissions`. You should find nothing related to config-reader-sa.

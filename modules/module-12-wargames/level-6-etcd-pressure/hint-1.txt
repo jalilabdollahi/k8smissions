@@ -1,1 +1,1 @@
-List all ConfigMaps and look for a pattern in names that indicates old CI runs.
+Check how many stale CI objects exist: `kubectl get configmap -n k8smissions | grep ci-run | wc -l`. Then check etcd's storage: `kubectl exec -n kube-system etcd-<node> -- etcdctl endpoint status --write-out=table`

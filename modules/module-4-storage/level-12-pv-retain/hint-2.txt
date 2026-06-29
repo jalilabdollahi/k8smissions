@@ -1,2 +1,3 @@
-The reclaimPolicy on a PV can be patched directly (unlike most volume fields):
-  kubectl patch pv db-data-pv -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+The policy is `Delete`. This means if anyone runs `kubectl delete pvc` in the future, the PV and all its data will be automatically destroyed — no confirmation, no recovery.
+
+For a PV that will hold database data, this is a ticking time bomb. The fix must happen NOW, before data is written.

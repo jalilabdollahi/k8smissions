@@ -1,3 +1,1 @@
-Linux capabilities control fine-grained kernel-level permissions.
-NET_BIND_SERVICE allows binding ports < 1024 without root.
-The pod drops ALL capabilities but needs this one back.
+The logs should show 'FAILED to bind port 80'. Now inspect the securityContext: `kubectl get pod port-binder -n k8smissions -o yaml | grep -A15 securityContext`. You will see `capabilities.drop: [ALL]` with no corresponding `add` section.

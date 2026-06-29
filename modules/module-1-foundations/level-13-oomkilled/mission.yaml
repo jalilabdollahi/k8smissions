@@ -1,7 +1,7 @@
 {
   "name": "Out of Memory",
-  "description": "Pod keeps restarting repeatedly and shows a non-zero exit code.",
-  "objective": "The memory limit is set far too low for the application \u2014 increase it so the container isn't killed by the OOM killer",
+  "description": "Pod oom-pod keeps restarting. Run kubectl get pod oom-pod -n k8smissions and note the STATUS and RESTARTS values.",
+  "objective": "The memory limit is set far too low for the application — increase it so the container isn't killed by the OOM killer",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "10m",

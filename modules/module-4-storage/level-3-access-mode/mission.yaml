@@ -1,7 +1,7 @@
 {
   "name": "Only One Can Write",
-  "description": "Multiple pods are failing to start with volume-related errors.",
-  "objective": "The PVC uses ReadWriteOnce but multiple pods on different nodes need to write \u2014 change the access mode to allow shared writes",
+  "description": "A 3-replica Deployment web-servers needs all pods to share the same storage volume. Some pods are failing to mount the volume. Run kubectl get pods -n k8smissions and look for volume-related errors.",
+  "objective": "The PVC uses ReadWriteOnce but multiple pods on different nodes need to write — change the access mode to allow shared writes",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

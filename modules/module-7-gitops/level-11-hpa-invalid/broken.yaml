@@ -8,8 +8,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: api
-  minReplicas: 10  # ❌ BUG: minReplicas (10) is greater than maxReplicas (3) — invalid configuration
-  maxReplicas: 3   # ❌ BUG: maxReplicas must be >= minReplicas; HPA enters error state and cannot reconcile
+  minReplicas: 10
+  maxReplicas: 3
   metrics:
   - type: Resource
     resource:

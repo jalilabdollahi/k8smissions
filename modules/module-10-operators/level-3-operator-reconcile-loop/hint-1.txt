@@ -1,2 +1,1 @@
-Run: kubectl logs -n operators deployment/my-operator | tail -20
-If the pod logs show no reconciliation events for your CR, the operator can't see it.
+Check the operator's environment variables: `kubectl get deployment my-operator -n operators -o yaml | grep -A5 env`

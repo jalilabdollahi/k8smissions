@@ -1,2 +1,1 @@
-Run: kubectl logs <deploy-taskrun-pod> -n k8smissions
-Look for 'deployments' 'is forbidden' in the error.
+Check the deploy Task logs for the forbidden error: `kubectl logs -n k8smissions -l tekton.dev/task=deploy`

@@ -1,1 +1,1 @@
-Start with: One pod has no CPU limit and is consuming 90% of CPU
+Use `kubectl top` to see which pod is consuming the most CPU right now: `kubectl top pods -n k8smissions`

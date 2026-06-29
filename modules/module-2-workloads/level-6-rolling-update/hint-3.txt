@@ -1,1 +1,3 @@
-Validation target: Rolling update completes with at least 1 pod always Running
+The problem is `rollingUpdate.maxUnavailable: 100%` in manifest.yaml. For a zero-downtime rolling update, this value must be low enough to keep pods serving traffic while new ones come up.
+
+Find this field under spec.strategy.rollingUpdate.

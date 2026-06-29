@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The init container writes to `/data/app.conf` and the main container reads from `/app/config/app.conf`. Both are wrong paths — both need their mountPath changed to `/app/config`.
+
+Find the volumeMounts section in both containers in manifest.yaml.

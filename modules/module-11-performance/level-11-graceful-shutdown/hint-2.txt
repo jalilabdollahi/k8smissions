@@ -1,2 +1,1 @@
-Pod shutdown sequence: SIGTERM sent → terminationGracePeriodSeconds countdown starts → SIGKILL after grace period.
-With 5s grace period, in-flight requests running > 5s are killed mid-request.
+The `terminationGracePeriodSeconds: 5` gives pods only 5 seconds to finish requests before SIGKILL. Long-running requests (>5s) are killed mid-flight. There's also a race: when a pod gets SIGTERM, the load balancer may still route traffic to it for several seconds while endpoint updates propagate.

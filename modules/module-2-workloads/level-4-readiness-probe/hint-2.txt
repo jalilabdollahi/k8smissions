@@ -1,1 +1,5 @@
-Goal state: Add readinessProbe httpGet /ready port 8080 with initialDelaySeconds: 10, periodSeconds: 5
+The new pod appears in Endpoints immediately — before it is actually ready to serve. The application runs `sleep 20` before starting nginx, so for the first 20 seconds it cannot respond to requests.
+
+Check whether a readiness probe exists:
+
+  kubectl get deployment slow-startup-app -n k8smissions -o yaml | grep -A8 'readinessProbe'

@@ -1,7 +1,7 @@
 {
   "name": "Zombie Pod",
-  "description": "A pod reports Running but its process is a zombie. The container thinks it's running but the app is completely unresponsive.",
-  "objective": "The pod is Running but has no readiness probe \u2014 add a readiness probe so Kubernetes can detect the zombie and stop routing traffic to it",
+  "description": "An HTTP service appears Running and healthy from Kubernetes' perspective, but requests are failing — the application process has become unresponsive. Because there are no readiness or liveness probes configured, Kubernetes has no way to detect the zombie state: the pod stays in Service endpoints (routing traffic to a dead process) and is never restarted.",
+  "objective": "The pod is Running but has no readiness probe — add a readiness probe so Kubernetes can detect the zombie and stop routing traffic to it",
   "xp": 350,
   "difficulty": "expert",
   "expected_time": "15m",

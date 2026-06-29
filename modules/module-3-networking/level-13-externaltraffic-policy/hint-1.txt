@@ -1,2 +1,5 @@
-Run: kubectl get svc nodeport-svc -n k8smissions -o yaml | grep externalTrafficPolicy
-Local means traffic only reaches pods on the same node where it arrived.
+Intermittent failures depending on which node you hit point to `externalTrafficPolicy`. Check the full Service spec:
+
+  kubectl describe service nodeport-svc -n k8smissions
+
+Look for the External Traffic Policy line.

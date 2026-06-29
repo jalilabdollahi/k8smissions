@@ -1,5 +1,1 @@
-Use cert-manager to auto-rotate the CA bundle:
-  metadata:
-    annotations:
-      cert-manager.io/inject-ca-from: operators/webhook-cert
-Cert-manager will automatically inject and rotate the caBundle.
+The `caBundle` field is hardcoded and stale. Remove it and add the annotation `cert-manager.io/inject-ca-from: operators/webhook-cert` to let cert-manager automatically inject and rotate the correct CA bundle.

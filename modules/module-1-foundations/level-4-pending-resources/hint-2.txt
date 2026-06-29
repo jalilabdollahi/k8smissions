@@ -1,3 +1,5 @@
-Read the scheduler message in Events:
-  kubectl describe pod hungry-app -n k8smissions
-Compare its requested CPU and memory with what a local kind node can provide.
+The Events say 'Insufficient memory' or 'Insufficient cpu'. The pod is requesting more resources than any node can provide.
+
+See how much is actually available in the cluster:
+
+  kubectl describe nodes | grep -A5 'Allocatable'

@@ -1,4 +1,7 @@
-Check the init-container state:
-  kubectl get pod web-with-init -n k8smissions
-  kubectl describe pod web-with-init -n k8smissions
-A Pod cannot start its main container until every init container succeeds.
+Init:0/1 means the init container has started but not completed yet. The main container will not start until every init container exits successfully.
+
+Read the init container's output:
+
+  kubectl logs web-with-init -n k8smissions -c wait-for-service
+
+What is it waiting for?

@@ -359,58 +359,68 @@ _pager = PaginatedDisplay()
 # ─────────────────────────────────────────────────────────────────────────────
 
 def show_help() -> None:
-    """Print a neatly grouped command reference panel."""
+    """Print a compact one-line command reference panel."""
 
-    def _section(title: str, rows: list[tuple[str, str, str]], color: str) -> Text:
-        t = Text()
-        t.append(f"  {title}\n", style=f"bold {color}")
-        t.append(f"  {'─' * 54}\n", style="grey50")
-        for num, cmd, desc in rows:
-            t.append(f"  {num} ", style="grey50")
-            t.append(f"{cmd:<16}", style=f"bold {color}")
-            t.append(f"{desc}\n", style="white")
-        return t
+    cyan   = "bold bright_cyan"
+    yellow = "bold bright_yellow"
+    grey   = "bold grey70"
+    dim    = "grey50"
 
-    diagnostic = _section(
-        "DIAGNOSE",
-        [
-            ("1", "check",      "Run the validator — confirm your fix works"),
-            ("d", "check-dry",  "Dry-run validator (shows result, no XP)"),
-            ("w", "watch",      "Auto-run validator every 5s until pass"),
-            ("2", "hint",       "Reveal the next hint  (up to 3)"),
-            ("3", "guide",      "Show the full walkthrough / solution.yaml"),
-            ("4", "debrief",    "Re-read the lesson for this level"),
-        ],
-        "bright_cyan",
-    )
+    def _cmd(t: Text, num: str, cmd: str, style: str) -> None:
+        t.append(f" {num} ", style=dim)
+        t.append(cmd, style=style)
 
-    cluster = _section(
-        "CLUSTER",
-        [
-            ("5", "kubectl <cmd>",    "Pass kubectl command through safety guards"),
-            ("e", "edit <type> <name>", "Dump resource to file, edit, then apply"),
-            ("6", "reset",            "Rebuild the broken scenario from scratch"),
-        ],
-        "bright_yellow",
-    )
+    # Row 1 — diagnose commands
+    r1 = Text()
+    r1.append(" ")
+    for num, cmd, style in [
+        ("1", "check",       cyan),
+        ("d", "check-dry",   cyan),
+        ("w", "watch",       cyan),
+        ("2", "hint",        cyan),
+        (" ", "reveal",      cyan),
+        ("3", "guide",       cyan),
+        ("4", "debrief",     cyan),
+    ]:
+        _cmd(r1, num, cmd, style)
+    r1.append("\n")
 
-    navigation = _section(
-        "NAVIGATION",
-        [
-            ("7", "status",         "Show XP progress across all modules"),
-            ("8", "skip",           "Advance to next level  (no XP awarded)"),
-            ("9", "quit",           "Save progress and exit"),
-            ("0", "reset-progress", "Wipe all XP and start over from Level 1"),
-        ],
-        "grey70",
-    )
+    # Row 2 — cluster commands
+    r2 = Text()
+    r2.append(" ")
+    for num, cmd, style in [
+        ("5", "kubectl <cmd>", yellow),
+        ("6", "reset",         yellow),
+    ]:
+        _cmd(r2, num, cmd, style)
+    r2.append("\n")
+
+    # Row 3 — navigation commands
+    r3 = Text()
+    r3.append(" ")
+    for num, cmd, style in [
+        ("7", "status",         grey),
+        ("8", "skip",           grey),
+        ("9", "quit",           grey),
+        ("0", "reset-progress", grey),
+    ]:
+        _cmd(r3, num, cmd, style)
+    r3.append("\n")
+
+    # Static info line
+    sandbox = "~/.k8smissions/sandbox/manifest.yaml"
+    info = Text()
+    info.append(f"\n  sandbox  ", style=dim)
+    info.append(sandbox, style="bold bright_magenta")
+    info.append(f"\n  apply    ", style=dim)
+    info.append(f"kubectl apply -f {sandbox}", style="bright_magenta")
+    info.append("\n", style="white")
 
     body = Text()
-    body.append_text(diagnostic)
-    body.append("\n")
-    body.append_text(cluster)
-    body.append("\n")
-    body.append_text(navigation)
+    body.append_text(r1)
+    body.append_text(r2)
+    body.append_text(r3)
+    body.append_text(info)
 
     console.print(
         Panel(

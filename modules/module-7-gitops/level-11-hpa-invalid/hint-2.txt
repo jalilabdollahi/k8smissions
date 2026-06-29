@@ -1,2 +1,1 @@
-Run: kubectl describe hpa api-hpa -n k8smissions
-Look for a validation error about minReplicas being greater than maxReplicas.
+The status should show an error condition referencing the invalid replica range. Look specifically at the `minReplicas` and `maxReplicas` fields — a valid HPA requires `minReplicas <= maxReplicas`.

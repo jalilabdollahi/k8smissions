@@ -9,6 +9,5 @@ spec:
     kind: Deployment
     name: my-app
   updatePolicy:
-    # ❌ BUG: updateMode is 'Off' so VPA only recommends resources but never applies
     # them. Pods are never restarted with right-sized resources, causing OOMKills.
     updateMode: 'Off'

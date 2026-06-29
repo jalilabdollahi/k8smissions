@@ -3,7 +3,6 @@ kind: Task
 metadata:
   name: injected-task
   namespace: k8smissions
-  # ❌ BUG: no podTemplate with injection opt-out label
   # Istio admission webhook injects istio-proxy into every pod in the namespace
   # Tekton's entrypoint/init-container lifecycle conflicts with the sidecar — steps run out of order or time out
 spec:

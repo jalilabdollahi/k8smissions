@@ -1,1 +1,6 @@
-Start with: PVC accessMode: ReadWriteOnce
+Check the PVC's access mode and compare it with what a shared multi-pod scenario requires:
+
+  kubectl get pvc shared-pvc -n k8smissions
+  kubectl describe pvc shared-pvc -n k8smissions
+
+What access mode is it using? What does that access mode allow?

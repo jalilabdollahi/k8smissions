@@ -1,7 +1,7 @@
 {
   "name": "PVC Won't Bind",
-  "description": "Pod is stuck in ContainerCreating and a PVC in the namespace is in Pending state.",
-  "objective": "The PVC requests more storage than any available PV provides \u2014 adjust the PVC size to match what the PV offers",
+  "description": "Pod database-pod is stuck in ContainerCreating. Run kubectl get pvc -n k8smissions and check the STATUS column of the PVC it depends on.",
+  "objective": "The PVC requests more storage than any available PV provides — adjust the PVC size to match what the PV offers",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

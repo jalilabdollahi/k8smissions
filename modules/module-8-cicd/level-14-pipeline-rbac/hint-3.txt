@@ -1,6 +1,1 @@
-Create the role:
-  kubectl create role tekton-run-role -n k8smissions \
-    --verb=create,get,list,watch \
-    --resource=pipelineruns.tekton.dev,taskruns.tekton.dev
-  kubectl create rolebinding tekton-run-rb -n k8smissions \
-    --role=tekton-run-role --serviceaccount=k8smissions:trigger-sa
+The `trigger-sa` ServiceAccount has no Role or RoleBinding. Tekton resources (PipelineRuns, TaskRuns) are in the `tekton.dev` API group — not the core `apps` group. A Role must explicitly grant access to this API group.

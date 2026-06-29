@@ -1,2 +1,1 @@
-Without 'subresources: status: {}', the status field is part of the main resource body.
-Updates via the main patch endpoint DON'T persist status in certain scenarios because operators update status via the /status endpoint.
+The patch may fail with 'the server could not find the requested resource' for the status subresource. Check the CRD for subresource configuration: `kubectl get crd myapps.example.com -o yaml | grep -A5 subresources`

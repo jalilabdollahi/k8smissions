@@ -1,4 +1,1 @@
-Increase maxSurge for parallel updates:
-  maxSurge: 10        # 10% of replicas at once
-  maxUnavailable: 0   # no availability loss
-Now 10 pods update in parallel → 10x faster rollout.
+The strategy has `maxSurge: 0` and `maxUnavailable: 1`. Change to `maxSurge: 10` and `maxUnavailable: 0` to replace 10 pods in parallel while keeping all original pods running until replacements are ready.

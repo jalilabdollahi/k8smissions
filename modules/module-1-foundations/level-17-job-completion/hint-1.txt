@@ -1,2 +1,5 @@
-Run: kubectl get job db-init -n k8smissions
-A Job in Failed/BackoffLimitExceeded means every attempt exited non-zero.
+BackoffLimitExceeded means the Job tried to complete and failed every time, hitting the maximum number of retries. Find the pods the Job created:
+
+  kubectl get pods -n k8smissions -l job-name=db-init
+
+What is the status of those pods?

@@ -1,6 +1,3 @@
-Run:
-  edit pod selector-pod
-Replace its nodeSelector with a label present on the kind node:
-  nodeSelector:
-    kubernetes.io/os: linux
-Save and approve the replacement.
+No node has the label `mission=moon-base`. The nodeSelector in the pod spec requires this label to exist on a node before the pod can be scheduled.
+
+Look at spec.nodeSelector in manifest.yaml. You need to change it to a label that actually exists on a node.

@@ -1,1 +1,6 @@
-Goal state: Update PVC to request 1Gi  OR create a larger PV
+The PVC is Pending because no available PV satisfies it. PV binding requires three things to match: access mode, storage size (PV must be >= PVC request), and storageClassName.
+
+Compare the PVC requirements with what the PV offers:
+
+  kubectl get pv app-storage
+  kubectl get pvc app-storage-claim -n k8smissions

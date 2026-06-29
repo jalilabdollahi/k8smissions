@@ -1,7 +1,7 @@
 {
   "name": "Off-Balance Canary",
-  "description": "A canary deployment is running alongside the main deployment, but the traffic distribution looks wrong.",
-  "objective": "The canary deployment has too many replicas \u2014 adjust replica counts so only ~10% of traffic goes to the canary",
+  "description": "A canary deployment is running alongside the stable version. But instead of testing with a small percentage of traffic, about 50% of requests are hitting the experimental canary version. Run kubectl get pods -n k8smissions.",
+  "objective": "The canary deployment has too many replicas — adjust replica counts so only ~10% of traffic goes to the canary",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

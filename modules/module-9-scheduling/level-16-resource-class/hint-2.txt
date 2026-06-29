@@ -1,2 +1,1 @@
-ResourceClaims reference ResourceClasses (similar to PVC→StorageClass).
-If the class doesn't exist, the claim can never be allocated.
+The ResourceClaim status should show it can't be allocated because `non-existent-fpga-class` doesn't exist. List available ResourceClasses: `kubectl get resourceclass`. You'll find none matching.

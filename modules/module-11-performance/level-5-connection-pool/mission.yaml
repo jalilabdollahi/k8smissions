@@ -1,7 +1,7 @@
 {
   "name": "Database Stampede",
-  "description": "After a pod restart, the database is overwhelmed with connection storms and rejects requests.",
-  "objective": "The app creates a new DB connection per request \u2014 implement connection pooling via environment variable config",
+  "description": "A web application with 10 replicas is causing 'too many connections' errors on the database. Each pod has `DB_POOL_SIZE: 1`, so each pod maintains exactly one database connection — but with only 1 connection per pod and no overflow capacity, concurrent requests queue up and time out during traffic spikes.",
+  "objective": "The app creates a new DB connection per request — implement connection pooling via environment variable config",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

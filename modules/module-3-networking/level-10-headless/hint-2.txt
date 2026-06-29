@@ -1,1 +1,5 @@
-Goal state: Set clusterIP: None to make service headless
+The Service has a real `clusterIP` value (like `10.96.100.50`) — it is not headless. A regular ClusterIP Service gives you one virtual IP that load-balances across all pods. It does NOT create per-pod DNS records like `web-0.web-cluster`.
+
+For per-pod DNS records, the Service needs `clusterIP: None`.
+
+Note: you cannot patch a Service's clusterIP — you must delete and recreate it.

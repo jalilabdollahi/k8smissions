@@ -1,3 +1,1 @@
-Run: kubectl get lease -n operators
-With leader election enabled, a Lease object tracks the current leader.
-With --leader-elect=false, no Lease exists and all replicas run as active.
+You should see `--leader-elect=false`. With two replicas and no leader election, both pods run the full reconciliation loop simultaneously. Each sees the other's updates as 'drift' and reverts them — causing the resource flapping you observe.

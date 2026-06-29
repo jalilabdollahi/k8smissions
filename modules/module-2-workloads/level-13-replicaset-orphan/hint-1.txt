@@ -1,2 +1,5 @@
-Run: kubectl get replicasets -n k8smissions
-Then: kubectl get replicaset legacy-app-7d8f9 -n k8smissions -o yaml | grep -A5 ownerReferences
+Pods that survive after their parent Deployment is deleted are usually kept alive by a ReplicaSet that was never cleaned up. Check if any ReplicaSets exist:
+
+  kubectl get replicasets -n k8smissions
+
+Is there a ReplicaSet with no owner?

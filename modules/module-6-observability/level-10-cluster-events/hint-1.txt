@@ -1,1 +1,1 @@
-Start with: Cluster with pre-seeded events from a simulated incident: OOMKill → pod eviction → node pressure → cascading failures
+Build the incident timeline by reading cluster events sorted by time: `kubectl get events -n k8smissions --sort-by=.lastTimestamp`

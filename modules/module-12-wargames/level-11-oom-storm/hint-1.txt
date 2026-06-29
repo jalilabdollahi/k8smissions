@@ -1,1 +1,1 @@
-Check the memory limits on all deployments — they're set far too low.
+Check the OOMKill status: `kubectl get pods -n k8smissions`. Look for pods with `OOMKilled` in their status, or check restart counts: `kubectl get pods -n k8smissions -o wide`

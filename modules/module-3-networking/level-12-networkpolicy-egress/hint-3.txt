@@ -1,9 +1,3 @@
-Add an egress rule allowing UDP/TCP port 53:
-  egress:
-  - ports:
-    - protocol: UDP
-      port: 53
-    - protocol: TCP
-      port: 53
-  - to:
-    - podSelector: {}
+The `egress: []` field needs to be replaced with rules that allow DNS traffic. At minimum, you need to permit outbound UDP and TCP on port 53.
+
+Find the egress field in the NetworkPolicy in manifest.yaml.

@@ -1,1 +1,1 @@
-Goal state: Set image.tag: "1.2.3" in values.yaml helm upgrade myapp ./charts/myapp -n k8smissions
+You should see `image: nginx:latest`. In a Helm chart, this comes from `{{ .Values.image.tag }}` in the template. When the tag is empty or unset, the chart falls back to `latest`. Look at the manifest's `image` field — it needs a pinned version.

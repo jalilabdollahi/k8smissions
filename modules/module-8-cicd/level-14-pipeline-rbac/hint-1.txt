@@ -1,3 +1,1 @@
-Run: kubectl auth can-i create pipelineruns -n k8smissions \
-  --as=system:serviceaccount:k8smissions:trigger-sa
-A Tekton EventListener uses a SA to create PipelineRuns.
+Check the EventListener pod logs for the forbidden error: `kubectl logs -n k8smissions -l eventlistener=git-listener`

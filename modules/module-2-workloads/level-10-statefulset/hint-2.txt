@@ -1,1 +1,5 @@
-Goal state: Convert to StatefulSet with serviceName and stable hostnames
+The replacement pod got a random suffix (like `database-7b9c4-xkz91`). Deployments generate random names for each pod — that is by design. But databases need stable hostnames so replicas can find each other by name.
+
+Check the current resource type:
+
+  kubectl get deployment database -n k8smissions -o yaml | grep 'kind'

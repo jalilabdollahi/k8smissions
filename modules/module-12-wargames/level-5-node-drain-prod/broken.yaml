@@ -1,5 +1,4 @@
 ---
-# ❌ BUG: PodDisruptionBudget requires minAvailable:3 but the Deployment only has 2 replicas.
 # Math: to evict any pod we need at least 3 available — impossible with only 2 total.
 # kubectl drain will permanently block: "Cannot evict pod as it would violate the PDB"
 apiVersion: apps/v1
@@ -31,7 +30,7 @@ metadata:
   name: critical-pdb
   namespace: k8smissions
 spec:
-  minAvailable: 3  # ❌ BUG: minAvailable (3) >= replicas (2) — drain is permanently blocked
+  minAvailable: 3
   selector:
     matchLabels:
       app: critical-app

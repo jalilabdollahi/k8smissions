@@ -4,6 +4,5 @@ metadata:
   name: my-fpga-claim
   namespace: k8smissions
 spec:
-  # ❌ BUG: 'non-existent-fpga-class' is not a registered ResourceClass.
   # The ResourceClaim cannot be allocated → any pod referencing it stays Pending.
   resourceClassName: non-existent-fpga-class

@@ -6,7 +6,6 @@ metadata:
 spec:
   affinity:
     podAffinity:
-      # ❌ BUG: requiredDuringSchedulingIgnoredDuringExecution is a hard constraint —
       # if no pod with label 'tier: cache' exists, the scheduler cannot place this pod anywhere.
       requiredDuringSchedulingIgnoredDuringExecution:
       - labelSelector:

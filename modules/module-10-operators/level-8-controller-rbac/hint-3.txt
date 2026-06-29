@@ -1,7 +1,1 @@
-Add rules for Kubernetes-native resources the operator manages:
-  - apiGroups: [""]
-    resources: ["pods", "services", "configmaps"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+The ClusterRole only grants access to `example.com/workloads`. It's missing rules for: `"" / pods,services,configmaps` (core API), `apps / deployments`, and `example.com / workloads/status` (the status subresource).

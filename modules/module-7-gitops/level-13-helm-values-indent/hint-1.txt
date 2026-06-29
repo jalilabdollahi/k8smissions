@@ -1,2 +1,1 @@
-Run: python3 -c "import yaml; print(yaml.safe_load(open('values.yaml').read()))"
-If 'tag' appears at the top level (not under 'image'), the indentation is wrong.
+Check what image is currently running: `kubectl get pods -n k8smissions -o yaml | grep image`. Then look at the values file structure in the manifest, specifically the `image` block.

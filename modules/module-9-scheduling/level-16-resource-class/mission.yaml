@@ -1,7 +1,7 @@
 {
   "name": "Class Not Found",
-  "description": "A pod with a ResourceClaim is stuck Pending \u2014 the dynamic resource allocation request can't be satisfied.",
-  "objective": "The ResourceClaim references a ResourceClass that doesn't exist \u2014 create the ResourceClass or fix the reference",
+  "description": "A pod using Dynamic Resource Allocation (DRA) is stuck in Pending. It references a ResourceClaim that can't be satisfied because the ResourceClass it names doesn't exist. Without the class, the DRA driver has no configuration to allocate the resource from.",
+  "objective": "The ResourceClaim references a ResourceClass that doesn't exist — create the ResourceClass or fix the reference",
   "xp": 375,
   "difficulty": "advanced",
   "expected_time": "15m",

@@ -4,7 +4,6 @@ metadata:
   name: critical-app
   namespace: k8smissions
 spec:
-  # ❌ BUG: No tolerations defined — when a NoExecute taint is applied to the node,
   # this pod will be immediately evicted with no grace window.
   containers:
   - name: app

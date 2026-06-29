@@ -1,1 +1,1 @@
-Goal state: kubectl create namespace webapp-prod argocd app sync webapp-app  OR  enable auto-sync in app spec
+The namespace doesn't exist yet. ArgoCD needs the destination namespace to be present before it can deploy into it (unless `CreateNamespace=true` is set in syncOptions). Look at what the solution manifest needs to create.

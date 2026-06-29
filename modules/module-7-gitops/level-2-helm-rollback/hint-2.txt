@@ -1,1 +1,1 @@
-Goal state: helm rollback webapp 1 -n k8smissions
+The pods are using `nginx:broken-tag` which doesn't exist in the registry. The Events section will show `ErrImagePull`. Look at the manifest's `image` field — it needs to be changed to the last working version.

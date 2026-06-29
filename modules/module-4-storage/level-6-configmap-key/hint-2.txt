@@ -1,1 +1,5 @@
-Goal state: Update keyRef to use the correct key name "db_password"
+The Events say something like 'key database_host not found in configmap app-config'. Check what keys the ConfigMap actually has:
+
+  kubectl get configmap app-config -n k8smissions -o yaml
+
+Compare those keys with what the pod's env section references.

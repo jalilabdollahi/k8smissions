@@ -1,1 +1,1 @@
-Validation target: kubectl top pods -n k8smissions returns CPU/Memory values
+The Deployment's `spec.replicas` field is set to 0. A Deployment with zero replicas deliberately runs no pods — the metrics-server is configured to exist but not to run.

@@ -1,2 +1,1 @@
-Run: time kubectl run test-pod --image=nginx -n k8smissions --restart=Never 2>&1
-Measure how long pod creation takes.
+Measure how long pod creation takes: `time kubectl run test --image=nginx:1.25 -n k8smissions`. Then check the webhook configuration: `kubectl get validatingwebhookconfiguration policy-enforcer -o yaml | grep timeoutSeconds`

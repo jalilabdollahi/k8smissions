@@ -1,2 +1,7 @@
-Run: kubectl get secret api-secret -n k8smissions -o jsonpath='{.data.token}' | base64 -d
-If the output still looks like base64 (letters+numbers+==), it was double-encoded.
+The value inside the container does not look like a valid API token — it looks like another base64 string. This is the classic sign of double-encoding.
+
+Decode the Secret value manually to check:
+
+  kubectl get secret api-secret -n k8smissions -o jsonpath='{.data.token}' | base64 -d
+
+Does the output look like a real token, or like another encoded string?

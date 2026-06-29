@@ -1,7 +1,7 @@
 {
   "name": "Not in List",
-  "description": "kubectl get all does not show custom resources even though the CRD is installed and resources exist.",
-  "objective": "The CRD lacks a 'categories' field that includes 'all' \u2014 add it to make CRs appear in kubectl get all",
+  "description": "`kubectl get all` does not show custom `App` resources even though the CRD is installed and resources exist. The CRD is not included in the `all` aggregated category — which is how `kubectl get all` discovers which resource types to include in its output.",
+  "objective": "The CRD lacks a 'categories' field that includes 'all' — add it to make CRs appear in kubectl get all",
   "xp": 275,
   "difficulty": "intermediate",
   "expected_time": "8m",

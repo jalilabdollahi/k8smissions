@@ -1,7 +1,7 @@
 {
   "name": "Grand Master Challenge",
-  "description": "The ultimate test. Every module contributes one failure. 12 simultaneous issues spanning foundations, workloads, networking, storage, security, observability, gitops, CI/CD, scheduling, operators, and performance.",
-  "objective": "Fix 12 simultaneous failures spanning all modules \u2014 one failure from each module, all active at the same time",
+  "description": "The Grand Master challenge: 12 simultaneous failures — one representative bug from each K8sMissions module. A broken image tag, a zero-replica deployment, a Service with a wrong selector, an impossible PVC, a missing RoleBinding, a deployment without readiness probes, an empty ConfigMap, a missing Secret, a too-low memory limit, a crash-loop command, a PDB that blocks all drains, and a failover ConfigMap in a stuck state. Fix all twelve.",
+  "objective": "Fix 12 simultaneous failures spanning all modules — one failure from each module, all active at the same time",
   "xp": 500,
   "difficulty": "expert",
   "expected_time": "45m",

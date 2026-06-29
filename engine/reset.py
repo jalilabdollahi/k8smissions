@@ -13,6 +13,7 @@ from rich.console import Console
 console = Console()
 
 NAMESPACE = "k8smissions"
+SANDBOX_FILE = Path.home() / ".k8smissions" / "sandbox" / "manifest.yaml"
 
 
 def _run(args: list[str], cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -69,6 +70,9 @@ def prepare_level(repo_root: Path, level_path: Path) -> None:
     broken_yaml = level_path / "broken.yaml"
     if broken_yaml.exists():
         _run(["kubectl", "apply", "-f", str(broken_yaml)], cwd=level_path)
+        # Copy to sandbox so the user can edit without touching the source files
+        SANDBOX_FILE.parent.mkdir(parents=True, exist_ok=True)
+        SANDBOX_FILE.write_text(broken_yaml.read_text(encoding="utf-8"), encoding="utf-8")
 
 
 def reset_current_level(repo_root: Path, level_path: Path) -> bool:

@@ -1,7 +1,7 @@
 {
   "name": "Forbidden Credentials",
-  "description": "Pod shows CreateContainerConfigError and will not start.",
-  "objective": "The pod references a Secret that hasn't been created \u2014 create the Secret with the required credentials",
+  "description": "Pod secret-pod shows CreateContainerConfigError and will not start. Run kubectl describe pod secret-pod -n k8smissions.",
+  "objective": "The pod references a Secret that hasn't been created — create the Secret with the required credentials",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "10m",

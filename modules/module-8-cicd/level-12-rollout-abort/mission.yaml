@@ -1,7 +1,7 @@
 {
   "name": "Reverted Release",
-  "description": "An Argo Rollout was automatically aborted due to high error rate \u2014 the app is stuck in degraded state.",
-  "objective": "The Rollout is in Degraded state after an abort \u2014 retry the rollout with a fixed image to recover",
+  "description": "An Argo Rollout is in Degraded state after being automatically aborted. The canary pods used a bad image tag and entered ErrImagePull — Argo Rollouts detected the failure, aborted the rollout, and rolled back traffic. The Rollout is now stuck in Degraded and won't recover until the image is fixed and the rollout is retried.",
+  "objective": "The Rollout is in Degraded state after an abort — retry the rollout with a fixed image to recover",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

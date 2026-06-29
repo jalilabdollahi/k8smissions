@@ -1,2 +1,1 @@
-Run: kubectl get crd | grep example.com
-If the CRD is not installed but the operator tries to register a controller for it, the operator panics on startup.
+The logs should show a panic or error referencing a missing CRD or nil informer. Check whether the CRD exists: `kubectl get crd workloads.example.com`. If it doesn't, the operator is trying to watch a resource type that doesn't exist in the API server.

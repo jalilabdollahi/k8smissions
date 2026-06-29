@@ -1,4 +1,1 @@
-Change failurePolicy to Ignore:
-  kubectl patch validatingwebhookconfiguration strict-validator \
-    -p '{"webhooks":[{"name":"validate.example.com","failurePolicy":"Ignore"}]}'
-Or delete the webhook temporarily: kubectl delete validatingwebhookconfiguration strict-validator
+The webhook has `failurePolicy: Fail` and the webhook service is down. Change `failurePolicy` to `Ignore` so pod creation can proceed even when the webhook is unreachable.

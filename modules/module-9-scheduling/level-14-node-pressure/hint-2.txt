@@ -1,2 +1,1 @@
-Run: kubectl top pods -n k8smissions --sort-by=memory | head
-The pod with the highest memory usage is likely causing node memory pressure.
+You should see `MemoryPressure: True`. Now find the pod causing it: `kubectl top pods -n k8smissions`. Look at the `memory-hog` pod's actual memory usage vs. its declared requests.

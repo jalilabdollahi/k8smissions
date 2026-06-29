@@ -1,1 +1,1 @@
-Goal state: Move the slow check to readinessProbe, use a lightweight /healthz for livenessProbe
+The liveness probe is checking `/api/v1/ready` — an endpoint designed to report readiness, not health. This endpoint responds slowly during startup. When the probe fires early and gets a non-200 response, Kubernetes treats the container as unhealthy and kills it.

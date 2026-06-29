@@ -1,7 +1,7 @@
 {
   "name": "Invisible Metrics",
-  "description": "A service emits Prometheus metrics but they never appear in monitoring dashboards.",
-  "objective": "The pod is missing Prometheus scrape annotations \u2014 add the required annotations to enable metrics collection",
+  "description": "A service is emitting Prometheus metrics on port 9090 but they never appear in monitoring dashboards. The pod is Running, the port is exposed, and the metrics endpoint is working — but Prometheus has no way to discover this pod because the annotation-based discovery configuration is entirely missing.",
+  "objective": "The pod is missing Prometheus scrape annotations — add the required annotations to enable metrics collection",
   "xp": 200,
   "difficulty": "advanced",
   "expected_time": "12m",

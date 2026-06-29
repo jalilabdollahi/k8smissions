@@ -1,9 +1,1 @@
-Change to preferredDuringSchedulingIgnoredDuringExecution:
-  podAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      podAffinityTerm:
-        labelSelector:
-          matchLabels:
-            tier: cache
-        topologyKey: kubernetes.io/hostname
+The `podAffinity` rule uses `requiredDuringSchedulingIgnoredDuringExecution`. Change it to `preferredDuringSchedulingIgnoredDuringExecution` so the pod can still schedule even if no cache pod is present yet.

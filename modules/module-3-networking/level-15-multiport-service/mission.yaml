@@ -1,7 +1,7 @@
 {
   "name": "The Mixed Signals",
-  "description": "A Service exposes two ports but the Ingress fails to route to either \u2014 the backend port reference is rejected.",
-  "objective": "A multi-port Service requires named ports \u2014 add port names so the Ingress can reference them correctly",
+  "description": "Service dual-svc exposes two ports and an Ingress routes traffic to it by port name. But the Ingress controller is rejecting the backend configuration. Run kubectl describe ingress dual-ingress -n k8smissions.",
+  "objective": "A multi-port Service requires named ports — add port names so the Ingress can reference them correctly",
   "xp": 200,
   "difficulty": "advanced",
   "expected_time": "12m",

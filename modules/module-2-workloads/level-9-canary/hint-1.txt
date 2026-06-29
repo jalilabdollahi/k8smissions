@@ -1,1 +1,5 @@
-Start with: stable: replicas: 1, canary: replicas: 1 (50/50 split)
+Kubernetes routes traffic proportionally by pod count, not by percentage. If there are 5 stable pods and 5 canary pods, traffic splits 50/50.
+
+Count the pods per version:
+
+  kubectl get pods -n k8smissions -l app=myapp --show-labels

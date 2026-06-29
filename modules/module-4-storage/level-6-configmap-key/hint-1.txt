@@ -1,1 +1,7 @@
-Start with: env.valueFrom.configMapKeyRef.key: database_password ConfigMap has key: db_password
+CreateContainerConfigError means Kubernetes cannot build the container's environment before starting it. This happens when a referenced ConfigMap key does not exist.
+
+Read the Events:
+
+  kubectl describe pod web-app -n k8smissions
+
+Which key is missing?

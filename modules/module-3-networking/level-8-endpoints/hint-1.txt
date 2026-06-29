@@ -1,1 +1,7 @@
-Start with: Pod Running but no readinessProbe; endpoints include pod IP even when app is not ready
+Endpoints exist, so the Service found the pods. But some requests still fail. This points to pods being added to the endpoint list before they are actually ready to serve traffic.
+
+Check the READY column for the pods:
+
+  kubectl get pods -n k8smissions -l app=web
+
+Are both pods showing 1/1 Ready?

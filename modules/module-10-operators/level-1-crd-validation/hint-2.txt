@@ -1,2 +1,1 @@
-CRDs can embed OpenAPI v3 schemas. The 'minimum' validator enforces minimum integer values.
-If the CR sets replicas: 2 but the schema requires minimum: 5, creation fails.
+The error will say something like 'spec.replicas: Invalid value: 2: spec.replicas in body should be greater than or equal to 5'. Look at the CRD's schema definition for the `replicas` field.

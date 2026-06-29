@@ -1,4 +1,3 @@
-# ❌ BUG: The Secret 'db-credentials' has been deleted from the cluster.
 # This Deployment references it via secretKeyRef. Kubernetes cannot create
 # the container environment without the secret → pods show CreateContainerConfigError
 # and never start. Both replicas are permanently stuck.
@@ -28,10 +27,10 @@ spec:
         - name: DB_USER
           valueFrom:
             secretKeyRef:
-              name: db-credentials  # ❌ BUG: This Secret no longer exists — was deleted during rotation
+              name: db-credentials
               key: username
         - name: DB_PASS
           valueFrom:
             secretKeyRef:
-              name: db-credentials  # ❌ BUG: Same missing Secret — both vars fail together
+              name: db-credentials
               key: password

@@ -1,7 +1,7 @@
 {
   "name": "The Everywhere Pod",
-  "description": "A DaemonSet has been deployed but its pods are stuck in Pending on every node.",
-  "objective": "The DaemonSet has a missing toleration \u2014 add the correct toleration so pods schedule on all nodes including control-plane",
+  "description": "DaemonSet log-collector should run one pod on every node, but its pods are stuck in Pending. Run kubectl get pods -n k8smissions -o wide to see which nodes they were assigned to.",
+  "objective": "The DaemonSet has a missing toleration — add the correct toleration so pods schedule on all nodes including control-plane",
   "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "10m",

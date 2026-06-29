@@ -1,2 +1,1 @@
-Run: kubectl get virtualservice backend-vs -n k8smissions -o yaml | grep timeout
-The exact 15s pattern indicates a configured timeout, not random failure.
+Check the Istio VirtualService timeout: `kubectl get virtualservice backend-vs -n k8smissions -o yaml | grep timeout`

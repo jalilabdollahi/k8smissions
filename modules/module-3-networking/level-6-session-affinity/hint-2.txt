@@ -1,1 +1,5 @@
-Goal state: Set service.spec.sessionAffinity: ClientIP
+Each request goes to a different pod. The Service load-balances randomly across all three. Since each pod has its own in-memory session store, a user logged into Pod 1 gets their session dropped when the next request hits Pod 2.
+
+Check the Service spec:
+
+  kubectl get service session-service -n k8smissions -o yaml | grep 'sessionAffinity'

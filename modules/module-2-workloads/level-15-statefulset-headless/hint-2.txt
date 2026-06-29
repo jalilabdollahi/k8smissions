@@ -1,2 +1,7 @@
-StatefulSets require a headless Service (clusterIP: None) to create stable DNS records like db-0.db-headless.k8smissions.svc.cluster.local.
-A regular ClusterIP Service cannot provide per-pod DNS entries.
+The Events may not be obvious here. Check the StatefulSet's requirement for its governing Service:
+
+  kubectl get statefulset db -n k8smissions -o yaml | grep 'serviceName'
+
+Then check if that Service exists and what type it is:
+
+  kubectl get service db-svc -n k8smissions -o yaml | grep 'clusterIP'

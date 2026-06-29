@@ -1,2 +1,7 @@
-Run: kubectl rollout status deployment/api-server -n k8smissions
-The rollout will be stuck. Check: kubectl get deployment api-server -n k8smissions -o yaml | grep -A5 rollingUpdate
+The rollout status command hangs or says 'Waiting for rollout to finish'. No pods are being replaced. This is different from a failing rollout — nothing is happening at all.
+
+Read the Deployment update strategy:
+
+  kubectl describe deployment api-server -n k8smissions
+
+Look at the RollingUpdateStrategy section carefully.

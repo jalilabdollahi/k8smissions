@@ -1,7 +1,7 @@
 {
   "name": "Secrets in Git? Never.",
-  "description": "A security audit has flagged plain-text credentials in the Git repository.",
-  "objective": "Plain-text credentials are committed in Git \u2014 replace the inline Secret with an ExternalSecret managed by ESO",
+  "description": "A security audit has flagged plain-text credentials committed directly to the Git repository as a Kubernetes Secret manifest. Kubernetes Secrets are only base64-encoded, not encrypted — anyone with repository access can decode them. The fix is to delegate secret management to the External Secrets Operator.",
+  "objective": "Plain-text credentials are committed in Git — replace the inline Secret with an ExternalSecret managed by ESO",
   "xp": 500,
   "difficulty": "expert",
   "expected_time": "10m",

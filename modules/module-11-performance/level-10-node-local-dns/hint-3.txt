@@ -1,5 +1,1 @@
-Enable NodeLocal DNSCache:
-  data:
-    enabled: "true"
-Then restart the node-local-dns DaemonSet pods:
-  kubectl rollout restart daemonset/node-local-dns -n kube-system
+The `enabled` field in the `node-local-dns` ConfigMap is set to `false`. Change it to `true` to activate NodeLocal DNSCache, which will serve DNS responses from a cache on the local node without traversing the pod network.

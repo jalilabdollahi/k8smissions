@@ -22,9 +22,8 @@ spec:
   - name: app
     image: nginx:latest
     securityContext:
-      runAsUser: 0  # ❌ Root user - violates restricted!
-      allowPrivilegeEscalation: true  # ❌ Violates restricted!
-      # ❌ Missing: runAsNonRoot, capabilities drop, seccompProfile
+      runAsUser: 0
+      allowPrivilegeEscalation: true
       
 # Restricted Pod Security Standard requires:
 # 1. runAsNonRoot: true

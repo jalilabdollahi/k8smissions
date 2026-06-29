@@ -1,7 +1,7 @@
 {
   "name": "Data Deleted!",
-  "description": "A PVC was deleted and the underlying data has disappeared along with it.",
-  "objective": "The PV's reclaimPolicy is Delete, so data is lost when the PVC is removed \u2014 change it to Retain to preserve data",
+  "description": "A PVC was accidentally deleted and all the data it held is now gone. Run kubectl get pv -n k8smissions and look at the STATUS column of PV important-data.",
+  "objective": "The PV's reclaimPolicy is Delete, so data is lost when the PVC is removed — change it to Retain to preserve data",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -1,1 +1,6 @@
-Start with: Deployment managing database pods
+Compare pod names between restart cycles. Delete one pod and watch what name it comes back with:
+
+  kubectl delete pod <database-pod-name> -n k8smissions
+  kubectl get pods -n k8smissions -w
+
+Is the new pod name predictable or random?

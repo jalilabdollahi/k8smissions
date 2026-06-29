@@ -1,4 +1,3 @@
-Change reclaimPolicy to Retain:
-  kubectl patch pv db-data-pv \
-    -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
-Retain leaves the PV in Released state and you must manually re-bind or clean up.
+Change the `persistentVolumeReclaimPolicy` from `Delete` to `Retain` in the PV spec in manifest.yaml.
+
+Note: if the PV is already bound to a PVC, you cannot change reclaimPolicy via apply — you would need to patch it directly. Since this PV is still Available, the manifest change will work.

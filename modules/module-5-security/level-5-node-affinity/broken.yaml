@@ -17,10 +17,10 @@ spec:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
         - matchExpressions:
-          - key: gpu-type  # ❌ Wrong key! Nodes labeled 'accelerator'
+          - key: gpu-type
             operator: In
             values:
-            - nvidia-tesla  # ❌ Wrong value! Nodes have 'gpu'
+            - nvidia-tesla
             
 # Actual node labels (check with: kubectl get nodes --show-labels):
 # - kubernetes.io/hostname=kind-control-plane

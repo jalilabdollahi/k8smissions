@@ -28,7 +28,7 @@ metadata:
   name: web-pdb
   namespace: k8smissions
 spec:
-  minAvailable: 3  # ❌ Requires 3 pods, but only 2 replicas exist!
+  minAvailable: 3
   selector:
     matchLabels:
       app: web

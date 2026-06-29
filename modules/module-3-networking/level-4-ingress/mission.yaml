@@ -1,7 +1,7 @@
 {
   "name": "Ingress Path Mismatch",
-  "description": "An Ingress is configured and pods are Running, but all requests return 404.",
-  "objective": "The Ingress path doesn't match the path the backend service exposes \u2014 align the Ingress rule with the actual backend path",
+  "description": "An Ingress and Service both exist, the pod is Running, but every request returns 404. Run kubectl get ingress web-ingress -n k8smissions and look at the HOSTS and PATH columns.",
+  "objective": "The Ingress path doesn't match the path the backend service exposes — align the Ingress rule with the actual backend path",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

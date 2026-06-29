@@ -1,7 +1,7 @@
 {
   "name": "Missing Parameter",
-  "description": "A Tekton TaskRun fails immediately with 'param IMAGE not set'.",
-  "objective": "The Task requires a param IMAGE but no value is supplied in the TaskRun \u2014 add the required parameter",
+  "description": "A Tekton TaskRun fails at admission — not during execution. The Task it references requires a parameter named `IMAGE` with no default value, but the TaskRun provides an empty params list. Tekton validates required parameters before creating any pods.",
+  "objective": "The Task requires a param IMAGE but no value is supplied in the TaskRun — add the required parameter",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "8m",

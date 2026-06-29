@@ -1,1 +1,3 @@
-Goal state: Patch PV reclaimPolicy to Retain kubectl patch pv <pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"Retain"}}'
+The reclaimPolicy is `Delete`. This is why the data is gone — the moment the PVC was deleted, Kubernetes automatically deleted the PV and its backing storage too.
+
+For a PV holding important production data, this is the wrong policy. Look at what `Retain` would do differently.

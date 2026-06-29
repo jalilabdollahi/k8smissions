@@ -1,2 +1,3 @@
-DNS runs on port 53 (UDP and TCP) in kube-system via the kube-dns/CoreDNS pods.
-Without a rule allowing port 53 egress, all name resolution fails.
+The NetworkPolicy selects all pods (`podSelector: {}`) and has policyType `Egress` with an empty `egress: []` list. In Kubernetes, when policyTypes includes Egress and egress rules are empty, ALL outbound traffic is blocked — including DNS queries to port 53.
+
+CoreDNS listens on UDP and TCP port 53 in the kube-system namespace. Without an egress rule allowing this, pods cannot resolve any name.

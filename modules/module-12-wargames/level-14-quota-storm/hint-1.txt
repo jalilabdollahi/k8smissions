@@ -1,1 +1,1 @@
-List pods and count how many are from the runaway CI job.
+Check quota usage: `kubectl describe resourcequota ns-quota -n k8smissions`. Look at `Used` vs `Hard` for `pods`. Then count the stale test pods: `kubectl get pods -l job=ci-test -n k8smissions | wc -l`

@@ -1,1 +1,1 @@
-kubectl get networkpolicy -n k8smissions — you need to add an allow rule, not remove the deny.
+The `deny-all` policy has `podSelector: {}` (all pods) with both `Ingress` and `Egress` blocked and no ingress or egress rules. This blocks everything — including DNS lookups on port 53, meaning even fully-qualified service names can't resolve.

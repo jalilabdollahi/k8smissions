@@ -1,2 +1,1 @@
-Run: kubectl get taskrun push-image-run -n k8smissions
-Check logs for 'unauthorized' from the registry.
+Check the push step's logs for the exact error: `kubectl logs -n k8smissions -l tekton.dev/task=image-push`

@@ -1,4 +1,3 @@
-Change to Cluster:
-  kubectl patch svc nodeport-svc -n k8smissions \
-    -p '{"spec":{"externalTrafficPolicy":"Cluster"}}'
-This allows kube-proxy to forward to any pod across any node.
+Backend pods are not on every node. Nodes without a pod silently drop incoming NodePort traffic when `externalTrafficPolicy: Local` is set.
+
+Find the `externalTrafficPolicy` field in the Service in manifest.yaml.

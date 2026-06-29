@@ -7,7 +7,7 @@ spec:
     storage: 5Gi
   accessModes:
   - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete  # ❌ BUG: Delete destroys the volume data when PVC is removed
+  persistentVolumeReclaimPolicy: Delete
   storageClassName: standard
   hostPath:
     path: /data/db

@@ -3,4 +3,3 @@ kind: ServiceAccount
 metadata:
   name: pipeline-sa
   namespace: k8smissions
-# ❌ BUG: no secrets attached — git-clone Task uses this SA but has no SSH credentials to authenticate against the private repo

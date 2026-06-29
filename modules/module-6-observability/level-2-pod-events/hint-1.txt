@@ -1,1 +1,1 @@
-Start with: Pod with wrong image tag (private registry, auth error)
+Since logs are empty, read the pod's events instead: `kubectl describe pod events-pod -n k8smissions`. Scroll to the Events section at the bottom.

@@ -1,4 +1,1 @@
-Each has a different performance root cause:
-1. DNS: ndots:5 default + short hostname = 5 lookups per query
-2. CPU: limits = requests (Guaranteed QoS) = no burst capacity
-3. Rollout: maxSurge:0 = sequential one-pod-at-a-time updates
+Problem 1: `dns-pod` uses short name `api-svc` with default ndots:5 — 5 failed searches per lookup. Problem 2: `throttled-api` has `limits.cpu: 200m == requests.cpu: 200m` — zero burst headroom, immediate throttling. Problem 3: `slow-rollout` has `maxSurge: 0, maxUnavailable: 1` — 50 sequential pod replacements.

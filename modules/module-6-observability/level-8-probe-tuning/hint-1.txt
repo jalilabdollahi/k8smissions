@@ -1,1 +1,1 @@
-Start with: livenessProbe.initialDelaySeconds: 5 (too short)
+Check the probe configuration and look for restart events: `kubectl describe pod -n k8smissions -l app=slow-app | grep -A15 Liveness`

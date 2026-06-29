@@ -1,1 +1,1 @@
-Start with: No securityContext set; image defaults to root
+Look at the pod's events to get the exact rejection message: `kubectl describe pod web-app -n k8smissions`

@@ -35,7 +35,7 @@ spec:
   - host: myapp.local
     http:
       paths:
-      - path: /api  # ❌ WRONG! Path should be /
+      - path: /api
         pathType: Prefix
         backend:
           service:

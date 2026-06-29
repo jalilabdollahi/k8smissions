@@ -1,1 +1,5 @@
-Validation target: Use the validator to confirm the repaired state.
+You need to replace the emptyDir volume with a PersistentVolumeClaim. The PVC has its own lifecycle — independent of any pod — so data survives pod restarts, rescheduling, and even node changes.
+
+In manifest.yaml:
+1. Add a PVC definition above the Pod
+2. Replace the emptyDir volume with a persistentVolumeClaim reference

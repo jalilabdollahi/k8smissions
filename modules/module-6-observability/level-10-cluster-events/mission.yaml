@@ -1,7 +1,7 @@
 {
   "name": "The Timeline of Failure",
-  "description": "A production incident occurred 15 minutes ago. Multiple namespaces show unusual activity in events.",
-  "objective": "A production incident happened 15 minutes ago \u2014 read cluster events across namespaces and write a brief post-mortem",
+  "description": "A production incident occurred recently. The `incident-app` Deployment had pods repeatedly crashing. Your task is to reconstruct what happened using cluster events, identify the root cause from the event timeline, and then fix the underlying configuration.",
+  "objective": "A production incident happened 15 minutes ago — read cluster events across namespaces and write a brief post-mortem",
   "xp": 500,
   "difficulty": "advanced",
   "expected_time": "10m",
@@ -9,7 +9,7 @@
     "Event timeline",
     "incident post-mortem",
     "MTTD (Mean Time to Detect)",
-    "observability \u2192 actionability",
+    "observability → actionability",
     "SRE principles"
   ],
   "module": "module-6-observability",

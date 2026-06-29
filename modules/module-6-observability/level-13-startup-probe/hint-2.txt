@@ -1,2 +1,1 @@
-The liveness probe fires after 10s initialDelay, then every 10s x 3 failures = kills the container after 40s.
-But the app needs 120s to start. The liveness probe kills it before it can boot.
+Calculate the total time before the liveness probe kills the pod: `initialDelaySeconds + (failureThreshold × periodSeconds)`. Compare that number to how long the app actually needs to boot (look at the command — it sleeps for 120 seconds before creating `/tmp/ready`).

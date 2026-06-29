@@ -1,1 +1,1 @@
-Validation target: helm status myapp → deployed, pod uses correct image tag
+The container's `image` field uses the `:latest` tag. This is not a specific version — update it to a pinned tag like `nginx:1.27.4` so the deployment is reproducible and auditable.

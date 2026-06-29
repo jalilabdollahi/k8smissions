@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The PDB's `minAvailable` field is set higher than the Deployment's `replicas` count. Since the budget demands more running pods than exist, zero disruptions are ever permitted.

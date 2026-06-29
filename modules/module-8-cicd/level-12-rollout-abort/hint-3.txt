@@ -1,3 +1,1 @@
-Fix the image, then retry:
-  kubectl argo rollouts set image web-rollout web=nginx:1.25 -n k8smissions
-  kubectl argo rollouts retry rollout web-rollout -n k8smissions
+The Rollout's template uses `image: nginx:bad-tag` which doesn't exist. Fix the image to `nginx:1.25` and the Rollout will be able to retry successfully.

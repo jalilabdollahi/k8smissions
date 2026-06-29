@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The Service needs to change from `type: LoadBalancer` to `type: NodePort` to work in this environment.
+
+Find the `type` field in the Service spec in manifest.yaml. Also add an explicit `nodePort` value so the port is predictable.

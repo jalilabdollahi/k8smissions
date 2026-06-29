@@ -1,1 +1,1 @@
-Start with: Pod memory limit 64Mi, app uses 128Mi under load
+Inspect the pod's last state to see how the previous container exited: `kubectl describe pod oom-pod -n k8smissions`. Look at the `Last State` section near the top.

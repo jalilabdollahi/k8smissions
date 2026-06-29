@@ -1,8 +1,1 @@
-Add a readiness probe with initialDelaySeconds:
-  readinessProbe:
-    httpGet:
-      path: /health/ready
-      port: 8080
-    initialDelaySeconds: 30
-    periodSeconds: 5
-    failureThreshold: 3
+The Deployment has no `readinessProbe`. Add one that checks `GET /health/ready` on port 8080 with `initialDelaySeconds: 30` to give the JVM time to warm up before traffic is sent.

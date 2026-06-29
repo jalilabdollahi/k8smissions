@@ -20,7 +20,7 @@ spec:
         - containerPort: 80
         readinessProbe:
           httpGet:
-            path: /healthz  # ❌ BUG: nginx does not serve /healthz — this path returns 404.
+            path: /healthz
                             # The probe keeps failing, so pods are never marked Ready.
                             # No traffic reaches them via the Service.
             port: 80

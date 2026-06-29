@@ -1,2 +1,1 @@
-Run: kubectl get task build-task -n k8smissions -o yaml | grep image
-The image tag must exist in a registry.
+Check the TaskRun pod's events to see why it failed: `kubectl describe pod -n k8smissions -l tekton.dev/task=build-task | grep -A10 Events`

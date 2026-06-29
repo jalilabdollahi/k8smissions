@@ -1,4 +1,1 @@
-Fix the resource name to match the device plugin's registration:
-  resources:
-    limits:
-      company.io/fpga: "1"
+The pod requests `my.company/fpga: '1'` but the device plugin registered the resource as `company.io/fpga`. Extended resource names must match the device plugin's registration exactly — including the domain prefix.

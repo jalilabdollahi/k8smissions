@@ -16,7 +16,7 @@ spec:
     ports:
     - containerPort: 80
     securityContext:
-      runAsNonRoot: true  # ❌ Requires non-root but doesn't specify user!
+      runAsNonRoot: true
       # Missing: runAsUser (defaults to root from image)
       # Missing: allowPrivilegeEscalation: false
       

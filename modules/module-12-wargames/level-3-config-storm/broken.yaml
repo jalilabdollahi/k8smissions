@@ -1,5 +1,4 @@
 ---
-# ❌ BUG: ConfigMap was pushed with empty values for APP_MODE and DB_HOST.
 # The container startup command checks both env vars and exits 1 if either is empty.
 # This causes all 3 replicas to immediately CrashLoopBackOff simultaneously.
 apiVersion: v1
@@ -8,8 +7,8 @@ metadata:
   name: app-config
   namespace: k8smissions
 data:
-  APP_MODE: ""    # ❌ BUG: Empty string — app startup check fails, pod exits 1
-  DB_HOST: ""     # ❌ BUG: Empty string — app has no database host to connect to
+  APP_MODE: ""
+  DB_HOST: ""
 ---
 apiVersion: apps/v1
 kind: Deployment

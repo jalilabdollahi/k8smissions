@@ -1,1 +1,1 @@
-Goal state: kubectl get events -A --sort-by='.lastTimestamp' | tee timeline.txt Identify root cause event and chain
+Look for OOMKilled events in the output — these indicate the container was killed by the kernel for exceeding its memory limit. Then check the current memory limit on the Deployment: `kubectl describe deployment incident-app -n k8smissions | grep -A5 Limits`

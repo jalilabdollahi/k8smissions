@@ -1,2 +1,1 @@
-The patch targets 'backend-api' but the Deployment is named 'api-server'.
-A Kustomize patch silently does nothing if the target doesn't match any resource.
+The replica count is still at the base value (1), not the patched value (5). Compare the resource name in the patch `target.name` against the actual name of the Deployment in the cluster — they must match exactly.

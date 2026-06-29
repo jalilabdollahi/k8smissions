@@ -5,7 +5,7 @@ metadata:
   namespace: k8smissions
 spec:
   type: NodePort
-  externalTrafficPolicy: Local  # ❌ BUG: Local drops traffic on nodes without a backend pod
+  externalTrafficPolicy: Local
   selector:
     app: backend
   ports:

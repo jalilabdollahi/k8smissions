@@ -1,1 +1,1 @@
-Start with: No PriorityClass assigned to critical pod
+Check the critical pod's scheduling events: `kubectl describe pod critical-api -n k8smissions`

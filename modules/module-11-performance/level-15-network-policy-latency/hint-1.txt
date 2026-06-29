@@ -1,2 +1,1 @@
-Run: kubectl get networkpolicy restrictive-policy -n k8smissions -o yaml
-Count ingress and egress rules — iptables evaluates ALL rules for EACH packet.
+Measure latency before and after the NetworkPolicy: `kubectl exec -n k8smissions <frontend-pod> -- time curl http://my-app:8080/ping`. Check what network plugin is running: `kubectl get pods -n kube-system | grep cilium`

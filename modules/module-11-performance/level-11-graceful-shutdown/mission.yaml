@@ -1,6 +1,6 @@
 {
   "name": "In-Flight Request Drop",
-  "description": "During rolling deployments, in-flight requests are dropped \u2014 clients receive connection reset errors.",
+  "description": "Rolling updates cause request errors — clients receive connection resets and incomplete responses during pod termination. The pod has a `terminationGracePeriodSeconds: 5`, which is too short for in-flight requests to complete. Additionally, there's no preStop hook to delay traffic removal from the load balancer before the container starts shutting down.",
   "objective": "Add preStop hook and terminationGracePeriodSeconds to allow graceful request completion before pod shutdown",
   "xp": 325,
   "difficulty": "advanced",

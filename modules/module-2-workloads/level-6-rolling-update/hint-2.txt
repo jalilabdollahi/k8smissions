@@ -1,1 +1,3 @@
-Goal state: Set maxUnavailable: 1 (or "25%") and maxSurge: 1
+The strategy shows `Max Unavailable: 100%`. This means during an update, Kubernetes is permitted to take down all 3 pods at once before starting new ones. With `Max Surge: 0`, no extra pods can be created — so the cluster goes to zero capacity.
+
+This is a valid configuration for a Recreate-style update, but deadly for a service that needs to stay available.

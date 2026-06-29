@@ -1,1 +1,1 @@
-Check the cluster-cert-status Secret — its annotations describe the certificate health.
+Verify the cert expiry: `kubectl get secret cluster-cert-status -n k8smissions -o yaml | grep -E 'cert-status|expiry'`

@@ -1,3 +1,1 @@
-Run: kubectl get secret -n operators | grep webhook-cert
-Check if cert-manager issued a certificate and if it's current:
-  kubectl describe cert webhook-cert -n operators
+There is a hardcoded base64-encoded `caBundle` value. This CA certificate must match the TLS certificate currently served by the webhook service. If the cert was rotated or expired, the CA doesn't match and the handshake fails.

@@ -1,2 +1,1 @@
-Run: kubectl top pods -n k8smissions
-If actual memory usage is near the limit, OOMKill is imminent.
+Check what the VPA is recommending: `kubectl describe vpa my-app-vpa -n k8smissions`. Look at the recommendation section and compare it with the pod's current resource requests.

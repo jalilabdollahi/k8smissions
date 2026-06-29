@@ -1,1 +1,7 @@
-Start with: PVC storageClassName: fast-ssd (doesn't exist)
+The PVC is in Pending. For dynamic provisioning to work, the requested StorageClass must exist in the cluster — only then will a provisioner create a PV automatically.
+
+List the available StorageClasses:
+
+  kubectl get storageclass
+
+Is `premium-ssd` in the list?

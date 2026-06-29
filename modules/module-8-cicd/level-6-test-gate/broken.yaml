@@ -10,4 +10,4 @@ spec:
     script: |
       #!/bin/sh
       echo "running tests"
-      exit 1  # ❌ BUG: hardcoded 'exit 1' always makes the test step fail — pipeline treats non-zero exit as failure and blocks deploy
+      exit 1

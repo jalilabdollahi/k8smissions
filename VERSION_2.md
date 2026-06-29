@@ -5,6 +5,91 @@
 
 ---
 
+## ⚠️ CRITICAL: How This AI Agent Must Work
+
+Read this section before doing anything else. These rules are mandatory.
+
+### Rule 1 — Never write all 200 levels at once
+
+Do NOT read all 200 levels and generate all content in a single pass.
+Do NOT write a loop that processes all modules in one response.
+Do NOT generate batch output and paste 200 debriefs into files.
+
+**Why:** Content generated in bulk becomes templated and identical. Each level must be treated individually.
+
+### Rule 2 — Use subagents for content generation
+
+When generating content (Phase 2), spawn a separate subagent for each module.
+Each subagent handles one module (15-20 levels) independently.
+Wait for a subagent to finish and report quality before launching the next.
+
+```
+Main agent:
+  Phase 1 → implement engine changes directly (code)
+  Phase 2 → spawn Agent for module-1, wait, review output
+           → spawn Agent for module-2, wait, review output
+           → ...continue one module at a time
+```
+
+Subagent prompt template (fill in module name and path):
+
+```
+You are generating V2 content for K8sMissions module: [MODULE_NAME]
+Path: modules/[MODULE_NAME]/
+
+For each level in this module, in order:
+1. Read broken.yaml, solution.yaml, mission.yaml
+2. Read the existing hint files and debrief.md
+3. Generate NEW content following the standards in VERSION_2.md Section 4
+4. Write the files: debrief.md, hint-1.txt, hint-2.txt, hint-3.txt, investigation.yaml
+5. Update mission.yaml with new_concepts if applicable (check which concepts were
+   already introduced in earlier levels — the list is passed to you below)
+
+Already-introduced concepts (do NOT add new_concepts for these):
+[LIST FROM PREVIOUS MODULES]
+
+Process one level at a time. Read, generate, write, then move to the next.
+Do not summarize or batch. Write each file as you go.
+Report back: list of levels processed and any new concepts introduced.
+```
+
+### Rule 3 — One level at a time within each subagent
+
+Each subagent processes its module level by level:
+- Read level files
+- Generate content
+- Write files
+- Move to next level
+
+Never read all levels first and then write all output.
+
+### Rule 4 — Test engine changes before generating content
+
+Phase 1 (engine code changes) must be complete and manually tested before
+any content generation begins. Do not run the content generation script
+until you have confirmed the new UI features work on Module 1 Level 1.
+
+### Rule 5 — Track concept introductions across modules
+
+Keep a running list of concepts that have been introduced.
+Pass this list to each new subagent so `new_concepts` is only added
+when a concept truly appears for the first time.
+
+Start with an empty set. After each module subagent completes,
+update the set with any new concepts it introduced.
+
+### Rule 6 — Report and pause between modules
+
+After each module subagent completes:
+1. Report which levels were processed
+2. List any new concepts introduced
+3. Flag any level where content generation failed or seemed wrong
+4. Wait for confirmation before starting the next module
+
+---
+
+---
+
 ## 1. Project Context
 
 K8sMissions is a terminal-based Kubernetes learning game built in Python with the Rich library. Players fix deliberately broken Kubernetes scenarios using real `kubectl` commands against a local `kind` cluster.

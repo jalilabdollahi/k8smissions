@@ -1,2 +1,5 @@
-Inspect Events and note the exact image name Kubernetes tried to pull:
-  kubectl describe pod web-app -n k8smissions
+The Events say 'Failed to pull image'. Look at the image name being pulled. Does the tag after the colon actually exist on Docker Hub for nginx?
+
+You can also check the image directly:
+
+  kubectl get pod web-app -n k8smissions -o jsonpath='{.spec.containers[0].image}'

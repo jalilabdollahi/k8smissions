@@ -1,7 +1,1 @@
-Add a toleration with tolerationSeconds:
-  tolerations:
-  - key: maintenance
-    operator: Equal
-    value: draining
-    effect: NoExecute
-    tolerationSeconds: 300
+The pod spec has no `tolerations`. Add a toleration matching the `maintenance=draining:NoExecute` taint and include `tolerationSeconds: 300` to get a 5-minute grace window before eviction.

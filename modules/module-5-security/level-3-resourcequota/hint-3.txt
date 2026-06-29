@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The pod's `resources.requests.cpu` field is set to 2500m, but the namespace's `requests.cpu` hard limit is only 2000m. The pod requests more CPU than the entire namespace is allowed.

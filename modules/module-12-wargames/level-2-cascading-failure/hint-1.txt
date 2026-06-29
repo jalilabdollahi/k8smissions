@@ -1,1 +1,1 @@
-Check all deployments. One of them has 0 replicas.
+Start at the dependency root: `kubectl get deployment -n k8smissions`. Look for any Deployment with 0/0 READY pods. That's your blast radius origin.

@@ -1,2 +1,1 @@
-Run: kubectl describe pipelinerun build-run -n k8smissions
-Look for 'workspace not bound' in the failure message.
+Check the PipelineRun status to see the admission error: `kubectl describe pipelinerun build-run -n k8smissions`

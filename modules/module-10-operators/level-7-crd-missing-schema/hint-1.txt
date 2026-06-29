@@ -1,9 +1,1 @@
-Run: kubectl create -f - <<EOF
-apiVersion: example.com/v1
-kind: Workload
-metadata:
-  name: test
-spec:
-  replicas: -999
-EOF
-If it succeeds, there's no validation.
+Test the validation by applying a CR with obviously wrong values: try `replicas: -999` or omitting required fields. If it succeeds, the schema is not enforcing anything.

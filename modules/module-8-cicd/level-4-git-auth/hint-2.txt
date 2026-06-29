@@ -1,2 +1,1 @@
-The git-clone Tekton task uses the ServiceAccount's attached secrets for authentication.
-A Secret of type kubernetes.io/ssh-auth must be created and attached to the SA.
+The logs should show a git authentication failure. Look at the ServiceAccount used by the TaskRun: `kubectl get serviceaccount pipeline-sa -n k8smissions -o yaml`. Check the `secrets` field.

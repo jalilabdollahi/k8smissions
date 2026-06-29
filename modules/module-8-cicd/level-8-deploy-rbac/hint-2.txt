@@ -1,3 +1,1 @@
-Run: kubectl auth can-i create deployments -n k8smissions \
-  --as=system:serviceaccount:k8smissions:deploy-sa
-This shows what the SA is allowed to do.
+The logs should show a 403 Forbidden error from the Kubernetes API. Check what RBAC is attached to the deploy ServiceAccount: `kubectl get role,rolebinding -n k8smissions | grep deploy`

@@ -1,3 +1,1 @@
-Fix 1: Add dnsConfig ndots: 2 to dns-pod
-Fix 2: Increase CPU limit to 2000m on throttled-api deployment
-Fix 3: Set maxSurge: 10 on slow-rollout deployment
+Three fixes: (1) add `dnsConfig.options.ndots: 2` to dns-pod and use FQDN in the command; (2) increase `throttled-api` CPU limit to `2000m` while keeping request at `200m`; (3) change `slow-rollout` strategy to `maxSurge: 10, maxUnavailable: 0`.

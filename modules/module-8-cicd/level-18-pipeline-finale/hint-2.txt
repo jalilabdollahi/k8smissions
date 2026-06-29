@@ -1,5 +1,1 @@
-Three problems to find:
-1. Image alpine/git:999 does not exist
-2. Required param git-url has no default
-3. Service account has no RBAC to create TaskRuns
-Fix one at a time.
+You should find three failure modes: ErrImagePull from `alpine/git:999`, a validation error about the missing `git-url` parameter value, and 403 Forbidden when the SA tries to create TaskRuns. Fix the image first — nothing else can run until pods can start.

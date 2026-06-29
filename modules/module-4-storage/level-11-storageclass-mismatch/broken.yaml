@@ -6,7 +6,7 @@ metadata:
 spec:
   accessModes:
   - ReadWriteOnce
-  storageClassName: fast-nvme  # ❌ BUG: StorageClass "fast-nvme" does not exist in the cluster
+  storageClassName: fast-nvme
   resources:
     requests:
       storage: 1Gi

@@ -1,5 +1,3 @@
-Create the missing Secret without manually encoding values:
-  kubectl create secret generic db-credentials -n k8smissions \
-    --from-literal=username=appuser \
-    --from-literal=password=mypassword
-kubectl encodes literal Secret values for you.
+The Secret `db-credentials` does not exist. The pod spec has two env vars that use `secretKeyRef` to pull values from it.
+
+You need to create this Secret and add it to manifest.yaml — above the Pod definition.

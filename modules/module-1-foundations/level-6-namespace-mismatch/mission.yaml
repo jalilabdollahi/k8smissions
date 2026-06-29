@@ -1,7 +1,7 @@
 {
   "name": "Lost in Space",
-  "description": "Application pods are Running, but service discovery is failing.",
-  "objective": "The pod and service are in the wrong namespace \u2014 move both to the k8smissions namespace where the app expects to run",
+  "description": "Resources were created but the validator cannot find them in the k8smissions namespace. Start with kubectl get pods -n k8smissions — is anything there?",
+  "objective": "The pod and service are in the wrong namespace — move both to the k8smissions namespace where the app expects to run",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "10m",

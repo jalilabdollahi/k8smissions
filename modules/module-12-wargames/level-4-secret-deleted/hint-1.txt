@@ -1,1 +1,1 @@
-Check the pod events — you'll see CreateContainerConfigError referencing a missing secret.
+Check the pod error state: `kubectl describe pod -n k8smissions -l app=secret-app | grep -A5 'Warning\|Error'`. The error message will identify the missing Secret.

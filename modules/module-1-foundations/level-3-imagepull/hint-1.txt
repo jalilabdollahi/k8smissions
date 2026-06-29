@@ -1,3 +1,5 @@
-Check the Pod status:
-  kubectl get pod web-app -n k8smissions
-ImagePullBackOff means Kubernetes cannot download the configured image.
+ImagePullBackOff means Kubernetes tried to pull the container image from the registry and failed. Get the exact error message:
+
+  kubectl describe pod web-app -n k8smissions
+
+Scroll to the Events section at the bottom of the output.

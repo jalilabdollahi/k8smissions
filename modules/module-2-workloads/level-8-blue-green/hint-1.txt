@@ -1,1 +1,5 @@
-Start with: Service selector: version: blue New deployment has label: version: green
+Both blue and green Deployments are healthy. The issue is in how the Service decides which pods to send traffic to. Check the Service:
+
+  kubectl describe service app-service -n k8smissions
+
+Look at the Selector section.

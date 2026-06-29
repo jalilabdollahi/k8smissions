@@ -1,3 +1,1 @@
-Fix the field reference:
-  value: "$(body.head_commit.id)"
-GitHub push events use: head_commit.id (not commits[0].sha which is for PushEvent details).
+The TriggerBinding extracts `$(body.commits[0].sha)` but the GitHub push webhook uses `$(body.head_commit.id)` for the pushed commit's SHA. The field name mismatch means the parameter resolves to an empty string.

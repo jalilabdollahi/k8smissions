@@ -1,7 +1,7 @@
 {
   "name": "Tainted Nodes",
-  "description": "Application pods cannot be scheduled and remain in Pending state.",
-  "objective": "Nodes are tainted but pods have no toleration \u2014 add the matching toleration to allow scheduling",
+  "description": "A pod is stuck in Pending and cannot be scheduled anywhere. The node has capacity, the namespace quota is fine, and there is no affinity misconfiguration — but every node in the cluster has been reserved for a specific workload type using a taint. The pod has nothing to let it past that gate.",
+  "objective": "Nodes are tainted but pods have no toleration — add the matching toleration to allow scheduling",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "10m",

@@ -1,1 +1,5 @@
-Start with: volumes[0].emptyDir: {} (ephemeral, lost on pod restart)
+The logs say 'WARNING: Using emptyDir - data will be LOST on pod restart!'. Confirm this is the volume type in use:
+
+  kubectl get pod data-app -n k8smissions -o yaml | grep -A5 'volumes'
+
+What kind of volume is it?

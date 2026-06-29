@@ -1,1 +1,1 @@
-Check the leader-election ConfigMap — the sync-status and failover-enabled fields are wrong.
+Check the leader election state: `kubectl get configmap leader-election -n k8smissions -o yaml`. Look at the `renewTime` in the leader annotation and compare it to today's date.

@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The Service selector has `app: backend-app`. The pod has `app: backend`. One extra word — the selector matches nothing.
+
+Find the selector field inside the Service spec in manifest.yaml.

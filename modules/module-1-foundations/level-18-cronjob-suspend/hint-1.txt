@@ -1,2 +1,5 @@
-Run: kubectl get cronjob report-generator -n k8smissions
-Look at the SUSPEND column.
+In the output of get cronjobs, look at the SUSPEND and LAST SCHEDULE columns. Then get more detail:
+
+  kubectl describe cronjob report-generator -n k8smissions
+
+Pay attention to the Suspend field and whether any Jobs have been created.

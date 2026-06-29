@@ -1,2 +1,5 @@
-The nginx container listens on port 80, but the Service forwards traffic to
-targetPort 8080. A Service can have endpoints and still use the wrong port.
+The pod responds when accessed directly. The problem is in how the Service routes traffic to the pod.
+
+Check which port the container is actually listening on:
+
+  kubectl get pod web-server -n k8smissions -o yaml | grep -A5 'ports'

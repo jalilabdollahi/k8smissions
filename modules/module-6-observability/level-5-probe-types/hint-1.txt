@@ -1,1 +1,1 @@
-Start with: livenessProbe.httpGet.path: /api/v1/ready (slow endpoint)
+Check the restart count and read the probe failure events: `kubectl describe pod -n k8smissions -l app=probe-app | grep -A15 Liveness`

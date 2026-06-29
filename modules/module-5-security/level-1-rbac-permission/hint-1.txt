@@ -1,1 +1,1 @@
-Start with: ServiceAccount app-sa exists with no permissions
+Start by reading the pod's logs to see the exact error message. Run: `kubectl logs pod-lister -n k8smissions`

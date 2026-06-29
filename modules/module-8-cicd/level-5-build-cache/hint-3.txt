@@ -1,5 +1,1 @@
-Add the cache workspace:
-  workspaces:
-  - name: cache
-    persistentVolumeClaim:
-      claimName: maven-cache-pvc
+The TaskRun binds the `source` workspace but is missing a binding for the `cache` workspace. Add a second workspace entry that maps `cache` to the PVC `maven-cache-pvc`.

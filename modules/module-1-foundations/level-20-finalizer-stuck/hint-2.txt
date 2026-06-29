@@ -1,2 +1,7 @@
-Finalizers are removed by the controller that set them. If that controller is gone, you must patch them out manually.
-Run: kubectl get configmap stuck-config -n k8smissions -o jsonpath='{.metadata.finalizers}'
+There is a finalizer: `custom.operator.io/cleanup`. A finalizer tells Kubernetes: 'before you delete this object, wait for an external process to signal that cleanup is done'.
+
+Check if that process exists anywhere in the cluster:
+
+  kubectl get pods --all-namespaces | grep operator
+
+Is there anything running that belongs to `custom.operator.io`?

@@ -1,1 +1,1 @@
-Try kubectl drain — it will tell you exactly which PDB is blocking eviction.
+Try draining a node and read the exact error: `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data`. You'll see 'Cannot evict pod as it would violate the pod's disruption budget'.

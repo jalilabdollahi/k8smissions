@@ -1,2 +1,1 @@
-Run: kubectl get crd configs.example.com -o yaml | grep storedVersions -A5
-status.storedVersions lists all versions used by stored objects.
+Only `v1` is listed as `served: true, storage: true`. But objects created with the old `v1alpha1` API are still in etcd stored under that version. Without `v1alpha1` in the CRD, the API server can't serve them and returns an error.

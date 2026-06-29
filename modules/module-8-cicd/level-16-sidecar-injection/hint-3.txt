@@ -1,5 +1,1 @@
-Disable injection on Task pods via podTemplate labels:
-  spec:
-    podTemplate:
-      labels:
-        sidecar.istio.io/inject: "false"
+The Task has no `podTemplate` with an injection opt-out label. Adding `podTemplate.labels: {sidecar.istio.io/inject: "false"}` to the Task spec tells Istio's admission webhook to skip injection for pods created by this Task.

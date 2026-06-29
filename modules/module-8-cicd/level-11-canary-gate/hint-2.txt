@@ -1,3 +1,1 @@
-A pause step with no duration waits forever for manual promotion.
-Run: kubectl argo rollouts promote api-rollout -n k8smissions
-Or fix the pause step to have a time duration.
+The status should show the rollout is `Paused` at step 4. Look at the canary steps in the Rollout spec — specifically the `pause` step at 50%. A `pause: {}` with no `duration` field is an indefinite manual gate.

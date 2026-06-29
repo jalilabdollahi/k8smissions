@@ -3,5 +3,4 @@ kind: ServiceAccount
 metadata:
   name: trigger-sa
   namespace: k8smissions
-# ❌ BUG: trigger-sa exists but has no Role or RoleBinding
 # The Tekton EventListener uses this SA to create PipelineRuns — gets 403 Forbidden because tekton.dev API group access is not granted

@@ -1,2 +1,5 @@
-Run: kubectl get daemonset log-collector -n k8smissions -o wide
-Look at DESIRED vs READY. Check node taint with: kubectl describe nodes | grep Taints
+DaemonSet pods are not being scheduled. When a pod cannot be scheduled, it is almost always because of node constraints. Check what taints the nodes have:
+
+  kubectl describe node | grep -A3 'Taints'
+
+What taint is present? What does it mean for scheduling?

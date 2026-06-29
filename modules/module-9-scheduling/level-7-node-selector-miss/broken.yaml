@@ -4,7 +4,6 @@ metadata:
   name: gpu-pod
   namespace: k8smissions
 spec:
-  # ❌ BUG: nodeSelector references label 'accelerator-type: nvidia-v100' which
   # does not exist on any node. No node matches → pod stuck Pending forever.
   nodeSelector:
     accelerator-type: nvidia-v100

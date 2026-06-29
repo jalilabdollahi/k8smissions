@@ -19,4 +19,4 @@ spec:
     spec:
       containers:
       - name: web
-        image: nginx:bad-tag  # ❌ BUG: 'bad-tag' does not exist — canary pods fail with ErrImagePull; analysis detects high error rate and aborts rollout; Rollout enters Degraded state
+        image: nginx:bad-tag

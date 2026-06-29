@@ -1,1 +1,1 @@
-Goal state: Change PDB minAvailable: 1  OR scale Deployment to 4+
+The PDB's Status section will show 0 'Allowed Disruptions', meaning zero pods can be evicted. Compare the PDB's `minAvailable` against the Deployment's actual replica count: `kubectl get deployment web-app -n k8smissions`

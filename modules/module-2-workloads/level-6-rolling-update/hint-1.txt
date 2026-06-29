@@ -1,1 +1,7 @@
-Start with: strategy.rollingUpdate.maxUnavailable: "100%"
+A rolling update should replace pods one at a time, keeping most of them running. Something in the update strategy allowed all pods to be terminated simultaneously.
+
+Read the Deployment strategy:
+
+  kubectl describe deployment critical-api -n k8smissions
+
+Look at the RollingUpdateStrategy section.

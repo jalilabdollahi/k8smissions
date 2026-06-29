@@ -1,2 +1,1 @@
-Run: kubectl get nodes -o json | python3 -c "import json,sys; [print(n['status'].get('capacity',{})) for n in json.load(sys.stdin)['items']]"
-Find the exact resource name reported by the device plugin.
+The events say '0 nodes have sufficient my.company/fpga'. Check what extended resources are actually available on nodes: `kubectl describe node | grep -A20 'Allocatable'`. Look for any `*.io/fpga` or similar resources.

@@ -1,7 +1,7 @@
 {
   "name": "Sidecar Sabotage",
-  "description": "A multi-container Pod shows one container repeatedly crashing.",
-  "objective": "The sidecar container has a bad command that causes it to crash immediately \u2014 fix the sidecar command so both containers run",
+  "description": "Pod app-with-logging has two containers. Run kubectl get pod app-with-logging -n k8smissions and look at the READY column. What does it show?",
+  "objective": "The sidecar container has a bad command that causes it to crash immediately — fix the sidecar command so both containers run",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "15m",

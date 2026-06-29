@@ -1,2 +1,1 @@
-Run: kubectl logs init-pod -c db-wait -n k8smissions
-The init container waits for non-existent-db-host which never resolves.
+The logs show repeated `nc` connection attempts to `non-existent-db-host:5432` with no success. The init container is designed to wait until the database is reachable — but the hostname doesn't resolve to anything.

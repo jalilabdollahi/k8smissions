@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+There is no `sessionAffinity` field set — or it defaults to `None`. Without it, Kubernetes distributes requests round-robin across all endpoints.
+
+You need to add `sessionAffinity: ClientIP` to the Service spec in manifest.yaml.

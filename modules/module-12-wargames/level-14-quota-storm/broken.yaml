@@ -1,4 +1,3 @@
-# ❌ BUG: A CI/CD pipeline retry bug created 20 duplicate ci-test-pod-* pods.
 # In production this scales to hundreds. Each pod counts against the namespace
 # ResourceQuota (pods: 100). When quota is exhausted, legitimate Deployments
 # cannot create new pods — they show "forbidden: exceeded quota" in events.
@@ -13,13 +12,12 @@ spec:
     requests.cpu: "10"
     requests.memory: 20Gi
 ---
-# ❌ BUG: ci-test-pod-001 through ci-test-pod-020 — stale completed test pods
 # that were never cleaned up. They waste quota slots and etcd storage.
 # Fix: kubectl delete pod -l job=ci-test -n k8smissions
 apiVersion: v1
 kind: Pod
 metadata:
-  name: ci-test-pod-001  # ❌ BUG: Stale CI pod — run completed, should have been deleted
+  name: ci-test-pod-001
   namespace: k8smissions
   labels:
     job: ci-test
@@ -304,7 +302,7 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: ci-test-pod-020  # ❌ BUG: 20 stale pods total — in production this scales to hundreds
+  name: ci-test-pod-020
   namespace: k8smissions
   labels:
     job: ci-test

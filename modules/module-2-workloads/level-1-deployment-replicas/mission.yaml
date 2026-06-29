@@ -1,7 +1,7 @@
 {
   "name": "Ghost Deployment",
-  "description": "A Deployment exists in the cluster but no pods are running.",
-  "objective": "The Deployment replica count is set to zero \u2014 scale it up so pods are actually running",
+  "description": "Deployment ghost-deployment exists in the cluster but there are no running pods. Run kubectl get pods -n k8smissions and notice the output is empty.",
+  "objective": "The Deployment replica count is set to zero — scale it up so pods are actually running",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "8m",

@@ -1,4 +1,7 @@
-Inspect both sides of the connection:
-  kubectl describe service web-service -n k8smissions
-  kubectl get pod web-server -n k8smissions -o yaml
-Compare port, targetPort, and containerPort.
+Endpoints are populated, so the Service found the pod. The problem is somewhere in the port routing. Test the pod directly using port-forward:
+
+  kubectl port-forward pod/web-server 8080:80 -n k8smissions
+
+Then in another terminal: curl http://localhost:8080
+
+Does the pod itself respond?

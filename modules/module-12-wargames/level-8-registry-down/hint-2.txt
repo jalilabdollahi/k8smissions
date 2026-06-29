@@ -1,1 +1,1 @@
-The image references an internal registry that is unreachable. Change it to a public image.
+The pod spec references `internal-registry.company.local/app:v2.1` with `imagePullPolicy: Always`. The registry is unreachable — but even if a node had a cached copy of this image, `Always` would bypass the cache and try the registry first.

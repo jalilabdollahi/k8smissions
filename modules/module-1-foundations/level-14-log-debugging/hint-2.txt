@@ -1,2 +1,5 @@
-PostgreSQL refuses to initialize without a superuser password. Its log names
-the POSTGRES_PASSWORD environment variable explicitly.
+PostgreSQL is printing an error about a missing required setting and refusing to start. Check what environment variables are currently set in the pod:
+
+  kubectl get pod database-app -n k8smissions -o yaml | grep -A10 'env'
+
+Is there an `env` section at all?

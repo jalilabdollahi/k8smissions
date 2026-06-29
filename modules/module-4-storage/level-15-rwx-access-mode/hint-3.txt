@@ -1,4 +1,7 @@
-Delete the PVC and recreate with ReadWriteMany:
-  accessModes:
-  - ReadWriteMany
-Note: accessModes is immutable on an existing PVC — you must delete and recreate.
+Change `ReadWriteOnce` to `ReadWriteMany` in the PVC's accessModes in manifest.yaml.
+
+Since you cannot update accessModes on a bound PVC, you will need to delete the existing PVC first:
+
+  kubectl delete pvc shared-pvc -n k8smissions
+
+Then apply the updated manifest.

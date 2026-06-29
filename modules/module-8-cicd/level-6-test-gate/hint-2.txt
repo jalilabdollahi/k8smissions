@@ -1,2 +1,1 @@
-A Tekton step fails if it exits with a non-zero code.
-The pipeline treats step failure as stage failure and stops execution.
+The logs show 'running tests' but the step exits with code 1. In Tekton (and Unix), a non-zero exit code means failure. Look at the script in the Task spec — specifically the `exit` statement at the end.

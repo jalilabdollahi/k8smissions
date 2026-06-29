@@ -1,2 +1,1 @@
-Kubernetes garbage collector removes resources when their 'owner' is deleted — but only if ownerReferences are set.
-The operator must set ownerReferences when creating child resources.
+The Deployment survives after the CR is deleted. Check whether the Deployment has ownerReferences: `kubectl get deployment my-app-deploy -n k8smissions -o yaml | grep -A10 ownerReferences`

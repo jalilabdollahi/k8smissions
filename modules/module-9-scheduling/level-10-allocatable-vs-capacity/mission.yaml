@@ -1,7 +1,7 @@
 {
   "name": "Phantom Capacity",
-  "description": "kubectl describe node shows 6Gi memory but pods keep getting Pending with 'Insufficient memory' even for small requests.",
-  "objective": "Node capacity includes system and kubelet reserved resources \u2014 calculate actual allocatable memory to size pods correctly",
+  "description": "A pod requests 5Gi of memory but can't schedule even though the node shows 6Gi total capacity. The scheduler doesn't use the raw capacity number — it uses allocatable memory, which is capacity minus what the kubelet and system processes have reserved. The pod's request exceeds the allocatable amount.",
+  "objective": "Node capacity includes system and kubelet reserved resources — calculate actual allocatable memory to size pods correctly",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

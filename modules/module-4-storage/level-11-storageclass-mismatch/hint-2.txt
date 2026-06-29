@@ -1,2 +1,3 @@
-Run: kubectl get storageclass
-Compare the StorageClass name in the PVC with what is actually available.
+There is no StorageClass named `fast-nvme`. Dynamic provisioning works like a request: the PVC announces what StorageClass it needs, and the provisioner for that class creates a matching PV. If the StorageClass does not exist, no provisioner sees the request.
+
+Note which classes DO exist and which one is the default (marked with `(default)`).

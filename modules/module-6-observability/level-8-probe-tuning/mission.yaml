@@ -1,7 +1,7 @@
 {
   "name": "App Takes 60s to Start",
-  "description": "A Java application pod never reaches Running state and keeps restarting.",
-  "objective": "The liveness probe fires before the slow-starting app is ready \u2014 add a startupProbe to give the app time to initialise",
+  "description": "A slow-starting application pod keeps restarting before it finishes initializing. The liveness probe is correctly written for the steady-state running condition, but nothing is protecting the startup window. The probe fires too soon and kills the container before the app is ready.",
+  "objective": "The liveness probe fires before the slow-starting app is ready — add a startupProbe to give the app time to initialise",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "10m",

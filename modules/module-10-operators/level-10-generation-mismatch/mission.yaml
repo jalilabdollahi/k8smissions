@@ -1,7 +1,7 @@
 {
   "name": "Stale Reconciliation",
-  "description": "The operator reconciles on every API watch event, making 100+ unnecessary API calls per minute.",
-  "objective": "The controller is missing generation-based reconciliation guard \u2014 add a check for ObservedGeneration to skip redundant reconciliations",
+  "description": "An operator is making 100+ unnecessary API calls per minute — it reconciles on every watch event without checking whether the resource has actually changed. The CR's `status.observedGeneration` is far behind `metadata.generation`, which means the operator isn't recording which version of the spec it last processed.",
+  "objective": "The controller is missing generation-based reconciliation guard — add a check for ObservedGeneration to skip redundant reconciliations",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "15m",

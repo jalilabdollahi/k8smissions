@@ -1,3 +1,1 @@
-Option 1: Remove the nodeSelector if GPU scheduling isn't needed right now.
-Option 2: Add the label to a node: kubectl label node <node-name> accelerator-type=nvidia-v100
-Option 3: Use node affinity with preferredDuringScheduling.
+The pod's `nodeSelector` has `accelerator-type: nvidia-v100` but no node has this label. Remove the `nodeSelector` block so the pod can schedule on any available node (or label a node correctly first).

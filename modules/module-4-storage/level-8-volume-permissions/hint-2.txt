@@ -1,1 +1,3 @@
-Goal state: Add securityContext.fsGroup: 1000 to pod spec
+The container runs as `runAsUser: 1000`. Mounted PVC volumes default to being owned by root (UID 0). User 1000 has no write permission on a root-owned directory.
+
+There is no `fsGroup` set at the pod level. `fsGroup` is what tells Kubernetes to change the volume's group ownership before mounting it into any container.

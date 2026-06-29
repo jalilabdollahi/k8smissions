@@ -1,1 +1,1 @@
-Start with: 3 pods × 1 CPU = 3 CPU > quota of 2 CPU
+Look at the pending pod's events for the quota violation message: `kubectl describe pod resource-hungry-app -n k8smissions`

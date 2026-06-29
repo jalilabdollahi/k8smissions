@@ -7,4 +7,4 @@ spec:
   podSelector: {}
   policyTypes:
   - Egress
-  egress: []  # ❌ BUG: empty egress list blocks ALL outbound traffic including DNS
+  egress: []

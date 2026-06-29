@@ -1,1 +1,9 @@
-Goal state: Change to NodePort for local access
+Events are empty — no controller is watching. This is a local kind cluster with no cloud integration and no MetalLB installed.
+
+For local development, the alternatives are:
+- `type: NodePort` — exposes the service on a port on each node
+- `kubectl port-forward` — tunnels a local port to the pod
+
+Check which node IPs are available:
+
+  kubectl get nodes -o wide

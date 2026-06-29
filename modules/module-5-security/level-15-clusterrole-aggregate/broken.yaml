@@ -13,7 +13,7 @@ kind: ClusterRole
 metadata:
   name: deployments-reader
   labels:
-    rbac.example.io/aggregate-to-viewer: 'true'  # ❌ BUG: Wrong label value — uses 'aggregate-to-viewer'
+    rbac.example.io/aggregate-to-viewer: 'true'
                                                    # but operator-role selects for 'aggregate-to-operator'.
                                                    # The label mismatch means this ClusterRole is never
                                                    # aggregated into operator-role, so the rules stay empty.

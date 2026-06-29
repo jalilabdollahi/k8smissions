@@ -12,7 +12,7 @@ spec:
       - pause:
           duration: 10m
       - setWeight: 50
-      - pause: {}           # ❌ BUG: pause with no duration is an indefinite manual gate — rollout is frozen at 50% waiting forever for human promotion
+      - pause: {}
       - setWeight: 100
       analysis: {}
   selector:

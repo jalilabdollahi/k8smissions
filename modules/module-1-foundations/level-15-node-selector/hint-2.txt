@@ -1,4 +1,5 @@
-Compare the Pod's required labels with the labels that actually exist:
-  kubectl get pod selector-pod -n k8smissions -o jsonpath='{.spec.nodeSelector}{"\n"}'
+The scheduler says no node matches the nodeSelector. Check what labels your nodes actually have:
+
   kubectl get nodes --show-labels
-No node has mission=moon-base.
+
+Look through the labels carefully. Is `mission=moon-base` present on any node?

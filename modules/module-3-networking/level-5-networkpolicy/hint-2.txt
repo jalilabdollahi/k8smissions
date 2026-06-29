@@ -1,1 +1,5 @@
-Goal state: Add ingress rule allowing traffic from frontend pod selector
+The NetworkPolicy protects the backend pod and has an ingress rule that only allows traffic from pods with label `app: admin-tool`. Check the frontend pod's labels:
+
+  kubectl get pod frontend -n k8smissions --show-labels
+
+Does the frontend have that label?

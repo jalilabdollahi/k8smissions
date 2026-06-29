@@ -1,1 +1,7 @@
-Start with: No readinessProbe on the container spec
+502 errors on startup suggest traffic is being sent to pods that have not finished initializing. Check whether a fresh pod is immediately added to the Service endpoints:
+
+  kubectl get endpoints slow-app-service -n k8smissions
+
+Then delete one pod and watch what happens to Endpoints in real time:
+
+  kubectl get endpoints slow-app-service -n k8smissions -w

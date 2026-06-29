@@ -1,1 +1,1 @@
-Goal state: Fix Job spec, run in correct order, validate each step
+The Job is failing with either an image pull error or an immediate exit code 1. Inspect the Job spec: `kubectl describe job db-migration -n k8smissions`. Look at both the `image` field and the `command` that it runs.

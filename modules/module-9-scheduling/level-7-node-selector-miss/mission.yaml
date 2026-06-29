@@ -1,7 +1,7 @@
 {
   "name": "Label Not Found",
-  "description": "Pods are stuck Pending \u2014 the nodeSelector references a label that no node has.",
-  "objective": "The nodeSelector uses a label key that doesn't exist on any node \u2014 fix the label key or remove the constraint",
+  "description": "A GPU pod is stuck in Pending. The pod uses a `nodeSelector` to target nodes with a specific GPU label, but no node in the cluster has that label. The label was intended to be applied to a GPU node that hasn't been labeled yet — or the label key itself is wrong.",
+  "objective": "The nodeSelector uses a label key that doesn't exist on any node — fix the label key or remove the constraint",
   "xp": 275,
   "difficulty": "intermediate",
   "expected_time": "8m",

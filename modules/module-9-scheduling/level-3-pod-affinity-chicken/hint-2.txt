@@ -1,2 +1,1 @@
-requiredDuringScheduling means the affinity MUST be satisfied — it's a hard constraint.
-If no pod with tier:cache exists, NO placement is possible.
+The events say 'didn't match pod affinity rules'. Look at the `affinity.podAffinity` block — it uses `requiredDuringSchedulingIgnoredDuringExecution`, which is a hard constraint. If no pod with `tier: cache` exists, this pod can never schedule.

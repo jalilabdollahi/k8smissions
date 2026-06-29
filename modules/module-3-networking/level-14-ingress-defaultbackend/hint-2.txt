@@ -1,2 +1,5 @@
-Run: kubectl get services -n k8smissions
-Compare the Ingress backend service name with the actual Service names in the namespace.
+The Ingress backend references a Service named `app-serv`. Check what Services actually exist:
+
+  kubectl get services -n k8smissions
+
+Is there a Service named `app-serv`? Or is the real Service named something slightly different?

@@ -58,7 +58,7 @@ spec:
   - from:
     - podSelector:
         matchLabels:
-          app: admin-tool  # ❌ WRONG! Only allows traffic from "admin-tool", not "frontend"
+          app: admin-tool
     ports:
     - protocol: TCP
       port: 8080

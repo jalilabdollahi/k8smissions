@@ -1,2 +1,1 @@
-Run: kubectl describe quota ns-quota -n k8smissions
-Compare Used vs Hard. Your new pod's requests must fit within the remaining quota.
+The quota output will show `requests.cpu` near its hard limit. Now check which pod is responsible: `kubectl describe pod quota-buster -n k8smissions` and look at the `resources.requests` section in the spec.

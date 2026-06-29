@@ -18,7 +18,6 @@ spec:
     - /bin/sh
     - -c
     - kubectl get configmaps -n k8smissions && echo SUCCESS || echo FORBIDDEN
-# ❌ BUG: No Role or RoleBinding exists for this ServiceAccount.
 # By default, a ServiceAccount has zero permissions.
 # The pod will receive HTTP 403 Forbidden when calling the Kubernetes API.
 # Fix: create a Role granting configmap read access and bind it to config-reader-sa.

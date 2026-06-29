@@ -1,7 +1,7 @@
 {
   "name": "Credential Void",
-  "description": "A Secret holding database credentials was deleted while pods were running. All pods are now crashing with missing secret errors.",
-  "objective": "The db-credentials Secret was deleted causing pods to fail \u2014 recreate the Secret with valid credentials",
+  "description": "Someone deleted the `db-credentials` Secret during a credential rotation — possibly intending to recreate it with new values, but the Deployment was not scaled down first. All pods immediately transitioned from Running to `CreateContainerConfigError` because Kubernetes cannot inject the missing secret as environment variables.",
+  "objective": "The db-credentials Secret was deleted causing pods to fail — recreate the Secret with valid credentials",
   "xp": 300,
   "difficulty": "expert",
   "expected_time": "12m",

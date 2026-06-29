@@ -1,4 +1,3 @@
-# ❌ BUG: The db-primary Pod and db-service Service have been deleted from the cluster.
 # Only the app-server Deployment remains. Its readinessProbe checks nc -z db-service 5432
 # which fails immediately because there are no endpoints — all 3 pods become NotReady.
 # The container loops forever trying to connect, never reaching sleep 3600.
@@ -29,7 +28,7 @@ spec:
             command:
             - nc
             - -z
-            - db-service  # ❌ BUG: db-service has no endpoints — db-primary pod is gone
+            - db-service
             - '5432'
           initialDelaySeconds: 3
           periodSeconds: 5

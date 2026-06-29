@@ -1,1 +1,5 @@
-Goal state: Change path to /health
+Events show 'Liveness probe failed: HTTP probe failed with statuscode: 404'. The probe is hitting an endpoint that does not exist on nginx — nginx returns 404, which the probe treats as failure.
+
+See what path the probe is checking:
+
+  kubectl get deployment api-server -n k8smissions -o yaml | grep -A8 'livenessProbe'

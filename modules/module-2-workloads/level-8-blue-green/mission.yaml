@@ -1,7 +1,7 @@
 {
   "name": "Blue-Green Gone Wrong",
-  "description": "A new deployment version is healthy and running, but traffic is not reaching it.",
-  "objective": "The Service selector still points to the old deployment \u2014 update it to route traffic to the new green version",
+  "description": "A new green version of the app has been deployed and all its pods are Running. But users are still seeing the old blue version. Run kubectl get pods -n k8smissions and count how many pods are running per version.",
+  "objective": "The Service selector still points to the old deployment — update it to route traffic to the new green version",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "12m",

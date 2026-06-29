@@ -1,7 +1,7 @@
 {
   "name": "etcd Pressure",
-  "description": "The cluster has thousands of old ConfigMaps and Secrets from CI/CD runs. API server is slow. Identify and prune the stale objects.",
-  "objective": "Hundreds of stale ci-run-* ConfigMaps are filling etcd \u2014 delete them all to reduce storage pressure",
+  "description": "The API server is becoming increasingly slow. Investigation reveals that a CI/CD pipeline has been leaking 20+ ConfigMaps per run — every run creates `ci-run-XXXX` objects and never deletes them. In production this scales to thousands of objects, eating into etcd's storage quota and slowing down list operations cluster-wide.",
+  "objective": "Hundreds of stale ci-run-* ConfigMaps are filling etcd — delete them all to reduce storage pressure",
   "xp": 350,
   "difficulty": "expert",
   "expected_time": "20m",

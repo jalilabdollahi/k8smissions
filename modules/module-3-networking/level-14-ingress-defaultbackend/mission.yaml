@@ -1,7 +1,7 @@
 {
   "name": "404 Not Found",
-  "description": "An Ingress resource exists but all requests return 404 \u2014 even paths that should be valid.",
-  "objective": "The Ingress rules have a typo in the service name \u2014 fix the backend service reference",
+  "description": "Ingress app-ingress exists and the backend pod is Running. But every request to the Ingress returns 404. Run kubectl describe ingress app-ingress -n k8smissions.",
+  "objective": "The Ingress rules have a typo in the service name — fix the backend service reference",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

@@ -2,7 +2,6 @@ apiVersion: policy/v1alpha1
 kind: DeschedulerPolicy
 strategies:
   LowNodeUtilization:
-    # ❌ BUG: enabled: false disables the LowNodeUtilization strategy entirely.
     # The descheduler never evicts pods from overloaded nodes, so cluster
     # imbalance persists indefinitely.
     enabled: false

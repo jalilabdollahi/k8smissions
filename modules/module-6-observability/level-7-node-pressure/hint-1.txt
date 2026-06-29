@@ -1,1 +1,1 @@
-Start with: Node with MemoryPressure condition (simulated via many pods)
+Check the node conditions to confirm the pressure: `kubectl describe node kind-control-plane | grep -A10 Conditions`

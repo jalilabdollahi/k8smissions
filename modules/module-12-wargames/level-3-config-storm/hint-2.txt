@@ -1,1 +1,1 @@
-kubectl get configmap app-config -n k8smissions -o yaml — look for empty values.
+Look at the ConfigMap that the pods load: `kubectl get configmap app-config -n k8smissions -o yaml`. You should see `APP_MODE: ""` and `DB_HOST: ""` — both empty strings. The startup script checks `[ -n "$APP_MODE" ] && [ -n "$DB_HOST" ]` and exits 1 if either is empty.

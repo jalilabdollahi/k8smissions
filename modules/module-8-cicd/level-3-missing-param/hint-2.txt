@@ -1,2 +1,1 @@
-Run: kubectl get task image-push -n k8smissions -o yaml | grep -A10 params
-Note which params have no default and are therefore required.
+The status message should say something like 'param IMAGE not set' or 'missing value for param'. Look at the `params` field in the TaskRun spec — it's an empty list.

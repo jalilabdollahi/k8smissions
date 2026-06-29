@@ -1,1 +1,1 @@
-Goal state: kubectl describe pod → find "OOMKilled" in Last State Increase memory limit to 256Mi
+The `Last State` section should show `Exit Code: 137`. Exit code 137 means the process was killed with SIGKILL — the kernel's signal for an OOM (Out Of Memory) kill. Now check the memory limit: `kubectl get pod oom-pod -n k8smissions -o yaml | grep -A5 limits`

@@ -1,2 +1,1 @@
-Change priorityClassName to the correct high-priority class:
-  priorityClassName: high-priority
+The pod spec has `priorityClassName: low-priority`. Change it to `high-priority` so the scheduler knows this pod outranks the pods currently consuming resources and can preempt them.

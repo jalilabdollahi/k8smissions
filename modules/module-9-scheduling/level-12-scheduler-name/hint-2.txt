@@ -1,2 +1,1 @@
-Kubernetes supports multiple schedulers. To use a custom scheduler, set spec.schedulerName.
-Without it, the default-scheduler handles all pods.
+The pod was scheduled by `default-scheduler`. Verify that the ML-specific scheduler is running: `kubectl get pods -A | grep ml-scheduler`. The custom scheduler exists but the pod never asked for it.

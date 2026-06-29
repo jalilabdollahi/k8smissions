@@ -1,2 +1,1 @@
-metadata.generation increases each time spec changes. status.observedGeneration should be updated by the controller after processing.
-If they differ, the controller missed or is ignoring the latest change.
+You should see `generation: 5` in metadata but `observedGeneration: 1` in status. The operator should update `observedGeneration` to match `generation` after successfully reconciling — this allows it to skip reconciliation when nothing has changed.

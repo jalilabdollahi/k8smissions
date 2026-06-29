@@ -1,5 +1,4 @@
 ---
-# ❌ BUG: auth-svc scaled to 0 replicas — no pods exist to handle authentication.
 # All downstream services (api-gateway and others) call auth-svc on every request.
 # With 0 replicas, auth-svc has no endpoints → Service returns connection refused
 # → api-gateway and downstream callers time out → entire call chain fails.
@@ -9,7 +8,7 @@ metadata:
   name: auth-svc
   namespace: k8smissions
 spec:
-  replicas: 0  # ❌ BUG: Scaled to zero — simulates accidental HPA scale-down or kubectl scale error
+  replicas: 0
   selector:
     matchLabels:
       app: auth-svc

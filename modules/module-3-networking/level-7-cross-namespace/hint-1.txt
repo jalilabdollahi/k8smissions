@@ -1,1 +1,5 @@
-Start with: DB_HOST=backend-svc (missing namespace in DNS name)
+The log shows 'nslookup: can't resolve api-service'. The client is using the short name `api-service`. Check which namespace that Service actually lives in:
+
+  kubectl get services --all-namespaces | grep api-service
+
+Is it in k8smissions or somewhere else?

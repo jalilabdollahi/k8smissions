@@ -1,3 +1,5 @@
-Confirm that the Pod is Pending:
-  kubectl get pod hungry-app -n k8smissions
-Pending with no NODE usually means the scheduler cannot place it.
+Pending means the scheduler could not find a node that fits this pod. Read the scheduler's explanation:
+
+  kubectl describe pod hungry-app -n k8smissions
+
+Look at the Events section — why did the scheduler skip every node?

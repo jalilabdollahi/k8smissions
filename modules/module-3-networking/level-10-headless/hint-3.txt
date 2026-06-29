@@ -1,1 +1,7 @@
-Validation target: Use the validator to confirm the repaired state.
+The Service needs `clusterIP: None` in its spec. Since you cannot change clusterIP in-place, you need to delete the existing Service and let your updated manifest.yaml recreate it as headless.
+
+Delete first:
+
+  kubectl delete service web-cluster -n k8smissions
+
+Then fix the manifest and apply.

@@ -1,1 +1,1 @@
-Start with 'kubectl get all -n k8smissions' to get a full view, then triage by severity: what's causing the most impact first?
+Run a broad sweep first: `kubectl get all,pvc,networkpolicy,secret,sa -n k8smissions`. Identify each broken resource type before touching anything. List the five problems before fixing any of them.

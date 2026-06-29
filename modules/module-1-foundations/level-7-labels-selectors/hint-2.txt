@@ -1,3 +1,9 @@
-Compare the Service selector with the Pod labels:
-  kubectl describe service backend-service -n k8smissions
+Check the labels on the pod:
+
   kubectl get pod backend-app -n k8smissions --show-labels
+
+Now check the selector the Service uses to find pods:
+
+  kubectl get service backend-service -n k8smissions -o yaml | grep -A5 'selector'
+
+Do these match?

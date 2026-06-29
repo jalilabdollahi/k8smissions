@@ -1,6 +1,6 @@
 {
   "name": "Hot Node",
-  "description": "One node is running 80% of all pods while other nodes are mostly empty \u2014 the cluster is severely imbalanced.",
+  "description": "One node is running 80% of all pods while other nodes sit mostly empty. The Descheduler is deployed to handle this kind of imbalance by evicting pods from overloaded nodes so they can reschedule to underutilized ones — but it's been configured with the rebalancing strategy disabled.",
   "objective": "Configure the Descheduler policy to evict pods from overloaded nodes and allow rebalancing",
   "xp": 350,
   "difficulty": "advanced",

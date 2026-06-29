@@ -4,7 +4,6 @@ metadata:
   name: insecure-pod
   namespace: k8smissions
 spec:
-  # ❌ BUG: No securityContext is set at the pod level.
   # The container image defaults to running as UID 0 (root).
   # A namespace-level PodSecurity policy (Restricted or Baseline) will reject this pod
   # with: "container runs as root which is not allowed".
@@ -15,4 +14,3 @@ spec:
     - /bin/sh
     - -c
     - id; sleep 3600
-    # ❌ BUG: No container-level securityContext either — no allowPrivilegeEscalation: false.

@@ -1,7 +1,1 @@
-Increase grace period and add preStop sleep:
-  terminationGracePeriodSeconds: 60
-  lifecycle:
-    preStop:
-      exec:
-        command: ["/bin/sh", "-c", "sleep 10"]
-The preStop sleep gives kube-proxy time to remove the pod from Service endpoints.
+Increase `terminationGracePeriodSeconds` to `60`. Add a `lifecycle.preStop.exec` hook that runs `sleep 10` — this delays SIGTERM for 10 seconds, giving the load balancer time to stop routing traffic to the pod before the app starts shutting down.

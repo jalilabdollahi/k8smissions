@@ -7,7 +7,6 @@ items:
     name: team-a-pod
     namespace: k8smissions
   spec:
-    # ❌ BUG (team-a): nodeSelector 'team: team-a' does not match any node label.
     # Pod stuck Pending — no nodes available matching nodeSelector.
     nodeSelector:
       team: team-a
@@ -38,7 +37,6 @@ items:
       spec:
         affinity:
           podAntiAffinity:
-            # ❌ BUG (team-b): requiredDuringScheduling anti-affinity with hostname
             # topology and 5 replicas — 5 pods need 5 unique nodes but only 2 exist.
             # At least 3 pods will be permanently Pending.
             requiredDuringSchedulingIgnoredDuringExecution:
@@ -62,7 +60,6 @@ items:
     name: team-c-pod
     namespace: k8smissions
   spec:
-    # ❌ BUG (team-c): 'non-existent-priority' PriorityClass does not exist.
     # The API server rejects the pod — it cannot even enter the scheduling queue.
     priorityClassName: non-existent-priority
     containers:

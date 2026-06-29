@@ -1,6 +1,1 @@
-Fix both the patch metadata.name and the target.name:
-  metadata:
-    name: api-server  # match the actual deployment
-  ...
-  target:
-    name: api-server
+The patch targets a Deployment named `backend-api` but the actual Deployment is named `api-server`. Kustomize found no resource matching the patch target and silently skipped the patch — no error is reported.

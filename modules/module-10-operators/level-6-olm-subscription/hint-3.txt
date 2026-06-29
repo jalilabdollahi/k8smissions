@@ -1,3 +1,1 @@
-Fix the source field to match an existing CatalogSource:
-  spec:
-    source: operatorhub  # match the name from 'kubectl get catalogsource -n olm'
+The Subscription has `source: non-existent-catalog` but that CatalogSource doesn't exist. Change it to `source: operatorhub` (or whatever CatalogSource is available in the cluster).

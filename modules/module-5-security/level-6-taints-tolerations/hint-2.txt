@@ -1,1 +1,1 @@
-Goal state: Add tolerations: [{key: dedicated, operator: Equal, value: gpu, effect: NoSchedule}]
+Look for 'node(s) had untolerated taint' in the events output. Then inspect the node's taints directly: `kubectl describe node kind-control-plane | grep -A5 Taints`

@@ -1,1 +1,1 @@
-Update the image to nginx:1.27.4 and set imagePullPolicy: IfNotPresent
+Switch the image to a publicly reachable equivalent (`nginx:1.27.4`) and change `imagePullPolicy` from `Always` to `IfNotPresent`. This restores pod creation immediately and makes future restarts cache-tolerant.

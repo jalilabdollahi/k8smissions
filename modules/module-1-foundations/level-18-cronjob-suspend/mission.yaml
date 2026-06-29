@@ -1,7 +1,7 @@
 {
   "name": "Suspended Schedule",
-  "description": "A CronJob exists in the cluster but has never fired \u2014 no Jobs have been created.",
-  "objective": "The CronJob has suspend: true \u2014 set it to false so scheduled jobs start running",
+  "description": "CronJob report-generator runs on a schedule of '* * * * *' (every minute) but has never created a single Job. Run kubectl get cronjobs -n k8smissions.",
+  "objective": "The CronJob has suspend: true — set it to false so scheduled jobs start running",
   "xp": 150,
   "difficulty": "beginner",
   "expected_time": "6m",

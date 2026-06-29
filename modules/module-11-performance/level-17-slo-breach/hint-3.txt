@@ -1,4 +1,1 @@
-Reduce failureThreshold to 3 (standard value):
-  livenessProbe:
-    failureThreshold: 3  # restart pod after 3 failures (30s)
-This detects dead pods faster, reducing SLO breach window.
+The `failureThreshold: 10` allows 100 seconds (10 failures × 10 seconds) of downtime before restart. Reduce it to `3` to trigger a restart after just 30 seconds of failures, significantly reducing per-incident downtime.

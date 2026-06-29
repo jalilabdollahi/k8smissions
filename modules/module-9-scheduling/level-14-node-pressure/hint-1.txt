@@ -1,2 +1,1 @@
-Run: kubectl describe node | grep -E 'MemoryPressure|Conditions' -A5
-Look for MemoryPressure: True in node conditions. Then examine which pods use the most memory.
+Check node conditions to confirm memory pressure: `kubectl describe node kind-control-plane | grep -A5 Conditions`

@@ -1,7 +1,1 @@
-Run:
-  edit pod env-pod
-Under the container, add:
-  env:
-  - name: DATABASE_URL
-    value: postgres://localhost/app
-Save and approve the replacement.
+There is no `env` section under spec.containers[0]. The application requires `DATABASE_URL` to be injected as an environment variable. Find the right place to add it in manifest.yaml.

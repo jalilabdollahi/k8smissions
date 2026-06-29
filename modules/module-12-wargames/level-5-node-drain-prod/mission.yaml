@@ -1,7 +1,7 @@
 {
   "name": "Surprise Drain",
-  "description": "A node is being drained for maintenance but the PodDisruptionBudget is too strict \u2014 drain is stuck and the node cannot be emptied.",
-  "objective": "The PDB minAvailable is too high for the replica count \u2014 fix the PDB so node drain can proceed",
+  "description": "A node needs maintenance but `kubectl drain` is permanently blocked. The PodDisruptionBudget requires 3 pods to be available at all times, but the Deployment only has 2 total replicas. The math is impossible: to evict any pod, at least 3 must remain available — but there are only 2 to start with. The cluster is stuck.",
+  "objective": "The PDB minAvailable is too high for the replica count — fix the PDB so node drain can proceed",
   "xp": 350,
   "difficulty": "expert",
   "expected_time": "15m",

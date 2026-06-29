@@ -1,7 +1,7 @@
 {
   "name": "NodePort Not Reachable",
-  "description": "A NodePort service has been created but external access to the application is failing.",
-  "objective": "The nodePort value is in the reserved range below 30000 \u2014 change it to a valid nodePort number",
+  "description": "A NodePort Service web-nodeport was created for external access, but nobody knows which port to connect to — and Kubernetes may assign a different one each time. Run kubectl get service web-nodeport -n k8smissions.",
+  "objective": "The nodePort value is in the reserved range below 30000 — change it to a valid nodePort number",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "10m",

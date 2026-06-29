@@ -1,5 +1,1 @@
-Change the readinessProbe path from /healthz to /:
-  readinessProbe:
-    httpGet:
-      path: /
-      port: 80
+The `readinessProbe.httpGet.path` is set to `/healthz`, but this nginx image doesn't serve that path. Nginx returns a 404, the probe fails, and the pods never become Ready. The correct path for the default nginx welcome page is `/`.

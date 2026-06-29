@@ -1,1 +1,3 @@
-Validation target: 3/3 pods Ready
+The field `spec.replicas: 0` is why no pods exist. A Deployment with 0 replicas is valid in Kubernetes — it is used to 'park' a workload without deleting it.
+
+Open manifest.yaml and find the replicas field.

@@ -1,2 +1,1 @@
-Run: kubectl get validatingwebhookconfiguration
-A webhook with failurePolicy: Fail blocks ALL pod creation if the webhook service is down.
+Look at the webhook's `failurePolicy` field: `kubectl get validatingwebhookconfiguration strict-validator -o yaml | grep failurePolicy`. If the webhook service is unreachable and `failurePolicy: Fail`, every pod creation is rejected.

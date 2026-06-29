@@ -1,6 +1,6 @@
 {
   "name": "Silent Failure",
-  "description": "A PostgreSQL Pod repeatedly exits during startup and never becomes Ready.",
+  "description": "Pod database-app starts and exits repeatedly. The logs are the only clue. Run kubectl logs database-app -n k8smissions and read the full output.",
   "objective": "Use the container logs to identify the required PostgreSQL setting, then add the missing environment variable",
   "xp": 150,
   "difficulty": "beginner",

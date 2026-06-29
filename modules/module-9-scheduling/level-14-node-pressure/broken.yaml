@@ -10,7 +10,6 @@ spec:
     command:
     - /bin/sh
     - -c
-    # ❌ BUG: This command allocates ~1GB of memory (dd writes zeros to /tmp/data).
     # Combined with a 2Gi limit and 50Mi request, this pod causes node memory
     # pressure and triggers kubelet eviction of other pods.
     - dd if=/dev/zero bs=1M count=1000 | cat > /tmp/data; sleep 3600

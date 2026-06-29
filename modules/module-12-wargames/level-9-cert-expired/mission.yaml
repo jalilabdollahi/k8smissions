@@ -1,7 +1,7 @@
 {
   "name": "Mass Cert Expiry",
-  "description": "Something is wrong cluster-wide \u2014 kubeconfig connections are being rejected. The client certificate appears to be expired.",
-  "objective": "A kubeconfig Secret contains an expired certificate annotation \u2014 update the annotation to mark it as renewed",
+  "description": "All kubectl commands are failing with `x509: certificate has expired or is not yet valid`. Cluster certificates expired on 2024-01-01 — over two years ago. The kubeconfig auth, API server TLS, and mutual TLS between cluster components are all broken. Until certs are renewed, the cluster is completely inaccessible.",
+  "objective": "A kubeconfig Secret contains an expired certificate annotation — update the annotation to mark it as renewed",
   "xp": 400,
   "difficulty": "expert",
   "expected_time": "20m",

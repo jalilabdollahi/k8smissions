@@ -1,7 +1,7 @@
 {
   "name": "Slow Admission",
-  "description": "Pod creation is slow \u2014 every pod takes 30+ seconds to start scheduling after kubectl apply.",
-  "objective": "The admission webhook has a long timeout and is making slow external API calls \u2014 reduce timeoutSeconds",
+  "description": "Pod creation is extremely slow — every `kubectl apply` for a pod takes 30+ seconds before the pod even enters Pending. The admission webhook has `timeoutSeconds: 30`, meaning the API server waits up to 30 seconds for the webhook's response before timing out. A slow external API call inside the webhook is causing the delay.",
+  "objective": "The admission webhook has a long timeout and is making slow external API calls — reduce timeoutSeconds",
   "xp": 325,
   "difficulty": "advanced",
   "expected_time": "12m",

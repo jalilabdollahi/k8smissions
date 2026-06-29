@@ -1,2 +1,1 @@
-Run: kubectl logs -n operators deployment/db-operator | grep -i cleanup
-Check if cleanup logic is throwing errors before the finalizer is removed.
+The object has `finalizers: [database.example.com/cleanup]`. This finalizer was registered by the database operator, which is supposed to run cleanup logic and then remove the finalizer. But the operator is gone — no code will ever clear it.

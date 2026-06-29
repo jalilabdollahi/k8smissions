@@ -1,1 +1,3 @@
-Validation target: Pods show Ready 1/1 only after startup; no 502s during rollout
+There is no `readinessProbe` defined. Without one, Kubernetes assumes the pod is ready as soon as all containers are started — not when the application inside is actually ready.
+
+You need to add a `readinessProbe` to spec.template.spec.containers[0] in manifest.yaml. It should account for the 20-second startup delay.

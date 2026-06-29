@@ -16,4 +16,4 @@ spec:
     - build
     params:
     - name: IMAGE_DIGEST
-      value: $(tasks.build.results.image-digest)  # ❌ BUG: result name 'image-digest' (hyphenated) does not match Task declaration 'imageDigest' (camelCase) — Tekton result names are case-sensitive; deploy receives empty string
+      value: $(tasks.build.results.image-digest)

@@ -1,1 +1,1 @@
-Goal state: securityContext: runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false, seccompProfile: RuntimeDefault
+The event should reference 'pods restricted' and list the violations. Check what standard the namespace enforces: `kubectl get namespace k8smissions -o yaml | grep pod-security`. Then compare those requirements against the pod's current `securityContext`.

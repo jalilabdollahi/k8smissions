@@ -1,3 +1,1 @@
-The finalizer prevents deletion until the operator clears it. If the operator can't clean up, manually clear the finalizer as a last resort:
-  kubectl patch database prod-db -n k8smissions --type=json \
-    -p '[{"op": "remove", "path": "/metadata/finalizers"}]'
+The CR's `metadata.finalizers` list contains `database.example.com/cleanup`. Force-clear it by setting `finalizers: []` in the manifest, which removes the block and allows the deletion to complete.

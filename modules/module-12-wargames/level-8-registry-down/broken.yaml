@@ -1,4 +1,3 @@
-# ❌ BUG: The image references an internal private registry that is now unreachable.
 # Combined with imagePullPolicy: Always, Kubernetes must contact the registry on every
 # pod creation — it cannot use a local node cache. All new pods fail with ImagePullBackOff.
 # Existing running pods are unaffected (containers already running don't re-pull images).
@@ -19,5 +18,5 @@ spec:
     spec:
       containers:
       - name: registry-app
-        image: internal-registry.company.local/app:v2.1  # ❌ BUG: Private registry is unreachable — ImagePullBackOff
-        imagePullPolicy: Always  # ❌ BUG: Always forces a registry round-trip, bypassing node image cache
+        image: internal-registry.company.local/app:v2.1
+        imagePullPolicy: Always

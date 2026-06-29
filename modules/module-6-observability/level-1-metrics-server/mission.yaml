@@ -1,7 +1,7 @@
 {
   "name": "Flying Blind",
-  "description": "Running 'kubectl top pods' returns an error and all metrics are unavailable.",
-  "objective": "kubectl top returns an error because metrics-server is not installed \u2014 deploy or enable metrics-server",
+  "description": "Running `kubectl top pods` returns an error and all metrics are unavailable across the cluster. There is a metrics-server Deployment in the namespace, but something about its configuration means it is not actually running any pods.",
+  "objective": "kubectl top returns an error because metrics-server is not installed — deploy or enable metrics-server",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "10m",

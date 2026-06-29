@@ -1,2 +1,1 @@
-Run: kubectl get triggerbinding git-push-binding -n k8smissions -o yaml
-Compare the body field paths with actual GitHub webhook payload structure.
+Check a recent PipelineRun triggered by a webhook to see its parameters: `kubectl get pipelinerun -n k8smissions -o yaml | grep -A5 params`

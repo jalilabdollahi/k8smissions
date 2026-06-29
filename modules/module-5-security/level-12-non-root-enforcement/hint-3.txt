@@ -1,9 +1,1 @@
-Full secure pod securityContext:
-  spec:
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-    containers:
-    - securityContext:
-        allowPrivilegeEscalation: false
-        readOnlyRootFilesystem: true
+The pod spec has no `securityContext` block at all. The namespace policy requires `runAsNonRoot: true` and a non-zero `runAsUser`. Both must be added to make the pod compliant.

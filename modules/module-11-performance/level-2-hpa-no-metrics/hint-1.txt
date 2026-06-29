@@ -1,2 +1,1 @@
-Run: kubectl get hpa my-hpa -n k8smissions
-If TARGETS column shows '<unknown>/70%', metrics server can't provide CPU metrics.
+Watch the HPA in real time: `kubectl get hpa my-hpa -n k8smissions -w`. You should see rapid replica count changes after load spikes end — up to 10 replicas during load, dropping immediately to 2 when load drops.

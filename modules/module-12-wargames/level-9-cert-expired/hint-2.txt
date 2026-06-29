@@ -1,1 +1,1 @@
-kubectl describe secret cluster-cert-status -n k8smissions
+The Secret shows `cert-status: expired` and `expiry: 2024-01-01`. In a real cluster you'd run `kubeadm certs check-expiration` to see all certificate expiry dates, then `kubeadm certs renew all` to renew them.

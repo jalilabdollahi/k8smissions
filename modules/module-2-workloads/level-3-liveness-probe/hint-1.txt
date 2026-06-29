@@ -1,1 +1,7 @@
-Start with: livenessProbe.httpGet.path: /healthz
+The container starts successfully, then gets killed shortly after — this is a liveness probe failure pattern, not a CrashLoopBackOff from a bad command.
+
+Get the full picture:
+
+  kubectl describe pod -l app=api -n k8smissions
+
+Scroll to the Events section. Look for 'Liveness probe failed'.

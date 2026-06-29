@@ -1,6 +1,1 @@
-Enable the status subresource in the CRD version:
-  versions:
-  - name: v1
-    ...
-    subresources:
-      status: {}
+The CRD defines a `status` property in its schema but has no `subresources.status: {}` section under the version. Without this, the status endpoint doesn't exist and updates to status via the main endpoint are dropped.

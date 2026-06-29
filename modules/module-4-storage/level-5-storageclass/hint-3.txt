@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+The cluster has a `standard` StorageClass available. The PVC in manifest.yaml requests `premium-ssd` which does not exist.
+
+Find `spec.storageClassName` in the PVC in manifest.yaml.

@@ -1,2 +1,1 @@
-Run: kubectl get clusterrole deployments-reader -o yaml | grep labels -A5
-Compare the labels on deployments-reader with what operator-role is selecting for.
+The `rules:` section is empty despite the source ClusterRole existing. Compare what the `aggregationRule.clusterRoleSelectors` requires against the label on `deployments-reader`: `kubectl get clusterrole deployments-reader -o yaml | grep -A5 labels`

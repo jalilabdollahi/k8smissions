@@ -1,1 +1,7 @@
-Goal state: Set PDB minAvailable: 1 OR scale Deployment replicas to 6+
+The PDB shows `minAvailable: 3` and the Deployment has 3 replicas. This means all 3 pods must be running at all times — but evicting even one pod would temporarily drop the count to 2, violating the budget.
+
+Kubernetes respects the PDB and refuses to evict any pod. The drain cannot proceed.
+
+Check the replica count:
+
+  kubectl get deployment database-proxy -n k8smissions

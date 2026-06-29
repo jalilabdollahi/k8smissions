@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The container's `securityContext` sets `runAsUser: 0` (root) and `allowPrivilegeEscalation: true`. The namespace enforces the `restricted` Pod Security Standard, which forbids both and also requires dropping all capabilities and setting a seccomp profile.

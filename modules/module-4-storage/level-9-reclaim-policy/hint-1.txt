@@ -1,1 +1,5 @@
-Start with: PV persistentVolumeReclaimPolicy: Delete
+The PV status shows Released or it may have already been deleted. When a PV's reclaimPolicy is Delete, deleting the bound PVC triggers automatic deletion of the PV and its underlying storage.
+
+Check the current policy:
+
+  kubectl get pv important-data -o yaml | grep 'persistentVolumeReclaimPolicy'

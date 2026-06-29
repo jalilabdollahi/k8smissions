@@ -1,1 +1,1 @@
-The app deployment expects a service named db-service on port 5432. Create the missing pod and service.
+The readinessProbe runs `nc -z db-service 5432`. The `db-service` Service doesn't exist, so the probe immediately fails — all app pods are marked NotReady and removed from endpoints. You need to restore both the database Pod and the Service.

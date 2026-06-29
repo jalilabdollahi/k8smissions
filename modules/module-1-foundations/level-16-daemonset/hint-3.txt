@@ -1,8 +1,3 @@
-The control-plane node has taint: node-role.kubernetes.io/control-plane:NoSchedule
-Run:
-  edit daemonset log-collector
-Add this under spec.template.spec, then save and apply:
-  tolerations:
-  - key: node-role.kubernetes.io/control-plane
-    operator: Exists
-    effect: NoSchedule
+The DaemonSet has no tolerations. It needs to tolerate the control-plane taint to be scheduled on that node.
+
+The `tolerations` field goes under spec.template.spec in manifest.yaml.

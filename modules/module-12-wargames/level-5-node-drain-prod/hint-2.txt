@@ -1,1 +1,1 @@
-kubectl get pdb -n k8smissions — compare minAvailable to the deployment replica count.
+Check the PDB: `kubectl describe pdb critical-pdb -n k8smissions`. Look at `ALLOWED DISRUPTIONS` — it should show 0. Calculate why: `minAvailable (3) <= replicas (2)` means `allowed = replicas - minAvailable = 2 - 3 = -1`, which is clamped to 0.

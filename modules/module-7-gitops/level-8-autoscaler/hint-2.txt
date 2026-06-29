@@ -1,1 +1,1 @@
-Goal state: Patch Cluster Autoscaler deployment with correct node group (or on kind: demonstrate concept with node taints simulation)
+The logs should show the autoscaler searching for node groups tagged with `wrong-group` and finding none. Now look at the autoscaler Deployment's `args` to see the full `--node-group-auto-discovery` value.

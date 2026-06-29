@@ -18,7 +18,6 @@ spec:
         operator: Equal
         value: 'true'
         effect: NoSchedule
-      # ❌ BUG: nodeSelector pins pods exclusively to spot nodes. When spot nodes
       # are reclaimed by the cloud provider, pods cannot reschedule to on-demand
       # nodes because (1) nodeSelector blocks it and (2) on-demand taint is not tolerated.
       nodeSelector:

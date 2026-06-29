@@ -1,1 +1,3 @@
-Validation target: Use the validator to confirm the repaired state.
+Both the PV and PVC need to use `ReadWriteMany` — the access mode that allows multiple nodes to mount the same volume simultaneously.
+
+You must change accessModes in BOTH the PV and PVC in manifest.yaml. A PVC cannot request an access mode that the PV does not support.

@@ -1,1 +1,1 @@
-Start with: PDB minAvailable: 3 > actual replicas 2
+Inspect the PodDisruptionBudget for this workload: `kubectl describe pdb web-pdb -n k8smissions`

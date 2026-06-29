@@ -1,1 +1,1 @@
-Goal state: Install External Secrets Operator (bundled manifest) Create SecretStore pointing to local fake backend Create ExternalSecret that pulls values from the store
+Plain-text credentials in a Git-committed manifest is a critical security finding. The industry standard is to remove the credentials from Git entirely and have a secret management system (like Vault or AWS Secrets Manager) inject them at runtime via the External Secrets Operator.

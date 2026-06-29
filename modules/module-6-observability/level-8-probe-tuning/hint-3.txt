@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+The pod spec has a `livenessProbe` but no `startupProbe`. Without a startup probe, the liveness check begins after `initialDelaySeconds` regardless of whether the application has finished starting up.

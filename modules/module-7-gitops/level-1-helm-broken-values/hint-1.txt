@@ -1,1 +1,1 @@
-Start with: values.yaml image.tag: "" (empty — should be pinned version)
+Check what image the running pod is actually using: `kubectl get pod -n k8smissions -l app=helm-app -o yaml | grep image`

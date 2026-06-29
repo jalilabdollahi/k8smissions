@@ -1,5 +1,1 @@
-Option 1: Remove the CPU limit entirely — the container can burst freely.
-Option 2: Set a higher CPU limit:
-  limits:
-    cpu: 1000m  # 10x the request
-Requests stay at 100m for scheduling.
+The CPU limit equals the CPU request — there's no headroom for bursting. Increase `limits.cpu` to `1000m` (10x the request) to allow the container to use available CPU capacity during spikes without being throttled.

@@ -1,2 +1,1 @@
-Building without a cache PVC means Maven/Gradle/npm downloads all deps from the internet on every run.
-The Task declares a 'cache' workspace — bind it to a PVC.
+You should see `source` is bound but `cache` is not. The `maven-build` Task declares both workspaces. Without a binding for `cache`, the task runs without mounting it and Maven downloads everything fresh each time.

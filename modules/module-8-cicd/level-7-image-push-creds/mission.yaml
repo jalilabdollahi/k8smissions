@@ -1,7 +1,7 @@
 {
   "name": "Push Denied",
-  "description": "The CI pipeline's image push step fails with 'unauthorized: authentication required'.",
-  "objective": "The Task is missing registry credentials \u2014 create a registry secret and bind it to the pipeline ServiceAccount",
+  "description": "The CI pipeline's image push step fails with '401 Unauthorized' from the container registry. The pipeline ServiceAccount exists and Tasks are running, but no registry credentials are attached — so when the Task tries to push an image, the registry rejects the request.",
+  "objective": "The Task is missing registry credentials — create a registry secret and bind it to the pipeline ServiceAccount",
   "xp": 300,
   "difficulty": "intermediate",
   "expected_time": "12m",

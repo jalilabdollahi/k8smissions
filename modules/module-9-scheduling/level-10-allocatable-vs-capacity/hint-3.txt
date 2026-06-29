@@ -1,3 +1,1 @@
-Size the pod request against allocatable, not capacity:
-  kubectl get node -o jsonpath='{.items[0].status.allocatable.memory}'
-Set pod request to < allocatable minus already-used.
+The pod's `resources.requests.memory` is set too high relative to the node's *allocatable* memory (not its total capacity). Reduce the request to a value comfortably within the allocatable amount — like `1Gi`.

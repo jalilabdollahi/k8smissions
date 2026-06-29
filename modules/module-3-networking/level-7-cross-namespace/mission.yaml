@@ -1,7 +1,7 @@
 {
   "name": "Cross-Namespace Dead End",
-  "description": "A frontend application cannot reach the backend service even though both pods are Running.",
-  "objective": "The frontend uses a short service name that doesn't resolve in another namespace \u2014 use the full <service>.<namespace>.svc.cluster.local address",
+  "description": "Pod frontend-app in k8smissions namespace is trying to reach an API in a different namespace. The connection always fails. Run kubectl logs frontend-app -n k8smissions.",
+  "objective": "The frontend uses a short service name that doesn't resolve in another namespace — use the full <service>.<namespace>.svc.cluster.local address",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

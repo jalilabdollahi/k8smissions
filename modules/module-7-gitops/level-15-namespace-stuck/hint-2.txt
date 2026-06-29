@@ -1,4 +1,1 @@
-Find objects with finalizers:
-  kubectl get all,configmaps,secrets -n zombie-ns -o json | \
-    python3 -c "import json,sys; [print(i['kind'],i['metadata']['name']) \
-    for i in json.load(sys.stdin)['items'] if i['metadata'].get('finalizers')]"
+You should find `finalizers: [some.controller.io/cleanup]` on the ConfigMap. This finalizer was registered by a controller that has since been deleted. Without the controller running, the finalizer will never be removed — it must be force-cleared manually.

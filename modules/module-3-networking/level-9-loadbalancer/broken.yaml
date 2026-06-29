@@ -18,7 +18,6 @@ spec:
     ports:
     - containerPort: 80
 ---
-# ❌ BROKEN: LoadBalancer type requires cloud provider integration
 # In local clusters (kind, minikube, k3d), this stays in Pending state forever
 # LoadBalancer services need external load balancer provisioning from cloud providers
 apiVersion: v1
@@ -27,7 +26,7 @@ metadata:
   name: web-service
   namespace: k8smissions
 spec:
-  type: LoadBalancer  # ❌ Won't work in local clusters!
+  type: LoadBalancer
   selector:
     app: web
   ports:

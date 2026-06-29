@@ -1,7 +1,7 @@
 {
   "name": "Critical Pods Can't Schedule",
-  "description": "A critical pod cannot be scheduled despite nodes appearing to be available.",
-  "objective": "The critical pod has no PriorityClass \u2014 assign it a high-priority class so it can preempt lower-priority workloads",
+  "description": "A critical API pod is stuck in Pending even though lower-priority development workloads are consuming the available CPU on the node. The scheduler cannot evict the dev pods to make room because there is no priority difference between them — no PriorityClass has been defined or assigned.",
+  "objective": "The critical pod has no PriorityClass — assign it a high-priority class so it can preempt lower-priority workloads",
   "xp": 300,
   "difficulty": "advanced",
   "expected_time": "10m",

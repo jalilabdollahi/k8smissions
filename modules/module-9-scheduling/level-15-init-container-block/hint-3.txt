@@ -1,2 +1,1 @@
-Fix the init container to exit 0 (or point to the actual DB hostname):
-  command: ["/bin/sh", "-c", "echo 'DB ready'; exit 0"]
+The init container's command polls `non-existent-db-host` which doesn't exist. Change the command to `echo 'DB check skipped'; exit 0` to let the init phase complete successfully and unblock the main container.

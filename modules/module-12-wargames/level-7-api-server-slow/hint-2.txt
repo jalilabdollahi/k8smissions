@@ -1,1 +1,1 @@
-kubectl get deployments -n k8smissions — look for 50 replicas
+You should see `api-watcher` with 50/50 Ready pods. Each pod runs a watch loop against the API server. 50 concurrent connections from a single Deployment — combined with normal controller watches — is pushing the API server to its limits.

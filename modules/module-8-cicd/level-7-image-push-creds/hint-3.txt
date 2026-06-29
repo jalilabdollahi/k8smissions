@@ -1,7 +1,1 @@
-Create and attach registry credentials:
-  kubectl create secret docker-registry registry-creds \
-    --docker-server=registry.example.com \
-    --docker-username=ci-user \
-    --docker-password=TOKEN \
-    -n k8smissions
-  kubectl patch sa ci-sa -n k8smissions -p '{"secrets":[{"name":"registry-creds"}]}'
+The `ci-sa` ServiceAccount has neither `secrets` nor `imagePullSecrets` attached. Tekton mounts ServiceAccount secrets into Task pods for registry authentication. Add both fields referencing the `registry-creds` Secret.

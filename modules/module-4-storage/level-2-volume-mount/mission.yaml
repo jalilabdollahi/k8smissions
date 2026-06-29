@@ -1,7 +1,7 @@
 {
   "name": "Wrong Mount Path",
-  "description": "Application pod is crashing on startup although a config volume appears to be mounted.",
-  "objective": "The volumeMount path doesn't match the path the application reads config from \u2014 correct the mountPath",
+  "description": "Pod web-app crashes on startup even though a volume is mounted. Run kubectl logs web-app -n k8smissions and read the error message.",
+  "objective": "The volumeMount path doesn't match the path the application reads config from — correct the mountPath",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "10m",

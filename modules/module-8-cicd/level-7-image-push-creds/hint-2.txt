@@ -1,2 +1,1 @@
-Docker push requires credentials stored in a secret of type kubernetes.io/dockerconfigjson.
-This secret must be attached to the ServiceAccount used by the Tekton pipeline.
+The logs should show `unauthorized: authentication required`. Look at the ServiceAccount used by the pipeline: `kubectl get serviceaccount ci-sa -n k8smissions -o yaml`. Check both `secrets` and `imagePullSecrets` fields.

@@ -1,2 +1,7 @@
-externalTrafficPolicy: Local preserves client IP but drops traffic on nodes with no matching pod.
-If your pods aren't spread across all nodes, some nodes silently drop traffic.
+The policy shows `Local`. With `externalTrafficPolicy: Local`, the node only serves traffic if a matching pod is running on that same node. If you hit a node with no backend pod, the request is silently dropped — no error, just timeout.
+
+Check which nodes have backend pods:
+
+  kubectl get pods -n k8smissions -l app=backend -o wide
+
+Are they on every node?

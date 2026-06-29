@@ -1,1 +1,3 @@
-Validation target: kubectl get hpa → TARGETS shows actual CPU%, not <unknown>
+The metrics-server Deployment exists but has 0 replicas — it is not running. Without it, the Metrics API returns nothing, and the HPA cannot make scaling decisions.
+
+Open manifest.yaml and find the metrics-server Deployment.

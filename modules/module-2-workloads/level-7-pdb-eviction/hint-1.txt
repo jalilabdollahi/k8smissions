@@ -1,1 +1,7 @@
-Start with: PDB minAvailable: 5, Deployment replicas: 2
+kubectl drain gracefully evicts pods before draining the node. If it fails, something is blocking eviction. Check if there is a PodDisruptionBudget protecting these pods:
+
+  kubectl get pdb -n k8smissions
+
+Then read its details:
+
+  kubectl describe pdb db-proxy-pdb -n k8smissions

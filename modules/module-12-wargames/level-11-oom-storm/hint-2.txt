@@ -1,1 +1,1 @@
-kubectl get deployments -n k8smissions -o json | grep -A2 limits
+All three deployments show high restart counts and OOMKilled status. Check the resource configuration: `kubectl get deployment svc-alpha -n k8smissions -o yaml | grep -A6 resources`. You should see `limits.memory: 32Mi` equal to `requests.memory: 32Mi` — zero burst headroom.

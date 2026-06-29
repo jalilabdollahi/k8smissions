@@ -1,7 +1,7 @@
 {
   "name": "The Missing File",
-  "description": "A pod mounts a ConfigMap as a volume but the expected config file is absent from the container.",
-  "objective": "The volume only projects a single key \u2014 add the missing key projection so all config files appear",
+  "description": "Pod config-reader is Running but crashes because it cannot find a config file. Run kubectl logs config-reader -n k8smissions and read which file is missing.",
+  "objective": "The volume only projects a single key — add the missing key projection so all config files appear",
   "xp": 175,
   "difficulty": "intermediate",
   "expected_time": "10m",

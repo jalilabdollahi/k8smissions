@@ -1,1 +1,5 @@
-Validation target: Use the validator to confirm the repaired state.
+The StatefulSet references the shared PVC directly under `spec.template.spec.volumes`. This is wrong for StatefulSets.
+
+StatefulSets have a dedicated field for per-pod storage: `spec.volumeClaimTemplates`. When used, Kubernetes automatically creates one PVC per pod named `<template-name>-<pod-name>`.
+
+Replace the volumes section with a volumeClaimTemplates section in manifest.yaml.

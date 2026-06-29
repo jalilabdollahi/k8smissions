@@ -1,2 +1,1 @@
-Run: kubectl get validatingwebhookconfiguration policy-enforcer -o yaml | grep timeout
-A 30s timeout means pod creation blocks for up to 30s if the webhook is slow.
+You should see `timeoutSeconds: 30`. This means every pod creation blocks for up to 30 seconds waiting for the webhook. The webhook is making a slow external call and the timeout is set to match its worst-case response time.

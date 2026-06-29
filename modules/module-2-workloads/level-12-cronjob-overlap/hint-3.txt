@@ -1,3 +1,3 @@
-Set concurrencyPolicy: Forbid to skip new runs while one is active.
-Or use Replace to kill the current run and start fresh.
-Patch: kubectl patch cronjob data-processor -n k8smissions -p '{"spec":{"concurrencyPolicy":"Forbid"}}'
+The `concurrencyPolicy: Allow` field lets a new job start even if the previous one is still running. For a job that takes longer than its schedule interval, this creates unbounded accumulation.
+
+Find this field in the CronJob spec in manifest.yaml.

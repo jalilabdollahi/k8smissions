@@ -1,3 +1,1 @@
-Attach the SSH secret to the ServiceAccount:
-  kubectl patch serviceaccount pipeline-sa -n k8smissions \
-    -p '{"secrets":[{"name":"git-ssh-key"}]}'
+The `pipeline-sa` ServiceAccount has no `secrets` attached. Tekton git-clone mounts secrets listed on the ServiceAccount into Task pods. You need to add a reference to the SSH key Secret: `secrets: [{name: git-ssh-key}]`.

@@ -15,7 +15,6 @@ spec:
     spec:
       affinity:
         podAntiAffinity:
-          # ❌ BUG: requiredDuringSchedulingIgnoredDuringExecution with hostname
           # topology means each pod MUST land on a unique node. With 3 replicas
           # and only 2 nodes, the 3rd pod can never schedule — stuck Pending.
           requiredDuringSchedulingIgnoredDuringExecution:

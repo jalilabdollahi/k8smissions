@@ -1,1 +1,1 @@
-Validation target: Use the validator to confirm the repaired state.
+Six things need fixing across two resources: container `image` tag, `spec.replicas`, `resources.limits`, `readinessProbe`, `lifecycle.preStop` + `terminationGracePeriodSeconds` on the Deployment, and `spec.minAvailable` on the PDB.

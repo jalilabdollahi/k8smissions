@@ -1,2 +1,1 @@
-The Pipeline references tasks.build.results.image-digest but the Task result is named 'imageDigest' (camelCase, no hyphen).
-Result names are case-sensitive.
+The parameter value is empty. Look at the Pipeline spec's variable reference: `$(tasks.build.results.image-digest)`. Then check what the build Task actually names its result in `spec.results` — result names are case-sensitive.

@@ -1,1 +1,1 @@
-kubectl describe pod -n k8smissions — look for 'secret db-credentials not found'
+You should see `CreateContainerConfigError: secret "db-credentials" not found`. The container cannot start because the env vars `DB_USER` and `DB_PASS` reference `secretKeyRef.name: db-credentials` which no longer exists.

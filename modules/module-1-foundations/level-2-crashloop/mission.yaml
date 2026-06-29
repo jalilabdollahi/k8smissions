@@ -1,7 +1,7 @@
 {
   "name": "The Infinite Restart",
-  "description": "A Pod is cycling through CrashLoopBackOff repeatedly.",
-  "objective": "The container args reference a script that doesn't exist \u2014 fix the startup args so the container runs without immediately exiting",
+  "description": "Pod crashloop-pod is stuck in CrashLoopBackOff. Run kubectl get pods -n k8smissions and watch the RESTARTS column climb.",
+  "objective": "The container args reference a script that doesn't exist — fix the startup args so the container runs without immediately exiting",
   "xp": 100,
   "difficulty": "beginner",
   "expected_time": "8m",

@@ -1,1 +1,5 @@
-Goal state: Patch service selector to version: green
+The Service selector shows `version=blue`. Now check what labels the green pods have:
+
+  kubectl get pods -n k8smissions --show-labels | grep green
+
+Does the Service selector match the green pods?

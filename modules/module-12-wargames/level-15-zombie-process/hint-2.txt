@@ -1,1 +1,1 @@
-Without probes, a zombie/hung process keeps the pod in Running state and in Service endpoints.
+The HTTP request to localhost:8080 fails (or hangs). The deployment yaml shows no `readinessProbe` or `livenessProbe` sections. The pod is Running and Ready, but it's only 'alive' from the kernel's perspective — the PID 1 process is still running, so the container status is Running.

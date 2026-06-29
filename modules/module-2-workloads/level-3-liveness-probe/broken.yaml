@@ -20,7 +20,7 @@ spec:
         - containerPort: 80
         livenessProbe:
           httpGet:
-            path: /nonexistent-healthz  # ❌ Wrong endpoint! nginx returns 404
+            path: /nonexistent-healthz
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5

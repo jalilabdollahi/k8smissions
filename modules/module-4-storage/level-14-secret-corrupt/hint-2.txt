@@ -1,3 +1,7 @@
-Secret `data` fields must contain base64 of the ACTUAL value.
-If you base64 the value first then put it in data:, you get double-encoding.
-The correct token is: supersecret-api-token-12345
+The decoded output is another base64 string — meaning the Secret's `data.token` field contains base64(base64(realToken)) instead of base64(realToken).
+
+When Kubernetes injects the value into the container, it decodes it once — leaving behind an inner base64 string instead of the actual token.
+
+Decode twice to find the real token:
+
+  kubectl get secret api-secret -n k8smissions -o jsonpath='{.data.token}' | base64 -d | base64 -d

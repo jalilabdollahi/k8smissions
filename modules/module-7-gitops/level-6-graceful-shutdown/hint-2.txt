@@ -1,1 +1,1 @@
-Goal state: Add lifecycle.preStop: exec sleep 15 Set terminationGracePeriodSeconds: 60
+There are no lifecycle hooks and no `terminationGracePeriodSeconds`. When Kubernetes terminates a pod, it removes it from the Service endpoints and sends SIGTERM simultaneously — but the kube-proxy endpoint update takes a few seconds to propagate, so traffic still arrives at the dying pod.

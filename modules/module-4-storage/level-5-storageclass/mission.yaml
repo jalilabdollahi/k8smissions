@@ -1,7 +1,7 @@
 {
   "name": "StorageClass Missing",
-  "description": "A PVC has been created but remains stuck in Pending state.",
-  "objective": "The PVC references a StorageClass that doesn't exist \u2014 change the storageClassName to one that is available",
+  "description": "Pod data-processor is stuck in ContainerCreating. Run kubectl get pvc -n k8smissions and check whether the PVC has bound to any storage.",
+  "objective": "The PVC references a StorageClass that doesn't exist — change the storageClassName to one that is available",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "10m",

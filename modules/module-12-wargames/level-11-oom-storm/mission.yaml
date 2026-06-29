@@ -1,7 +1,7 @@
 {
   "name": "Memory Wave",
-  "description": "Multiple pods OOMKilled simultaneously due to a memory leak in a shared library. The entire namespace is thrashing.",
-  "objective": "Multiple deployments have unsafe memory limits that are too low \u2014 increase all memory limits so the OOM storm stops",
+  "description": "A shared library update caused all three services (`svc-alpha`, `svc-beta`, `svc-gamma`) to experience a memory spike simultaneously. Because all three have `memory limits == requests` (32Mi each), the kernel OOM-killed all three at the same moment. The namespace is in a simultaneous restart storm.",
+  "objective": "Multiple deployments have unsafe memory limits that are too low — increase all memory limits so the OOM storm stops",
   "xp": 400,
   "difficulty": "expert",
   "expected_time": "20m",

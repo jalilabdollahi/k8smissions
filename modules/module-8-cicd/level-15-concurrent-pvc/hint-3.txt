@@ -1,9 +1,1 @@
-Use volumeClaimTemplate in the PipelineRun for per-run storage:
-  workspaces:
-  - name: source
-    volumeClaimTemplate:
-      spec:
-        accessModes: [ReadWriteOnce]
-        resources:
-          requests:
-            storage: 1Gi
+The PipelineRun uses `persistentVolumeClaim: {claimName: shared-build-pvc}` — a hardcoded shared PVC name. Replace it with `volumeClaimTemplate` so Tekton provisions a fresh, isolated PVC for each PipelineRun automatically.

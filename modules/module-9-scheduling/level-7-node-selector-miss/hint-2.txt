@@ -1,2 +1,1 @@
-Run: kubectl get nodes --show-labels | grep accelerator-type
-If no output, no node has the required label.
+The events say 'didn't match node selector'. Check what labels your nodes actually have: `kubectl get nodes --show-labels`. Compare against what the pod's `nodeSelector` requires.

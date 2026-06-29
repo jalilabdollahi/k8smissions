@@ -1,1 +1,1 @@
-Goal state: kubectl logs <pod> --previous -n k8smissions Identify the crash message (OOM / missing config / etc)
+The `--previous` flag returns logs from the last terminated container instance, not the currently running one. The output should show an error like 'exec: no such file or directory'. Now look at what the pod's `args` field tries to execute.

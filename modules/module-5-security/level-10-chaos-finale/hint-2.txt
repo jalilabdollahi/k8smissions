@@ -1,1 +1,1 @@
-Goal state: Systematically fix all 9 issues (checklist provided in hints)
+You should find at least these failure modes: quota exceeded (replicas 3 × 1 CPU > quota of 1 CPU), admission rejection (runAsUser: 0 violates security policy), RBAC forbidden (app-sa has no Role), network blackout (deny-all NetworkPolicy with no rules), and PDB blocking evictions (minAvailable: 5 > replicas: 3). Fix quota first — nothing else can schedule until pods can start.

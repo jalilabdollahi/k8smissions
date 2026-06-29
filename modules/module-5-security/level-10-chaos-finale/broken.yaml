@@ -17,7 +17,7 @@ metadata:
   namespace: k8smissions
 spec:
   hard:
-    requests.cpu: "1"  # ❌ Too low!
+    requests.cpu: "1"
     requests.memory: "1Gi"
     pods: "5"
 
@@ -28,8 +28,6 @@ kind: ServiceAccount
 metadata:
   name: app-sa
   namespace: k8smissions
-# ❌ No Role!
-# ❌ No RoleBinding!
 
 ---
 # NetworkPolicy - DENY ALL
@@ -41,7 +39,6 @@ metadata:
 spec:
   podSelector: {}
   policyTypes: [Ingress, Egress]
-  # ❌ No rules = block everything!
 
 ---
 # Deployment with EVERY problem
@@ -51,7 +48,7 @@ metadata:
   name: chaos-app
   namespace: k8smissions
 spec:
-  replicas: 3  # ❌ Exceeds quota!
+  replicas: 3
   selector:
     matchLabels:
       app: chaos
@@ -61,21 +58,16 @@ spec:
         app: chaos
     spec:
       serviceAccountName: app-sa
-      # ❌ No priorityClassName!
-      # ❌ No tolerations!
-      # ❌ No nodeAffinity!
       containers:
       - name: app
         image: nginx:latest
         resources:
           requests:
-            cpu: "1"  # ❌ Too high for quota!
+            cpu: "1"
             memory: "512Mi"
         securityContext:
-          runAsUser: 0  # ❌ Root!
-          allowPrivilegeEscalation: true  # ❌ Escalation allowed!
-          # ❌ No capabilities drop!
-          # ❌ Violates restricted policy!
+          runAsUser: 0
+          allowPrivilegeEscalation: true
 
 ---
 # PDB impossible to satisfy
@@ -85,7 +77,7 @@ metadata:
   name: chaos-pdb
   namespace: k8smissions
 spec:
-  minAvailable: 5  # ❌ More than replicas!
+  minAvailable: 5
   selector:
     matchLabels:
       app: chaos

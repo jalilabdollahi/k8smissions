@@ -1,7 +1,7 @@
 {
   "name": "Region Lag",
-  "description": "A multi-cluster setup has active/passive failover. The passive cluster's ConfigMap leader-election is stale \u2014 failover is broken.",
-  "objective": "The leader-election ConfigMap shows the passive cluster is stale and failover is disabled \u2014 update it to enable active failover",
+  "description": "A multi-region cluster's primary has gone down. The leader election ConfigMap shows a `renewTime` that is over 2 years stale — the primary never renewed its lease before dying. The secondary cluster should take over as leader, but `failover-enabled: false` prevents automatic promotion. The system is leaderless and stuck.",
+  "objective": "The leader-election ConfigMap shows the passive cluster is stale and failover is disabled — update it to enable active failover",
   "xp": 400,
   "difficulty": "expert",
   "expected_time": "20m",

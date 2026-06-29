@@ -1,7 +1,7 @@
 {
   "name": "Controller Crash Loop",
-  "description": "The operator pod is in CrashLoopBackOff \u2014 it crashes every 30 seconds and no resources are reconciled.",
-  "objective": "The operator is panicking on nil pointer dereference because the CRD is not yet installed \u2014 add a CRD presence check in startup",
+  "description": "The operator pod is in CrashLoopBackOff and crashes every 30 seconds. The logs show a nil pointer dereference panic at startup. The operator's controller tries to register a reconciler for the `workloads.example.com` CRD — but the CRD hasn't been installed yet, so the type registration fails and the process panics.",
+  "objective": "The operator is panicking on nil pointer dereference because the CRD is not yet installed — add a CRD presence check in startup",
   "xp": 350,
   "difficulty": "advanced",
   "expected_time": "15m",

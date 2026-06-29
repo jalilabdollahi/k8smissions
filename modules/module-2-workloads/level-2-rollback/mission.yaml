@@ -1,7 +1,7 @@
 {
-  "name": "Bad Update \u2014 Roll Back!",
-  "description": "All pods in the Deployment are stuck in ImagePullBackOff after a recent update.",
-  "objective": "The Deployment was updated to a non-existent image tag \u2014 roll back to the last working revision",
+  "name": "Bad Update — Roll Back!",
+  "description": "Deployment web-app was recently updated and all pods are stuck in ImagePullBackOff. The application is down. Run kubectl get pods -n k8smissions.",
+  "objective": "The Deployment was updated to a non-existent image tag — roll back to the last working revision",
   "xp": 200,
   "difficulty": "intermediate",
   "expected_time": "15m",

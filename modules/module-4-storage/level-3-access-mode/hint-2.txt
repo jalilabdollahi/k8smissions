@@ -1,1 +1,5 @@
-Goal state: Delete PVC (immutable spec), recreate with ReadWriteMany Note: Simulated on kind (single-node) but concept matters for production multi-node clusters
+The PVC uses `ReadWriteOnce`. RWO means the volume can be mounted by only ONE node at a time. In a multi-node cluster, if the second and third pod land on different nodes, they cannot mount the already-mounted volume.
+
+Check the PV as well:
+
+  kubectl get pv shared-storage -o yaml | grep 'accessModes'

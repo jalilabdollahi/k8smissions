@@ -6,6 +6,6 @@ metadata:
 spec:
   params:
   - name: git-revision
-    value: $(body.commits[0].sha)       # ❌ BUG: wrong GitHub webhook field — commits[0].sha is not the standard push event field; extracts empty string
+    value: $(body.commits[0].sha)
   - name: git-repo-url
     value: $(body.repository.clone_url)

@@ -1,7 +1,7 @@
 {
   "name": "False Security",
-  "description": "A Secret is in use, but the security team has flagged it as a potential vulnerability.",
-  "objective": "The secret is only base64-encoded, not encrypted \u2014 demonstrate it is readable and add RBAC to restrict access",
+  "description": "Pod database-client is running and connecting successfully. But a security audit has flagged the db-credentials Secret as a potential vulnerability. Run kubectl get secret db-credentials -n k8smissions -o yaml and read what you see.",
+  "objective": "The secret is only base64-encoded, not encrypted — demonstrate it is readable and add RBAC to restrict access",
   "xp": 250,
   "difficulty": "intermediate",
   "expected_time": "10m",

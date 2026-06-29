@@ -40,7 +40,6 @@ spec:
     image: postgres:13
     command: ["sh", "-c"]
     args:
-    # ❌ WRONG! Using wrong DNS name
     - |
       while true; do
         echo "Attempting connection..."

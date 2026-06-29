@@ -1,1 +1,7 @@
-Start with: HPA referencing cpu utilization, but metrics-server absent
+The HPA reads CPU metrics from the Kubernetes Metrics API. If it shows <unknown>, that API is not returning data.
+
+Check the HPA's status in detail:
+
+  kubectl describe hpa web-backend-hpa -n k8smissions
+
+Look for the reason it cannot fetch metrics.

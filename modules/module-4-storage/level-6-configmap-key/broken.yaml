@@ -7,7 +7,6 @@ metadata:
 data:
   app_name: "MyApp"
   app_version: "1.0.0"
-  # ❌ Missing: database_host key!
 ---
 apiVersion: v1
 kind: Pod
@@ -46,4 +45,4 @@ spec:
       valueFrom:
         configMapKeyRef:
           name: app-config
-          key: database_host  # ❌ This key doesn't exist in ConfigMap!
+          key: database_host

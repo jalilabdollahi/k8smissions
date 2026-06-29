@@ -1,1 +1,1 @@
-Patch all three: kubectl set resources deployment svc-alpha svc-beta svc-gamma --limits=memory=256Mi -n k8smissions
+All three Deployments have `limits.memory: 32Mi == requests.memory: 32Mi`. Increase `limits.memory` to `256Mi` (and `requests.memory` to `64Mi`) on all three. This gives each container burst headroom so temporary memory spikes don't trigger OOMKill.

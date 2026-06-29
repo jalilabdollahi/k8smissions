@@ -1,3 +1,1 @@
-Reduce timeoutSeconds:
-  timeoutSeconds: 5
-Also check if the webhook service is making slow network calls that should be cached.
+The `timeoutSeconds` is set to `30` — far too high for an admission webhook that sits in the critical path of every pod creation. Reduce it to `5` seconds to fail fast and limit the latency impact.
