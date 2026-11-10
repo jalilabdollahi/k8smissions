@@ -43,6 +43,7 @@ NAMESPACED_KINDS = ",".join([
 # Node labels that belong to Kubernetes/kind itself; everything else is level state.
 KEEP_NODE_LABEL = re.compile(r"(^|\.|/)(kubernetes\.io|k8s\.io)/|^ingress-ready$")
 KEEP_TAINT = {"node-role.kubernetes.io/control-plane"}
+STANDARD_RESOURCES = {"cpu", "memory", "pods", "ephemeral-storage"}
 
 
 def _run(args, cwd=None, check=True, timeout=180, env=None):
@@ -122,6 +123,13 @@ def _reset_nodes() -> None:
         drop = [f"{k}-" for k in node["metadata"].get("labels", {}) if not KEEP_NODE_LABEL.search(k)]
         if drop:
             _quiet(["kubectl", "label", "node", name, *drop])
+        # extended resources a level advertised by patching node status
+        ops = [{"op": "remove", "path": f"/status/{field}/{k.replace('~', '~0').replace('/', '~1')}"}
+               for field in ("capacity", "allocatable")
+               for k in (node.get("status", {}).get(field) or {})
+               if k not in STANDARD_RESOURCES and not k.startswith("hugepages-")]
+        if ops:
+            _quiet(["kubectl", "patch", "node", name, "--subresource=status", "--type=json", "-p", json.dumps(ops)])
 
 
 def cleanup_all(repo_root: Path) -> None:

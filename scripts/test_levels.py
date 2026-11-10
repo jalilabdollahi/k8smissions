@@ -119,7 +119,8 @@ def snapshot():
     nodes = []
     for n in (json.loads(out).get("items", []) if rc == 0 else []):
         taints = sorted(t["key"] for t in n["spec"].get("taints", []) or [] if not t["key"].startswith("node.kubernetes.io/"))
-        nodes.append((n["metadata"]["name"], bool(n["spec"].get("unschedulable")), taints, sorted(n["metadata"].get("labels", {}).items())))
+        nodes.append((n["metadata"]["name"], bool(n["spec"].get("unschedulable")), taints,
+                      sorted(n["metadata"].get("labels", {}).items()), sorted((n.get("status", {}).get("capacity") or {}))))
     return objs, sorted(nodes)
 
 

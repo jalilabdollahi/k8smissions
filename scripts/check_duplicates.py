@@ -24,6 +24,7 @@ TEXT = ("hint-1.txt", "hint-2.txt", "hint-3.txt", "reveal.md", "debrief.md", "co
 
 
 def normalize(text: str, code: bool) -> list[str]:
+    text = re.sub(r"-----BEGIN [A-Z ]+-----.*?-----END [A-Z ]+-----", " pem ", text, flags=re.S)
     if code:
         text = "\n".join(l for l in text.splitlines() if not l.strip().startswith("#"))
     text = text.lower()
