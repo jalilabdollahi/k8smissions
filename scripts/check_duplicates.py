@@ -23,6 +23,13 @@ CODE = ("validate.sh", "solution.sh", "setup.sh", "broken.yaml")
 TEXT = ("hint-1.txt", "hint-2.txt", "hint-3.txt", "reveal.md", "debrief.md", "common-mistakes.md")
 
 
+
+def matches(rid: str, f: str) -> bool:
+    """'module-4-storage/level-1' matches level-1-* only, not level-10-*; 'module-1' not module-10."""
+    if rid == f or rid.startswith(f + "-") or rid.startswith(f + "/"):
+        return True
+    return "module-" not in f and f in rid
+
 def normalize(text: str, code: bool) -> list[str]:
     text = re.sub(r"-----BEGIN [A-Z ]+-----.*?-----END [A-Z ]+-----", " pem ", text, flags=re.S)
     if code:
@@ -50,7 +57,7 @@ def main() -> int:
 
     levels = sorted(p.parent for p in (REPO / "modules").glob("*/*/mission.yaml"))
     rid = {l: f"{l.parent.name}/{l.name}" for l in levels}
-    wanted = {l for l in levels if not args.filters or any(f in rid[l] for f in args.filters)}
+    wanted = {l for l in levels if not args.filters or any(matches(rid[l], f) for f in args.filters)}
     flagged = 0
 
     for name in CODE + TEXT:

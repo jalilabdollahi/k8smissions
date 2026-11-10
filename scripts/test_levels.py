@@ -33,6 +33,13 @@ REPO = Path(__file__).resolve().parent.parent
 MIRROR = "k8smissions-registry-mirror"
 
 
+
+def matches(rid: str, f: str) -> bool:
+    """'module-4-storage/level-1' matches level-1-* only, not level-10-*; 'module-1' not module-10."""
+    if rid == f or rid.startswith(f + "-") or rid.startswith(f + "/"):
+        return True
+    return "module-" not in f and f in rid
+
 def sh(args, cwd=None, timeout=120, env=None):
     try:
         r = subprocess.run(args, cwd=cwd, capture_output=True, text=True, timeout=timeout,
@@ -101,7 +108,7 @@ def select_levels(filters: list[str]) -> list[Path]:
     on_disk = sorted(p.parent for p in (REPO / "modules").glob("*/*/mission.yaml"))
     paths += [p for p in on_disk if p not in paths]  # levels missing from the registry still get tested
     if filters:
-        paths = [p for p in paths if any(f in f"{p.parent.name}/{p.name}" for f in filters)]
+        paths = [p for p in paths if any(matches(f"{p.parent.name}/{p.name}", f) for f in filters)]
     return paths
 
 

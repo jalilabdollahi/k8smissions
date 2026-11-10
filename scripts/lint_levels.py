@@ -24,6 +24,13 @@ XP = {"beginner": 100, "intermediate": 150, "advanced": 200, "expert": 300}
 IMAGE = re.compile(r"^\s*-?\s*image:\s*['\"]?([^\s'\"#]+)", re.M)
 
 
+
+def matches(rid: str, f: str) -> bool:
+    """'module-4-storage/level-1' matches level-1-* only, not level-10-*; 'module-1' not module-10."""
+    if rid == f or rid.startswith(f + "-") or rid.startswith(f + "/"):
+        return True
+    return "module-" not in f and f in rid
+
 def lint(level: Path) -> list[str]:
     p: list[str] = []
     for f in FILES:
@@ -87,7 +94,7 @@ def main() -> int:
     filters = sys.argv[1:]
     levels = sorted(x.parent for x in (REPO / "modules").glob("*/*/mission.yaml"))
     if filters:
-        levels = [l for l in levels if any(f in f"{l.parent.name}/{l.name}" for f in filters)]
+        levels = [l for l in levels if any(matches(f"{l.parent.name}/{l.name}", f) for f in filters)]
     bad = 0
     for level in levels:
         problems = lint(level)
