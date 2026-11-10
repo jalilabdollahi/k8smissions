@@ -1,0 +1,19 @@
+# The reference cluster for K8sMissions. install.sh and scripts/test_levels.py
+# both create clusters from this file, so levels are written and tested
+# against exactly this shape: one control plane and two workers.
+#
+# The containerd patch lets an optional local registry mirror serve docker.io
+# pulls (scripts/registry-mirror.sh). Without a mirror it changes nothing.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.36.1
+  - role: worker
+    image: kindest/node:v1.36.1
+  - role: worker
+    image: kindest/node:v1.36.1
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry]
+      config_path = "/etc/containerd/certs.d"

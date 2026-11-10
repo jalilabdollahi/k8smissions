@@ -62,9 +62,14 @@ CLUSTER_NAME="k8smissions"
 
 if kind get clusters 2>/dev/null | grep -q "^${CLUSTER_NAME}$"; then
   echo "✅ Cluster '${CLUSTER_NAME}' already exists"
+  NODES=$(kubectl --context "kind-${CLUSTER_NAME}" get nodes --no-headers 2>/dev/null | wc -l | tr -d ' ')
+  if [ "${NODES}" != "3" ]; then
+    echo "⚠️  Levels expect 1 control plane + 2 workers (kind-config.yaml); this cluster has ${NODES:-?} node(s)."
+    echo "   Recreate it: kind delete cluster --name ${CLUSTER_NAME} && ./install.sh   (progress.json is kept)"
+  fi
 else
   echo "🔧 Creating Kubernetes cluster '${CLUSTER_NAME}'..."
-  kind create cluster --name "${CLUSTER_NAME}"
+  kind create cluster --name "${CLUSTER_NAME}" --config kind-config.yaml
 fi
 
 kubectl config use-context "kind-${CLUSTER_NAME}"
