@@ -1,13 +1,97 @@
-apiVersion: autoscaling.k8s.io/v1
-kind: VerticalPodAutoscaler
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: my-app-vpa
+  name: indexer-app
+  namespace: k8smissions
+data:
+  app.py: |
+    import http.server, json, os, threading, time
+
+    LOAD_DELAY = int(os.environ.get("LOAD_DELAY", "25"))
+    INDEX_MB = int(os.environ.get("INDEX_MB", "180"))
+    state = {"loaded": False, "index": None}
+
+    def load_index():
+        time.sleep(LOAD_DELAY)                       # reading shards from the object store
+        state["index"] = bytearray(b"\x01") * (INDEX_MB * 1024 * 1024)   # touched pages: real RSS
+        state["loaded"] = True
+        print("index loaded", flush=True)
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/ready":
+                code, body = (200, "ready") if state["loaded"] else (503, "loading")
+            elif self.path == "/stats":
+                code, body = 200, json.dumps({"index_loaded": state["loaded"], "index_mb": INDEX_MB if state["loaded"] else 0})
+            else:
+                code, body = 200, "search-indexer ok"
+            self.send_response(code)
+            self.end_headers()
+            self.wfile.write(body.encode())
+        def log_message(self, *a):
+            pass
+
+    threading.Thread(target=load_index, daemon=True).start()
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-indexer
   namespace: k8smissions
 spec:
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: my-app
-  updatePolicy:
-    # them. Pods are never restarted with right-sized resources, causing OOMKills.
-    updateMode: 'Off'
+  replicas: 2
+  selector:
+    matchLabels:
+      app: search-indexer
+  template:
+    metadata:
+      labels:
+        app: search-indexer
+    spec:
+      containers:
+      - name: indexer
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            memory: 128Mi
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: indexer-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-indexer
+  namespace: k8smissions
+spec:
+  selector:
+    app: search-indexer
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: search-team
+  namespace: k8smissions
+spec:
+  hard:
+    requests.memory: 1Gi
+    limits.memory: 2Gi

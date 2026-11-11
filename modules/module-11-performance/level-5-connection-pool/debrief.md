@@ -1,16 +1,14 @@
-# Database Stampede
+**What was broken.** session-db accepts at most 20 connections. cart-api runs 6 replicas with a pool of 5 each, which asks for 30. The first four pods took all 20 slots, the other two kept getting `ERR too many connections` and never became Ready, so the Service had only some of its pods.
 
-## What Was Broken
-DB_POOL_SIZE was 1 — each pod created one connection per concurrent request. 10 pods under load created thousands of concurrent connections, exhausting the database's connection limit.
+**The evidence.** The cart-api logs said `too many connections` over and over, and session-db's own counters (`active`, `rejected`) showed it sitting at its limit while `rejected` kept growing. The trap came with the obvious fix: a pool of 3 gives 6 x 3 = 18, which is under 20 and looks right, and it even works until the next deploy.
 
-## The Fix
-Increase DB_POOL_SIZE to 5-10 per pod. With 10 pods and pool_size=5, max concurrent connections = 50 — well within PostgreSQL's limit.
+**Why Kubernetes behaved this way.** A rolling update does not replace pods one for one. With `maxSurge: 2` the Deployment starts 2 extra pods before it stops the old ones. Each new pod opens its full pool immediately, while the old pods still hold theirs. At the peak there are 8 pods, so 8 x 3 = 24 connections are wanted and 4 are refused. Pool sizing therefore has to be done for (replicas + surge) x pool, not replicas x pool.
 
-## Why It Matters
-Connection pool sizing formula: max_connections = pods * pool_size. Target 50-80% of DB max_connections. For large deployments, use pgBouncer as a connection proxy to multiplex thousands of app connections into hundreds of DB connections.
+**The fix.** A pool of 2 gives 16 at the peak. The other fix is to keep a pool of 3 and set `maxSurge: 0` so no extra pods exist (a trade of rollout speed for connection budget). Reducing the replica count would also fit, but it throws away capacity the objective requires.
 
-## Pro Tip
-Kubernetes-native connection pooling: PgBouncer as a sidecar container (per pod) or as a separate deployment. Sidecar: each pod connects to localhost:5432 (pgBouncer), which pools to the real DB — consistent connection management regardless of app framework.
+**In production.** Put a pooler (PgBouncer, ProxySQL) between the apps and the database so the connection count no longer scales with pod count, and treat `max_connections` as a budget shared by every Deployment, Job and rollout. Retry with jitter instead of retrying in lockstep.
 
-## Concepts
-connection pooling, DB connections, pool_size, connection storm, pgBouncer
+**Worth remembering.**
+- `kubectl get deploy <name> -o jsonpath='{.spec.strategy}'`
+- `kubectl set env deployment/<name> KEY=value`
+- `kubectl rollout restart deployment/<name>`

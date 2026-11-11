@@ -1,1 +1,3 @@
-Increase `DB_POOL_SIZE` from `1` to `5` to allow 5 concurrent connections per pod (50 total). Also add `DB_POOL_TIMEOUT: 30` and `DB_POOL_MAX_OVERFLOW: 10` to handle burst traffic gracefully.
+Work out (replicas + surge) x pool <= 20 and set the number the app reads:
+  kubectl set env deployment/cart-api DB_POOL_SIZE=<n>
+(or change `maxSurge` in the Deployment's rolling update strategy and size the pool for the pods that remain). Then restart and re-read the db's rejected counter.

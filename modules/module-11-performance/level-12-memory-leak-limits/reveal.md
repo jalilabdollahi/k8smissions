@@ -1,23 +1,9 @@
-## What went wrong
+**profile-api leaks.** Its snapshot cache grows by about 2Mi per second because `CACHE_MAX_MB=0` means "never evict". Bound it, to something well under the 128Mi limit:
 
-Without a memory limit, the container's cgroup has no memory ceiling. As memory leaks accumulate, the container grows until the entire node runs out of memory. At that point, the Linux OOM killer selects processes to kill based on OOM score — often killing other pods, not the leaky one. The leaky pod (having the most memory) actually has a negative OOM adjustment and may survive while innocent pods are killed.
+    kubectl set env deployment/profile-api -n k8smissions CACHE_MAX_MB=48
 
-## Fix
+Memory then rises to the bound and stays flat. A larger limit would only delay the OOM kill.
 
-```yaml
-resources:
-  requests:
-    cpu: 100m
-    memory: 256Mi
-  limits:
-    cpu: 500m
-    memory: 512Mi
-```
+**render-svc has a plateau above its limit.** It loads a fixed 180Mi template set at start and then stays at about 195Mi. A 128Mi limit can never hold that. Lowering `TEMPLATE_CACHE_MB` makes `/render` answer 500 (incomplete output), so the answer is more memory:
 
-## Why this matters
-
-Memory limits enforce container-level isolation. When a container exceeds its memory limit, the kernel OOM-kills only that container — Kubernetes then restarts it based on the `restartPolicy`. This is contained blast radius vs. node-wide OOM. Trade-offs:
-- Setting limits too low: frequent OOMKills even for healthy memory growth
-- Setting limits too high: insufficient isolation from memory leaks
-
-A memory leak should be fixed, not just contained — but limits prevent blast radius while the fix ships. Monitor `container_oom_events_total` in Prometheus. Consider setting `limits.memory` to 2× `requests.memory` for containers with known variable memory usage.
+    kubectl set resources deployment/render-svc -n k8smissions --requests=memory=224Mi --limits=memory=288Mi

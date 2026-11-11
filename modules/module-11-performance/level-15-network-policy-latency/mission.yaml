@@ -1,17 +1,15 @@
 {
-  "name": "Firewall Tax",
-  "description": "After adding a NetworkPolicy to restrict pod-to-pod traffic, latency increased by 2–3ms per hop. The NetworkPolicy is correct and correctly limits traffic — but the network plugin is using an iptables-based implementation that scales poorly with rule count. The fix is to switch to a Cilium eBPF data plane that provides O(1) rule lookup.",
-  "objective": "NetworkPolicy is implemented via kube-proxy iptables rules — each packet traverses thousands of rules. Switch to Cilium eBPF for O(1) policy evaluation",
-  "xp": 375,
-  "difficulty": "advanced",
-  "expected_time": "18m",
-  "concepts": [
-    "NetworkPolicy",
-    "iptables",
-    "Cilium",
-    "eBPF",
-    "network performance"
-  ],
+  "name": "The Five Second Name",
+  "description": "After the security team added an egress NetworkPolicy to price-feed, almost everything works: quotes and currency lookups answer in milliseconds. But every lookup of sku-history.catalog.internal either takes exactly five seconds or fails with a temporary resolution error, and the SKU history page times out. DNS is up, the Service has endpoints and the policy explicitly allows DNS to the in-namespace resolver.",
+  "objective": "From a price-feed pod, lookups of sku-history.catalog.internal succeed in under 500ms (10 out of 10) and still return the full address list, the small names still resolve, and price-feed can still not reach anything else: its egress stays restricted.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["DNS over TCP", "UDP truncation", "NetworkPolicy egress", "musl resolver", "dig/nslookup"],
   "module": "module-11-performance",
-  "level": "level-15-network-policy-latency"
+  "level": "level-15-network-policy-latency",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 90,
+  "cleanup": []
 }

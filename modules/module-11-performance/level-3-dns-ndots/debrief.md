@@ -1,16 +1,14 @@
-# DNS Flood
+**What was broken.** rate-limiter resolves `quotas.payments.internal` about 25 times a second. Each lookup cost four DNS queries instead of one, so the resolver (and the zone behind it) handled four times the load it needed to, and every lookup waited for three NXDOMAIN answers first.
 
-## What Was Broken
-Default ndots: 5 caused 5 DNS lookups for every single-word hostname (db, cache, api). With the app querying 3 hostnames every 100ms, that's 150 DNS queries/second. The app was the source of the DNS storm.
+**The evidence.** The dns-lab log showed, for every lookup, the same name with three suffixes (`.k8smissions.svc.cluster.local`, `.svc.cluster.local`, `.cluster.local`) answered NXDOMAIN, then the plain name answered NOERROR. The pod's `/etc/resolv.conf` explained why: `options ndots:5` and a `search` list of three domains.
 
-## The Fix
-Set ndots: 2 (or use FQDNs). With ndots: 2, names with 2+ dots are treated as FQDNs directly — much fewer unnecessary lookups.
+**Why Kubernetes behaved this way.** Kubernetes defaults pods to `ndots:5` so that short Service names like `session-cache` or `db.prod` resolve through the search list. The price is that any name with fewer than five dots is treated as relative and expanded with every search domain before it is tried as written. `quotas.payments.internal` has only two dots, so it pays that price on every call, for an answer that was never in the cluster domain.
 
-## Why It Matters
-ndots recommendation: set to 2 for most applications. This means: 'db' still tries search domains (1 dot), but 'db.namespace' goes direct (2 dots = FQDN treatment). For microservices always use FQDNs: service.namespace.svc.cluster.local.
+**The fix.** Either lower `ndots` for this pod (2 is enough, since the name has two dots), or write the name as an absolute name with a trailing dot, which skips the search list entirely. Emptying the search list also reduces queries but would break `session-cache`, which the same app resolves by its short name.
 
-## Pro Tip
-Enable NodeLocal DNSCache (1.18+) to reduce load on kube-dns: a DaemonSet caches DNS on each node, drastically reducing centralized DNS load. Critical for high-throughput microservices.
+**In production.** External names (APIs, databases outside the cluster) are the usual victims. Use FQDNs with a trailing dot in configuration where you can, set `ndots:2` for pods that mostly talk outside the cluster, and put a caching resolver such as NodeLocal DNSCache in front of CoreDNS. Count queries in the log instead of guessing.
 
-## Concepts
-DNS, ndots, resolv.conf, DNS performance, FQDN, NodeLocal DNSCache
+**Worth remembering.**
+- `kubectl exec <pod> -- cat /etc/resolv.conf`
+- `kubectl logs deploy/<dns> --since=20s | grep -c <name>`
+- `kubectl explain pod.spec.dnsConfig.options`

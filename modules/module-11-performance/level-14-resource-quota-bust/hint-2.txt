@@ -1,1 +1,2 @@
-You should see the `Used` values at or near the `Hard` limits. The quota has `requests.cpu: 4` and `requests.memory: 8Gi` but the sum of all pod requests exceeds these values. Any new pod or scale-up is rejected.
+Quota counts requests, not usage. During a rolling update the Deployment may run extra pods (maxSurge) next to the old ones, and each one needs its requests to fit under what is left of the quota. There are several honest ways to make room: the surge pod can be avoided, its size can match what the app really uses, or the quota can be freed up by workloads that do nothing (but that is another team's call). The quota itself is not yours to change.
+See: kubectl explain deployment.spec.strategy.rollingUpdate  and  kubectl explain pod.spec.containers.resources

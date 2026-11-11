@@ -1,1 +1,4 @@
-Watch the rollout: `kubectl rollout status deployment/slow-deploy -n k8smissions`. Count how many pods are updated at each step — you should see exactly 1 pod updating at a time.
+Time a rollout and watch what the Deployment controller does while it runs:
+  kubectl rollout restart deployment/image-resizer && kubectl get pods -l app=image-resizer -w
+  kubectl get deployment image-resizer -o yaml | grep -B2 -A8 "strategy\|minReady"
+Count how many pods are replaced at once, and how long each one takes before it counts as available.

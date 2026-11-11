@@ -1,1 +1,4 @@
-Time how long in-flight requests take: `kubectl exec <pod> -n k8smissions -- curl -s -w '%{time_total}' http://localhost:80/slow-endpoint`. Then check the termination config: `kubectl get deployment web-server -n k8smissions -o yaml | grep -A5 terminationGrace`
+Delete a transcoder pod on purpose and watch how it dies, then compare with what the worker itself logs on SIGTERM:
+  kubectl delete pod <one video-transcoder pod> & kubectl logs -f <the same pod>
+  kubectl get --raw /api/v1/namespaces/k8smissions/services/result-collector:8081/proxy/ | head -c 300
+Also look at which process is PID 1 in the container: kubectl exec <pod> -- cat /proc/1/cmdline

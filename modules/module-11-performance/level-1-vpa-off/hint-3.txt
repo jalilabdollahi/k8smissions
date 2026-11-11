@@ -1,1 +1,3 @@
-The VPA has `updatePolicy.updateMode: Off`. This means VPA only observes and reports — it never acts. Change it to `updateMode: Auto` so VPA will evict and restart pods with right-sized resource requests.
+Size from the number you observed after the index loaded (top, or `cat /sys/fs/cgroup/memory.current` through kubectl exec), with some headroom:
+  kubectl set resources deployment/search-indexer --requests=memory=<observed+a bit> --limits=memory=<observed+30%>
+then scale to 3 replicas and check that all three stay Ready.

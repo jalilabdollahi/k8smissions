@@ -64,3 +64,37 @@ rollout mechanics, so l2 and l13 are about metrics and speed under constraints.
 - Needs a verified fixture before authoring: `erratic` plugin delay config in
   the pinned CoreDNS image (l10), musl TCP fallback on truncation with the
   pinned `python:3.12-alpine` (l15), Envoy admin stats names (l8).
+- Built levels 1 to 9 (first half), with these changes to the map rows:
+  - l1: a memory request above the limit is invalid, so the broken pods have request = limit = 128Mi and the
+    quota is `requests.memory: 1Gi`, `limits.memory: 2Gi`. The trap is a "safe" 1Gi/1Gi sizing: the third
+    replica is then refused by the quota. `search-indexer` readiness waits for the index (about 25s).
+  - l2: a `queue-feeder` pod keeps the load on; the validator adds its own load pod and accepts a
+    `ContainerResource` metric as well as a request on the sidecar.
+  - l3: the CoreDNS copy has a pinned Service IP (`10.96.150.53`) so the client can use `dnsPolicy: None`.
+  - l5: `cart-api` has `maxSurge: 2, maxUnavailable: 3`; a pool of 3 passes steady state (18) and overflows
+    during an update (8 pods x 3 = 24). `maxUnavailable` is 3 so the broken state can be unstuck by a rollout.
+  - l7: the validator drains with the Eviction API on the level's own pods only (never kube-system).
+  - l9: the leak is a label mismatch in the exporter's own cleanup (creates `app=exporter`, deletes
+    `app=exporter-output`); the mounted ConfigMap `export-result-0042` is the trap for label deletes.
+  - Fixtures live in `modules/module-11-performance/_fixtures/` (README documents the spikes: CoreDNS `log`
+    and zone blocks, musl ndots query counts, Envoy stat names, cgroup files).
+- Built levels 10 to 18 (second half), with these changes to the map rows:
+  - l10: `erratic` answers every name with TTL 0, so the upstream also uses `rewrite ttl suffix .session.internal. 300`; the
+    cache's `cache { success 9984 1 }` is the TTL-cap fault. The cache is a Service `dns-cache` (pinned ClusterIP
+    `10.96.150.111`, `internalTrafficPolicy: Local`) in front of a DaemonSet; upstream is `10.96.150.110`. Readiness uses the
+    `health` plugin (`ready` answers 503 with `erratic`). The Corefile edit needs a DaemonSet restart (second trap).
+  - l11: a `result-collector` records started/done/bye events; the "shell as PID 1" trap needs a command after `python`
+    (`sh -c "...; python worker.py; echo ..."`), because busybox ash execs the last command of `-c`.
+  - l12: the leak knob is the env var `CACHE_MAX_MB` (0 = unbounded); `render-svc` answers 500 if `TEMPLATE_CACHE_MB` < 180.
+  - l13: 40 replicas, per-wave time about 10s; budget 30s, availability floor 30 of 40 (`availableReplicas`).
+  - l14: quota is `requests.cpu: 1500m`; `payments-web` 4 x 280m, `batch-reprocess` 250m, strategy `maxSurge: 1, maxUnavailable: 0`.
+    Probe pods need quota headroom too, so the numbers leave 130m free.
+  - l15: DNS answer of 60 A records over UDP 53 only; the validator runs lookups inside a price-feed pod and checks that a
+    `ledger-sink` pod stays unreachable.
+  - l16: `setup.sh` cordons the second worker while the pods are scheduled. Editing the pod template rolls the Deployment, so
+    the "restart needed" trap of the map row does not exist; the trap is the selector that matches nothing (and `maxSurge: 0,
+    maxUnavailable: 1` keeps the rollout from deadlocking on required anti-affinity). No PDB (l7 owns it).
+  - l17: SLO checked at 98% (single retry) because detection by readiness costs a few seconds of a 1-in-4 hang; a `wedge-once`
+    Job wedges one pod 15s after start; `/live` is slow every 8th call so `failureThreshold: 1` restarts healthy pods.
+  - l18: NXDOMAIN from CoreDNS cannot be delayed (no plugin), so the DNS fault is query count (4 per lookup, counted in the
+    copy's log); one `storefront` replica (so one client IP for the affinity fault), `page-client` for the player to read.

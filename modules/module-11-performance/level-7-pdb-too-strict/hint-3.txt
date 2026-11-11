@@ -1,1 +1,3 @@
-The PDB has `minAvailable: 3` but the deployment only has 3 replicas — no disruptions are ever allowed. Change `minAvailable` to `2` to allow 1 pod to be evicted at a time while keeping 2 available.
+Change what each budget allows rather than deleting it:
+  kubectl patch pdb orders-api --type=merge -p '{"spec":{"minAvailable":null,"maxUnavailable":<n>}}'
+For orders-cache the budget cannot allow a drain with a single replica unless it tolerates that pod going away, or there is a second replica to keep up (then minAvailable: 1 is fine). Check the effect with kubectl get pdb.

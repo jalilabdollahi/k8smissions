@@ -1,1 +1,4 @@
-Watch the HPA in real time: `kubectl get hpa my-hpa -n k8smissions -w`. You should see rapid replica count changes after load spikes end — up to 10 replicas during load, dropping immediately to 2 when load drops.
+The HPA tells you why it cannot compute a number, in its own words:
+  kubectl describe hpa thumbnailer      (look at Conditions and Events)
+Then compare that message with what the pod declares:
+  kubectl get pod -l app=thumbnailer -o jsonpath='{range .items[0].spec.containers[*]}{.name}{"  "}{.resources}{"\n"}{end}'

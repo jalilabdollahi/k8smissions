@@ -1,10 +1,142 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orders-app
+  namespace: k8smissions
+data:
+  app.py: |
+    import http.server, os, signal, threading
+
+    NAME = os.environ.get("SERVICE", "orders")
+    # keep answering for 3s after SIGTERM so endpoint removal can catch up
+    signal.signal(signal.SIGTERM, lambda *a: threading.Timer(3, os._exit, [0]).start())
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(("%s ok\n" % NAME).encode())
+        def log_message(self, *a):
+            pass
+
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+  namespace: k8smissions
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: orders-api
+  template:
+    metadata:
+      labels:
+        app: orders-api
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
+        env:
+        - {name: SERVICE, value: orders-api}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 1
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: orders-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-api
+  namespace: k8smissions
+spec:
+  selector:
+    app: orders-api
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-cache
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-cache
+  template:
+    metadata:
+      labels:
+        app: orders-cache
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: cache
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
+        env:
+        - {name: SERVICE, value: orders-cache}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 1
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: orders-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-cache
+  namespace: k8smissions
+spec:
+  selector:
+    app: orders-cache
+  ports:
+  - port: 80
+    targetPort: 8080
+---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: my-pdb
+  name: orders-api
   namespace: k8smissions
 spec:
   minAvailable: 3
   selector:
     matchLabels:
-      app: my-app
+      app: orders-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: orders-cache
+  namespace: k8smissions
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: orders-cache

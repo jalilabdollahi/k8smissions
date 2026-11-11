@@ -1,1 +1,2 @@
-The pod reaches Running state and Kubernetes marks it Ready because there's no readinessProbe defined. Without a probe, Kubernetes assumes the pod is ready the moment the container starts — but a Java application can take 30+ seconds to fully initialize.
+A pod is Ready only when all containers are Ready *and* every condition listed in `spec.readinessGates` is True. Something outside the kubelet has to write those conditions, and it has to write them by exact type name. Compare the type the pod waits for with the type the controller writes.
+See: kubectl explain pod.spec.readinessGates

@@ -1,1 +1,2 @@
-With iptables-based NetworkPolicy enforcement (e.g., kube-proxy iptables mode), each new NetworkPolicy rule adds iptables chain entries that are traversed linearly. With hundreds of policies, every packet traverses hundreds of iptables rules — adding measurable latency.
+A DNS answer that does not fit in a 512 byte UDP reply comes back truncated (the TC flag) and the resolver is expected to repeat the question over TCP. Read the NetworkPolicy's egress ports for the protocol it lists, and think about what the client does after the truncated reply and how long it waits for a TCP connection that never completes.
+See: kubectl describe networkpolicy price-feed-egress  and  kubectl explain networkpolicy.spec.egress.ports

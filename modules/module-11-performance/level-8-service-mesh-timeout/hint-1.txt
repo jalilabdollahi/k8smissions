@@ -1,1 +1,3 @@
-Check the Istio VirtualService timeout: `kubectl get virtualservice backend-vs -n k8smissions -o yaml | grep timeout`
+Envoy tells you why it answered 504, in its access log and in its own counters:
+  kubectl logs deploy/invoice-render -c envoy --tail=5      (look for 504 and the response flag UT)
+  kubectl exec deploy/invoice-render -c app -- python -c "import urllib.request as u;print(u.urlopen('http://127.0.0.1:9901/stats?filter=upstream_rq_timeout').read().decode())"

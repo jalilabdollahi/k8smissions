@@ -1,1 +1,5 @@
-Three fixes: (1) add `dnsConfig.options.ndots: 2` to dns-pod and use FQDN in the command; (2) increase `throttled-api` CPU limit to `2000m` while keeping request at `200m`; (3) change `slow-rollout` strategy to `maxSurge: 10, maxUnavailable: 0`.
+One command per layer, then measure again with the page-client log:
+  kubectl set env deployment/storefront PRICING_HOST=<the name written as a fully qualified domain name>
+     (or set ndots in the storefront's dnsConfig to a value below the dots in the name)
+  kubectl set resources deployment/pricing --requests=cpu=100m --limits=cpu=<several times the observed use>
+  kubectl patch service pricing -p '{"spec":{"sessionAffinity":"<the default>"}}'

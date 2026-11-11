@@ -1,17 +1,15 @@
 {
-  "name": "OOM Killed Daily",
-  "description": "A VerticalPodAutoscaler exists for the deployment, but pods keep getting OOMKilled. The VPA is collecting usage data and generating recommendations — but it's configured in `Off` mode, meaning it never actually applies those recommendations. Pods run with their original resource requests forever.",
-  "objective": "Enable Vertical Pod Autoscaler (VPA) in Recommendation mode to automatically determine correct resource requests/limits",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "VPA",
-    "VerticalPodAutoscaler",
-    "OOMKilled",
-    "resource tuning",
-    "recommendations"
-  ],
+  "name": "Right-Sizing Without a VPA",
+  "description": "search-indexer (2 replicas) restarts about 30 seconds after every start, right when it finishes loading its index. Pod status shows OOMKilled. The team asked for a VerticalPodAutoscaler, but none is installed in this cluster, and the capacity plan says search-indexer must run 3 replicas by the end of the week. The namespace has a memory quota.",
+  "objective": "Deployment search-indexer runs 3 Ready replicas that stay up (no new restarts) after loading their index, with a memory limit above what the process really uses and a request that reflects it, all inside the namespace quota.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["kubectl top", "right-sizing", "OOMKilled", "ResourceQuota", "requests vs limits"],
   "module": "module-11-performance",
-  "level": "level-1-vpa-off"
+  "level": "level-1-vpa-off",
+  "requires": ["metrics-server"],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

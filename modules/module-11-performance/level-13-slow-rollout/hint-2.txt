@@ -1,1 +1,2 @@
-Check the rolling update strategy: `kubectl get deployment slow-deploy -n k8smissions -o yaml | grep -A5 rollingUpdate`. With `maxSurge: 0` and `maxUnavailable: 1`, the deployment creates no extra capacity and removes/replaces exactly 1 pod at a time.
+Total time is roughly (number of waves) x (time for one wave). The number of waves depends on how many pods may be replaced at once (maxSurge extra pods, maxUnavailable fewer pods). The length of a wave is the container start, the readiness probe's initialDelaySeconds and the Deployment's minReadySeconds. Both parts matter, and the capacity floor (30 of 40 available) limits how aggressive maxUnavailable can be.
+See: kubectl explain deployment.spec.strategy.rollingUpdate  and  kubectl explain deployment.spec.minReadySeconds

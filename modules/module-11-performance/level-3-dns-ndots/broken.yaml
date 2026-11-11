@@ -1,20 +1,157 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: dns-heavy-app
+  name: dns-lab-corefile
+  namespace: k8smissions
+data:
+  Corefile: |
+    payments.internal:53 {
+        log
+        hosts {
+            10.20.30.40 quotas.payments.internal
+        }
+    }
+    svc.cluster.local:53 {
+        log
+        file /etc/coredns/svc.zone svc.cluster.local
+    }
+    .:53 {
+        log
+        template ANY ANY {
+            rcode NXDOMAIN
+        }
+    }
+  svc.zone: |
+    $ORIGIN svc.cluster.local.
+    @    3600 IN SOA ns.svc.cluster.local. admin.svc.cluster.local. 1 7200 3600 1209600 3600
+    @    3600 IN NS  ns.svc.cluster.local.
+    ns   3600 IN A   10.20.30.1
+    session-cache.k8smissions 3600 IN A 10.20.30.41
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-lab
   namespace: k8smissions
 spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - while true; do nslookup db; nslookup cache; nslookup api; sleep 0.1; done
-    resources:
-      requests:
-        cpu: 50m
-        memory: 32Mi
-      limits:
-        cpu: 100m
-        memory: 64Mi
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-lab
+  template:
+    metadata:
+      labels:
+        app: dns-lab
+    spec:
+      containers:
+      - name: coredns
+        image: registry.k8s.io/coredns/coredns:v1.14.2
+        args: ["-conf", "/etc/coredns/Corefile"]
+        ports:
+        - {containerPort: 53, protocol: UDP}
+        - {containerPort: 53, protocol: TCP}
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/coredns
+      volumes:
+      - name: conf
+        configMap:
+          name: dns-lab-corefile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-lab
+  namespace: k8smissions
+spec:
+  clusterIP: 10.96.150.53
+  selector:
+    app: dns-lab
+  ports:
+  - {name: dns, port: 53, protocol: UDP}
+  - {name: dns-tcp, port: 53, protocol: TCP}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rate-limiter-app
+  namespace: k8smissions
+data:
+  app.py: |
+    import json, os, socket, time
+
+    HOST = os.environ.get("QUOTAS_HOST", "quotas.payments.internal")
+    WANT = "10.20.30.40"
+    SHORT = "session-cache"
+    s = {"lookups": 0, "ok": 0, "wrong": 0, "fail": 0, "short_ok": 0, "short_fail": 0}
+    lat = []
+    last = time.time()
+    n = 0
+    while True:
+        n += 1
+        t0 = time.time()
+        try:
+            addr = socket.getaddrinfo(HOST, None, socket.AF_INET)[0][4][0]
+            s["lookups"] += 1
+            if addr == WANT:
+                s["ok"] += 1
+            else:
+                s["wrong"] += 1
+        except OSError:
+            s["lookups"] += 1
+            s["fail"] += 1
+        lat.append((time.time() - t0) * 1000)
+        if n % 5 == 0:
+            try:
+                socket.getaddrinfo(SHORT, None, socket.AF_INET)
+                s["short_ok"] += 1
+            except OSError:
+                s["short_fail"] += 1
+        if time.time() - last >= 2:
+            lat.sort()
+            s["p95_ms"] = round(lat[int(len(lat) * 0.95)], 1) if lat else 0
+            print(json.dumps(s), flush=True)
+            s = {"lookups": 0, "ok": 0, "wrong": 0, "fail": 0, "short_ok": 0, "short_fail": 0}
+            lat = []
+            last = time.time()
+        time.sleep(0.04)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rate-limiter
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rate-limiter
+  template:
+    metadata:
+      labels:
+        app: rate-limiter
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers: ["10.96.150.53"]
+        searches:
+        - k8smissions.svc.cluster.local
+        - svc.cluster.local
+        - cluster.local
+        options:
+        - name: ndots
+          value: "5"
+      containers:
+      - name: limiter
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
+        env:
+        - name: QUOTAS_HOST
+          value: quotas.payments.internal
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: rate-limiter-app

@@ -1,9 +1,171 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: etcd-config
-  namespace: kube-system
+  name: current-release
+  namespace: k8smissions
 data:
-  quota-backend-bytes: '2147483648'
-  auto-compaction-mode: periodic
-  auto-compaction-retention: 1h
+  version: "2026.11.3"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: exporter-script
+  namespace: k8smissions
+data:
+  export.py: |
+    import json, os, ssl, time, urllib.request
+
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    NS = open(SA + "/namespace").read()
+    CTX = ssl.create_default_context(cafile=SA + "/ca.crt")
+    API = "https://kubernetes.default.svc/api/v1/namespaces/%s/configmaps" % NS
+
+    def call(method, url, body=None):
+        req = urllib.request.Request(
+            url, method=method, data=json.dumps(body).encode() if body is not None else None,
+            headers={"Authorization": "Bearer " + open(SA + "/token").read(),
+                     "Content-Type": "application/json"})
+        return json.load(urllib.request.urlopen(req, context=CTX, timeout=10))
+
+    rows = 4200 + int(time.time()) % 100          # pretend export
+    name = "export-result-%d" % int(time.time() * 1000)
+    call("POST", API, {"apiVersion": "v1", "kind": "ConfigMap",
+                       "metadata": {"name": name, "labels": {"app": "exporter"}},
+                       "data": {"rows": str(rows), "run": time.strftime("%Y-%m-%dT%H:%M:%SZ")}})
+    print("exported %d rows into %s" % (rows, name))
+
+    # keep only the newest result: delete the others
+    old = call("GET", API + "?labelSelector=app%3Dexporter-output")["items"]
+    for cm in old:
+        if cm["metadata"]["name"] != name:
+            call("DELETE", API + "/" + cm["metadata"]["name"])
+            print("deleted old result %s" % cm["metadata"]["name"])
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: billing-script
+  namespace: k8smissions
+data:
+  billing.py: |
+    import http.server
+
+    ROWS = open("/ref/rows").read().strip()      # reference row count from a past export
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(("billing-web reference rows: %s\n" % ROWS).encode())
+        def log_message(self, *a):
+            pass
+
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: exporter
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: exporter
+  namespace: k8smissions
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: exporter
+  namespace: k8smissions
+subjects:
+- kind: ServiceAccount
+  name: exporter
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: exporter
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: exporter
+  namespace: k8smissions
+spec:
+  schedule: "*/10 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          serviceAccountName: exporter
+          restartPolicy: Never
+          containers:
+          - name: export
+            image: python:3.12-alpine
+            command: ["python", "-u", "/app/export.py"]
+            volumeMounts:
+            - name: app
+              mountPath: /app
+          volumes:
+          - name: app
+            configMap:
+              name: exporter-script
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-web
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-web
+  template:
+    metadata:
+      labels:
+        app: billing-web
+    spec:
+      terminationGracePeriodSeconds: 2
+      containers:
+      - name: web
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/billing.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 2
+        volumeMounts:
+        - name: app
+          mountPath: /app
+        - name: ref
+          mountPath: /ref
+      volumes:
+      - name: app
+        configMap:
+          name: billing-script
+      - name: ref
+        configMap:
+          name: export-result-0042
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: object-counts
+  namespace: k8smissions
+spec:
+  hard:
+    count/configmaps: "100"

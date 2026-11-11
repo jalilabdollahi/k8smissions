@@ -1,1 +1,3 @@
-Check CPU throttle metrics: `kubectl top pod -n k8smissions -l app=api-server`. Then look at the resource configuration: `kubectl get deployment api-server -n k8smissions -o yaml | grep -A8 resources`
+Average CPU is not the whole story. The kernel keeps its own counters per container; read them from inside a pod, twice, a few seconds apart under load:
+  kubectl exec deploy/quote-api -- cat /sys/fs/cgroup/cpu.stat
+Look at nr_periods, nr_throttled and throttled_usec, and at the pod's client log (kubectl logs quote-client).

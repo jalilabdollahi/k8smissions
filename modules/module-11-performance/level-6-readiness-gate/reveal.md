@@ -1,19 +1,6 @@
-## What went wrong
+The catalog-web pods wait for the condition `catalog.k8smissions.io/warm` in `spec.readinessGates`, but the `warmup-gate` controller sets `catalog.k8smissions.io/warmed`. The gate condition therefore never becomes True, so the pods are `ContainersReady` but never `Ready`, and the Service has no endpoints.
 
-Without a `readinessProbe`, kubelet marks the container as ready immediately when it starts running. The rolling update controller sees the new pod as ready and proceeds to terminate the old pod — before the Java application has loaded its Spring context, opened database connections, and warmed its caches. The brief window where both old and new pods are in transition creates the 502 errors.
-
-## Fix
-
-```yaml
-readinessProbe:
-  httpGet:
-    path: /health/ready
-    port: 8080
-  initialDelaySeconds: 30
-  periodSeconds: 5
-  failureThreshold: 3
-```
-
-## Why this matters
-
-Readiness probes gate traffic routing — a pod not passing its readiness probe is removed from Service endpoint lists and receives no traffic. This is distinct from liveness probes (which restart failing containers). The `initialDelaySeconds` skips probing during known-slow startup. The `periodSeconds` and `failureThreshold` control how quickly readiness is detected and lost. For JVM applications, `initialDelaySeconds: 30–60` is typical. For containerized apps exposing a `/health/ready` endpoint (Spring Actuator, Quarkus health, Go health checks), the probe should verify actual readiness — not just 'process is running'.
+1. `kubectl get pod <pod> -o jsonpath='{.status.conditions}'` shows `ContainersReady True`, `Ready False` and a `warmed` condition the pod does not wait for.
+2. `kubectl logs deploy/warmup-gate` prints the type it manages (`catalog.k8smissions.io/warmed`).
+3. `kubectl set env deployment/warmup-gate CONDITION_TYPE=catalog.k8smissions.io/warm` makes the controller write what the pods wait for. Existing pods become Ready within a second or two.
+4. (Equivalent: change `readinessGates` in the catalog-web template to `catalog.k8smissions.io/warmed`, which triggers a rollout.)

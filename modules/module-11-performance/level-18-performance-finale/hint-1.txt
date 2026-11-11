@@ -1,1 +1,5 @@
-Start with observation: `kubectl top pods -n k8smissions` for CPU usage, `kubectl rollout status deployment/slow-rollout -n k8smissions` for rollout progress, and `kubectl exec dns-pod -n k8smissions -- cat /etc/resolv.conf` for DNS config. Identify all three problems before touching anything.
+Follow one request through the layers and measure each hop instead of guessing. Start with what the standing client sees, then look at each layer's own evidence:
+  kubectl logs page-client --tail=3
+  kubectl logs deploy/catalog-dns --tail=8                       (what does one page view cost the resolver?)
+  kubectl exec deploy/pricing -- cat /sys/fs/cgroup/cpu.stat      (is pricing frozen by its CPU quota?)
+  kubectl exec <each pricing pod> -- python -c "import urllib.request;print(urllib.request.urlopen('http://127.0.0.1:8080/stats').read())"

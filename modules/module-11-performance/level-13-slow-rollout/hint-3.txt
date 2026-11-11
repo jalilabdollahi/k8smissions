@@ -1,1 +1,3 @@
-The strategy has `maxSurge: 0` and `maxUnavailable: 1`. Change to `maxSurge: 10` and `maxUnavailable: 0` to replace 10 pods in parallel while keeping all original pods running until replacements are ready.
+Change the parallelism and the per-wave wait together, then time a rollout again:
+  kubectl patch deployment image-resizer --type=merge -p '{"spec":{"minReadySeconds":<smaller>,"strategy":{"rollingUpdate":{"maxSurge":"<percent>","maxUnavailable":"<percent below 25%>"}}}}'
+  kubectl rollout restart deployment/image-resizer && kubectl rollout status deployment/image-resizer

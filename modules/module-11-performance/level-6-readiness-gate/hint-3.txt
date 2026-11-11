@@ -1,1 +1,3 @@
-The Deployment has no `readinessProbe`. Add one that checks `GET /health/ready` on port 8080 with `initialDelaySeconds: 30` to give the JVM time to warm up before traffic is sent.
+The two names must match exactly. Fix whichever side you prefer (the controller's CONDITION_TYPE variable, or the gate in catalog-web's pod template):
+  kubectl set env deployment/warmup-gate CONDITION_TYPE=<the type the pods wait for>
+Then restart catalog-web and watch for 503s; the gate must keep protecting cold pods.

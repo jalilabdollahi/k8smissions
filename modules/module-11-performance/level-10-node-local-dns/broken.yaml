@@ -1,10 +1,196 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: node-local-dns
-  namespace: kube-system
+  name: dns-upstream-corefile
+  namespace: k8smissions
 data:
-  Corefile: "cluster.local:53 {\n    errors\n    cache 30\n    reload\n    loop\n\
-    \    bind 169.254.20.10\n    forward . __PILLAR__CLUSTER__DNS__\n    prometheus\
-    \ :9253\n}\n"
-  enabled: 'false'
+  Corefile: |
+    .:53 {
+        log
+        health
+        rewrite ttl suffix .session.internal. 300
+        erratic {
+            delay 1 80ms
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-upstream
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dns-upstream
+  template:
+    metadata:
+      labels:
+        app: dns-upstream
+    spec:
+      containers:
+      - name: coredns
+        image: registry.k8s.io/coredns/coredns:v1.14.2
+        args: ["-conf", "/etc/coredns/Corefile"]
+        ports:
+        - {containerPort: 53, protocol: UDP}
+        readinessProbe:
+          httpGet: {path: /health, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/coredns
+      volumes:
+      - name: conf
+        configMap:
+          name: dns-upstream-corefile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-upstream
+  namespace: k8smissions
+spec:
+  clusterIP: 10.96.150.110
+  selector:
+    app: dns-upstream
+  ports:
+  - {name: dns, port: 53, protocol: UDP}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dns-cache-corefile
+  namespace: k8smissions
+data:
+  Corefile: |
+    .:53 {
+        log
+        health
+        cache {
+            success 9984 1
+        }
+        forward . 10.96.150.110
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: dns-cache
+  namespace: k8smissions
+spec:
+  selector:
+    matchLabels:
+      app: dns-cache
+  template:
+    metadata:
+      labels:
+        app: dns-cache
+    spec:
+      containers:
+      - name: coredns
+        image: registry.k8s.io/coredns/coredns:v1.14.2
+        args: ["-conf", "/etc/coredns/Corefile"]
+        ports:
+        - {containerPort: 53, protocol: UDP}
+        readinessProbe:
+          httpGet: {path: /health, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/coredns
+      volumes:
+      - name: conf
+        configMap:
+          name: dns-cache-corefile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dns-cache
+  namespace: k8smissions
+spec:
+  clusterIP: 10.96.150.111
+  internalTrafficPolicy: Local
+  selector:
+    app: dns-cache
+  ports:
+  - {name: dns, port: 53, protocol: UDP}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: session-gw-app
+  namespace: k8smissions
+data:
+  gw.py: |
+    import json, random, socket, threading, time
+
+    NAMES = ["sess-%02d.session.internal." % i for i in range(30)]   # trailing dot: one query per lookup
+    PER_THREAD = 25.0                                               # lookups per second per thread
+    lock = threading.Lock()
+    lat, errs, total = [], [0], [0]
+
+    def worker():
+        nxt = time.time()
+        while True:
+            nxt += 1.0 / PER_THREAD
+            t = time.perf_counter()
+            try:
+                socket.getaddrinfo(random.choice(NAMES), None, socket.AF_INET)
+            except Exception:
+                with lock:
+                    errs[0] += 1
+            with lock:
+                lat.append((time.perf_counter() - t) * 1000)
+                total[0] += 1
+            time.sleep(max(0, nxt - time.time()))
+
+    for _ in range(4):
+        threading.Thread(target=worker, daemon=True).start()
+    while True:
+        time.sleep(5)
+        with lock:
+            rows, lat[:] = sorted(lat), []
+            e = errs[0]
+            errs[0] = 0
+            n = total[0]
+        if rows:
+            print(json.dumps({"t": int(time.time()), "n": len(rows), "errors": e, "total": n,
+                              "p50": int(rows[len(rows) // 2]), "p95": int(rows[int(len(rows) * 0.95)])}), flush=True)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: session-gw
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: session-gw
+  template:
+    metadata:
+      labels:
+        app: session-gw
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers: ["10.96.150.110"]
+        options:
+        - {name: ndots, value: "1"}
+      containers:
+      - name: gw
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/gw.py"]
+        resources:
+          requests: {cpu: 50m, memory: 32Mi}
+          limits: {memory: 96Mi}
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: session-gw-app

@@ -1,1 +1,5 @@
-Check pod distribution across nodes: `kubectl get pods -n k8smissions -l app=resilient -o wide`. How many unique nodes are in the NODE column?
+See where the replicas actually run and compare the rule with the pods it is supposed to match:
+  kubectl get pods -l app.kubernetes.io/name=checkout-api -o wide
+  kubectl get deployment checkout-api -o yaml | grep -B3 -A12 affinity
+  kubectl get pods --show-labels
+Restarting the pods did not change anything, so the rule itself needs a closer look.

@@ -1,22 +1,164 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: leak-apps
+  namespace: k8smissions
+data:
+  profile.py: |
+    import collections, http.server, os, threading, time
+
+    MAX_MB = int(os.environ.get("CACHE_MAX_MB", "0"))      # 0 means never evict
+    cache = collections.OrderedDict()
+
+    def grow():
+        n = 0
+        while True:
+            cache[n] = b"p" * (1 << 20)                    # one profile snapshot, about 1Mi
+            n += 1
+            while MAX_MB and len(cache) > MAX_MB:
+                cache.popitem(last=False)
+            time.sleep(0.5)
+
+    def report():
+        while True:
+            time.sleep(10)
+            print("profile cache: %d snapshots, bound=%s" % (len(cache), MAX_MB or "none"), flush=True)
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'{"user": 1, "plan": "pro"}')
+        def log_message(self, *a):
+            pass
+
+    threading.Thread(target=grow, daemon=True).start()
+    threading.Thread(target=report, daemon=True).start()
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+  render.py: |
+    import http.server, os, threading, time
+
+    NEED_MB = 180                                          # the full template set
+    CACHE_MB = int(os.environ.get("TEMPLATE_CACHE_MB", "180"))
+    chunks, warm = [], threading.Event()
+
+    def warmup():
+        for _ in range(CACHE_MB):
+            chunks.append(b"t" * (1 << 20))
+            time.sleep(0.04)
+        print("template cache warm: %dMi of %dMi" % (CACHE_MB, NEED_MB), flush=True)
+        warm.set()
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if not warm.is_set():
+                self.send_response(503)
+            elif self.path.startswith("/render") and CACHE_MB < NEED_MB:
+                self.send_response(500)                    # partial template set: broken output
+            else:
+                self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"ok")
+        def log_message(self, *a):
+            pass
+
+    threading.Thread(target=warmup, daemon=True).start()
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: leaky-app
+  name: profile-api
   namespace: k8smissions
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: leaky
+      app: profile-api
   template:
     metadata:
       labels:
-        app: leaky
+        app: profile-api
     spec:
       containers:
-      - name: app
-        image: leaky-app:v1
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/profile.py"]
+        env:
+        - {name: CACHE_MAX_MB, value: "0"}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
         resources:
-          requests:
-            cpu: 100m
-            memory: 256Mi
+          requests: {cpu: 20m, memory: 64Mi}
+          limits: {memory: 128Mi}
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: leak-apps
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-api
+  namespace: k8smissions
+spec:
+  selector:
+    app: profile-api
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: render-svc
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: render-svc
+  template:
+    metadata:
+      labels:
+        app: render-svc
+    spec:
+      containers:
+      - name: render
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/render.py"]
+        env:
+        - {name: TEMPLATE_CACHE_MB, value: "180"}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        resources:
+          requests: {cpu: 20m, memory: 96Mi}
+          limits: {memory: 128Mi}
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: leak-apps
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: render-svc
+  namespace: k8smissions
+spec:
+  selector:
+    app: render-svc
+  ports:
+  - port: 80
+    targetPort: 8080

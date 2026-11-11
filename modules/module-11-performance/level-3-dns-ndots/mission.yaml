@@ -1,17 +1,15 @@
 {
-  "name": "DNS Flood",
-  "description": "A high-throughput application makes hundreds of DNS lookups per second using short names like `db`, `cache`, `api`. These lookups are generating massive load on kube-dns and have high latency. The default `ndots: 5` setting causes each short name to be searched across 5 DNS suffixes before resolving, multiplying DNS traffic by 5x.",
-  "objective": "The app uses short hostnames triggering FQDN search list expansion — set ndots: 2 to reduce unnecessary DNS lookups",
-  "xp": 325,
+  "name": "Fifty Lookups, Two Hundred Queries",
+  "description": "rate-limiter calls quotas.payments.internal on every request, about 25 times a second, and the payments platform team has noticed. The log of the DNS server that serves the name (dns-lab, the team's own resolver) is full of NXDOMAIN lines for that same name with odd suffixes, and the name takes several times longer to resolve than the zone itself needs. The app is working; it is just very chatty.",
+  "objective": "rate-limiter still resolves quotas.payments.internal to the right address on every lookup, and the dns-lab log shows at most 1.5 queries per lookup. The short in-cluster name session-cache the same app uses must keep resolving.",
+  "xp": 200,
   "difficulty": "advanced",
   "expected_time": "12m",
-  "concepts": [
-    "DNS",
-    "ndots",
-    "resolv.conf",
-    "kube-dns",
-    "DNS performance"
-  ],
+  "concepts": ["ndots", "search domains", "dnsConfig", "CoreDNS log", "FQDN"],
   "module": "module-11-performance",
-  "level": "level-3-dns-ndots"
+  "level": "level-3-dns-ndots",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

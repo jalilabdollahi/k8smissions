@@ -1,1 +1,4 @@
-Check the etcd quota configuration: `kubectl get configmap etcd-config -n kube-system -o yaml | grep quota-backend-bytes`
+Find out what is using the quota, and who made it:
+  kubectl describe resourcequota object-counts
+  kubectl get configmap --show-labels | head -20
+Then read what the exporter does when it runs: kubectl get configmap exporter-script -o yaml

@@ -1,1 +1,5 @@
-Check what the VPA is recommending: `kubectl describe vpa my-app-vpa -n k8smissions`. Look at the recommendation section and compare it with the pod's current resource requests.
+Look at what the container reports when it dies and what the namespace allows:
+  kubectl describe pod -l app=search-indexer     (Last State, Reason)
+  kubectl describe resourcequota
+Then watch real memory use for a minute or two, not just after a restart:
+  kubectl top pod --containers -l app=search-indexer

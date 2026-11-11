@@ -1,1 +1,3 @@
-Add `dnsConfig.options` with `ndots: 2` to reduce the search suffix attempts. Also change the DNS lookup in the container command to use the full FQDN `db.k8smissions.svc.cluster.local` instead of `db`.
+Either lower ndots in the Deployment's pod template (the name has 2 dots):
+  kubectl patch deployment rate-limiter --type=json -p '[{"op":"replace","path":"/spec/template/spec/dnsConfig/options/0/value","value":"<n>"}]'
+or change the QUOTAS_HOST environment variable to the absolute form. Keep the search list: the app also resolves short names.

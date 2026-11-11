@@ -1,1 +1,2 @@
-With `ndots: 5` (the default), a lookup for `db` becomes 5 queries: `db.k8smissions.svc.cluster.local`, `db.svc.cluster.local`, `db.cluster.local`, `db.ec2.internal`, `db`. Only the last one or the FQDN succeeds — meaning 4 failed lookups per successful one.
+A name with fewer dots than `ndots` is treated as relative: the resolver appends each `search` domain and tries them in order before it tries the name as typed. Two knobs shorten that: the `ndots` option in the pod's DNS config, or writing the name as a fully qualified name (with a trailing dot) in the app's configuration.
+See: kubectl explain pod.spec.dnsConfig

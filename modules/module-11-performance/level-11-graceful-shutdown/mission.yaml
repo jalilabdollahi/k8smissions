@@ -1,17 +1,15 @@
 {
-  "name": "In-Flight Request Drop",
-  "description": "Rolling updates cause request errors — clients receive connection resets and incomplete responses during pod termination. The pod has a `terminationGracePeriodSeconds: 5`, which is too short for in-flight requests to complete. Additionally, there's no preStop hook to delay traffic removal from the load balancer before the container starts shutting down.",
-  "objective": "Add preStop hook and terminationGracePeriodSeconds to allow graceful request completion before pod shutdown",
-  "xp": 325,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "preStop hook",
-    "terminationGracePeriodSeconds",
-    "graceful shutdown",
-    "SIGTERM",
-    "connection draining"
-  ],
+  "name": "Jobs Lost in the Deploy",
+  "description": "video-transcoder takes 15 to 25 seconds per clip. Since the team started deploying several times a day, the result-collector keeps reporting clips as started but never finished, and the support queue is full of missing thumbnails. Pods also seem to hang around for exactly 15 seconds after every rollout before they disappear, and the transcoder never logs a shutdown message.",
+  "objective": "When a video-transcoder pod running a 20 second clip is replaced, the clip is still reported as finished to result-collector and the old pod exits on its own (it reports a clean shutdown) instead of being killed.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["SIGTERM", "PID 1", "terminationGracePeriodSeconds", "exec form", "graceful shutdown"],
   "module": "module-11-performance",
-  "level": "level-11-graceful-shutdown"
+  "level": "level-11-graceful-shutdown",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,1 +1,5 @@
-Check namespace quota usage: `kubectl describe resourcequota compute-resources -n k8smissions`. Look at the `Used` vs `Hard` values for `requests.cpu` and `requests.memory`.
+Start a release and watch what the ReplicaSet reports, then compare the quota with what is reserved:
+  kubectl rollout restart deployment/payments-web
+  kubectl describe rs -l app=payments-web | tail -15
+  kubectl describe quota compute
+Who is using the 1500m, and how much of it is actually busy? (kubectl top pod)

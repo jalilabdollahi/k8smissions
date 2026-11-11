@@ -1,1 +1,5 @@
-The `quota-backend-bytes` is set to 2GB (`2147483648`). Increase it to 8GB (`8589934592`) — the recommended production value. Also verify `auto-compaction-retention: 1h` is set to prevent accumulation of old revisions.
+Make creation and cleanup agree on a label, e.g. by editing the script in the exporter-script ConfigMap:
+  kubectl edit configmap exporter-script
+Then delete the old results by label while skipping the one billing-web mounts:
+  kubectl delete configmap -l app=exporter --field-selector=metadata.name!=<mounted one>
+Test with: kubectl create job --from=cronjob/exporter test-run

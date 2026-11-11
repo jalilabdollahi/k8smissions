@@ -1,1 +1,2 @@
-The ConfigMap shows `enabled: 'false'`. NodeLocal DNSCache runs as a DaemonSet on each node, listening on a link-local IP (169.254.20.10). When disabled, pods still use the regular kube-dns path, which requires network traversal to the kube-dns pod.
+Check what each pod is told to ask. Gateway pods use dnsPolicy None, so their resolv.conf comes straight from dnsConfig: compare its nameserver with the ClusterIP of each Service (kubectl get svc). Then read the cache's Corefile, in particular the options of the cache plugin: how long may an answer be kept? A running CoreDNS only reads its Corefile at start.
+See: kubectl explain pod.spec.dnsConfig

@@ -1,17 +1,15 @@
 {
-  "name": "Slow Memory Leak",
-  "description": "A deployment is gradually consuming more and more memory over time. Eventually the pod's memory usage exceeds the node's available memory and the Linux OOM killer starts killing other pods on the same node — including unrelated, healthy workloads. The leaky pod has no memory limit set, so it grows without bound.",
-  "objective": "The pod has no memory limit — setting a limit causes OOMKill at a predictable threshold, giving time to fix the leak",
-  "xp": 325,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "memory leak",
-    "OOMKilled",
-    "memory limits",
-    "resource management",
-    "monitoring"
-  ],
+  "name": "Two Restarts, Two Stories",
+  "description": "A slow-leak alarm fired for both profile-api and render-svc: each service is restarted by the kubelet on a schedule and the on-call channel is full of OOMKilled messages. profile-api runs for about a minute at a time before it dies. render-svc never even becomes Ready. Both have the same 128Mi memory limit, and a teammate has already proposed simply giving both of them more memory.",
+  "objective": "profile-api and render-svc both run without restarting: profile-api's memory stops growing (it stays flat over a 25 second sampling window), render-svc is Ready and answers /render with 200 under a limit that comfortably covers its working set, and both containers still have memory limits.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["memory growth vs plateau", "OOMKilled", "cgroup memory.current", "bounded caches", "right-sizing limits"],
   "module": "module-11-performance",
-  "level": "level-12-memory-leak-limits"
+  "level": "level-12-memory-leak-limits",
+  "requires": ["metrics-server"],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

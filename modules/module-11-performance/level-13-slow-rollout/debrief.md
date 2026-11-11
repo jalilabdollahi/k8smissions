@@ -1,16 +1,14 @@
-# Deployment Takes Hours
+**What was broken.** A 40-replica Deployment that rolled one pod at a time (`maxSurge: 0`, `maxUnavailable: 1`), with each pod waiting about 10 seconds before it counted as available. The rollout was serial, so its length was 40 times the wave time.
 
-## What Was Broken
-maxSurge: 0, maxUnavailable: 1 allows only one pod to be replaced at a time. For a 100-replica Deployment, this is 100 sequential pod replacements. Each pod needs 2+ minutes to start → 3+ hours for a full rollout.
+**The evidence.** `kubectl get pods -w` during a restart shows exactly one pod terminating and one starting at a time, and `kubectl get deployment -o yaml` shows both the strategy and `minReadySeconds`. The readiness probe's `initialDelaySeconds` adds to the wave. A single number cannot be pointed at: the duration is waves multiplied by wave length.
 
-## The Fix
-Set maxSurge: 10 and maxUnavailable: 0 for fast, zero-downtime rolouts. 10 pods update in parallel without reducing available capacity.
+**Why Kubernetes behaved this way.** The Deployment controller keeps `available >= replicas - maxUnavailable` and `total <= replicas + maxSurge`. With surge 0 it has to remove an old pod before it may start a new one. `minReadySeconds` delays when a ready pod is counted as available, and the controller moves on only when pods become available. Setting `maxUnavailable: 100%` would be fast but empties the Service of capacity, which breaks the floor.
 
-## Why It Matters
-maxSurge vs maxUnavailable tradeoffs: maxSurge > 0 = create extra pods before removing old (needs extra capacity, zero-downtime). maxUnavailable > 0 = remove old pods before creating new (no extra capacity, brief reduced availability). For prod, prefer maxSurge.
+**The fix.** Allow more surge, keep `maxUnavailable` within the capacity floor, and trim the waits so a wave is a few seconds, not ten.
 
-## Pro Tip
-Use percentage strings for scale-independent configuration: maxSurge: 25% and maxUnavailable: 0% works correctly regardless of replica count changes.
+**In production.** Surge costs real capacity (quota and node room), so check headroom first. Keep `minReadySeconds` for catching crash-on-start, but not longer than that needs. Use `progressDeadlineSeconds` and `kubectl rollout status` as the gate in CI, and a PodDisruptionBudget for voluntary disruption only: it does not limit rolling updates.
 
-## Concepts
-maxSurge, maxUnavailable, rolling update, deployment speed, parallel rollout
+**Worth remembering.**
+- `kubectl rollout status deployment/<name> --timeout=60s`
+- `kubectl get deployment <name> -o jsonpath='{.spec.strategy}'`
+- `kubectl rollout history deployment/<name>`

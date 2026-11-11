@@ -1,1 +1,5 @@
-The `enabled` field in the `node-local-dns` ConfigMap is set to `false`. Change it to `true` to activate NodeLocal DNSCache, which will serve DNS responses from a cache on the local node without traversing the pod network.
+Two edits, and the second needs a restart to take effect:
+  kubectl patch deployment session-gw --type=json -p '[{"op":"replace","path":"/spec/template/spec/dnsConfig/nameservers/0","value":"<dns-cache ClusterIP>"}]'
+  kubectl edit configmap dns-cache-corefile      # raise the TTL cap in the cache block
+  kubectl rollout restart daemonset/dns-cache
+Then watch both logs again: the upstream log should go nearly quiet.

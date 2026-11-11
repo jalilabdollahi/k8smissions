@@ -1,1 +1,3 @@
-The CPU limit equals the CPU request — there's no headroom for bursting. Increase `limits.cpu` to `1000m` (10x the request) to allow the container to use available CPU capacity during spikes without being throttled.
+Give the container headroom for its bursts while keeping a request for the scheduler:
+  kubectl set resources deployment/quote-api --requests=cpu=<what it uses> --limits=cpu=<several times that>
+Then read cpu.stat again under load: nr_throttled should barely move.

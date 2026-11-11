@@ -1,13 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: slow-deploy
+  name: image-resizer
   namespace: k8smissions
 spec:
-  replicas: 100
+  replicas: 40
+  minReadySeconds: 4
+  progressDeadlineSeconds: 600
   selector:
     matchLabels:
-      app: slow
+      app: image-resizer
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -16,15 +18,34 @@ spec:
   template:
     metadata:
       labels:
-        app: slow
+        app: image-resizer
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
-      - name: app
-        image: nginx:1.25
+      - name: resizer
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet: {path: /, port: 80}
+          initialDelaySeconds: 4
+          periodSeconds: 1
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "3"]
         resources:
-          requests:
-            cpu: 50m
-            memory: 32Mi
-          limits:
-            cpu: 100m
-            memory: 64Mi
+          requests: {cpu: 5m, memory: 8Mi}
+          limits: {memory: 64Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-resizer
+  namespace: k8smissions
+spec:
+  selector:
+    app: image-resizer
+  ports:
+  - port: 80
+    targetPort: 80

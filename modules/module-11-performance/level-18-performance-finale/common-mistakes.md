@@ -1,7 +1,5 @@
-# Common Mistakes — The Great Slowdown
+**Stopping after the first improvement.** Fixing the CPU limit (the loudest fault) takes the page from timeouts to slow, and it feels done. The validator checks each layer separately, and the goal of 300ms at 30 requests per second is only met with all three fixed.
 
-## Mistake 1: Fixing only the most visible symptom (slow rollout)
+**Scaling pricing up.** More replicas do nothing while the Service pins the single client to one pod, and each new pod keeps the same 100m limit. Capacity per pod and routing are the problem, not the count.
 
-**Wrong approach:** Rolling update speed is the least impactful of the three issues — DNS and CPU throttling affect runtime performance
-
-**Correct approach:** Triage by impact: fix runtime performance issues (DNS, CPU) before operational issues (rollout speed)
+**Setting search domains to empty to cut DNS queries.** It removes short-name resolution for everything else in the pod, and it treats the symptom of one name; the simple fix here is on that name or on `ndots`.

@@ -1,1 +1,3 @@
-Increase `replicas` from 2 to 5. Add `topologySpreadConstraints` with `topologyKey: kubernetes.io/hostname` and `maxSkew: 1` to force pods to spread evenly across nodes — so no single node failure can take down more than ~20% of capacity.
+Make the selector in the Deployment's pod template match the pods' own label, then check that the replicas were placed again:
+  kubectl patch deployment checkout-api --type=json -p '[{"op":"replace","path":"/spec/template/spec/affinity/podAntiAffinity/requiredDuringSchedulingIgnoredDuringExecution/0/labelSelector","value":{"matchLabels":{"<key>":"<value from kubectl get pods --show-labels>"}}}]'
+  kubectl get pods -l app.kubernetes.io/name=checkout-api -o wide

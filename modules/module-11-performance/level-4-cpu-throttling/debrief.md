@@ -1,16 +1,14 @@
-# Latency Spikes
+**What was broken.** quote-api spends about 10ms of CPU per request. Its container had a 100m CPU limit and a 50m request. At light load that is fine; under 15 requests per second per pod the work no longer fits, and the kernel freezes the container until the next period. Latency went from 20ms to hundreds of milliseconds and some callers timed out, while `kubectl top` showed usage below the limit.
 
-## What Was Broken
-CPU requests were equal to limits (100m = 100m, Guaranteed QoS). This means the container gets exactly 0.1 CPU and no more. Even brief CPU bursts (during GC, request spikes) hit the limit and cause CFS throttling — injecting latency.
+**The evidence.** `cat /sys/fs/cgroup/cpu.stat` inside the container: `nr_periods` is the number of 100ms scheduling periods and `nr_throttled` how many of them ended with the container frozen. Under load they rise almost together, and `throttled_usec` shows the total time lost. `kubectl top` averages over about a minute, so it cannot see a container that is throttled for 90ms of every 100ms in bursts.
 
-## The Fix
-Set CPU limit much higher than request (e.g., 10x) or remove the CPU limit. Keep the request accurate for scheduling; use limits for burst control.
+**Why Kubernetes behaved this way.** A CPU limit is not a speed limit, it is a quota: `limit x 100ms` of CPU time per period (the CFS bandwidth controller). Once a burst spends the quota the container stops, even if the node is idle. A CPU request is different: it only gives scheduling weight and a guaranteed share when the node is busy. Memory limits kill, CPU limits pause.
 
-## Why It Matters
-CPU throttling vs memory: memory limits cause OOMKill (immediate, obvious). CPU limits cause throttling (silent, shows as latency). Most latency-sensitive applications should have NO cpu limits — only cpu requests for scheduling accuracy.
+**The fix.** Raise the limit well above the burst demand, or remove it, and keep the request near real use so the pod stays Burstable and is still scheduled sensibly.
 
-## Pro Tip
-Measure throttling: kubectl exec <pod> -- cat /sys/fs/cgroup/cpu/cpu.stat | grep throttled_time. If throttled_time is climbing, the container is being CPU-throttled.
+**In production.** Many teams run latency-sensitive services with a CPU request and no CPU limit, and alert on `container_cpu_cfs_throttled_periods_total / container_cpu_cfs_periods_total`. Multi-threaded runtimes burn quota faster than their average suggests. Cap noisy neighbours with requests and quotas, not with tight limits.
 
-## Concepts
-CPU throttling, CFS bandwidth, cpu limits vs requests, latency, P99 latency
+**Worth remembering.**
+- `kubectl exec <pod> -- cat /sys/fs/cgroup/cpu.stat`
+- `kubectl top pod --containers`
+- `kubectl set resources deployment/<name> --limits=cpu=<n>`
