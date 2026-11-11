@@ -1,1 +1,1 @@
-The config file should show `DB_HOST` set to a raw IP address like `10.0.0.99`. In Kubernetes, pod IP addresses are ephemeral — they change every time a pod restarts. Services should always be referenced by their DNS name.
+From the debug container, `netstat -ltn` lists the listening sockets and `cat /proc/1/cmdline` shows how the target's main process was started (with `--target` you share its PID namespace). Compare the address the server is bound to with the address a Service connection arrives on, the pod IP. Then see `kubectl explain pod.spec.containers.args`.

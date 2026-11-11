@@ -1,1 +1,1 @@
-Inspect the pod's last state to see how the previous container exited: `kubectl describe pod oom-pod -n k8smissions`. Look at the `Last State` section near the top.
+Each restart leaves a record. For every pod in namespace `cart`, read the container's last termination: `kubectl -n cart describe pod -l app=<name>` (section Last State: Reason and Exit Code) and `kubectl -n cart get events --field-selector type=Warning`. Do not assume the same cause for all three.

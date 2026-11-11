@@ -1,66 +1,11 @@
-# Common Mistakes - Level 4: Logs Across Restarts
+## Reading `kubectl logs` without `-c` and concluding the pod is healthy
 
-## Fastest First Checks
-```bash
-kubectl get events -n k8smissions --sort-by=.lastTimestamp
-kubectl top pods -n k8smissions
-kubectl logs <pod> -n k8smissions --previous
-```
+Without `-c`, kubectl shows the default container (or the first one), which is the sidecar here. Always name the container that is restarting, or ask for all of them.
 
-## ❌ Mistake #1: Relying on one signal only
+## Reading only the current log of the crashing container
 
-**What players try:**
-Players use just one command in Logs Across Restarts, such as logs or `kubectl top`, and stop there.
+The app has just restarted, so its current log holds only the first startup line. The error is in `--previous`.
 
-**Why it fails:**
-Observability works best when you correlate signals. Events tell you what Kubernetes decided, metrics show pressure, and logs show app behavior.
+## Deleting the sidecar to make the crash stop
 
-**Correct approach:**
-Combine at least two signals before concluding the root cause.
-
-**Key learning:**
-The fastest diagnosis usually comes from signal correlation, not a single favorite command.
-## ❌ Mistake #2: Reading the wrong time window
-
-**What players try:**
-Players inspect current state only and miss what happened seconds earlier.
-
-**Why it fails:**
-Restarts, probe failures, and eviction events are easy to miss if you do not look at previous logs or sorted event history.
-
-**Correct approach:**
-Build a timeline for events, logs, and metrics correlation using events, previous logs, and current status together.
-
-**Key learning:**
-Incidents are stories over time. A static snapshot is rarely enough.
-## ❌ Mistake #3: Debugging the symptom at the wrong layer
-
-**What players try:**
-Players jump into a shell before deciding whether the problem is application, probe, node pressure, or missing metrics infrastructure.
-
-**Why it fails:**
-That creates noise and wastes time when the cluster already exposes the answer through events, conditions, or controller state.
-
-**Correct approach:**
-Start with the cheapest cluster-level evidence, then drill into the container only if the evidence tells you to.
-
-**Key learning:**
-Good debugging narrows the layer first, then the exact bug.
-## ❌ Mistake #4: Fixing the symptom without updating the mental model
-
-**What players try:**
-Players patch the manifest until validation passes but cannot explain why the signal changed.
-
-**Why it fails:**
-That makes the next incident feel new even when it is the same class of failure.
-
-**Correct approach:**
-After the fix, explain what the signal should look like in a healthy cluster. Success target: Player outputs the crash reason from previous logs
-
-**Key learning:**
-Observability is valuable when you can predict healthy vs unhealthy telemetry afterward.
-
-## What To Prove Before You Move On
-- You used more than one signal: events, logs, metrics, or probe state.
-- You can explain why the chosen signal was the fastest one for this failure.
-- Player outputs the crash reason from previous logs
+The restarts stop, but the metrics-proxy exists for a reason and the validator requires it to keep serving its own port. Move one of the two processes instead of removing one.

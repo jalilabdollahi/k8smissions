@@ -1,1 +1,1 @@
-The `memory-hog` Deployment has 4 replicas with no `resources.limits.memory`. Each container runs a `dd` command writing large amounts of data, and with 4 replicas and no cap, they collectively exhaust the node's available memory.
+The spooler has a retention setting that is switched off. Set it so the directory is bounded below the volume limit: `kubectl -n k8smissions set env deploy/audit-spooler <VARIABLE>=<number of segments to keep>`. Each segment is 8 MiB, so the number times 8 MiB must stay well under the limit. Removing the volume limit would only hide the problem.

@@ -1,1 +1,1 @@
-The pod spec has a `livenessProbe` but no `startupProbe`. Without a startup probe, the liveness check begins after `initialDelaySeconds` regardless of whether the application has finished starting up.
+Raise `timeoutSeconds` on both the liveness and the readiness probe of the `api` container so it comfortably exceeds the latency you measured, for instance with `kubectl -n k8smissions patch deploy search-api --type=json -p='[{"op":"add","path":"/spec/template/spec/containers/0/livenessProbe/timeoutSeconds","value":<seconds>}, ...]'`. Keep it at 30 or less.

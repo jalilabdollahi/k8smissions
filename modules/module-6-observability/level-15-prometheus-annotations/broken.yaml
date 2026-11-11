@@ -1,21 +1,251 @@
 apiVersion: v1
-kind: Pod
+kind: ServiceAccount
 metadata:
-  name: metrics-app
+  name: prom-lite
   namespace: k8smissions
-  labels:
-    app: metrics-app
-  # Prometheus uses pod annotations to discover scrape targets.
-  # Without prometheus.io/scrape: "true", this pod is invisible to Prometheus
-  # and its metrics will never appear in dashboards.
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prom-lite-discovery
+  namespace: k8smissions
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prom-lite-discovery
+  namespace: k8smissions
+subjects:
+- {kind: ServiceAccount, name: prom-lite, namespace: k8smissions}
+roleRef:
+  kind: Role
+  name: prom-lite-discovery
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prom-lite-script
+  namespace: k8smissions
+data:
+  scraper.py: |
+    import http.server, json, ssl, threading, time, urllib.request
+
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount/"
+    TOKEN = open(SA + "token").read().strip()
+    NAMESPACE = open(SA + "namespace").read().strip()
+    CTX = ssl.create_default_context(cafile=SA + "ca.crt")
+    targets = {}
+    lock = threading.Lock()
+
+    def list_pods():
+        req = urllib.request.Request(
+            "https://kubernetes.default.svc/api/v1/namespaces/%s/pods" % NAMESPACE,
+            headers={"Authorization": "Bearer " + TOKEN})
+        return json.load(urllib.request.urlopen(req, context=CTX, timeout=5))["items"]
+
+    def discover():
+        found = {}
+        for pod in list_pods():
+            meta = pod["metadata"]
+            ann = meta.get("annotations") or {}
+            ip = pod.get("status", {}).get("podIP")
+            if meta.get("deletionTimestamp") or pod["status"].get("phase") != "Running" or not ip:
+                continue
+            if ann.get("prometheus.io/scrape") != "true":
+                continue
+            ports = [p["containerPort"] for c in pod["spec"]["containers"] for p in c.get("ports", [])]
+            port = ann.get("prometheus.io/port") or (ports[0] if ports else 80)
+            path = ann.get("prometheus.io/path", "/metrics")
+            found[meta["name"]] = {
+                "pod": meta["name"],
+                "job": (meta.get("labels") or {}).get("app", "unknown"),
+                "url": "http://%s:%s%s" % (ip, port, path),
+            }
+        return found
+
+    def scrape(url):
+        with urllib.request.urlopen(url, timeout=2) as resp:
+            samples = {}
+            for line in resp.read().decode().splitlines():
+                if line and not line.startswith("#"):
+                    name, _, value = line.rpartition(" ")
+                    samples[name] = float(value)
+            return samples
+
+    def loop():
+        while True:
+            try:
+                found = discover()
+            except Exception as exc:
+                print("discovery failed:", exc, flush=True)
+                found = None
+            if found is not None:
+                with lock:
+                    for gone in set(targets) - set(found):
+                        del targets[gone]
+                    for name, t in found.items():
+                        targets.setdefault(name, {}).update(t)
+                for name, t in found.items():
+                    try:
+                        samples = scrape(t["url"])
+                        update = {"health": "up", "lastError": "", "samples": samples}
+                    except Exception as exc:
+                        update = {"health": "down", "lastError": str(exc), "samples": {}}
+                        print("scrape %s failed: %s" % (t["url"], exc), flush=True)
+                    update["lastScrape"] = time.time()
+                    with lock:
+                        if name in targets:
+                            targets[name].update(update)
+            time.sleep(5)
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/targets":
+                with lock:
+                    body = json.dumps(sorted(targets.values(), key=lambda t: t["pod"])).encode()
+            elif self.path == "/metrics":
+                with lock:
+                    up = sum(1 for t in targets.values() if t.get("health") == "up")
+                    body = ("prom_lite_targets %d\nprom_lite_targets_up %d\n" % (len(targets), up)).encode()
+            else:
+                self.send_response(404)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    threading.Thread(target=loop, daemon=True).start()
+    print("prom-lite: scraping every 5s, /targets on :9090", flush=True)
+    http.server.ThreadingHTTPServer(("0.0.0.0", 9090), Handler).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom-lite
+  namespace: k8smissions
 spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - while true; do echo 'http_requests_total 42'; sleep 30; done
-    ports:
-    - name: metrics
-      containerPort: 9090
+  replicas: 1
+  selector:
+    matchLabels: {app: prom-lite}
+  template:
+    metadata:
+      labels: {app: prom-lite}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: /metrics
+    spec:
+      serviceAccountName: prom-lite
+      containers:
+      - name: scraper
+        image: python:3.12-alpine
+        command: ["python", "/app/scraper.py"]
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap: {name: prom-lite-script}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prom-lite
+  namespace: k8smissions
+spec:
+  selector: {app: prom-lite}
+  ports:
+  - {port: 9090, targetPort: 9090}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payments-api-script
+  namespace: k8smissions
+data:
+  app.py: |
+    import http.server, threading, time
+
+    orders = [0]
+
+    def count():
+        while True:
+            orders[0] += 3
+            time.sleep(1)
+
+    class Metrics(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path != "/metrics":
+                self.send_response(404)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            body = ("# HELP app_orders_total Orders accepted.\n# TYPE app_orders_total counter\n"
+                    "app_orders_total %d\napp_payment_failures_total 0\n" % orders[0]).encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    class Api(Metrics):
+        def do_GET(self):
+            body = b"payments-api: ok"
+            if self.path != "/":
+                self.send_response(404)
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+    threading.Thread(target=count, daemon=True).start()
+    threading.Thread(target=http.server.ThreadingHTTPServer(("0.0.0.0", 9102), Metrics).serve_forever, daemon=True).start()
+    print("payments-api: api on :8080, metrics on :9102/metrics", flush=True)
+    http.server.ThreadingHTTPServer(("0.0.0.0", 8080), Api).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+  namespace: k8smissions
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: /actuator/prometheus
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: payments-api}
+  template:
+    metadata:
+      labels: {app: payments-api}
+    spec:
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "/app/app.py"]
+        ports:
+        - {name: http, containerPort: 8080}
+        - {name: metrics, containerPort: 9102}
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap: {name: payments-api-script}

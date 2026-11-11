@@ -1,17 +1,5 @@
-## What went wrong
+The cache in `cache-tier` never started: its pod mounts Secret `cache-auth`, which does not exist in that namespace. `inventory-sync` could not connect and crash-looped.
 
-The container has `limits.memory: 64Mi` but consumes more than that at runtime. Each time memory usage crosses the limit, the kernel sends SIGKILL (exit code 137). The event stream shows the restart history: `Killing container with id ... OOMKilled`.
-
-## Fix
-
-```yaml
-resources:
-  requests:
-    memory: 32Mi
-  limits:
-    memory: 256Mi
-```
-
-## Why this matters
-
-Cluster events are a first-class observability tool and the primary source of truth for incident timelines. `kubectl get events --sort-by=.lastTimestamp` gives you a chronological view. Key event fields: `reason` (what happened), `message` (detail), `count` (how many times), `firstTime`/`lastTime`. Events have a default TTL of 1 hour — for longer retention you need an event exporter (e.g., `kube-event-exporter` or writing to a log store). The SRE discipline of writing post-mortems starts with this event timeline: what happened, when, and why.
+1. `kubectl get events -A --field-selector type=Warning --sort-by=.lastTimestamp` shows `FailedMount ... secret "cache-auth" not found` on the cache pod, older than the app's failures.
+2. Copy the password the app already uses: `kubectl -n cache-tier create secret generic cache-auth --from-literal=password="$(kubectl -n k8smissions get secret inventory-cache-credentials -o jsonpath='{.data.CACHE_PASSWORD}' | base64 -d)"`.
+3. The kubelet retries the mount with a back-off, so restart the cache pod (`kubectl -n cache-tier rollout restart deploy/inventory-cache`) and then the sync pod to leave CrashLoopBackOff.

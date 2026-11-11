@@ -1,1 +1,1 @@
-The Deployment's `spec.replicas` field is set to 0. A Deployment with zero replicas deliberately runs no pods — the metrics-server is configured to exist but not to run.
+Correct the version string in the script's ConfigMap (`kubectl -n k8smissions edit cm capacity-report`, field `METRICS_API`). A running pod does not re-read its script, so afterwards restart it: `kubectl -n k8smissions rollout restart deploy/capacity-report`.

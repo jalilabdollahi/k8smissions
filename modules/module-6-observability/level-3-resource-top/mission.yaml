@@ -1,16 +1,15 @@
 {
-  "name": "Who's Eating All the CPU?",
-  "description": "The cluster node is experiencing CPU pressure and general performance is degraded. A pod is consuming far more CPU than it declared in its requests. You need to find it using metrics and then cap its consumption by adding a CPU limit.",
-  "objective": "A pod is consuming excess CPU and impacting the node — use kubectl top to find and limit it",
-  "xp": 250,
+  "name": "Who Is Eating the Node",
+  "description": "CPU on the worker nodes has been saturated since 10:00 and neighbours are being throttled. `kubectl top pod` shows the `thumbnailer` pods near one full core each, but the image service they run looks idle and its owners insist nothing changed. Two other Deployments in the namespace are quiet.",
+  "objective": "Each `thumbnailer` pod is Ready and stable, its burning workload is capped by a CPU limit of at least 50m that the running container actually enforces, the thumbnail service container keeps working, and the other Deployments are untouched.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "kubectl top",
-    "resource limits vs requests",
-    "noisy-neighbor",
-    "LimitRange to enforce defaults"
-  ],
+  "expected_time": "12m",
+  "concepts": ["kubectl top", "per-container metrics", "cpu limits", "cgroups"],
   "module": "module-6-observability",
-  "level": "level-3-resource-top"
+  "level": "level-3-resource-top",
+  "requires": ["metrics-server"],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

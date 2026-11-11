@@ -1,1 +1,1 @@
-Check the pod's restart count: `kubectl get pod logs-pod -n k8smissions`. Then retrieve logs from the terminated container run: `kubectl logs logs-pod -n k8smissions --previous`
+A pod with two containers has two logs, and `kubectl logs <pod>` quietly shows just one of them. List the containers with `kubectl -n k8smissions describe pod -l app=quote-service` (see the restart counts per container) and read each log with `-c <name>`.

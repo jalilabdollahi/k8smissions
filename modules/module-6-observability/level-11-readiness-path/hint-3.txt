@@ -1,1 +1,1 @@
-The `readinessProbe.httpGet.path` is set to `/healthz`, but this nginx image doesn't serve that path. Nginx returns a 404, the probe fails, and the pods never become Ready. The correct path for the default nginx welcome page is `/`.
+Point the readiness probe at the health location the new nginx config defines: `kubectl -n k8smissions patch deploy docs-site --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/readinessProbe/httpGet/path","value":"<path>"}]'`, then `kubectl rollout status` to watch the pods come Ready.

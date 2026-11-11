@@ -1,19 +1,5 @@
-## What went wrong
+The CPU is burned by the `exporter` sidecar in each thumbnailer pod, not by the `app` container.
 
-The container runs `while true; do :; done` — a tight infinite loop that spins the CPU at 100%. It has a `requests.cpu: 100m` declaration (used for scheduling) but no `limits.cpu`, so the scheduler places it politely but the container then consumes all available CPU unchecked.
-
-## Fix
-
-```yaml
-resources:
-  requests:
-    cpu: 100m
-    memory: 32Mi
-  limits:
-    cpu: 200m
-    memory: 64Mi
-```
-
-## Why this matters
-
-In Kubernetes, `requests` is a scheduling hint — it tells the scheduler how much resource to reserve. `limits` is the enforcement ceiling — the kernel will throttle CPU or OOM-kill the container if it exceeds the limit. A pod without CPU limits is a noisy neighbor: it can absorb spare capacity without bound and degrade every other pod on the node. `kubectl top pods` is the real-time view; for historical usage, you need Prometheus or a similar metrics store.
+1. `kubectl -n k8smissions top pod --containers --sort-by=cpu` shows `exporter` at about 1000m and `app` near 0m.
+2. `kubectl -n k8smissions set resources deploy/thumbnailer -c exporter --limits=cpu=200m` caps only that container; the Deployment rolls out new pods.
+3. Verify: `kubectl -n k8smissions exec <pod> -c exporter -- cat /sys/fs/cgroup/cpu.max` prints `20000 100000`.

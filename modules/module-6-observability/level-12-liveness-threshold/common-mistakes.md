@@ -1,13 +1,11 @@
-# Common Mistakes — Restart Storm
+## Raising initialDelaySeconds
 
-## Mistake 1: Removing liveness probe entirely
+The restarts are not at start-up; they happen mid-life, on every pause. A longer initial delay delays only the first probe after a restart and changes nothing afterwards.
 
-**Wrong approach:** Deleting the probe to stop restarts — now stuck/deadlocked pods are never recovered
+## Setting an enormous failureThreshold
 
-**Correct approach:** Fix the probe thresholds; don't remove liveness probes from long-running services
+The restarts stop, but a pod that is really stuck would stay in service for many minutes. The validator caps the window (period times threshold) at 2 minutes.
 
-## Mistake 2: Setting timeoutSeconds too low
+## Removing the liveness probe
 
-**Wrong approach:** timeoutSeconds: 1 but probe command takes 2s under load — causes false failures
-
-**Correct approach:** Set timeoutSeconds above your 99th-percentile probe response time
+Nothing restarts the pod any more, including when it truly hangs. The probe must stay.

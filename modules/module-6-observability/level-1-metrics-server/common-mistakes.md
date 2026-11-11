@@ -1,66 +1,11 @@
-# Common Mistakes - Level 1: Flying Blind
+## Reinstalling or restarting metrics-server
 
-## Fastest First Checks
-```bash
-kubectl get events -n k8smissions --sort-by=.lastTimestamp
-kubectl top pods -n k8smissions
-kubectl logs <pod> -n k8smissions --previous
-```
+`kubectl top` already works, so the server is healthy. Touching it only risks breaking every other consumer of the Metrics API. When one client fails and another succeeds, the difference lies in the client.
 
-## ❌ Mistake #1: Relying on one signal only
+## Editing the ConfigMap and waiting
 
-**What players try:**
-Players use just one command in Flying Blind, such as logs or `kubectl top`, and stop there.
+The pod mounts the ConfigMap, and the file on disk does update, but the Python loop never re-reads it. Without a restart the log keeps printing the 404 and you may conclude the fix did not work.
 
-**Why it fails:**
-Observability works best when you correlate signals. Events tell you what Kubernetes decided, metrics show pressure, and logs show app behavior.
+## Granting more RBAC
 
-**Correct approach:**
-Combine at least two signals before concluding the root cause.
-
-**Key learning:**
-The fastest diagnosis usually comes from signal correlation, not a single favorite command.
-## ❌ Mistake #2: Reading the wrong time window
-
-**What players try:**
-Players inspect current state only and miss what happened seconds earlier.
-
-**Why it fails:**
-Restarts, probe failures, and eviction events are easy to miss if you do not look at previous logs or sorted event history.
-
-**Correct approach:**
-Build a timeline for events, logs, and metrics correlation using events, previous logs, and current status together.
-
-**Key learning:**
-Incidents are stories over time. A static snapshot is rarely enough.
-## ❌ Mistake #3: Debugging the symptom at the wrong layer
-
-**What players try:**
-Players jump into a shell before deciding whether the problem is application, probe, node pressure, or missing metrics infrastructure.
-
-**Why it fails:**
-That creates noise and wastes time when the cluster already exposes the answer through events, conditions, or controller state.
-
-**Correct approach:**
-Start with the cheapest cluster-level evidence, then drill into the container only if the evidence tells you to.
-
-**Key learning:**
-Good debugging narrows the layer first, then the exact bug.
-## ❌ Mistake #4: Fixing the symptom without updating the mental model
-
-**What players try:**
-Players patch the manifest until validation passes but cannot explain why the signal changed.
-
-**Why it fails:**
-That makes the next incident feel new even when it is the same class of failure.
-
-**Correct approach:**
-After the fix, explain what the signal should look like in a healthy cluster. Success target: kubectl top pods -n k8smissions returns CPU/Memory values
-
-**Key learning:**
-Observability is valuable when you can predict healthy vs unhealthy telemetry afterward.
-
-## What To Prove Before You Move On
-- You used more than one signal: events, logs, metrics, or probe state.
-- You can explain why the chosen signal was the fastest one for this failure.
-- kubectl top pods -n k8smissions returns CPU/Memory values
+A 403 would call for RBAC; a 404 does not. Widening the Role changes nothing here, and the validator also requires the service account to stay unable to read Secrets.

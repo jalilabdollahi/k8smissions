@@ -1,17 +1,15 @@
 {
-  "name": "Invisible Metrics",
-  "description": "A service is emitting Prometheus metrics on port 9090 but they never appear in monitoring dashboards. The pod is Running, the port is exposed, and the metrics endpoint is working — but Prometheus has no way to discover this pod because the annotation-based discovery configuration is entirely missing.",
-  "objective": "The pod is missing Prometheus scrape annotations — add the required annotations to enable metrics collection",
-  "xp": 200,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "Prometheus",
-    "annotations",
-    "scraping",
-    "metrics",
-    "observability"
-  ],
+  "name": "The Missing Target",
+  "description": "The metrics team runs a small scraper, `prom-lite`, that discovers pods by their scrape annotations and exposes what it found on `/targets`. Since the `payments-api` release the order counters have flat-lined on the dashboard, and `/targets` has no `payments-api` entry at all. The service owners insist the annotations are in the manifest.",
+  "objective": "The scraper's `/targets` page lists both `payments-api` pods as healthy, with a real `app_orders_total` sample freshly scraped from each, while Deployment `prom-lite` and its script stay exactly as deployed and `payments-api` keeps 2 Ready replicas.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["prometheus.io/scrape annotations", "pod template metadata", "annotation values are strings", "scrape port and path"],
   "module": "module-6-observability",
-  "level": "level-15-prometheus-annotations"
+  "level": "level-15-prometheus-annotations",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

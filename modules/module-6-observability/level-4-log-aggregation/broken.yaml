@@ -1,13 +1,91 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: logs-pod
+  name: quote-service-scripts
   namespace: k8smissions
-  labels:
-    app: logs-pod
+data:
+  app.py: |
+    import http.server, os, sys, time
+    PORT = int(os.environ.get("PORT", "8080"))
+    print("quote-app: loading 4 quotes", flush=True)
+    time.sleep(12)  # warm-up before binding the port
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            body = b"quote: ship it on a Friday"
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        def log_message(self, *a):
+            pass
+
+    try:
+        srv = http.server.HTTPServer(("0.0.0.0", PORT), H)
+    except OSError as e:
+        print("quote-app: cannot listen on %d: %s" % (PORT, e), flush=True)
+        sys.exit(1)
+    print("quote-app: serving on", PORT, flush=True)
+    srv.serve_forever()
+  proxy.py: |
+    import http.server, os, time
+    PORT = int(os.environ.get("LISTEN_PORT", "8080"))
+    start = time.time()
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            body = ("proxy_up 1\nproxy_uptime_seconds %d\n" % (time.time() - start)).encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        def log_message(self, *a):
+            print("metrics-proxy: scrape", flush=True)
+
+    print("metrics-proxy: ready on", PORT, flush=True)
+    http.server.HTTPServer(("0.0.0.0", PORT), H).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quote-service
+  namespace: k8smissions
 spec:
-  containers:
-  - name: logs-pod
-    image: busybox:1.36
-    args:
-    - /missing.sh
+  replicas: 1
+  selector:
+    matchLabels: {app: quote-service}
+  template:
+    metadata:
+      labels: {app: quote-service}
+    spec:
+      containers:
+      - name: metrics-proxy
+        image: python:3.12-alpine
+        command: ["python", "/scripts/proxy.py"]
+        env:
+        - {name: LISTEN_PORT, value: "8080"}
+        volumeMounts:
+        - {name: scripts, mountPath: /scripts}
+      - name: app
+        image: python:3.12-alpine
+        command: ["python", "/scripts/app.py"]
+        env:
+        - {name: PORT, value: "8080"}
+        volumeMounts:
+        - {name: scripts, mountPath: /scripts}
+      volumes:
+      - name: scripts
+        configMap:
+          name: quote-service-scripts
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote-service
+  namespace: k8smissions
+spec:
+  selector:
+    app: quote-service
+  ports:
+  - port: 80
+    targetPort: 8080

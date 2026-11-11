@@ -1,13 +1,15 @@
-# Common Mistakes — Invisible Metrics
+## Editing the Deployment's own annotations
 
-## Mistake 1: Adding annotations to the Service, not the Pod
+`kubectl annotate deploy payments-api ...` changes the Deployment object. The pods are created from `spec.template.metadata`, so nothing reaches them and the target list stays empty.
 
-**Wrong approach:** Prometheus annotation scraping is done at the pod level (or via ServiceMonitor)
+## Leaving `true` or the port unquoted
 
-**Correct approach:** Add annotations to spec.template.metadata.annotations in the Deployment/Pod spec
+YAML reads `true` and `9102` as a boolean and a number; annotation values must be strings, and the API server refuses the patch with an unmarshal error. Quote every value.
 
-## Mistake 2: Using wrong annotation prefix
+## Stopping when the target appears
 
-**Wrong approach:** Using monitoring.io/scrape instead of prometheus.io/scrape
+A target that is listed but `down` is still wrong. The annotation values copied from another service pointed at port 8080 and `/actuator/prometheus`, which this app does not serve; the scraper's `lastError` shows the 404 and the URL.
 
-**Correct approach:** The exact annotation key matters; check your Prometheus config for the expected annotation prefix
+## Changing the scraper
+
+`prom-lite` is correct, it did what it was told. The validator requires its Deployment unchanged.

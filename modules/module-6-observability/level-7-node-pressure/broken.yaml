@@ -1,27 +1,53 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: audit-spooler-script
+  namespace: k8smissions
+data:
+  spooler.py: |
+    import glob, os, time
+    KEEP = int(os.environ.get("SPOOL_KEEP", "0"))
+    SPOOL = "/spool"
+    if KEEP:
+        print("audit-spooler: retention keeps the last %d segments" % KEEP, flush=True)
+    else:
+        print("audit-spooler: retention disabled (SPOOL_KEEP=0 keeps every segment)", flush=True)
+    n = 0
+    while True:
+        n += 1
+        with open("%s/segment-%06d.log" % (SPOOL, n), "wb") as f:
+            f.write(b"a" * 8 * 1024 * 1024)
+        if KEEP:
+            for old in sorted(glob.glob(SPOOL + "/segment-*.log"))[:-KEEP]:
+                os.remove(old)
+        print("audit-spooler: wrote segment %d" % n, flush=True)
+        time.sleep(2)
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: memory-hog
+  name: audit-spooler
   namespace: k8smissions
-  labels:
-    app: memory-hog
 spec:
-  replicas: 4
+  replicas: 2
   selector:
-    matchLabels:
-      app: memory-hog
+    matchLabels: {app: audit-spooler}
   template:
     metadata:
-      labels:
-        app: memory-hog
+      labels: {app: audit-spooler}
     spec:
       containers:
-      - name: memory-hog
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - dd if=/dev/zero of=/dev/null bs=1M count=512 && sleep 3600
-        resources:
-          requests:
-            memory: 64Mi
+      - name: spooler
+        image: python:3.12-alpine
+        command: ["python", "/app/spooler.py"]
+        env:
+        - {name: SPOOL_KEEP, value: "0"}
+        volumeMounts:
+        - {name: script, mountPath: /app}
+        - {name: spool, mountPath: /spool}
+      volumes:
+      - name: script
+        configMap: {name: audit-spooler-script}
+      - name: spool
+        emptyDir:
+          sizeLimit: 50Mi

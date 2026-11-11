@@ -1,16 +1,25 @@
-# Log Overload
+## What was broken
 
-## What Was Broken
-The `LOG_LEVEL` environment variable was set to `DEBUG`, causing the application to emit verbose debug logs (10 lines/second). This overwhelmed the log aggregation pipeline and made useful logs impossible to find.
+Both ledger Deployments looked configured for INFO, but `ledger-api` had `LOG_LEVEL=info` and the application only recognises upper-case names. Faced with an unknown value it fell back to DEBUG, which is the loudest setting: 25 lines per second per replica, thousands a minute across the two replicas, into a shared log pipeline.
 
-## The Fix
-Change `LOG_LEVEL` to `INFO`. For most production systems, INFO is the right default — errors, warnings, and key operations are logged without debug noise.
+## The evidence
 
-## Why It Matters
-Log verbosity is a common production runbook item. Ideal pattern: use INFO in production, temporarily raise to DEBUG on specific pods using `kubectl set env` for live debugging, then revert. Store LOG_LEVEL in a ConfigMap so you can change it without redeploying.
+Counting lines per pod with `kubectl logs -l tier=ledger --prefix --since=1m` pointed at `ledger-api` immediately. The first line of its log, `unknown LOG_LEVEL 'info' (valid: DEBUG, INFO, WARN, ERROR, CRITICAL), using DEBUG`, named the value, and the sibling Deployment showed the spelling that works.
 
-## Pro Tip
-Use a ConfigMap for log level: `envFrom: [{configMapRef: {name: app-config}}]`. Change `kubectl patch configmap app-config -p '{"data":{"LOG_LEVEL":"DEBUG"}}'` then restart pods. Revert with same approach.
+## Why Kubernetes behaves this way
 
-## Concepts
-environment variables, LOG_LEVEL, log verbosity, ConfigMap, runtime configuration
+Kubernetes passes environment variables through untouched; it neither validates nor normalises them. How an unknown value is treated is a decision of each application. Many libraries fall back to the most verbose level, which is why a typo can flood a log pipeline rather than silence it. A change to the pod template starts a rollout; `kubectl logs` always shows the current container only, so counts after the fix come from the new pods.
+
+## The fix
+
+Set `LOG_LEVEL=INFO` on `ledger-api`. Setting `CRITICAL` would also quiet it, but the service would lose its WARN and ERROR lines, which are exactly what you need when something breaks.
+
+## In production
+
+Log levels belong in a ConfigMap shared by both services so a typo cannot affect one only, and applications should fail on unknown values instead of falling back to DEBUG. Alerts on log volume per workload catch this kind of regression.
+
+## Commands worth remembering
+
+- `kubectl logs -l <selector> --prefix --since=1m`
+- `kubectl set env deploy/<name> KEY=value` and `kubectl set env deploy/<name> --list`
+- `kubectl logs <pod> --tail=5`

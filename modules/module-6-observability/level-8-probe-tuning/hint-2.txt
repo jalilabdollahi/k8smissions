@@ -1,1 +1,1 @@
-The events show the liveness probe failing during startup. Look at `initialDelaySeconds` — that is when the first probe fires. If the app takes longer than that to start, every startup attempt will be killed by the liveness probe.
+The server handles one request at a time, so a health check waits in line behind the searches that the generator keeps sending. Its latency is the queue, not a fault. A probe fails when the answer takes longer than its `timeoutSeconds` (default 1). See `kubectl explain pod.spec.containers.livenessProbe.timeoutSeconds`.

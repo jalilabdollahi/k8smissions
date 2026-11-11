@@ -1,1 +1,1 @@
-The container has `resources.requests.cpu` set but no `resources.limits.cpu`. Without a CPU limit, the container can consume as much CPU as the node has available, starving everything else.
+Set a CPU limit on that one container in the Deployment, for example `kubectl -n k8smissions set resources deploy/thumbnailer -c <container> --limits=cpu=<value>`. A few hundred millicores leaves it working but harmless.

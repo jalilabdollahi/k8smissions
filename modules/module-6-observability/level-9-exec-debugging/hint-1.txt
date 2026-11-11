@@ -1,1 +1,1 @@
-Exec into the running container to inspect its config: `kubectl exec -it debug-pod -n k8smissions -- /bin/sh`. Then read the mounted config file: `cat /app/config.json`
+The Service and its endpoint are fine, so the question is what the process inside the pod is listening on. `kubectl exec` has no shell to run, but you can attach a throw-away container that shares the pod's network and processes: try `kubectl -n k8smissions debug <pod> -it --image=busybox:1.36 --target=echo`.

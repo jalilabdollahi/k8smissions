@@ -1,16 +1,15 @@
 {
-  "name": "Log Overload",
-  "description": "Container logs are flooding with thousands of DEBUG-level lines per second. The logging pipeline cannot keep up, meaningful log entries are buried under noise, and storage costs are spiking. A single environment variable controls the verbosity and it is set to the wrong value for production.",
-  "objective": "The LOG_LEVEL env var is set to DEBUG — change it to INFO to reduce log volume",
+  "name": "Drowning the Log Pipeline",
+  "description": "The shared log pipeline is saturated and the logging team has asked for help. Two services of yours, `ledger-api` and `ledger-batch`, are the suspects. Both Deployments set a `LOG_LEVEL` and both are meant to log at INFO, yet one of them writes hundreds of lines a minute.",
+  "objective": "The noisy service logs at most 20 lines per minute after its rollout, its WARN and ERROR lines are still written, the quiet service `ledger-batch` is untouched, and every ledger pod is Ready.",
   "xp": 150,
-  "difficulty": "beginner",
-  "expected_time": "6m",
-  "concepts": [
-    "environment variables",
-    "log levels",
-    "ConfigMap",
-    "runtime configuration"
-  ],
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": ["kubectl logs --since", "--prefix", "-l selectors", "environment variables", "log levels"],
   "module": "module-6-observability",
-  "level": "level-14-log-level"
+  "level": "level-14-log-level",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

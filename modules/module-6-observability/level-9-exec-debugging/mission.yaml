@@ -1,16 +1,15 @@
 {
-  "name": "Diagnose the Live Pod",
-  "description": "A pod is Running and passing health checks, but the application returns 500 errors with no useful log output. The problem is in the configuration file the app loaded at startup — not in the code itself. You need to exec into the live container and read what configuration it actually has.",
-  "objective": "The app returns 500 errors with no logs — exec into the container and inspect its config files to find the misconfiguration",
-  "xp": 300,
+  "name": "The Shell-less Server",
+  "description": "`quote-api` has one Ready pod and Service `quote-api` has an endpoint for it, yet every request through the Service ends in `connection refused`. The pod YAML looks ordinary, the container log is a single startup line, and `kubectl exec` into the pod only says that it cannot find a shell.",
+  "objective": "A request to Service `quote-api` on port 80 returns the quote text the app was started with, the pod IP answers on the Service's target port too, and Deployment `quote-api` still runs `hashicorp/http-echo` with at least one Ready replica.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "kubectl exec",
-    "ephemeral containers (kubectl debug)",
-    "live debugging",
-    "configuration inspection"
-  ],
+  "expected_time": "15m",
+  "concepts": ["kubectl debug", "ephemeral containers", "shared process namespace", "listen address"],
   "module": "module-6-observability",
-  "level": "level-9-exec-debugging"
+  "level": "level-9-exec-debugging",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

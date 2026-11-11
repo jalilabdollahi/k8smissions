@@ -1,20 +1,129 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: capacity-report
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: capacity-report
+  namespace: k8smissions
+rules:
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: capacity-report
+  namespace: k8smissions
+subjects:
+- kind: ServiceAccount
+  name: capacity-report
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: capacity-report
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: capacity-report
+  namespace: k8smissions
+data:
+  report.py: |
+    import json, ssl, time, urllib.request, urllib.error
+
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount/"
+    NS = open(SA + "namespace").read().strip()
+    TOKEN = open(SA + "token").read().strip()
+    CTX = ssl.create_default_context(cafile=SA + "ca.crt")
+    METRICS_API = "metrics.k8s.io/v1"
+    URL = "https://kubernetes.default.svc/apis/%s/namespaces/%s/pods" % (METRICS_API, NS)
+
+
+    def millicores(q):
+        if q.endswith("n"):
+            return int(q[:-1]) // 1000000
+        if q.endswith("u"):
+            return int(q[:-1]) // 1000
+        if q.endswith("m"):
+            return int(q[:-1])
+        return int(float(q) * 1000)
+
+
+    def kibibytes(q):
+        if q.endswith("Ki"):
+            return int(q[:-2])
+        if q.endswith("Mi"):
+            return int(q[:-2]) * 1024
+        return int(q) // 1024
+
+
+    print("capacity-report starting, reading", URL, flush=True)
+    while True:
+        req = urllib.request.Request(URL, headers={"Authorization": "Bearer " + TOKEN})
+        try:
+            body = json.load(urllib.request.urlopen(req, context=CTX, timeout=10))
+            items = body.get("items", [])
+            if not items:
+                print("no samples yet", flush=True)
+            for item in items:
+                for c in item["containers"]:
+                    print("usage pod=%s container=%s cpu=%dm mem=%dKi" % (
+                        item["metadata"]["name"], c["name"],
+                        millicores(c["usage"]["cpu"]), kibibytes(c["usage"]["memory"])), flush=True)
+        except urllib.error.HTTPError as e:
+            print("error %d: %s" % (e.code, e.read().decode().strip()), flush=True)
+        except Exception as e:
+            print("error:", e, flush=True)
+        time.sleep(15)
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: metrics-server
+  name: capacity-report
   namespace: k8smissions
-  labels:
-    app: metrics-server
 spec:
-  replicas: 0
+  replicas: 1
   selector:
-    matchLabels:
-      app: metrics-server
+    matchLabels: {app: capacity-report}
   template:
     metadata:
-      labels:
-        app: metrics-server
+      labels: {app: capacity-report}
+    spec:
+      serviceAccountName: capacity-report
+      containers:
+      - name: report
+        image: python:3.12-alpine
+        command: ["python", "/app/report.py"]
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap:
+          name: capacity-report
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-api
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: ledger-api}
+  template:
+    metadata:
+      labels: {app: ledger-api}
     spec:
       containers:
-      - name: metrics-server
-        image: nginx:1.27.4
+      - name: api
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 80
+        resources:
+          requests: {cpu: 20m, memory: 32Mi}

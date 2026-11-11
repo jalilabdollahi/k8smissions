@@ -1,1 +1,1 @@
-Check what annotations the pod currently has: `kubectl get pod metrics-app -n k8smissions -o yaml | grep -A5 annotations`
+Ask the scraper what it sees: `kubectl -n k8smissions exec deploy/prom-lite -- wget -qO- http://localhost:9090/targets`, and compare with the annotations on a real payments-api pod: `kubectl -n k8smissions get pod -l app=payments-api -o jsonpath='{.items[0].metadata.annotations}'`.

@@ -1,1 +1,1 @@
-The pod's `image` field specifies a tag that does not exist in the registry. The container image reference needs to be updated to a valid tag.
+The pod template names a service account that the namespace does not have. Create it with the exact name from the event: `kubectl -n k8smissions create serviceaccount <name>`. The ReplicaSet retries on its own; do not edit the Deployment.

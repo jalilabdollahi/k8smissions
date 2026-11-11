@@ -1,29 +1,5 @@
-## What went wrong
+The nodes are fine. Each `audit-spooler` pod writes 8 MiB segments to an emptyDir with `sizeLimit: 50Mi` and never deletes any (`SPOOL_KEEP=0`), so the kubelet evicts it once the directory passes 50Mi.
 
-The Deployment runs 4 pods, each executing `dd if=/dev/zero` — a command that continuously writes null bytes and consumes memory. With no `limits.memory`, the combined usage pushes the node into MemoryPressure. When the kubelet detects this condition, it starts evicting pods in QoS order (BestEffort first, then Burstable, then Guaranteed) until pressure is relieved.
-
-## Fix
-
-Reduce replicas and add memory limits:
-
-```yaml
-spec:
-  replicas: 1
-  template:
-    spec:
-      containers:
-      - name: memory-hog
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
-        resources:
-          requests:
-            memory: 64Mi
-          limits:
-            memory: 128Mi
-```
-
-## Why this matters
-
-Node conditions — `MemoryPressure`, `DiskPressure`, `PIDPressure` — trigger the kubelet's eviction manager. Pods without limits have `BestEffort` QoS and are evicted first. You can prevent this by always setting both requests and limits. If a node is under sustained pressure, consider cordoning it (`kubectl cordon`) to stop new scheduling while you diagnose.
+1. `kubectl -n k8smissions describe pod <evicted pod>` shows `Usage of EmptyDir volume "spool" exceeds the limit "50Mi"`; node Conditions are all False.
+2. The startup log says retention is disabled. `kubectl -n k8smissions set env deploy/audit-spooler SPOOL_KEEP=3` keeps 24 MiB at most.
+3. Optionally clean the leftovers: `kubectl -n k8smissions delete pod --field-selector=status.phase=Failed`.

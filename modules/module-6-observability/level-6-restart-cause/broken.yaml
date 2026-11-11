@@ -1,20 +1,201 @@
 apiVersion: v1
-kind: Pod
+kind: Namespace
 metadata:
-  name: oom-pod
-  namespace: k8smissions
-  labels:
-    app: oom-pod
+  name: cart
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: cart-limits
+  namespace: cart
 spec:
-  containers:
-  - name: oom-pod
-    image: python:3.11-alpine
-    command:
-    - python
-    - -c
-    - data=['x'*1024*1024 for _ in range(128)]; import time; time.sleep(3600)
-    resources:
-      limits:
-        memory: 64Mi
-      requests:
-        memory: 32Mi
+  limits:
+  - type: Container
+    max: {memory: 128Mi}
+    default: {memory: 128Mi}
+    defaultRequest: {memory: 64Mi}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-scripts
+  namespace: cart
+data:
+  queue.py: |
+    import itertools, socketserver
+    counter = itertools.count(1)
+
+    class H(socketserver.StreamRequestHandler):
+        def handle(self):
+            self.wfile.write(("job-%d\n" % next(counter)).encode())
+
+    class S(socketserver.ThreadingMixIn, socketserver.TCPServer):
+        allow_reuse_address = True
+
+    S(("0.0.0.0", 6379), H).serve_forever()
+  cache.py: |
+    import os, time
+    mb = int(os.environ.get("CACHE_MB", "64"))
+    print("cart-cache: warming %d MB of session data" % mb, flush=True)
+    data = b"s" * (mb * 1024 * 1024)
+    print("cart-cache: cache warmed %d MB" % mb, flush=True)
+    while True:
+        time.sleep(30)
+  worker.py: |
+    import os, socket, sys, time
+    addr = os.environ.get("QUEUE_ADDR", "cart-queue:6379")
+    host, port = addr.rsplit(":", 1)
+    print("cart-worker: connecting to queue at", addr, flush=True)
+    for attempt in range(1, 4):
+        try:
+            socket.create_connection((host, int(port)), timeout=3).close()
+            break
+        except OSError as e:
+            print("cart-worker: queue unreachable (%s), attempt %d/3" % (e, attempt), flush=True)
+            time.sleep(2)
+    else:
+        print("cart-worker: giving up", flush=True)
+        sys.exit(3)
+    while True:
+        s = socket.create_connection((host, int(port)), timeout=3)
+        job = s.makefile().readline().strip()
+        s.close()
+        print("cart-worker: processed", job, flush=True)
+        time.sleep(2)
+  reporter.py: |
+    import http.server
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            body = b"report ok"
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+        def log_message(self, *a):
+            pass
+    print("cart-reporter: serving reports on :9090", flush=True)
+    http.server.HTTPServer(("0.0.0.0", 9090), H).serve_forever()
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-cache-config
+  namespace: cart
+data:
+  CACHE_MB: "192"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-queue
+  namespace: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cart-queue}
+  template:
+    metadata:
+      labels: {app: cart-queue}
+    spec:
+      containers:
+      - name: queue
+        image: python:3.12-alpine
+        command: ["python", "/scripts/queue.py"]
+        ports:
+        - containerPort: 6379
+        volumeMounts:
+        - {name: scripts, mountPath: /scripts}
+      volumes:
+      - name: scripts
+        configMap: {name: cart-scripts}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-queue
+  namespace: cart
+spec:
+  selector: {app: cart-queue}
+  ports:
+  - {port: 6379, targetPort: 6379}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-cache
+  namespace: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cart-cache}
+  template:
+    metadata:
+      labels: {app: cart-cache}
+    spec:
+      containers:
+      - name: cache
+        image: python:3.12-alpine
+        command: ["python", "/scripts/cache.py"]
+        envFrom:
+        - configMapRef: {name: cart-cache-config}
+        volumeMounts:
+        - {name: scripts, mountPath: /scripts}
+      volumes:
+      - name: scripts
+        configMap: {name: cart-scripts}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-worker
+  namespace: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cart-worker}
+  template:
+    metadata:
+      labels: {app: cart-worker}
+    spec:
+      containers:
+      - name: worker
+        image: python:3.12-alpine
+        command: ["python", "/scripts/worker.py"]
+        env:
+        - {name: QUEUE_ADDR, value: "cart-queue:6397"}
+        volumeMounts:
+        - {name: scripts, mountPath: /scripts}
+      volumes:
+      - name: scripts
+        configMap: {name: cart-scripts}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-reporter
+  namespace: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cart-reporter}
+  template:
+    metadata:
+      labels: {app: cart-reporter}
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: reporter
+        image: python:3.12-alpine
+        command: ["python", "/scripts/reporter.py"]
+        ports:
+        - containerPort: 9090
+        livenessProbe:
+          tcpSocket: {port: 9091}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 2
+        volumeMounts:
+        - {name: scripts, mountPath: /scripts}
+      volumes:
+      - name: scripts
+        configMap: {name: cart-scripts}

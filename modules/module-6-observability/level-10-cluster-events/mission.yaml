@@ -1,17 +1,15 @@
 {
   "name": "The Timeline of Failure",
-  "description": "A production incident occurred recently. The `incident-app` Deployment had pods repeatedly crashing. Your task is to reconstruct what happened using cluster events, identify the root cause from the event timeline, and then fix the underlying configuration.",
-  "objective": "A production incident happened 15 minutes ago — read cluster events across namespaces and write a brief post-mortem",
-  "xp": 500,
+  "description": "At 14:02 `inventory-sync` began crash-looping with `cache: connection failed` in its log and the stock dashboard went stale. The app's own namespace shows only its restarts and its log. The on-call suspects a bad release of the app, but it has not changed since Monday.",
+  "objective": "Deployment `inventory-sync` (namespace `k8smissions`) is Ready and its current log shows an authenticated `PONG ok` answer from the real cache, Deployment `inventory-cache` (namespace `cache-tier`) is Ready, and both Secrets still exist.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Event timeline",
-    "incident post-mortem",
-    "MTTD (Mean Time to Detect)",
-    "observability → actionability",
-    "SRE principles"
-  ],
+  "expected_time": "15m",
+  "concepts": ["cluster-wide events", "field selectors", "FailedMount", "cross-namespace Secrets"],
   "module": "module-6-observability",
-  "level": "level-10-cluster-events"
+  "level": "level-10-cluster-events",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 180,
+  "cleanup": []
 }

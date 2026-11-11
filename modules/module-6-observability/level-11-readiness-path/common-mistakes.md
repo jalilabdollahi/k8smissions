@@ -1,13 +1,11 @@
-# Common Mistakes — Never Ready
+## Deleting the old pods or restarting the rollout
 
-## Mistake 1: Using the same path for readiness and liveness
+`kubectl rollout restart` creates new pods with the same probe and they fail the same way. Deleting old pods only reduces your serving capacity while the new revision stays broken.
 
-**Wrong approach:** Both probes check /healthz — liveness restarts, readiness removes. If / is up but /healthz 404s both probes fail
+## Removing the readiness probe
 
-**Correct approach:** Use separate paths: readiness on /ready (checks dependencies), liveness on /live (just is-process-alive)
+The rollout would finish, but the Deployment then sends traffic to pods the moment they start, and the validator requires an HTTP probe that really returns 200.
 
-## Mistake 2: Setting initialDelaySeconds too low
+## Reading the logs of the pod
 
-**Wrong approach:** Low delay causes probes to fail before app fully starts, triggering restart loops
-
-**Correct approach:** Set initialDelaySeconds to be longer than your slowest observed startup time
+nginx here logs nothing for a failed probe, so `kubectl logs` looks clean. The failing check is recorded by the kubelet in the pod's events, not by the application.
