@@ -1,7 +1,4 @@
-The PVC is in Pending. For dynamic provisioning to work, the requested StorageClass must exist in the cluster — only then will a provisioner create a PV automatically.
+Ask the claim what it is waiting for, and check what the cluster offers:
 
-List the available StorageClasses:
-
+  kubectl describe pvc reports-data -n k8smissions
   kubectl get storageclass
-
-Is `premium-ssd` in the list?

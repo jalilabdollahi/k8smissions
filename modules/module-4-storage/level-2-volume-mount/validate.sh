@@ -1,79 +1,53 @@
 #!/bin/bash
+# Level 2: uploads must land on the PVC and survive a pod replacement.
+. ../_fixtures/lib.sh
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m'
-
-echo "🔍 Validating Level 32: Volume Mount Path Error..."
-echo ""
-
-echo "📋 Stage 1: Checking pod exists..."
-if ! kubectl get pod web-app -n k8smissions &>/dev/null; then
-    echo -e "${RED}❌ Pod 'web-app' not found${NC}"
-    exit 1
+if ! kubectl get deployment web-app -n "$NS" >/dev/null 2>&1; then
+  bad "Deployment web-app does not exist"
+  exit 1
 fi
-echo -e "${GREEN}✓ Pod exists${NC}"
-echo ""
-
-echo "📋 Stage 2: Checking pod status..."
-sleep 5
-POD_STATUS=$(kubectl get pod web-app -n k8smissions -o jsonpath='{.status.phase}')
-
-if [ "$POD_STATUS" != "Running" ]; then
-    echo -e "${RED}❌ Pod is not running (status: $POD_STATUS)${NC}"
-    echo ""
-    echo "💡 Check pod logs:"
-    echo "   kubectl logs web-app -n k8smissions"
-    echo ""
-    echo "   If you see 'Config file not found', the volume is mounted at wrong path"
-    exit 1
+if [ "$(kubectl get pvc uploads -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null)" != "Bound" ]; then
+  bad "PVC uploads is missing or not Bound"
+  exit 1
 fi
-echo -e "${GREEN}✓ Pod is running${NC}"
-echo ""
+ok "PVC uploads is Bound"
 
-echo "📋 Stage 3: Verifying volume mount path..."
-MOUNT_PATH=$(kubectl get pod web-app -n k8smissions -o jsonpath='{.spec.containers[0].volumeMounts[0].mountPath}')
-
-if [ "$MOUNT_PATH" != "/app/config" ]; then
-    echo -e "${RED}❌ Volume mounted at wrong path: $MOUNT_PATH${NC}"
-    echo "   Expected: /app/config"
-    echo ""
-    echo "💡 Fix the mountPath in volumeMounts section"
-    exit 1
+POD=$(kubectl get pods -n "$NS" -l app=web-app --field-selector=status.phase=Running \
+  -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+if [ -z "$POD" ]; then
+  bad "web-app has no running pod"
+  exit 1
 fi
-echo -e "${GREEN}✓ Volume mounted at /app/config${NC}"
-echo ""
-
-echo "📋 Stage 4: Verifying config file exists..."
-if ! kubectl exec web-app -n k8smissions -- test -f /app/config/app.conf 2>/dev/null; then
-    echo -e "${RED}❌ Config file not found at /app/config/app.conf${NC}"
-    exit 1
+if ! kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.volumes[*].persistentVolumeClaim.claimName}' | grep -qw uploads; then
+  bad "the web-app pod does not use PVC uploads"
+  exit 1
 fi
-echo -e "${GREEN}✓ Config file exists at /app/config/app.conf${NC}"
-echo ""
+ok "$POD uses PVC uploads"
 
-echo "📋 Stage 5: Verifying app can read config..."
-CONFIG_CONTENT=$(kubectl exec web-app -n k8smissions -- cat /app/config/app.conf 2>/dev/null)
-if [ -z "$CONFIG_CONTENT" ]; then
-    echo -e "${RED}❌ Cannot read config file${NC}"
-    exit 1
+ensure_probe || { bad "could not start the test client pod"; exit 1; }
+TOKEN="invoice-$(date +%s)"
+CODE=$(pcurl -o /dev/null -w '%{http_code}' -X POST --data-binary "$TOKEN" http://web-app/upload/validate.txt)
+if [ "$CODE" != "201" ]; then
+  bad "upload through Service web-app failed (HTTP ${CODE:-none})"
+  exit 1
 fi
-echo -e "${GREEN}✓ App can read config file${NC}"
-echo "   Content: $CONFIG_CONTENT"
-echo ""
+if [ "$(pcurl http://web-app/files/validate.txt)" != "$TOKEN" ]; then
+  bad "an uploaded file cannot be downloaded right after upload"
+  exit 1
+fi
+ok "upload and download work"
 
-echo "📋 Stage 6: Final validation..."
-echo -e "${GREEN}✓ All checks passed!${NC}"
-echo ""
-echo "🎉 Success! Volume is mounted at the correct path"
-echo ""
-echo "📊 Configuration:"
-echo "   • Mount Path: /app/config"
-echo "   • Config File: app.conf"
-echo "   • Pod Status: Running"
-echo ""
-echo "💡 Key Concept: mountPath determines WHERE in the container the volume appears"
-echo ""
-
+kubectl delete pod "$POD" -n "$NS" --wait=false >/dev/null 2>&1
+NEW=$(wait_replacement app=web-app "$POD" 60)
+if [ -z "$NEW" ]; then
+  bad "no replacement pod became Ready within 60s"
+  exit 1
+fi
+sleep 2
+if [ "$(pcurl http://web-app/files/validate.txt)" != "$TOKEN" ]; then
+  bad "the file uploaded before the restart is gone"
+  exit 1
+fi
+ok "the upload survived replacing the pod"
 exit 0
+exit 1

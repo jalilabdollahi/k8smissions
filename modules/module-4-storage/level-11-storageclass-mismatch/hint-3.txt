@@ -1,3 +1,8 @@
-The PVC in manifest.yaml requests `storageClassName: fast-nvme` which does not exist. Change it to a class that is actually installed — `standard` is available in this cluster.
+The class of an existing claim is immutable, so the claim has to be recreated. A pod that still uses it keeps it from being deleted, so stop the pod first:
 
-Find `spec.storageClassName` in the PVC in manifest.yaml.
+  kubectl scale deployment archive-reader -n k8smissions --replicas=0
+  kubectl delete pvc archive -n k8smissions
+  # apply a new claim named archive with storageClassName: <the class of archive-2023>
+  kubectl scale deployment archive-reader -n k8smissions --replicas=1
+
+Deleting the PersistentVolume is not needed and is the wrong way around.

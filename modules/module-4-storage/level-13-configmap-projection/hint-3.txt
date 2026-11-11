@@ -1,3 +1,6 @@
-The `items` list under the configMap volume only includes `app.properties`. When `items` is used, ONLY the listed keys are projected into the container — everything else is excluded.
+Decide what each source should contribute. Restrict the source that must not provide `db.password` with `items`, for example by patching the Deployment's projected sources:
 
-You need to add `logging.properties` to the items list in manifest.yaml.
+  kubectl edit deployment config-reader -n k8smissions
+  # under volumes -> projected -> sources -> configMap add:  items: [{key: <key>, path: <file>}]
+
+Reordering the sources is a fragile alternative, and deleting data from the Secret is not an option.

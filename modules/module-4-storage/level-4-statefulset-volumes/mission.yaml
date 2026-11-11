@@ -1,16 +1,15 @@
 {
-  "name": "Shared Storage Chaos",
-  "description": "StatefulSet postgres-cluster has 3 replicas, all writing to what looks like separate storage. But data is being overwritten between pods. Run kubectl get pods -n k8smissions and kubectl get pvc -n k8smissions.",
-  "objective": "All StatefulSet replicas share a single PVC — replace it with a volumeClaimTemplate so each pod gets its own PVC",
-  "xp": 300,
-  "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "StatefulSet volumeClaimTemplates",
-    "per-pod storage",
-    "dynamic provisioning",
-    "pod-0/pod-1/pod-2 storage isolation"
-  ],
+  "name": "Every Replica Writes to the Same Disk",
+  "description": "The three-member StatefulSet postgres-cluster was migrated from the cloud cluster this week. Only postgres-cluster-0 is Ready. postgres-cluster-1 keeps restarting with a complaint about a data directory that belongs to someone else, and postgres-cluster-2 has never been created. Each member is supposed to own its data.",
+  "objective": "StatefulSet postgres-cluster runs 3/3 Ready with a separate Bound PersistentVolumeClaim per member, and each member keeps its own data after its pod is deleted.",
+  "xp": 150,
+  "difficulty": "intermediate",
+  "expected_time": "15m",
+  "concepts": ["StatefulSet", "volumeClaimTemplates", "per-pod PVC", "immutable fields"],
   "module": "module-4-storage",
-  "level": "level-4-statefulset-volumes"
+  "level": "level-4-statefulset-volumes",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 150,
+  "cleanup": []
 }

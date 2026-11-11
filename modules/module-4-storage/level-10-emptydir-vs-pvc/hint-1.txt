@@ -1,5 +1,6 @@
-The logs say 'WARNING: Using emptyDir - data will be LOST on pod restart!'. Confirm this is the volume type in use:
+Look at what backs each directory the app uses, and compare how long each kind of volume lives:
 
-  kubectl get pod data-app -n k8smissions -o yaml | grep -A5 'volumes'
+  kubectl get deployment data-app -n k8smissions -o jsonpath='{.spec.template.spec.volumes}'
+  kubectl get pvc -n k8smissions
 
-What kind of volume is it?
+Then upload a file, delete the pod (not just the container), and see what is left.

@@ -1,8 +1,207 @@
 apiVersion: v1
-kind: Secret
-type: Opaque
+kind: ServiceAccount
 metadata:
-  name: api-secret
+  name: api-gateway
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: api-gateway-token
+  namespace: k8smissions
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["api-token"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: api-gateway-token
+  namespace: k8smissions
+subjects:
+  - kind: ServiceAccount
+    name: api-gateway
+    namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: api-gateway-token
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-src
   namespace: k8smissions
 data:
-  token: YzNWd1pYSnpaV055WlhRdFlYQnBMWFJ2YTJWdUxURXlNelEx
+  gateway.py: |
+    # accepts the bearer token that Secret api-token currently holds (read live from the API)
+    import base64, json, ssl, urllib.request
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    NS = open(SA + "/namespace").read().strip()
+
+    def current():
+        req = urllib.request.Request(
+            "https://kubernetes.default.svc/api/v1/namespaces/%s/secrets/api-token" % NS,
+            headers={"Authorization": "Bearer " + open(SA + "/token").read().strip()})
+        ctx = ssl.create_default_context(cafile=SA + "/ca.crt")
+        data = json.load(urllib.request.urlopen(req, context=ctx, timeout=3))
+        return base64.b64decode(data["data"]["token"]).decode().strip()
+
+    class H(BaseHTTPRequestHandler):
+        def do_GET(self):
+            sent = self.headers.get("Authorization", "").replace("Bearer ", "", 1).strip()
+            try:
+                code = 200 if sent and sent == current() else 401
+            except Exception as e:
+                print("lookup failed: %s" % e, flush=True)
+                code = 503
+            self.send_response(code)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        def log_message(self, *a):
+            pass
+
+    ThreadingHTTPServer(("", 8080), H).serve_forever()
+  consumer.py: |
+    # sends the token found in /etc/api/token to the gateway every 2 seconds
+    import threading, time, urllib.error, urllib.request
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    state = {"code": 0}
+
+    def loop():
+        while True:
+            try:
+                token = open("/etc/api/token").read().strip()
+                req = urllib.request.Request("http://api-gateway/check", headers={"Authorization": "Bearer " + token})
+                try:
+                    code = urllib.request.urlopen(req, timeout=3).status
+                except urllib.error.HTTPError as e:
+                    code = e.code
+            except Exception as e:
+                code = 0
+                print("request failed: %s" % e, flush=True)
+            if code != state["code"]:
+                print("gateway answered %s" % code, flush=True)
+            state["code"] = code
+            time.sleep(2)
+
+    class H(BaseHTTPRequestHandler):
+        def do_GET(self):
+            c = state["code"]
+            raw = ("auth=ok\n" if c == 200 else "auth=denied code=%s\n" % c).encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
+
+        def log_message(self, *a):
+            pass
+
+    threading.Thread(target=loop, daemon=True).start()
+    HTTPServer(("", 8080), H).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      serviceAccountName: api-gateway
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: gateway
+          image: python:3.12-alpine
+          command: ["python", "-u", "/src/gateway.py"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 2
+          volumeMounts:
+            - name: src
+              mountPath: /src
+      volumes:
+        - name: src
+          configMap:
+            name: api-src
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: k8smissions
+spec:
+  selector:
+    app: api-gateway
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-consumer
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-consumer
+  template:
+    metadata:
+      labels:
+        app: api-consumer
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: consumer
+          image: python:3.12-alpine
+          command: ["python", "-u", "/src/consumer.py"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 2
+          volumeMounts:
+            - name: src
+              mountPath: /src
+            - name: token
+              mountPath: /etc/api/token
+              subPath: token
+              readOnly: true
+      volumes:
+        - name: src
+          configMap:
+            name: api-src
+        - name: token
+          secret:
+            secretName: api-token
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-consumer
+  namespace: k8smissions
+spec:
+  selector:
+    app: api-consumer
+  ports:
+    - port: 80
+      targetPort: 8080

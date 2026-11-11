@@ -1,3 +1,5 @@
-Change the `persistentVolumeReclaimPolicy` from `Delete` to `Retain` in the PV spec in manifest.yaml.
+Remove the stale reservation from the volume; the data and the volume itself stay as they are:
 
-Note: if the PV is already bound to a PVC, you cannot change reclaimPolicy via apply — you would need to patch it directly. Since this PV is still Available, the manifest change will work.
+  kubectl patch pv billing-pv --type=merge -p '{"spec":{"<field>":null}}'
+
+The pending claim already names this volume, so it binds as soon as the volume is free.

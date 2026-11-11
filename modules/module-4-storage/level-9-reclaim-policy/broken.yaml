@@ -1,58 +1,62 @@
----
 apiVersion: v1
-kind: PersistentVolume
+kind: PersistentVolumeClaim
 metadata:
-  name: important-data
+  name: ledger-data
+  namespace: k8smissions
 spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete
-  storageClassName: standard
-  hostPath:
-    path: /mnt/data/important
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 2Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: data-claim
+  name: ledger-scratch
   namespace: k8smissions
 spec:
-  accessModes:
-    - ReadWriteOnce
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: 10Gi
-  storageClassName: standard
+      storage: 1Gi
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: data-writer
+  name: ledger
   namespace: k8smissions
 spec:
-  containers:
-  - name: writer
-    image: busybox:1.36
-    command:
-    - sh
-    - -c
-    - |
-      echo "Writing important data..."
-      echo "Critical production data" > /data/important.txt
-      echo "Timestamp: $(date)" >> /data/important.txt
-      echo "Data written successfully"
-      
-      # Simulate that PVC might be deleted
-      echo ""
-      echo "⚠️  WARNING: If this PVC is deleted with Delete policy,"
-      echo "all data will be lost permanently!"
-      sleep 3600
-    volumeMounts:
-    - name: data
-      mountPath: /data
-  volumes:
-  - name: data
-    persistentVolumeClaim:
-      claimName: data-claim
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ledger
+  template:
+    metadata:
+      labels:
+        app: ledger
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: ledger
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              if [ ! -f /data/2025-10-close.csv ]; then
+                printf 'account,balance\nAR-1001,48210.55\nAR-1002,1290.00\nAP-2001,-7311.20\ntotal,42189.35\n' > /data/2025-10-close.csv
+              fi
+              echo "ledger service up, $(wc -l < /data/2025-10-close.csv) lines in the close file"
+              while true; do date +%s > /scratch/heartbeat; sleep 5; done
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: scratch
+              mountPath: /scratch
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ledger-data
+        - name: scratch
+          persistentVolumeClaim:
+            claimName: ledger-scratch

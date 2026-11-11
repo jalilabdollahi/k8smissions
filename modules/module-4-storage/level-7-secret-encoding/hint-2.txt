@@ -1,5 +1,6 @@
-The decoded output is the plaintext password — readable by anyone with `kubectl get secret` access. Base64 is an encoding scheme, not encryption. Anyone with access to the namespace can decode every Secret trivially.
+The password in the Secret is almost the right string. The app compares exact bytes, so one extra invisible byte is enough to fail. Find out how the value was produced and how to produce it without that byte.
 
-Check who currently has access to read Secrets:
+  kubectl create secret generic --help
+  kubectl explain secret.data
 
-  kubectl auth can-i get secrets -n k8smissions --as=system:serviceaccount:k8smissions:default
+Also remember how long a mounted Secret takes to refresh in a running pod.

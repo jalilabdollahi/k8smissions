@@ -1,5 +1,6 @@
-The Secret data shows base64-encoded values. Many engineers assume this is a form of encryption. Test that assumption — decode one of the values right now:
+Check what the app says, then compare the Secret with what you expect, byte by byte:
 
-  kubectl get secret db-credentials -n k8smissions -o jsonpath='{.data.password}' | base64 -d
+  kubectl logs deploy/db-client -n k8smissions
+  kubectl get secret db-credentials -n k8smissions -o jsonpath='{.data.password}' | base64 -d | od -c
 
-What do you see?
+Printing the decoded value on screen can hide characters.

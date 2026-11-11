@@ -1,13 +1,59 @@
 apiVersion: v1
-kind: PersistentVolume
+kind: PersistentVolumeClaim
 metadata:
-  name: db-data-pv
+  name: billing-data
+  namespace: k8smissions
 spec:
-  capacity:
-    storage: 5Gi
-  accessModes:
-  - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Delete
-  storageClassName: standard
-  hostPath:
-    path: /data/db
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: ""
+  volumeName: billing-pv
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: billing-reader
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: billing-reader
+  template:
+    metadata:
+      labels:
+        app: billing-reader
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: reader
+          image: busybox:1.36
+          command: ["httpd", "-f", "-p", "8080", "-h", "/billing"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 2
+          volumeMounts:
+            - name: billing
+              mountPath: /billing
+              readOnly: true
+      volumes:
+        - name: billing
+          persistentVolumeClaim:
+            claimName: billing-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: billing-reader
+  namespace: k8smissions
+spec:
+  selector:
+    app: billing-reader
+  ports:
+    - port: 80
+      targetPort: 8080

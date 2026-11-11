@@ -1,7 +1,4 @@
-There is no StorageClass named `premium-ssd`. Without a matching StorageClass, no provisioner responds, no PV is created, and the PVC stays Pending forever.
+A claim names a StorageClass through spec.storageClassName, and the class must exist for the claim to be provisioned. The class tells Kubernetes which provisioner creates the volume. Two ways out: give the claim a class that exists, or create the class it asks for.
 
-See which StorageClasses actually exist:
-
-  kubectl get storageclass
-
-Note which one is marked `(default)`.
+  kubectl get storageclass standard -o yaml
+  kubectl explain storageclass.provisioner

@@ -1,3 +1,6 @@
-The default ServiceAccount in k8smissions can read Secrets — meaning any pod in this namespace can read all Secrets. The risk is not in how the values are stored (base64), but in who is allowed to access the Secret object.
+Rewrite the Secret from a literal (the password is Ledg3r-9fQ2x), then make the pod pick it up:
 
-The fix for this level is demonstrating you understand the risk: use `stringData` instead of `data` in the Secret so you do not have to manually base64-encode values, and note that real protection requires RBAC restrictions or an external secrets manager.
+  kubectl create secret generic db-credentials -n k8smissions \
+    --from-literal=username=ledger --from-literal=password=<exact-password> \
+    --dry-run=client -o yaml | kubectl apply -f -
+  kubectl rollout restart deployment/db-client -n k8smissions

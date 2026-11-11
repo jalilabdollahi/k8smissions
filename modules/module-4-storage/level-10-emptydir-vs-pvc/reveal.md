@@ -1,32 +1,23 @@
-## What went wrong
+# Reveal
 
-`emptyDir: {}` — this volume is created fresh every time the pod starts. Any file written to it is lost the moment the pod is deleted or rescheduled. For user uploads or any persistent data, emptyDir is the wrong choice.
+The `uploads` volume is an `emptyDir`. It lives exactly as long as the pod: a container restart keeps it, a deleted or rescheduled pod loses it.
 
-## Fix
+1. Create a claim for the data:
 
-In manifest.yaml, add a PVC and change the volume:
+   ```bash
+   kubectl apply -f - <<'YAML'
+   apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata: {name: customer-uploads, namespace: k8smissions}
+   spec:
+     accessModes: ["ReadWriteOnce"]
+     resources: {requests: {storage: 1Gi}}
+   YAML
+   ```
+2. Replace the source of the `uploads` volume (index 1; keep `scratch` as an emptyDir):
 
-```yaml
-# Add before the Pod
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: app-data
-  namespace: k8smissions
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
----
-# In the Pod spec, replace emptyDir:
-volumes:
-- name: data
-  persistentVolumeClaim:
-    claimName: app-data
-```
-
-## When emptyDir is correct
-
-emptyDir is useful for: scratch space, caches, sharing files between containers in the same pod. Never use it for data that must survive pod restarts.
+   ```bash
+   kubectl patch deployment data-app -n k8smissions --type=json \
+     -p '[{"op":"replace","path":"/spec/template/spec/volumes/1","value":{"name":"uploads","persistentVolumeClaim":{"claimName":"customer-uploads"}}}]'
+   ```
+3. Wait for the rollout, upload a file, delete the pod and download it again.

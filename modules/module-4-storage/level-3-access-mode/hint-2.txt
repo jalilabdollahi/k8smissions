@@ -1,5 +1,4 @@
-The PVC uses `ReadWriteOnce`. RWO means the volume can be mounted by only ONE node at a time. In a multi-node cluster, if the second and third pod land on different nodes, they cannot mount the already-mounted volume.
+Two rules disagree. The volume is ReadWriteOnce and node-local, so it pins every pod that uses it to one node (see the PV's nodeAffinity). The pod template also carries a scheduling rule about how replicas are spread across nodes.
 
-Check the PV as well:
-
-  kubectl get pv shared-storage -o yaml | grep 'accessModes'
+  kubectl explain pod.spec.topologySpreadConstraints.whenUnsatisfiable
+  kubectl explain pvc.spec.accessModes

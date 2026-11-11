@@ -1,6 +1,5 @@
-ContainerCreating that never progresses usually means a Volume cannot be prepared. The Volume here depends on a PVC. Check the PVC status:
+Start with the pod, not the claim that looks suspicious:
 
-  kubectl get pvc app-storage-claim -n k8smissions
-  kubectl describe pvc app-storage-claim -n k8smissions
+  kubectl describe pod -l app=orders-db -n k8smissions
 
-What does the Events section say about why it cannot bind?
+Read the Events at the bottom. Which object does the scheduler say it cannot find?

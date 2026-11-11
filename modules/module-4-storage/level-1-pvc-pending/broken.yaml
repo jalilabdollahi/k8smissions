@@ -1,52 +1,49 @@
----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: k8smissions
----
-# Also, PVC requests storage class "fast" but PV has "standard"
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: app-storage
-spec:
-  capacity:
-    storage: 1Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: standard
-  hostPath:
-    path: /tmp/k8smissions-data
-    type: DirectoryOrCreate
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: app-storage-claim
+  name: orders-data
   namespace: k8smissions
 spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: fast
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: 5Gi
+      storage: 1Gi
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: database-pod
+  name: orders-db
   namespace: k8smissions
 spec:
-  containers:
-  - name: db
-    image: busybox:1.28
-    command: ['sh', '-c', 'echo "Database running" && sleep 3600']
-    volumeMounts:
-    - name: storage
-      mountPath: /data
-  volumes:
-  - name: storage
-    persistentVolumeClaim:
-      claimName: app-storage-claim  # References pending PVC
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orders-db
+  template:
+    metadata:
+      labels:
+        app: orders-db
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: db
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /var/lib/orders-db
+              echo "$(date -u +%FT%TZ) orders-db started" >> /var/lib/orders-db/boot.log
+              trap 'exit 0' TERM
+              while :; do sleep 1; done
+          readinessProbe:
+            exec:
+              command: ["test", "-f", "/var/lib/orders-db/boot.log"]
+            periodSeconds: 2
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/orders-db
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: orders-db-data

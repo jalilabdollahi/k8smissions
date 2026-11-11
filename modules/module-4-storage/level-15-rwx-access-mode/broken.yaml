@@ -4,9 +4,55 @@ metadata:
   name: shared-pvc
   namespace: k8smissions
 spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: standard
+  accessModes: ["ReadWriteMany"]
   resources:
     requests:
-      storage: 2Gi
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingest
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingest
+  template:
+    metadata:
+      labels:
+        app: ingest
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: ingest
+          image: python:3.12-alpine
+          command: ["python", "-u", "/src/ingest.py"]
+          env:
+            - name: INGEST_VERSION
+              value: "2"
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 2
+          volumeMounts:
+            - name: src
+              mountPath: /src
+            - name: data
+              mountPath: /data
+            - name: spool
+              mountPath: /spool
+      volumes:
+        - name: src
+          configMap:
+            name: ingest-src
+        - name: data
+          persistentVolumeClaim:
+            claimName: ingest-data
+        - name: spool
+          persistentVolumeClaim:
+            claimName: shared-pvc

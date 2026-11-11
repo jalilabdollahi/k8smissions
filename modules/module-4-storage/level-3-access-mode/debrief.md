@@ -1,16 +1,16 @@
-# Only One Can Write
+# Debrief: three replicas, one disk
 
-## Situation
-Three pods on different nodes need to share a volume for writing. PVC is ReadWriteOnce — only allows one writer.
+**What was broken.** `web-servers` asked for 3 replicas, each mounting the ReadWriteOnce claim `site-content`, and also carried a hard topology spread constraint copied from the cloud cluster. The volume lives on one node, so each replica must run there; the constraint refuses to put a second replica on a node while other nodes are empty. Nothing can satisfy both, so two pods stayed Pending.
 
-## Successful Fix
-Delete PVC (immutable spec), recreate with ReadWriteMany Note: Simulated on kind (single-node) but concept matters for production multi-node clusters
+**The evidence.** `kubectl get pods -o wide` showed a single Running pod and its node. `kubectl describe pod` on a Pending pod listed two filter reasons from the scheduler: topology spread and volume node affinity. The PV's `nodeAffinity` named the node that holds the data.
 
-## What To Validate
-Use the validator to confirm the repaired state.
+**Why Kubernetes behaves this way.** ReadWriteOnce means one node at a time can mount the volume, and a node-local volume additionally carries node affinity, which the scheduler treats as a hard filter. Many pods on the same node may share a RWO volume. Spread constraints with `DoNotSchedule` are also hard filters, so a pod that fails any one filter is Pending.
 
-## Why It Matters
-Review how the fix changed the cluster behavior for Only One Can Write.
+**The fix.** Relax the spread rule to `ScheduleAnyway` (or drop it), keeping the single claim. Bigger disks, extra claims or lowering replicas do not meet the goal: the content must be shared by three replicas.
 
-## Concepts
-Access modes (RWO, RWX, ROX), PVC immutability, multi-pod shared storage, NFS/EFS for RWX
+**In production.** The honest way to spread replicas across nodes is a volume that supports ReadWriteMany (NFS, CephFS, EFS) or content baked into the image or pulled from object storage at start. kind has no RWX provisioner, so the volume stays on one node here and we gave up node spreading instead.
+
+**Commands worth remembering**
+- `kubectl get pods -o wide`: which node each pod is on.
+- `kubectl get pv <name> -o yaml`: `spec.nodeAffinity` of a local volume.
+- `kubectl explain pvc.spec.accessModes`

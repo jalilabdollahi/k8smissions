@@ -1,16 +1,26 @@
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: database-storage
+  name: pgdata-shared
   namespace: k8smissions
 spec:
-  accessModes:
-    - ReadWriteOnce
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: 5Gi
-  storageClassName: standard
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-cluster
+  namespace: k8smissions
+spec:
+  clusterIP: None
+  selector:
+    app: postgres-cluster
+  ports:
+    - port: 5432
+      name: pg
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -18,30 +28,42 @@ metadata:
   name: postgres-cluster
   namespace: k8smissions
 spec:
-  serviceName: postgres
+  serviceName: postgres-cluster
   replicas: 3
   selector:
     matchLabels:
-      app: postgres
+      app: postgres-cluster
   template:
     metadata:
       labels:
-        app: postgres
+        app: postgres-cluster
     spec:
+      terminationGracePeriodSeconds: 5
       containers:
-      - name: postgres
-        image: postgres:14
-        env:
-        - name: POSTGRES_PASSWORD
-          value: secretpassword
-        - name: PGDATA
-          value: /var/lib/postgresql/data/pgdata
-        ports:
-        - containerPort: 5432
-        volumeMounts:
-        - name: database-storage
-          mountPath: /var/lib/postgresql/data
+        - name: postgres
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              f=/var/lib/pgdata/node-id
+              [ -f "$f" ] || hostname > "$f"
+              if [ "$(cat "$f")" != "$(hostname)" ]; then
+                echo "FATAL: data directory belongs to $(cat "$f"), refusing to start as $(hostname)"
+                exit 1
+              fi
+              echo "member $(hostname) ready, data directory is mine"
+              touch /tmp/ready
+              trap 'exit 0' TERM
+              while :; do sleep 1; done
+          readinessProbe:
+            exec:
+              command: ["test", "-f", "/tmp/ready"]
+            periodSeconds: 2
+          volumeMounts:
+            - name: pgdata
+              mountPath: /var/lib/pgdata
       volumes:
-      - name: database-storage
-        persistentVolumeClaim:
-          claimName: database-storage
+        - name: pgdata
+          persistentVolumeClaim:
+            claimName: pgdata-shared

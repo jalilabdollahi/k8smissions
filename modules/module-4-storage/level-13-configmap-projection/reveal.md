@@ -1,26 +1,13 @@
-## What went wrong
+# Reveal
 
-The ConfigMap volume uses `items` to select which keys become files. Only `app.properties` is listed — `logging.properties` is silently omitted. The container expects both files but finds only one.
+The projected volume lists `db-secret` first and `db-config` second, with no `items`. Both objects have a key `db.password`; the ConfigMap's is an empty leftover, and because it is projected last, its empty file replaces the Secret's.
 
-## Fix
+1. See the empty file: `kubectl exec deploy/config-reader -n k8smissions -- wc -c /etc/db/db.password` prints 0.
+2. Project only the URL from the ConfigMap:
 
-In manifest.yaml, add the missing entry to the volume's items list:
-
-```yaml
-volumes:
-- name: config
-  configMap:
-    name: app-config
-    items:
-    - key: app.properties
-      path: app.properties
-    - key: logging.properties
-      path: logging.properties
-```
-
-## items vs no items
-
-- **With `items`** — only the listed keys are projected; unlisted keys are excluded
-- **Without `items`** — all ConfigMap keys are projected as files
-
-Use `items` when you want to rename a key to a different filename (e.g. key `app.conf.prod` → path `app.conf`). If you just want all keys as files, omit `items` entirely.
+   ```bash
+   kubectl patch deployment config-reader -n k8smissions --type=json -p '[
+     {"op":"replace","path":"/spec/template/spec/volumes/1/projected/sources/1",
+      "value":{"configMap":{"name":"db-config","items":[{"key":"db.url","path":"db.url"}]}}}]'
+   ```
+3. After the rollout `/etc/db/db.password` holds the Secret's value and the service reports `config=ok`. (Removing the stale key from the ConfigMap, or swapping the order of the sources, also works.)

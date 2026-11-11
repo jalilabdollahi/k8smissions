@@ -1,17 +1,15 @@
 {
-  "name": "The Exclusive Mount",
-  "description": "Multiple pods need to read from and write to a shared PVC simultaneously, but only one pod can mount it at a time. Others are stuck waiting. Run kubectl get pvc shared-pvc -n k8smissions.",
-  "objective": "The PVC uses ReadWriteOnce which only allows one node to mount it — change the access mode to ReadWriteMany",
-  "xp": 225,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "PVC",
-    "accessModes",
-    "ReadWriteOnce",
-    "ReadWriteMany",
-    "shared storage"
-  ],
+  "name": "Ingest v2 Will Not Roll Out",
+  "description": "ingest v1 has been running for months on its own volume. The v2 release adds a spool directory on a new claim, shared-pvc, copied from the cloud environment where the spool is shared between pods. Since the deploy, the rollout has been stuck: the old pod keeps serving, the new pod never starts, and the new claim is not Bound either. The first sealed batch of v1 is on the old volume and must not be lost.",
+  "objective": "Deployment ingest finishes its rollout to v2 with exactly one Ready pod, using Bound claims shared-pvc (for /spool) and ingest-data, and v2 still sees v1's first batch. This cluster provides only single-writer volumes. Service ingest must report version=2 data=ok spool=ok.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["access modes", "ReadWriteOncePod", "Deployment strategy", "immutable PVC fields"],
   "module": "module-4-storage",
-  "level": "level-15-rwx-access-mode"
+  "level": "level-15-rwx-access-mode",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

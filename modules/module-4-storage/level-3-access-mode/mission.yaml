@@ -1,18 +1,15 @@
 {
-  "name": "Only One Can Write",
-  "description": "A 3-replica Deployment web-servers needs all pods to share the same storage volume. Some pods are failing to mount the volume. Run kubectl get pods -n k8smissions and look for volume-related errors.",
-  "objective": "The PVC uses ReadWriteOnce but multiple pods on different nodes need to write — change the access mode to allow shared writes",
-  "xp": 250,
+  "name": "Three Replicas, One Disk",
+  "description": "The marketing site Deployment web-servers is meant to run 3 replicas for availability, all serving the catalogue files that a one-off Job copied onto the shared volume site-content. Since the Job finished, only one replica is Running; the other two sit in Pending and the rollout never completes. The platform team tried asking for a bigger disk and it made no difference.",
+  "objective": "Deployment web-servers runs 3/3 Ready replicas that all serve the same /content file from the single ReadWriteOnce PersistentVolumeClaim site-content.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Access modes (RWO",
-    "RWX",
-    "ROX)",
-    "PVC immutability",
-    "multi-pod shared storage",
-    "NFS/EFS for RWX"
-  ],
+  "expected_time": "12m",
+  "concepts": ["ReadWriteOnce", "volume node affinity", "topologySpreadConstraints", "kubectl get pods -o wide"],
   "module": "module-4-storage",
-  "level": "level-3-access-mode"
+  "level": "level-3-access-mode",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

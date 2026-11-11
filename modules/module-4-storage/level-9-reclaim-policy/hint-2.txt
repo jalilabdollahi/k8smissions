@@ -1,3 +1,4 @@
-The reclaimPolicy is `Delete`. This is why the data is gone — the moment the PVC was deleted, Kubernetes automatically deleted the PV and its backing storage too.
+What happens to a volume when its claim goes away is a property of the volume (copied from the StorageClass at provisioning time), not of the claim. The class is shared with every other workload, so it is the wrong place to change it.
 
-For a PV holding important production data, this is the wrong policy. Look at what `Retain` would do differently.
+  kubectl explain pv.spec.persistentVolumeReclaimPolicy
+  kubectl get storageclass standard -o jsonpath='{.reclaimPolicy}'

@@ -1,27 +1,16 @@
-## What went wrong
+# Reveal
 
-The container runs as user 1000. The PVC volume is mounted with ownership root:root (0:0). User 1000 has no write permission on a root-owned directory.
+The key file is created root-owned with mode `0400`. The app runs as uid 10001 and cannot read it, so it dies with `PermissionError`. Running as root would hide the problem but break the non-root requirement, and making the mode `0444` makes the app refuse the key as too open.
 
-## Fix
+1. See the error: `kubectl logs deploy/writer-app -n k8smissions --previous` ends with `PermissionError: ... '/etc/signing/signing.key'`.
+2. Give the volume's files a group that the app's user belongs to:
 
-Add `fsGroup` to the pod-level securityContext in manifest.yaml:
+   ```bash
+   kubectl patch deployment writer-app -n k8smissions --type=merge \
+     -p '{"spec":{"template":{"spec":{"securityContext":{"fsGroup":10001}}}}}'
+   ```
 
-```yaml
-spec:
-  securityContext:
-    fsGroup: 1000   # pod-level
-  containers:
-  - name: app
-    securityContext:
-      runAsUser: 1000
-      runAsGroup: 1000   # container-level
-```
+   With `fsGroup` set, the kubelet makes the files group-owned by 10001 and adds group read to the mode (0400 becomes 0440), which is exactly enough.
+3. Wait for the rollout; `/status` reports `signed=ok uid=10001`.
 
-Kubernetes changes the volume's group ownership to `fsGroup` before mounting it. Since the container's runAsGroup is also 1000, it has write access.
-
-## fsGroup vs runAsGroup
-
-- `runAsGroup` — the primary group of the process inside the container
-- `fsGroup` — the group ownership applied to mounted volumes (set once at pod startup)
-
-These are on different levels: `fsGroup` is pod-level (applies to all volumes), `runAsGroup` is container-level (affects only that container's process).
+Another correct fix: `defaultMode: 0440` together with `fsGroup`.

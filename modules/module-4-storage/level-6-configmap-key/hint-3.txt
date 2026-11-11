@@ -1,3 +1,4 @@
-The ConfigMap has `app_name` and `app_version` but is missing `database_host`. The pod env references `database_host` via configMapKeyRef — and since the key is absent, the container cannot start.
+Make the key the volume selects match a key that exists in app-config (or make the ConfigMap hold that key), while the file still shows up as app.yaml:
 
-You need to add the `database_host` key to the ConfigMap data in manifest.yaml.
+  kubectl patch deploy/web-app --namespace k8smissions --type=json \
+    -p '[{"op":"replace","path":"/spec/template/spec/volumes/1/configMap/items/0/key","value":"<existing-key>"}]'

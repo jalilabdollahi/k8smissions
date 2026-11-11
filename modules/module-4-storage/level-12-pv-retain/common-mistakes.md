@@ -1,13 +1,7 @@
-# Common Mistakes — Deleted Data
+# Common mistakes: level 12
 
-## Mistake 1: Using Recycle policy
+**Deleting the PV and recreating it.** With `Retain` the data is the whole point, and the PV object is the only record of where it is. A recreated object must describe the same backing directory exactly; if it does not, the ledger is unreachable. Clear the stale reservation instead.
 
-**Wrong approach:** Setting reclaimPolicy: Recycle — this policy is deprecated and removed in newer k8s versions
+**Changing the reclaim policy or the PVC.** The claim already asks for the right volume, and the policy is fine. The blocker is the old `claimRef` on the PV, which only a change to the PV removes.
 
-**Correct approach:** Use Retain; add manual cleanup or an operator for automated recycling
-
-## Mistake 2: Expecting Retained PV to auto-bind to new PVC
-
-**Wrong approach:** A PV in Released state still has the old claimRef — new PVCs won't bind to it
-
-**Correct approach:** Remove claimRef manually: kubectl patch pv <name> -p '{"spec":{"claimRef":null}}'
+**Recreating the namespace `billing-v1`.** A claim with the old name and UID would have to exist again; a claim with the same name is a different object with a different UID, so the volume still will not rebind. And the service now lives in `k8smissions`.

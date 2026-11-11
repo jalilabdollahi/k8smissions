@@ -1,9 +1,6 @@
-The fix is adding `fsGroup: 1000` to the pod-level `securityContext` (not the container-level securityContext).
+Set a group on the pod so that the volume's files become group-readable by the app's user, keeping runAsUser and non-root as they are:
 
-In manifest.yaml, add this at `spec.securityContext`:
+  kubectl patch deployment writer-app -n k8smissions --type=merge \
+    -p '{"spec":{"template":{"spec":{"securityContext":{"fsGroup":<gid>}}}}}'
 
-```yaml
-spec:
-  securityContext:
-    fsGroup: 1000
-```
+Use the same number as the app's uid.

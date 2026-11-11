@@ -1,7 +1,3 @@
-The decoded output is another base64 string — meaning the Secret's `data.token` field contains base64(base64(realToken)) instead of base64(realToken).
+The kubelet refreshes Secret and ConfigMap volumes in place when the object changes, but not for every kind of mount. One of the options on the container's volumeMounts entry takes the file out of that refresh. Restarting the pod picks up the current value once, but the same thing happens at the next rotation.
 
-When Kubernetes injects the value into the container, it decodes it once — leaving behind an inner base64 string instead of the actual token.
-
-Decode twice to find the real token:
-
-  kubectl get secret api-secret -n k8smissions -o jsonpath='{.data.token}' | base64 -d | base64 -d
+  kubectl explain pod.spec.containers.volumeMounts.subPath

@@ -1,72 +1,52 @@
 #!/bin/bash
+# Level 5: reporter runs on a bound volume and its run log survives a restart.
+. ../_fixtures/lib.sh
 
-NAMESPACE="k8smissions"
-PVC_NAME="app-storage"
-POD_NAME="data-processor"
-
-echo "🔍 Stage 1: Checking if PVC exists..."
-if ! kubectl get pvc "$PVC_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ PVC '$PVC_NAME' not found"
-    exit 1
+if ! kubectl get deployment reporter -n "$NS" >/dev/null 2>&1; then
+  bad "Deployment reporter does not exist"
+  exit 1
 fi
-echo "✅ PVC exists"
-
-echo ""
-echo "🔍 Stage 2: Checking PVC's StorageClass..."
-STORAGE_CLASS=$(kubectl get pvc "$PVC_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.storageClassName}')
-if [ -z "$STORAGE_CLASS" ]; then
-    echo "❌ No StorageClass specified in PVC"
-    exit 1
+POD=$(kubectl get pods -n "$NS" -l app=reporter --field-selector=status.phase=Running \
+  -o jsonpath='{.items[?(@.status.containerStatuses[0].ready==true)].metadata.name}' | awk '{print $1}')
+if [ -z "$POD" ]; then
+  bad "reporter has no Ready pod"
+  exit 1
 fi
-echo "✅ PVC references StorageClass: $STORAGE_CLASS"
+ok "$POD is Ready"
 
-echo ""
-echo "🔍 Stage 3: Verifying StorageClass exists..."
-if ! kubectl get storageclass "$STORAGE_CLASS" &>/dev/null; then
-    echo "❌ StorageClass '$STORAGE_CLASS' does not exist"
-    echo "💡 Available StorageClasses:"
-    kubectl get storageclass
-    echo ""
-    echo "💡 Hint: Update PVC to use an existing StorageClass"
-    exit 1
+CLAIM=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.spec.volumes[*].persistentVolumeClaim.claimName}')
+if [ -z "$CLAIM" ]; then
+  bad "the pod keeps its reports on no PersistentVolumeClaim"
+  exit 1
 fi
-echo "✅ StorageClass '$STORAGE_CLASS' exists"
-
-echo ""
-echo "🔍 Stage 4: Checking if PVC is Bound..."
-PVC_STATUS=$(kubectl get pvc "$PVC_NAME" -n "$NAMESPACE" -o jsonpath='{.status.phase}')
-if [ "$PVC_STATUS" != "Bound" ]; then
-    echo "❌ PVC is in '$PVC_STATUS' state (expected Bound)"
-    echo "💡 Describe PVC to see why: kubectl describe pvc $PVC_NAME -n $NAMESPACE"
+for c in $CLAIM; do
+  if [ "$(kubectl get pvc "$c" -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null)" != "Bound" ]; then
+    bad "PVC $c is not Bound"
     exit 1
-fi
-echo "✅ PVC is Bound"
+  fi
+done
+ok "claim $CLAIM is Bound"
 
-echo ""
-echo "🔍 Stage 5: Checking if pod exists..."
-if ! kubectl get pod "$POD_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ Pod '$POD_NAME' not found"
-    exit 1
+DEV=$(kubectl exec -n "$NS" "$POD" -- awk '$2=="/reports"{print $1}' /proc/mounts 2>/dev/null)
+if [ -z "$DEV" ] || [ "$DEV" = "overlay" ]; then
+  bad "/reports is not on a volume"
+  exit 1
 fi
-echo "✅ Pod exists"
 
-echo ""
-echo "🔍 Stage 6: Checking if pod is Running..."
-POD_STATUS=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.status.phase}')
-if [ "$POD_STATUS" != "Running" ]; then
-    echo "❌ Pod is in '$POD_STATUS' state (expected Running)"
-    exit 1
+FIRST=$(kubectl exec -n "$NS" "$POD" -- head -1 /reports/runs.log 2>/dev/null)
+BEFORE=$(kubectl exec -n "$NS" "$POD" -- wc -l /reports/runs.log 2>/dev/null | awk '{print $1}')
+kubectl delete pod "$POD" -n "$NS" --wait=false >/dev/null 2>&1
+NEW=$(wait_replacement app=reporter "$POD" 60)
+if [ -z "$NEW" ]; then
+  bad "no replacement pod became Ready within 60s"
+  exit 1
 fi
-echo "✅ Pod is Running"
-
-echo ""
-echo "🔍 Stage 7: Verifying volume is mounted..."
-MOUNT_CHECK=$(kubectl exec "$POD_NAME" -n "$NAMESPACE" -- sh -c 'test -d /data && echo "mounted"' 2>/dev/null)
-if [ "$MOUNT_CHECK" != "mounted" ]; then
-    echo "❌ Volume not properly mounted at /data"
-    exit 1
+AFTER=$(kubectl exec -n "$NS" "$NEW" -- wc -l /reports/runs.log 2>/dev/null | awk '{print $1}')
+FIRST2=$(kubectl exec -n "$NS" "$NEW" -- head -1 /reports/runs.log 2>/dev/null)
+if [ "${AFTER:-0}" -le "${BEFORE:-0}" ] || [ "$FIRST" != "$FIRST2" ]; then
+  bad "the run log did not carry over to the new pod (lines before: $BEFORE, after: ${AFTER:-0})"
+  exit 1
 fi
-echo "✅ Volume successfully mounted"
-
-echo ""
-echo "🎉 SUCCESS! PVC bound with valid StorageClass and pod running!"
+ok "the run log kept its history across the restart ($BEFORE -> $AFTER lines)"
+exit 0
+exit 1

@@ -1,16 +1,15 @@
 {
-  "name": "Missing Config Key",
-  "description": "Pod web-app shows CreateContainerConfigError and will not start. Run kubectl describe pod web-app -n k8smissions and read the Events section.",
-  "objective": "The pod references a ConfigMap key that doesn't match what the ConfigMap actually contains — fix the key name",
-  "xp": 200,
-  "difficulty": "beginner",
+  "name": "The Config That Is Not There",
+  "description": "After the config refactor, the web-app pod has been stuck in ContainerCreating for 20 minutes. Nothing is crash-looping and there are no container logs, because the container has never started. The ConfigMap app-config is present and nobody deleted anything.",
+  "objective": "Deployment web-app runs Ready without restarts and Service web-app serves the contents of the app-config settings file mounted at /etc/app/app.yaml.",
+  "xp": 150,
+  "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "ConfigMap keys",
-    "configMapKeyRef",
-    "envFrom vs env",
-    "CreateContainerConfigError"
-  ],
+  "concepts": ["configMap volume", "items", "ContainerCreating", "kubectl describe pod"],
   "module": "module-4-storage",
-  "level": "level-6-configmap-key"
+  "level": "level-6-configmap-key",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

@@ -1,80 +1,45 @@
 #!/bin/bash
+# Level 8: writer-app signs as a non-root user and stays up.
+. ../_fixtures/lib.sh
 
-NAMESPACE="k8smissions"
-POD_NAME="writer-app"
-PVC_NAME="app-data"
-
-echo "🔍 Stage 1: Checking if PVC exists and is Bound..."
-PVC_STATUS=$(kubectl get pvc "$PVC_NAME" -n "$NAMESPACE" -o jsonpath='{.status.phase}' 2>/dev/null)
-if [ "$PVC_STATUS" != "Bound" ]; then
-    echo "❌ PVC is not Bound (current: $PVC_STATUS)"
-    exit 1
+if ! kubectl get deployment writer-app -n "$NS" >/dev/null 2>&1; then
+  bad "Deployment writer-app does not exist"
+  exit 1
 fi
-echo "✅ PVC is Bound"
-
-echo ""
-echo "🔍 Stage 2: Checking if pod exists..."
-if ! kubectl get pod "$POD_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ Pod '$POD_NAME' not found"
-    exit 1
+if ! kubectl get secret signing-keys -n "$NS" >/dev/null 2>&1; then
+  bad "Secret signing-keys does not exist"
+  exit 1
 fi
-echo "✅ Pod exists"
-
-echo ""
-echo "🔍 Stage 3: Checking if fsGroup is configured..."
-FS_GROUP=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.securityContext.fsGroup}')
-if [ -z "$FS_GROUP" ]; then
-    echo "❌ fsGroup is not set in pod securityContext"
-    echo "💡 Hint: Set spec.securityContext.fsGroup to match runAsUser/runAsGroup"
-    exit 1
+POD=$(kubectl get pods -n "$NS" -l app=writer-app --field-selector=status.phase=Running \
+  -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+if [ -z "$POD" ] || \
+   [ "$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.status.containerStatuses[0].ready}')" != "true" ]; then
+  bad "writer-app has no Ready pod (it is crashing or not started)"
+  exit 1
 fi
-echo "✅ fsGroup is set to: $FS_GROUP"
+ok "$POD is Ready"
 
-echo ""
-echo "🔍 Stage 4: Checking if runAsUser is configured..."
-RUN_AS_USER=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.containers[0].securityContext.runAsUser}')
-if [ -z "$RUN_AS_USER" ]; then
-    echo "❌ runAsUser is not set"
-    exit 1
+UID_IN=$(kubectl exec -n "$NS" "$POD" -- id -u 2>/dev/null | tr -d '\r\n')
+if [ -z "$UID_IN" ] || [ "$UID_IN" = "0" ]; then
+  bad "the app runs as uid ${UID_IN:-unknown}; it must not run as root"
+  exit 1
 fi
-echo "✅ runAsUser is set to: $RUN_AS_USER"
+ok "the app runs as uid $UID_IN (not root)"
 
-echo ""
-echo "🔍 Stage 5: Verifying fsGroup and user/group alignment..."
-RUN_AS_GROUP=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.containers[0].securityContext.runAsGroup}')
-if [ "$FS_GROUP" != "$RUN_AS_GROUP" ]; then
-    echo "⚠️  Warning: fsGroup ($FS_GROUP) doesn't match runAsGroup ($RUN_AS_GROUP)"
-    echo "💡 Recommendation: Set fsGroup to match runAsGroup for proper permissions"
+ensure_probe || { bad "could not start the test client pod"; exit 1; }
+S=$(pcurl http://writer-app/ | tr -d '\r\n')
+case "$S" in
+  "signed=ok uid=$UID_IN") ok "status: $S" ;;
+  *) bad "writer-app status is '${S:-no answer}'"; exit 1 ;;
+esac
+
+sleep 25
+R=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.status.containerStatuses[0].restartCount}')
+S=$(pcurl http://writer-app/ | tr -d '\r\n')
+if [ "$R" != "0" ] || [ "$S" != "signed=ok uid=$UID_IN" ]; then
+  bad "not stable after 25s (restarts: $R, status: ${S:-no answer})"
+  exit 1
 fi
-echo "✅ Security context properly configured"
-
-echo ""
-echo "🔍 Stage 6: Checking if pod is Running..."
-POD_STATUS=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.status.phase}')
-if [ "$POD_STATUS" != "Running" ]; then
-    echo "❌ Pod is in '$POD_STATUS' state (expected Running)"
-    echo "💡 Check logs: kubectl logs $POD_NAME -n $NAMESPACE"
-    exit 1
-fi
-echo "✅ Pod is Running"
-
-echo ""
-echo "🔍 Stage 7: Verifying write permissions..."
-if ! kubectl logs "$POD_NAME" -n "$NAMESPACE" 2>/dev/null | grep -q "Write successful"; then
-    echo "❌ Pod unable to write to volume"
-    echo "💡 Check logs: kubectl logs $POD_NAME -n $NAMESPACE"
-    exit 1
-fi
-echo "✅ Pod successfully wrote to volume"
-
-echo ""
-echo "🔍 Stage 8: Verifying file was created..."
-FILE_CHECK=$(kubectl exec "$POD_NAME" -n "$NAMESPACE" -- cat /data/test.txt 2>/dev/null)
-if [ "$FILE_CHECK" != "test data" ]; then
-    echo "❌ File not created or has wrong content"
-    exit 1
-fi
-echo "✅ File created successfully with correct permissions"
-
-echo ""
-echo "🎉 SUCCESS! Volume permissions configured correctly with fsGroup!"
+ok "no restarts and still signing after 25s"
+exit 0
+exit 1

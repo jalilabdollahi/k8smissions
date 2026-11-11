@@ -1,4 +1,6 @@
-The real token is `supersecret-api-token-12345`. In manifest.yaml, the `data.token` field currently holds the base64 of that real token encoded again. It needs to hold ONLY the single base64 encoding of the real token.
+Mount the whole Secret volume as a directory and let the app read the key from it, instead of mounting a single file:
 
-Replace the value in manifest.yaml with the correct single-encoded base64:
-`c3VwZXJzZWNyZXQtYXBpLXRva2VuLTEyMzQ1`
+  kubectl patch deployment api-consumer -n k8smissions --type=json \
+    -p '[{"op":"replace","path":"/spec/template/spec/containers/0/volumeMounts/<index>","value":{"name":"token","mountPath":"<directory>","readOnly":true}}]'
+
+The key is called token and the app reads /etc/api/token, so choose the directory so that this path exists. Updates do not arrive instantly: the kubelet refreshes volumes on a timer.

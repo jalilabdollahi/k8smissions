@@ -1,25 +1,22 @@
-## What went wrong
+# Reveal
 
-Two mismatches prevent binding:
-1. PV capacity is 1Gi but PVC requests 5Gi — a PV must be at least as large as the PVC request
-2. PV storageClassName is `standard` but PVC requires `fast` — the class must match exactly
+The pod mounts a claim called `orders-db-data`. No such claim exists; the one that looks related, `orders-data`, is unrelated and unused.
 
-## Fix
+1. Confirm the cause: `kubectl describe pod -l app=orders-db -n k8smissions` shows `persistentvolumeclaim "orders-db-data" not found`.
+2. Create the missing claim with the exact name the pod references:
 
-In manifest.yaml, update the PV:
+   ```bash
+   kubectl apply -n k8smissions -f - <<'YAML'
+   apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata:
+     name: orders-db-data
+   spec:
+     accessModes: ["ReadWriteOnce"]
+     resources:
+       requests:
+         storage: 1Gi
+   YAML
+   ```
 
-```yaml
-spec:
-  capacity:
-    storage: 5Gi
-  storageClassName: fast
-```
-
-## PV binding rules
-
-Kubernetes binds a PVC to a PV only when ALL of these match:
-- `accessModes` — both must include the same mode
-- `storageClassName` — must be identical
-- `capacity` — PV capacity must be >= PVC request
-
-A mismatch in any one of these leaves the PVC in Pending forever.
+3. The scheduler retries on its own; once the pod is scheduled, `standard` provisions the volume and the claim turns Bound. (Alternative: patch the Deployment to use `orders-data`.)

@@ -1,3 +1,5 @@
-The PV's `persistentVolumeReclaimPolicy` field needs to be changed from `Delete` to `Retain`. With Retain, deleting the PVC releases the PV but does not destroy the data — a human must manually recover or clean up.
+Change the policy on the one PV that backs ledger-data (take its name from the VOLUME column of the claim):
 
-Find this field in the PV spec in manifest.yaml.
+  kubectl patch pv <pv-name> -p '{"spec":{"persistentVolumeReclaimPolicy":"<policy>"}}'
+
+Leave the other volume and the StorageClass alone.

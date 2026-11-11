@@ -1,5 +1,4 @@
-Look at the `persistentVolumeReclaimPolicy` field in the PV spec:
+The claim says why it cannot bind; read its events, then look at the state of the volume it asks for:
 
-  kubectl get pv db-data-pv -o yaml | grep 'persistentVolumeReclaimPolicy'
-
-What happens to this PV when the PVC that binds to it is deleted?
+  kubectl describe pvc billing-data -n k8smissions
+  kubectl get pv billing-pv

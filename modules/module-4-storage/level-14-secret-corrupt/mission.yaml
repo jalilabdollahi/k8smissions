@@ -1,16 +1,15 @@
 {
-  "name": "The Garbled Token",
-  "description": "Pod api-consumer reads its API token from a mounted Secret, but every API call fails with 'authentication error'. Run kubectl exec -it <pod> -n k8smissions -- cat /secrets/token and look at what value is actually there.",
-  "objective": "The Secret has a double-encoded value — fix the data field so the secret contains the correct plain token",
+  "name": "The Token Rotation That Never Arrived",
+  "description": "Last night the API token was rotated. Secret api-token was updated and the gateway accepts the new value, yet api-consumer has been getting 401 since then. The security team confirmed the Secret is correct, and a restart of the consumer last week seems to have fixed a similar problem. The rotation job runs again next month and nobody wants a manual restart in the runbook.",
+  "objective": "api-consumer authenticates successfully through api-gateway (its /status reports auth=ok) with the token currently in Secret api-token, and keeps doing so when the Secret is rotated again, without anyone restarting or redeploying it.",
   "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "Secret",
-    "base64",
-    "data vs stringData",
-    "encoding"
-  ],
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["Secret volumes", "subPath", "live updates", "token rotation"],
   "module": "module-4-storage",
-  "level": "level-14-secret-corrupt"
+  "level": "level-14-secret-corrupt",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 120,
+  "cleanup": []
 }

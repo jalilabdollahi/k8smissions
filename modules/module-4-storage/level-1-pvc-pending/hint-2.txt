@@ -1,6 +1,3 @@
-The PVC is Pending because no available PV satisfies it. PV binding requires three things to match: access mode, storage size (PV must be >= PVC request), and storageClassName.
+Compare two names: the claim the pod's volume asks for (spec.volumes[].persistentVolumeClaim.claimName) and the claims that actually exist (kubectl get pvc).
 
-Compare the PVC requirements with what the PV offers:
-
-  kubectl get pv app-storage
-  kubectl get pvc app-storage-claim -n k8smissions
+A claim on the default StorageClass shows Pending until a pod uses it (volumeBindingMode: WaitForFirstConsumer), so Pending on its own is not a fault. Check with: kubectl get sc standard -o jsonpath='{.volumeBindingMode}'

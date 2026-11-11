@@ -1,16 +1,16 @@
-# The Garbled Token
+# Debrief: the rotated token that never arrived
 
-## What Was Broken
-The Secret's `data.token` was base64 of a base64 string — double-encoded. When the app decoded the Secret value, it received the base64 string `c3VwZXJzZWNyZXQtYXBpLXRva2VuLTEyMzQ1` instead of the real token `supersecret-api-token-12345`.
+**What was broken.** `api-consumer` mounted Secret `api-token` with `subPath: token`, as one file at `/etc/api/token`. After last night's rotation the gateway accepted the new token while the consumer kept sending the one it started with, so every request was a 401. The Secret was right the whole time.
 
-## The Fix
-Store `echo -n 'actual-value' | base64` in the `data` field. Or use `stringData` — it takes plain text and Kubernetes handles the encoding automatically.
+**The evidence.** The decoded Secret and `cat /etc/api/token` in the pod differ. The Deployment's `volumeMounts` entry shows `subPath: token`. `kubectl rollout restart` makes the symptom disappear, which is why it looks like a flaky app.
 
-## Why It Matters
-`data` vs `stringData`: `data` requires base64 values; `stringData` takes plain strings. Both end up stored as base64 in etcd. `stringData` is write-only — you won't see it in `kubectl get secret -o yaml`; only `data` is returned.
+**Why Kubernetes behaves this way.** For a Secret or ConfigMap volume the kubelet writes a timestamped directory and swaps a `..data` symlink atomically; files in the volume are symlinks through it. A `subPath` mount bind-mounts the target of one file at container start, bypassing the symlink, so later swaps never reach it. This is documented, and is the same for ConfigMaps. Updates are not instant either: they arrive at the next kubelet sync, up to about a minute.
 
-## Pro Tip
-Use `kubectl create secret generic <name> --from-literal=token=<value>` to let kubectl handle encoding. For YAML manifests, prefer `stringData` to avoid manual base64.
+**The fix.** Remove `subPath` and mount the volume as a directory, here at `/etc/api`, so the application still reads `/etc/api/token`. No restart is needed at rotation time any more. The validator checks it by rotating the Secret itself and waiting for the pod to follow.
 
-## Concepts
-Secret, base64, data, stringData, encoding, kubectl create secret
+**In production.** If an app needs one file inside a directory that already has other content, mount the volume elsewhere and symlink, or use a reloader (Stakater Reloader) that rolls the pods on change. Make the application re-read the file instead of caching it at startup.
+
+**Commands worth remembering**
+- `kubectl exec <pod> -- ls -la <dir>`: `..data` and the symlinked file show a live volume.
+- `kubectl get secret <name> -o jsonpath='{.data.<key>}' | base64 -d`
+- `kubectl explain pod.spec.containers.volumeMounts.subPath`

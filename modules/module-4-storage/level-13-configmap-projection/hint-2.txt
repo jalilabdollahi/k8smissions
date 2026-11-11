@@ -1,5 +1,4 @@
-Only `app.properties` is in `/config/`. The ConfigMap has both `app.properties` and `logging.properties` — but only one appears. This happens when a ConfigMap volume uses the `items` field to selectively project keys.
+A projected volume merges several sources into one directory, by key name. Without `items`, every key of a source becomes a file, and if two sources have a key with the same name, one overwrites the other.
 
-Read the volume definition:
-
-  kubectl get pod config-reader -n k8smissions -o yaml | grep -A15 'volumes'
+  kubectl get configmap db-config -n k8smissions -o yaml
+  kubectl explain pod.spec.volumes.projected.sources.configMap.items

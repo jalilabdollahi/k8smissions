@@ -1,5 +1,8 @@
-Check the PVC's access mode:
+Two things are stuck, so look at both the rollout and the new claim:
 
-  kubectl get pvc shared-pvc -n k8smissions -o yaml | grep 'accessModes'
+  kubectl rollout status deployment/ingest -n k8smissions --timeout=10s
+  kubectl get pods,pvc -n k8smissions
+  kubectl describe pod -l app=ingest -n k8smissions
+  kubectl describe pvc shared-pvc -n k8smissions
 
-What does `ReadWriteOnce` actually mean? Does it allow multiple pods on different nodes to mount the same volume?
+Read the events of the Pending pod and of the claim: they name different problems.

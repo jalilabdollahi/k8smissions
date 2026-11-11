@@ -1,22 +1,11 @@
-## What went wrong
+# Reveal
 
-`persistentVolumeReclaimPolicy: Delete` on a PV intended for database storage. If the bound PVC is ever deleted — accidentally or during a cleanup — the underlying data is gone immediately and permanently.
+`billing-pv` has `Retain`, so when the namespace `billing-v1` was deleted the PV stayed with its data, in phase `Released`, with `spec.claimRef` still pointing at the deleted claim `billing-v1/billing-data` (name, namespace and UID). A new claim, even one with the same name in another namespace, is refused: "volume already bound to a different claim".
 
-## Fix
+1. See it: `kubectl describe pvc billing-data -n k8smissions` and `kubectl get pv billing-pv -o jsonpath='{.spec.claimRef}'`.
+2. Clear the stale claimRef (do not delete the PV):
 
-In manifest.yaml:
-
-```yaml
-spec:
-  persistentVolumeReclaimPolicy: Retain
-```
-
-## The three reclaim policies
-
-- `Retain` — PV keeps data after PVC deletion; admin must manually recover or clean up
-- `Delete` — PV and backing storage are automatically deleted when PVC is deleted
-- `Recycle` — deprecated; do not use
-
-## This is different from level-9
-
-Level 9 showed the aftermath — data already gone. This level is the prevention: catching the wrong policy before it causes data loss. In real teams, reviewing PV reclaim policies is part of production readiness checks.
+   ```bash
+   kubectl patch pv billing-pv --type=merge -p '{"spec":{"claimRef":null}}'
+   ```
+3. The volume turns `Available`, the pre-bound claim binds it, and the Deployment's pod starts and serves `ledger-2024.db`.

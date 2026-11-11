@@ -1,27 +1,13 @@
-## What went wrong
+# Reveal
 
-The pod references `key: database_host` from ConfigMap `app-config`. That key does not exist in the ConfigMap's data section. Kubernetes cannot inject the environment variable and refuses to start the container.
+The `settings` volume selects the key `settings.yaml` from `app-config`, but the ConfigMap only has `app.yaml` since the refactor. The kubelet cannot build the volume, so the container is never created.
 
-## Fix
+1. `kubectl describe pod -l app=web-app -n k8smissions` shows `configmap references non-existent config key: settings.yaml`.
+2. `kubectl get configmap app-config -n k8smissions -o yaml` shows the key is `app.yaml`.
+3. Point the item at the real key:
 
-In manifest.yaml, add the missing key to the ConfigMap:
-
-```yaml
-data:
-  app_name: "MyApp"
-  app_version: "1.0.0"
-  database_host: "postgres.k8smissions.svc.cluster.local"
-```
-
-## Tip: optional keys
-
-If you want Kubernetes to skip a missing key instead of failing, add `optional: true` to the configMapKeyRef:
-
-```yaml
-configMapKeyRef:
-  name: app-config
-  key: database_host
-  optional: true
-```
-
-The env var will be empty instead of causing CreateContainerConfigError. Use this only when the application handles a missing value gracefully.
+   ```bash
+   kubectl patch deploy/web-app --namespace k8smissions --type=json \
+     -p '[{"op":"replace","path":"/spec/template/spec/volumes/1/configMap/items/0/key","value":"app.yaml"}]'
+   ```
+   (Removing `items` altogether also works: every key becomes a file.)
