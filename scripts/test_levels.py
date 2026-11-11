@@ -81,6 +81,7 @@ def ensure_cluster(name: str, kubeconfig: Path, mirror: bool) -> None:
 
 
 HEAVY_ADDONS = {"tekton", "argocd"}
+LIGHT_POOL_MIN = 3  # what fits next to the cd cluster in 8 GB of Docker RAM
 
 
 def acquire_pool(names: list[str]):
@@ -230,7 +231,8 @@ def main() -> int:
         # Argo CD + Tekton need ~1 GB more RAM, so levels that use them share one dedicated cluster.
         needs = {a for lv in select_levels(args.filters)
                  for a in json.loads((lv / "mission.yaml").read_text()).get("requires", [])}
-        names = ["k8sm-pool-cd"] if needs & HEAVY_ADDONS else [f"k8sm-pool-{i}" for i in range(1, args.pool + 1)]
+        light = max(args.pool, LIGHT_POOL_MIN)
+        names = ["k8sm-pool-cd"] if needs & HEAVY_ADDONS else [f"k8sm-pool-{i}" for i in range(1, light + 1)]
         args.cluster, lock = acquire_pool(names)
         print(f"using pool cluster {args.cluster}", flush=True)
 
