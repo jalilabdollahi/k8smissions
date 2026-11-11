@@ -1,0 +1,6 @@
+replicaCount: 2
+configKey: payload
+payloadText: "webapp v1"
+resources:
+  requests:
+    cpu: 10m

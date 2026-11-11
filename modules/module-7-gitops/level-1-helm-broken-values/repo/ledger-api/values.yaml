@@ -1,0 +1,6 @@
+# Chart defaults are meant for a developer laptop. Production overrides live in the release.
+replicaCount: 1
+image:
+  repository: registry.dev.internal/hashicorp/http-echo
+  tag: "0.2.3"
+message: "ledger-api: DEV banner, not for customers"

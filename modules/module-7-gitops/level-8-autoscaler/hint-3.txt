@@ -1,1 +1,1 @@
-The Cluster Autoscaler's `--node-group-auto-discovery` argument has `asg:tag=wrong-group` but the actual node group uses the tag `kind-worker`. The tag mismatch means the autoscaler discovers zero node groups and cannot add any nodes.
+kubectl -n argocd patch app storefront --type merge -p '{"spec":{"ignoreDifferences":[{"group":"apps","kind":"Deployment","jsonPointers":["<json pointer>"]}],"syncPolicy":{"syncOptions":["RespectIgnoreDifferences=true"]}}}'

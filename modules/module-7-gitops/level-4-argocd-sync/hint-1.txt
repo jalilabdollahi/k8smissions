@@ -1,1 +1,1 @@
-Check whether the target namespace exists: `kubectl get namespace webapp-prod`
+Ask Argo what happened to the sync it started: `kubectl -n argocd get app ledger-api -o yaml` and read `.status.operationState` (phase, message) and `.status.conditions`. Compare it with the namespaces that exist: `kubectl get ns`.

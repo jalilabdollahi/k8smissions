@@ -1,1 +1,1 @@
-Look for any lifecycle configuration in the Deployment: `kubectl get deployment graceful-app -n k8smissions -o yaml | grep -A10 lifecycle`
+Look for evidence about the hook that is supposed to protect the rollout: `kubectl -n k8smissions get events` while a rollout runs (`kubectl rollout restart deploy/catalog`), and `kubectl describe pod` of a terminating pod. Does the hook actually run?

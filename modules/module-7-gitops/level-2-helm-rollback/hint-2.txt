@@ -1,1 +1,1 @@
-The pods are using `nginx:broken-tag` which doesn't exist in the registry. The Events section will show `ErrImagePull`. Look at the manifest's `image` field — it needs to be changed to the last working version.
+`helm get manifest webapp --revision N` prints what revision N actually rendered, and `helm get values webapp --revision N` what it was given. Compare the revisions around the ConfigMap and what the container reads from it, then find the newest one whose manifest is consistent. `helm rollback --help` shows how to pick the target.

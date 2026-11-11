@@ -1,16 +1,14 @@
-# Ghost Patch
+**What was broken.** The `prod` overlay contained two entries that matched nothing. A JSON patch set the replica count on a Deployment named `payments-gateway`, but the Deployment's name is `payments`; `payments-gateway` is only its container. The `images` entry used the short name `http-echo`, while kustomize compares the full image name, `hashicorp/http-echo`. Both were silently skipped, so the build succeeded, `kubectl apply` reported `configured` (labels changed) and the workload stayed at one old pod.
 
-## What Was Broken
-The Kustomize patch referenced `name: backend-api` but the Deployment's name is `api-server`. Kustomize applies patches by matching kind/name/namespace — no match means the patch is silently skipped. No error is shown.
+**The evidence.** The rendered output, not the exit code. `kubectl kustomize overlays/prod` printed `replicas: 1` and the old tag.
 
-## The Fix
-Fix both the `metadata.name` inside the patch YAML and the `target.name` in the kustomization.yaml to match the actual Deployment name (`api-server`).
+**Why it behaved that way.** Kustomize transformers select objects by matching; matching nothing is not an error for patches with a `target` and for `images`, because the same overlay is often reused with bases that do not contain every object. The `replicas` field is stricter (it fails when the name is unknown), which is why this overlay uses a patch.
 
-## Why It Matters
-Kustomize is declarative and silent on mismatches — this is a feature (you can apply overlays that partially match) but also a debugging trap. Always verify applied output with `kubectl kustomize ./overlay` to see the rendered YAML before applying.
+**The fix.** Make the selectors match what the base declares, check the rendered output, commit the overlay, and apply it.
 
-## Pro Tip
-Use `kubectl kustomize . | kubectl diff -f -` to preview what will change before applying. This shows exactly what Kustomize would modify vs current cluster state.
+**In production.** Diff the rendered output in CI (`kubectl kustomize | kubectl diff -f -`) and assert on the fields that matter; a green build proves nothing about a transformer.
 
-## Concepts
-Kustomize, patch target, strategic merge patch, overlay, dry-run
+**Commands worth remembering.**
+- `kubectl kustomize DIR | grep -E 'replicas|image:'`
+- `kubectl diff -k DIR`
+- `kubectl get deploy NAME -o jsonpath='{.spec.template.spec.containers[0].image}'`

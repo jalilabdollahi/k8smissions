@@ -1,13 +1,7 @@
-# Common Mistakes — The Drift
+**Editing the ConfigMap again, faster.** Self-heal wins every time; the live edit lasts only until Argo's next reconcile. The change must be in Git.
 
-## Mistake 1: Disabling ArgoCD auto-sync entirely
+**Turning off automated sync or self-heal.** The edit then stays, but the Application drifts from Git, the check for a new synced commit fails, and the validator tests that manual changes are still reverted.
 
-**Wrong approach:** Setting automated: {} empty — disables both self-heal and prune, app never syncs automatically
+**Pushing a commit that Argo does not pick up.** The poll interval is three minutes. Refresh the Application with `argocd.argoproj.io/refresh=hard` to see the change now.
 
-**Correct approach:** Disable only selfHeal: false to allow manual overrides while keeping auto-sync for git changes
-
-## Mistake 2: Fighting GitOps with kubectl
-
-**Wrong approach:** Repeatedly kubectl-scaling in a race against ArgoCD self-heal
-
-**Correct approach:** Work with GitOps: commit the change to git, or explicitly disable self-heal for the app
+**Choosing a timeout that is still too short.** The upstream answers in about 600 ms. Measure it from the probe pod before choosing a number.

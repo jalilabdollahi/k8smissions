@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    k8smissions/managed: "true"
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+  - port: 80
+    targetPort: 5678

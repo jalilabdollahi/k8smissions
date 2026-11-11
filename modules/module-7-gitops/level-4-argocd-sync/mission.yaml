@@ -1,19 +1,15 @@
 {
-  "name": "ArgoCD Out of Sync",
-  "description": "An ArgoCD application shows OutOfSync and Degraded status. The application is configured to deploy resources into a namespace called `webapp-prod`, but that namespace doesn't exist. Until the namespace exists, ArgoCD has nowhere to put the resources and the sync fails.",
-  "objective": "ArgoCD shows OutOfSync and the target namespace is missing — create the namespace and trigger a sync",
-  "xp": 400,
-  "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "ArgoCD Application CRD",
-    "sync status",
-    "health status",
-    "auto-sync",
-    "self-heal",
-    "prune",
-    "GitOps principles"
-  ],
+  "name": "The Sync That Never Ran",
+  "description": "`ledger-api` is two days late. The Argo CD Application `ledger-api` (namespace `argocd`, manual sync, destination namespace `ledger-prod`) shows `OutOfSync`, and nothing from the repository is running. The release manager started a sync an hour ago and walked away. The manifests in the `ledger` repository on the in-cluster Git server are fine. A pod `probe` with curl is in the `k8smissions` namespace.",
+  "objective": "Application `ledger-api` is `Synced` and `Healthy` at the current head of the repository, namespace `ledger-prod` exists with Deployment `ledger-api` Ready (2 replicas), and Service `ledger-api` in `ledger-prod` answers with `ledger-api v2.4`.",
+  "xp": 150,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": ["Argo CD Application", "sync operation", "CreateNamespace", "operationState"],
   "module": "module-7-gitops",
-  "level": "level-4-argocd-sync"
+  "level": "level-4-argocd-sync",
+  "requires": ["argocd"],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": ["namespace/ledger-prod"]
 }

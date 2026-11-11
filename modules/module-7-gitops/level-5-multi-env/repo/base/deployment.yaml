@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: shop}
+  template:
+    metadata:
+      labels: {app: shop}
+    spec:
+      containers:
+      - name: shop
+        image: python:3.12-alpine
+        command: ["python3", "/app/app.py"]
+        env:
+        - {name: LOG_LEVEL, value: debug}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
+        volumeMounts:
+        - {name: code, mountPath: /app}
+      volumes:
+      - name: code
+        configMap:
+          name: shop-code

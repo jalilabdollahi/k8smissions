@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  labels:
+    k8smissions/managed: "true"
+data:
+  {{ .Values.configKey }}: {{ .Values.payloadText | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    k8smissions/managed: "true"
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+      annotations:
+        config-checksum: {{ .Values.configKey }}-{{ .Values.payloadText | sha256sum | trunc 8 }}
+    spec:
+      containers:
+      - name: web
+        image: python:3.12-alpine
+        command: ["python3", "-c"]
+        args:
+        - |
+          import http.server, sys
+          try:
+              body = open("/cfg/payload", "rb").read()
+          except OSError:
+              sys.exit("config key 'payload' not found in /cfg")
+          class H(http.server.BaseHTTPRequestHandler):
+              def do_GET(self):
+                  self.send_response(200); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+              def log_message(self, *a): pass
+          http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
+        resources:
+          requests:
+            cpu: {{ .Values.resources.requests.cpu | quote }}
+        volumeMounts:
+        - {name: cfg, mountPath: /cfg}
+      volumes:
+      - name: cfg
+        configMap:
+          name: {{ .Release.Name }}-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    k8smissions/managed: "true"
+spec:
+  selector:
+    app: {{ .Release.Name }}
+  ports:
+  - port: 80
+    targetPort: 8080

@@ -1,17 +1,15 @@
 {
-  "name": "Wrong Overlay Applied",
-  "description": "The staging environment is running 10 replicas — far more than appropriate for staging. The wrong Kustomize overlay was applied: production settings were pushed to the staging environment, inflating the replica count from the correct staging value of 2.",
-  "objective": "The production overlay was applied to staging — apply the correct staging overlay to restore the right replica count",
-  "xp": 350,
+  "name": "Wrong Overlay, Right Namespace",
+  "description": "The staging namespace `shop-staging` is a mess. Someone ran `kubectl apply -k` on the wrong overlay this morning. Staging now holds a 4-replica `prod-checkout` with an autoscaler and a disruption budget next to the `stg-` objects it should have, and the new `stg-checkout` pods never start (`kubectl -n shop-staging get events`). The real production in `shop-prod` is fine and must stay that way. The overlays are in the `shop` repository on the in-cluster Git server (`gitops-git` namespace). A pod `probe` with curl is in `k8smissions`.",
+  "objective": "In `shop-staging` nothing with a `prod-` name is left, `stg-checkout` has 2 Ready replicas and answers `checkout staging` through Service `stg-checkout`, and production in `shop-prod` (`prod-checkout`, its HPA and PDB) is untouched.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Kustomize base/overlay pattern",
-    "kustomization.yaml",
-    "patches",
-    "strategic merge patch",
-    "replicas patch"
-  ],
+  "expected_time": "15m",
+  "concepts": ["kustomize overlays", "namePrefix", "kubectl delete -k", "kubectl kustomize", "ResourceQuota"],
   "module": "module-7-gitops",
-  "level": "level-3-kustomize-overlay"
+  "level": "level-3-kustomize-overlay",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

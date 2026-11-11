@@ -1,0 +1,7 @@
+resources:
+- deployment.yaml
+- service.yaml
+configMapGenerator:
+- name: shop-code
+  files:
+  - app.py

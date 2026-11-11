@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: ledger-api}
+  template:
+    metadata:
+      labels: {app: ledger-api}
+    spec:
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        command: ["python3", "-c"]
+        args:
+        - |
+          import http.server, os, urllib.request, urllib.error
+          class H(http.server.BaseHTTPRequestHandler):
+              def do_GET(self):
+                  code, body = 200, b"ok"
+                  if self.path == "/health":
+                      req = urllib.request.Request("http://db-gateway/auth", headers={"X-DB-Password": os.environ["DB_PASSWORD"]})
+                      try:
+                          urllib.request.urlopen(req, timeout=2)
+                      except urllib.error.HTTPError as e:
+                          code, body = 503, b"database gateway refused the password"
+                      except Exception:
+                          code, body = 503, b"database gateway unreachable"
+                  self.send_response(code); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+              def log_message(self, *a): pass
+          http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef: {name: ledger-db, key: password}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: ledger-api}
+  template:
+    metadata:
+      labels: {app: ledger-api}
+    spec:
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "/code/app.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
+        volumeMounts:
+        - {name: code, mountPath: /code}
+      volumes:
+      - name: code
+        configMap: {name: ledger-api-code}

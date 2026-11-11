@@ -1,1 +1,2 @@
-The Application's `syncPolicy.automated.selfHeal` is `true`. This causes ArgoCD to detect any deviation from Git (including your scale command) as drift and auto-revert it within its next sync cycle (typically seconds to minutes). Set it to `false` to allow manual overrides to persist.
+kubectl -n gitops-git port-forward svc/gitserver 8080:8080 &
+git clone http://localhost:8080/cgi-bin/git/payments-api.git, change `UPSTREAM_TIMEOUT_MS` in `deploy/configmap.yaml` to a value above the upstream's latency, `git commit -am "..." && git push origin main`, then `kubectl -n argocd annotate app payments-api argocd.argoproj.io/refresh=hard --overwrite`.

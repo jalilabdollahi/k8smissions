@@ -1,18 +1,15 @@
 {
-  "name": "Secrets in Git? Never.",
-  "description": "A security audit has flagged plain-text credentials committed directly to the Git repository as a Kubernetes Secret manifest. Kubernetes Secrets are only base64-encoded, not encrypted — anyone with repository access can decode them. The fix is to delegate secret management to the External Secrets Operator.",
-  "objective": "Plain-text credentials are committed in Git — replace the inline Secret with an ExternalSecret managed by ESO",
-  "xp": 500,
+  "name": "The Password in the Repo",
+  "description": "The audit found the `ledger-db` password committed in the `ledger` repository on the in-cluster Git server, which Argo CD deploys as Application `ledger-api`. The DBA team rotated that password yesterday and left the new one in Secret `ledger-db-rotated` in this namespace. Since then `ledger-api` answers 503 on `/health` because the database gateway refuses the old password. Somebody edited the live Secret `ledger-db` by hand, but Argo CD put the old value back within seconds, every time. A pod `probe` with curl is available.",
+  "objective": "`/health` of Service `ledger-api` returns 200 through the database gateway, Application `ledger-api` is `Synced` and `Healthy` with automated sync, pruning and self-heal still on, the repository head contains no Secret manifest and no password, and the Secret the Deployment reads holds the rotated password.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "10m",
-  "concepts": [
-    "External Secrets Operator",
-    "SecretStore",
-    "ExternalSecret",
-    "Vault integration",
-    "Sealed Secrets alternative",
-    "secret rotation"
-  ],
+  "expected_time": "25m",
+  "concepts": ["Argo CD prune", "selfHeal", "secrets outside Git", "secretKeyRef", "git commit"],
   "module": "module-7-gitops",
-  "level": "level-7-external-secrets"
+  "level": "level-7-external-secrets",
+  "requires": ["argocd"],
+  "settle_seconds": 35,
+  "solve_timeout": 180,
+  "cleanup": []
 }

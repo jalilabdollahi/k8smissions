@@ -1,21 +1,4 @@
-## What went wrong
-
-`selfHeal: true` is a deliberate GitOps enforcement feature — it ensures the cluster always matches Git, even if someone runs `kubectl` directly. This is usually desirable. But when you need a temporary manual override (emergency scale-up during an incident), self-healing fights you.
-
-## Fix
-
-```yaml
-syncPolicy:
-  automated:
-    selfHeal: false
-    prune: true
-```
-
-## Why this matters
-
-This level illustrates the core GitOps tension: Git is the source of truth, but emergencies sometimes require immediate manual action. Three approaches:
-1. **Disable self-heal** (this fix) — allows manual overrides but permits drift
-2. **Update Git first** — make the change in Git, ArgoCD applies it; purist GitOps, but slower
-3. **Suspend the Application** — `argocd app set my-app --sync-policy none` temporarily
-
-For production incidents, option 3 is often best: suspend ArgoCD, apply the emergency fix manually, then commit the change to Git and re-enable sync. This preserves the GitOps audit trail while unblocking the incident.
+1. The Application has `automated.selfHeal: true`, and the ConfigMap's `UPSTREAM_TIMEOUT_MS: "200"` comes from `deploy/configmap.yaml` in Git. A manual edit is drift, so Argo reverts it.
+2. The upstream takes about 600 ms (`curl -w '%{time_total}'` from the probe), so 200 ms always times out.
+3. Clone the `payments-api` repository, change the value (for example to `1500`) in `deploy/configmap.yaml`, commit and push to `main`.
+4. Hard refresh the Application. Argo applies the new commit, the value sticks, `/ping` succeeds and self-heal stays on.

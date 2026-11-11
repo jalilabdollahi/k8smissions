@@ -1,0 +1,7 @@
+resources:
+- ../../base
+labels:
+- pairs: {env: staging}
+replicas:
+- name: payments
+  count: 2

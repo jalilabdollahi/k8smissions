@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reports
+spec:
+  selector:
+    matchLabels: {app: reports}
+  template:
+    metadata:
+      labels: {app: reports}
+    spec:
+      containers:
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=reports v2"]
+        ports:
+        - containerPort: 5678
+        readinessProbe:
+          httpGet: {path: /, port: 5678}
+          periodSeconds: 2
+        resources:
+          requests: {cpu: 20m, memory: 16Mi}
+          limits: {cpu: 100m, memory: 32Mi}

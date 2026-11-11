@@ -1,1 +1,1 @@
-Three things are wrong at once: the ConfigMap has `LOG_LEVEL: debug` (should be `info`), the Deployment has `replicas: 1` (should be `3`), and the container has no `resources.limits` block at all.
+kubectl -n argocd patch app shop-prod --type json -p '[{"op":"replace","path":"/spec/source/path","value":"<path>"},{"op":"remove","path":"/spec/source/<field that overrides the overlay>"}]'

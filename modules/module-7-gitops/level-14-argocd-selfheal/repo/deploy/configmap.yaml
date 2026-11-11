@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payments-config
+data:
+  UPSTREAM_TIMEOUT_MS: "200"
+  UPSTREAM_URL: http://ledger-upstream

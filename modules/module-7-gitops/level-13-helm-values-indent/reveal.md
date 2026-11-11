@@ -1,22 +1,4 @@
-## What went wrong
-
-The values file has:
-```yaml
-image:
-tag: v2.0.0       # <-- at root level
-  repository: nginx
-```
-
-YAML sees `tag` as a root-level key, not `image.tag`. The Helm template `{{ .Values.image.tag }}` finds nothing under `image.tag` and uses its default (the old version).
-
-## Fix
-
-```yaml
-image:
-  tag: v2.0.0        # indented 2 spaces under image:
-  repository: nginx  # also 2 spaces
-```
-
-## Why this matters
-
-YAML is whitespace-significant — indentation defines the document hierarchy. A single misaligned key silently parses as a different structure with no YAML error, because `tag: v2.0.0` is valid YAML at the root level. This is one of the most common sources of 'my Helm values aren't being applied' bugs. Always use `helm template . -f values.yaml` to render the chart locally and verify the output before running `helm upgrade`.
+1. The new pods pull `hashicorp/http-echo:1`, which does not exist. `helm get manifest search | grep image:` shows the rendered tag, while `values-prod.yaml` says `tag: 1.0`.
+2. YAML reads an unquoted `1.0` as the number one, and Helm renders it as `1`. `helm get values search` shows it too (`tag: 1`).
+3. Quote the value in `values-prod.yaml` (`tag: "1.0"`), or use `--set-string image.tag=1.0`. `--set image.tag=1.0` does not help.
+4. Preview with `helm template search chart -f values-prod.yaml | grep image:`, then `helm upgrade search chart -f values-prod.yaml` and wait for the rollout.

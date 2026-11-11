@@ -1,0 +1,22 @@
+resources:
+- ../../base
+replicas:
+- name: shop
+  count: 3
+patches:
+- target: {kind: Deployment, name: shop}
+  patch: |-
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: shop
+    spec:
+      template:
+        spec:
+          containers:
+          - name: shop
+            env:
+            - {name: LOG_LEVEL, value: info}
+            resources:
+              requests: {cpu: 50m, memory: 64Mi}
+              limits: {cpu: 250m, memory: 128Mi}

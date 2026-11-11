@@ -1,1 +1,1 @@
-The patch targets a Deployment named `backend-api` but the actual Deployment is named `api-server`. Kustomize found no resource matching the patch target and silently skipped the patch — no error is reported.
+In `overlays/prod/kustomization.yaml`: `patches[].target.name` must be the Deployment's `metadata.name` from the base, and `images[].name` must be the image name exactly as the base writes it, without the tag, repository included. Check with `kubectl kustomize overlays/prod`, then commit, push and `kubectl apply -n k8smissions -k overlays/prod`.

@@ -1,1 +1,1 @@
-Check the actual replica count on the Deployment: `kubectl get deployment -n k8smissions`. Compare it against what the Kustomize patch intended to set.
+Do not trust "it built without errors". Clone the repository (`kubectl -n gitops-git port-forward svc/gitserver 8080:8080`, then `git clone http://localhost:8080/cgi-bin/git/payments.git`) and read what the overlay actually produces: `kubectl kustomize overlays/prod | grep -E 'replicas|image:'`. Compare it with `kubectl kustomize base`.

@@ -1,43 +1,6 @@
-## What went wrong
+The first sync failed because namespace `ledger-prod` does not exist and the Application has no `CreateNamespace=true` sync option. A failed manual sync does not retry by itself.
 
-The ArgoCD Application targets the `webapp-prod` namespace, but that namespace was never created. ArgoCD cannot deploy resources into a namespace that doesn't exist, so the application stays OutOfSync.
-
-## Fix
-
-Create the namespace and deploy the application:
-
-```yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: webapp-prod
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: webapp-app
-  namespace: webapp-prod
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: webapp-app
-  template:
-    metadata:
-      labels:
-        app: webapp-app
-    spec:
-      containers:
-      - name: webapp-app
-        image: nginx:1.27.4
-```
-
-Also update the ConfigMap status to Synced:
-```yaml
-data:
-  status: Synced
-```
-
-## Why this matters
-
-In production ArgoCD setups, set `syncOptions: [CreateNamespace=true]` in the Application spec to allow ArgoCD to create the namespace automatically as part of the sync. ArgoCD's sync model compares desired state (Git) to actual state (cluster) across three dimensions: resource existence, spec content, and health status. All three must align for an application to be `Synced` and `Healthy`.
+1. `kubectl -n argocd get app ledger-api -o jsonpath='{.status.operationState.message}'` shows the failure (namespace not found).
+2. Add the option: `kubectl -n argocd patch app ledger-api --type merge -p '{"spec":{"syncPolicy":{"syncOptions":["CreateNamespace=true"]}}}'`.
+3. Request a new sync: `kubectl -n argocd patch app ledger-api --type merge -p '{"operation":{"sync":{"syncOptions":["CreateNamespace=true"]}}}'`.
+4. Wait for `Synced`/`Healthy`. Creating the namespace by hand with `kubectl create ns ledger-prod` and requesting a sync works too.

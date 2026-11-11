@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: probe
+  labels: {app: probe}
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+  - name: probe
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "86400"]

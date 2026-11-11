@@ -1,9 +1,57 @@
+# The database gateway accepts only the rotated password, which the DBA team left in Secret ledger-db-rotated.
 apiVersion: v1
 kind: Secret
 metadata:
-  name: app-secret
+  name: ledger-db-rotated
   namespace: k8smissions
-type: Opaque
+  annotations:
+    note: "rotated by the DBA team; this is the password the gateway accepts now"
 stringData:
-  username: plain-user
-  password: plain-pass
+  password: r0tated-4c9e7a21
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-gateway
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: db-gateway}
+  template:
+    metadata:
+      labels: {app: db-gateway}
+    spec:
+      containers:
+      - name: gw
+        image: python:3.12-alpine
+        command: ["python3", "-c"]
+        args:
+        - |
+          import http.server, os
+          class H(http.server.BaseHTTPRequestHandler):
+              def do_GET(self):
+                  ok = self.path != "/auth" or self.headers.get("X-DB-Password") == os.environ["EXPECTED"]
+                  self.send_response(200 if ok else 401); self.send_header("Content-Length", "0"); self.end_headers()
+              def log_message(self, *a): pass
+          http.server.ThreadingHTTPServer(("", 80), H).serve_forever()
+        env:
+        - name: EXPECTED
+          valueFrom:
+            secretKeyRef: {name: ledger-db-rotated, key: password}
+        ports:
+        - containerPort: 80
+        readinessProbe:
+          httpGet: {path: /, port: 80}
+          periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: db-gateway
+  namespace: k8smissions
+spec:
+  selector: {app: db-gateway}
+  ports:
+  - port: 80
+    targetPort: 80

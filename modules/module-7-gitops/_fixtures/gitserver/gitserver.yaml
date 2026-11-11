@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gitops-git
+  labels:
+    k8smissions/managed: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitserver
+  namespace: gitops-git
+  labels:
+    app: gitserver
+    k8smissions/managed: "true"
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: {app: gitserver}
+  template:
+    metadata:
+      labels: {app: gitserver}
+    spec:
+      initContainers:
+      # alpine/git ships git but neither httpd nor git-http-backend, so we copy the
+      # git binary (it needs only libz and libpcre2) next to python and speak the
+      # smart protocol from server.py.
+      - name: git-bin
+        image: alpine/git:2.49.1
+        command: ["sh", "-c"]
+        args:
+        - |
+          set -e
+          mkdir -p /opt/git/bin /opt/git/lib /opt/git/libexec /opt/git/share
+          cp /usr/bin/git /opt/git/bin/git
+          cp -a /usr/libexec/git-core /opt/git/libexec/
+          cp -a /usr/share/git-core /opt/git/share/
+          cp -a /usr/lib/libpcre2-8.so.0* /usr/lib/libz.so.1* /opt/git/lib/
+        volumeMounts:
+        - {name: git-bin, mountPath: /opt/git}
+      containers:
+      - name: gitserver
+        image: python:3.12-alpine
+        command: ["python3", "-u", "/srv/server/server.py"]
+        env:
+        - {name: PATH, value: "/opt/git/bin:/usr/local/bin:/usr/bin:/bin"}
+        - {name: LD_LIBRARY_PATH, value: /opt/git/lib}
+        - {name: GIT_EXEC_PATH, value: /opt/git/libexec/git-core}
+        - {name: GIT_TEMPLATE_DIR, value: /opt/git/share/git-core/templates}
+        - {name: GIT_CONFIG_COUNT, value: "1"}
+        - {name: GIT_CONFIG_KEY_0, value: safe.directory}
+        - {name: GIT_CONFIG_VALUE_0, value: "*"}
+        - {name: GIT_PRIVATE_USER, value: ci-bot}
+        - {name: GIT_PRIVATE_PASSWORD, value: ci-bot-secret}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
+        volumeMounts:
+        - {name: git-bin, mountPath: /opt/git}
+        - {name: repos, mountPath: /srv/git}
+        - {name: code, mountPath: /srv/server}
+      volumes:
+      - {name: git-bin, emptyDir: {}}
+      - {name: repos, emptyDir: {}}
+      - name: code
+        configMap:
+          name: gitserver-code
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitserver
+  namespace: gitops-git
+  labels:
+    k8smissions/managed: "true"
+spec:
+  selector: {app: gitserver}
+  ports:
+  - port: 8080
+    targetPort: 8080

@@ -1,17 +1,15 @@
 {
-  "name": "The Drift",
-  "description": "A Deployment was manually scaled via `kubectl scale` to respond to a sudden traffic spike, but ArgoCD reverted it back to the Git value within seconds. Every manual `kubectl` change disappears moments after it's applied. ArgoCD is behaving exactly as configured — `selfHeal: true` is working as designed, which is the problem.",
-  "objective": "ArgoCD self-healing is reverting manual changes — understand why and disable self-heal for this Application if manual overrides are needed",
-  "xp": 225,
+  "name": "The Fix That Fixed Itself Back",
+  "description": "`payments-api` returns 504 on `/ping` because its upstream check gives up too early. Last night the on-call engineer raised `UPSTREAM_TIMEOUT_MS` in the ConfigMap `payments-config` with `kubectl edit` and the timeouts stopped. About twenty seconds later the old value was back and so were the errors; they tried three times. The Argo CD Application `payments-api` (namespace `argocd`) deploys the `payments-api` repository from the in-cluster Git server and shows `Synced` and `Healthy` the whole time. The upstream `ledger-upstream` answers slowly by design, in well under a second. A pod `probe` with curl is available.",
+  "objective": "`/ping` on Service `payments-api` succeeds on every request, the Application is `Synced` and `Healthy` at a repository revision newer than the initial one, and automated self-heal is still working: scaling Deployment `payments-api` by hand is reverted by Argo CD within 30 seconds.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "ArgoCD",
-    "self-healing",
-    "GitOps",
-    "drift",
-    "syncPolicy"
-  ],
+  "expected_time": "18m",
+  "concepts": ["Argo CD selfHeal", "drift", "Git as source of truth", "sync history"],
   "module": "module-7-gitops",
-  "level": "level-14-argocd-selfheal"
+  "level": "level-14-argocd-selfheal",
+  "requires": ["argocd"],
+  "settle_seconds": 30,
+  "solve_timeout": 180,
+  "cleanup": []
 }

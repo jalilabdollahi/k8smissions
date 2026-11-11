@@ -1,1 +1,1 @@
-You should see `LOG_LEVEL: debug`, `replicas: 1`, and no resource limits defined. Production needs: INFO log level, 3 replicas for availability, and resource limits to prevent noisy-neighbor impact.
+`Synced` only means the cluster matches what the Application's source renders, not that the source is the one you meant. Look at `spec.source.path` and at what else sits under `spec.source` (`kubectl explain application.spec.source.kustomize`). Anything set there is applied on top of the overlay, also after you fix the path.

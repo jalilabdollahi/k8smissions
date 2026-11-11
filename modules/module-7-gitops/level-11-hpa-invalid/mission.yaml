@@ -1,17 +1,15 @@
 {
-  "name": "Autoscaler Paradox",
-  "description": "A HorizontalPodAutoscaler exists for the API Deployment, but the Deployment never scales up or down. The HPA entered an error state at creation time because its configuration contains an impossible constraint — the minimum replica count is set higher than the maximum.",
-  "objective": "The HPA has minReplicas greater than maxReplicas — fix the values so minReplicas <= maxReplicas",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "8m",
-  "concepts": [
-    "HPA",
-    "HorizontalPodAutoscaler",
-    "minReplicas",
-    "maxReplicas",
-    "autoscaling"
-  ],
+  "name": "The Commit That Never Rolled Out",
+  "description": "The `reports` team merged one commit: a new image for the report renderer and a tuning of its autoscaler. Two hours later the old image is still running and the Argo CD Application `reports` (namespace `argocd`, automated sync) sits at `OutOfSync` with a failed sync. The service itself still answers, as `reports v1`. The `reports` repository on the in-cluster Git server holds the manifests, and the cluster has metrics-server. A pod `probe` with curl is available.",
+  "objective": "Application `reports` is `Synced` and `Healthy` at the head of the repository, Deployment `reports` runs the image from that commit and Service `reports` answers `reports v2`, and HorizontalPodAutoscaler `reports` targets the Deployment, has a valid replica range and is actively scaling on CPU with current metrics reported.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "20m",
+  "concepts": ["Argo CD sync validation", "HPA conditions", "scaleTargetRef", "kubectl explain"],
   "module": "module-7-gitops",
-  "level": "level-11-hpa-invalid"
+  "level": "level-11-hpa-invalid",
+  "requires": ["argocd", "metrics-server"],
+  "settle_seconds": 30,
+  "solve_timeout": 240,
+  "cleanup": []
 }

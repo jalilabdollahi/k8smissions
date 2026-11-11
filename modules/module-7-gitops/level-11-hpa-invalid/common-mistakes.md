@@ -1,13 +1,7 @@
-# Common Mistakes — Autoscaler Paradox
+**Changing the live HPA with `kubectl edit`.** The Application is out of sync and automated sync would put Git's state back, and the commit that holds the new image is still blocked. The repository is where the manifest is wrong.
 
-## Mistake 1: Assuming YAML validation catches this
+**Fixing only the replica range and calling it done.** The Application may turn Synced, but the HPA still cannot find its target and never scales. The objective needs current metrics on the HPA.
 
-**Wrong approach:** The API server accepts min > max in some k8s versions without immediate error
+**Deleting the HPA from Git.** The sync then goes through and the image rolls out, but the workload no longer autoscales. The HPA has to stay, valid and active.
 
-**Correct approach:** Always verify HPA status with kubectl describe hpa after applying
-
-## Mistake 2: Forgetting metrics-server
-
-**Wrong approach:** HPA shows <unknown> for CPU targets even with correct config
-
-**Correct approach:** Install metrics-server first; HPA requires it for resource-based scaling
+**Waiting for the three minute poll.** Argo checks Git every three minutes. A `refresh=hard` annotation makes it look now.

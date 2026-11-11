@@ -1,17 +1,15 @@
 {
-  "name": "Nodes Won't Scale Up",
-  "description": "The HPA has scaled the Deployment beyond current node capacity, but no new nodes are being provisioned. The Cluster Autoscaler is deployed and running, but its node group discovery flag references a tag that doesn't match any actual node group — so it sees no groups to scale.",
-  "objective": "The Cluster Autoscaler has the wrong node-group annotation — fix the annotation to match the actual node group",
-  "xp": 450,
-  "difficulty": "expert",
-  "expected_time": "10m",
-  "concepts": [
-    "Cluster Autoscaler",
-    "node groups",
-    "scale-up triggers",
-    "cloud provider integration",
-    "kind simulation limitations"
-  ],
+  "name": "Tug of War",
+  "description": "`storefront` should never run fewer than 3 pods, yet the replica count bounces 1, 3, 1, 3 all day. The Argo CD Application `storefront` flips to `OutOfSync` after each bounce, pods are created and killed during busy hours, and shoppers see slow pages while the single pod is alone. There is a HorizontalPodAutoscaler with `minReplicas: 3`, and the manifest in the `storefront` repository on the in-cluster Git server says `replicas: 1`. A pod `probe` with curl is available.",
+  "objective": "Deployment `storefront` holds 3 or more replicas steadily while Application `storefront` stays `Synced` and `Healthy`, with its HPA still targeting the Deployment and automated sync with self-heal still enabled.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "20m",
+  "concepts": ["HPA vs GitOps", "ignoreDifferences", "RespectIgnoreDifferences", "selfHeal", "spec.replicas"],
   "module": "module-7-gitops",
-  "level": "level-8-autoscaler"
+  "level": "level-8-autoscaler",
+  "requires": ["argocd", "metrics-server"],
+  "settle_seconds": 45,
+  "solve_timeout": 200,
+  "cleanup": []
 }

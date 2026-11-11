@@ -1,17 +1,15 @@
 {
-  "name": "The Value Ignored",
-  "description": "A Helm upgrade was run with a custom values file to change the image tag to `v2.0.0`, but the deployed pods still use the old image. The values file exists and contains the right value — but a YAML indentation error causes `tag` to be parsed as a top-level key instead of a child of `image`.",
-  "objective": "The values file has incorrect YAML indentation — fix the indentation so the image.tag override is applied",
-  "xp": 200,
+  "name": "The Tag That Lost a Zero",
+  "description": "CI upgraded the `search` release with `helm upgrade search ./chart -f values-prod.yaml`, aiming at the new ranking build, tag `1.0`. The upgrade command returned success, but the Deployment's new pods are stuck in `ImagePullBackOff`, complaining about an image that nobody recognises, and the rollout is stalled. The old pods keep answering with the previous ranking. The chart and `values-prod.yaml` are in the `search` repository on the in-cluster Git server. A pod `probe` with curl is available.",
+  "objective": "Helm release `search` in `k8smissions` is `deployed` with Deployment `search` running exactly image `hashicorp/http-echo:1.0` on 2 Ready pods, and Service `search` answers `search prod: ranking v1.0` on every request.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Helm",
-    "values.yaml",
-    "YAML indentation",
-    "override",
-    "helm upgrade"
-  ],
+  "expected_time": "12m",
+  "concepts": ["YAML scalar typing", "helm get manifest", "helm template", "--set-string", "quoting"],
   "module": "module-7-gitops",
-  "level": "level-13-helm-values-indent"
+  "level": "level-13-helm-values-indent",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }
