@@ -42,11 +42,8 @@ cd k8smissions
 ./play.sh             # start the game
 ```
 
-> After cloning, and after every `git pull`, regenerate the level registry so the
-> game sees the current levels:
-> ```bash
-> venv/bin/python scripts/generate_registry.py
-> ```
+`play.sh` rebuilds the level registry (`levels.json`) on every start, so a `git pull`
+is picked up automatically.
 
 ### Upgrading from an earlier version
 
@@ -57,7 +54,6 @@ two workers). Your progress in `progress.json` is kept; level ids did not change
 git pull
 kind delete cluster --name k8smissions   # the old cluster has a single node
 ./install.sh                             # creates the new cluster from kind-config.yaml
-venv/bin/python scripts/generate_registry.py
 ./play.sh
 ```
 

@@ -29,7 +29,8 @@ the fix by behaviour. Please read these first:
    `test_levels.py` creates its own kind cluster from `kind-config.yaml` (never the
    game cluster). It checks that the validator fails on an empty cluster and on the
    broken state, passes after `solution.sh`, and that cleanup leaves nothing behind.
-5. Regenerate the registry: `venv/bin/python scripts/generate_registry.py`.
+5. `play.sh` rebuilds the registry (`levels.json`) on every start. To refresh it
+   without starting the game: `venv/bin/python scripts/generate_registry.py`.
 
 ## Engine architecture
 
