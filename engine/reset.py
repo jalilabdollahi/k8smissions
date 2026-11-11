@@ -40,6 +40,9 @@ NAMESPACED_KINDS = ",".join([
     "networkpolicies", "persistentvolumeclaims", "ingresses", "poddisruptionbudgets",
     "horizontalpodautoscalers", "resourcequotas", "limitranges", "leases",
 ])
+# Add-on kinds a level may create outside its own namespaces (e.g. Applications live in argocd).
+ADDON_KINDS = ["applications.argoproj.io", "appprojects.argoproj.io",
+               "pipelineruns.tekton.dev", "taskruns.tekton.dev", "pipelines.tekton.dev", "tasks.tekton.dev"]
 # Node labels that belong to Kubernetes/kind itself; everything else is level state.
 KEEP_NODE_LABEL = re.compile(r"(^|\.|/)(kubernetes\.io|k8s\.io)/|^ingress-ready$")
 KEEP_TAINT = {"node-role.kubernetes.io/control-plane"}
@@ -142,6 +145,8 @@ def cleanup_all(repo_root: Path) -> None:
     if extra:
         _quiet(["kubectl", "delete", *extra, "--ignore-not-found", "--wait=false"])
     _quiet(["kubectl", "delete", NAMESPACED_KINDS, "-A", "-l", sel, "--ignore-not-found", "--wait=false"])
+    for kind in ADDON_KINDS:  # one call each: a kind whose add-on isn't installed just errors
+        _quiet(["kubectl", "delete", kind, "-A", "-l", sel, "--ignore-not-found", "--wait=false"], timeout=60)
 
     r = _quiet(["kubectl", "get", "namespaces", "-l", sel, "-o", "jsonpath={.items[*].metadata.name}"])
     namespaces = sorted(({NAMESPACE} | set(r.stdout.split())) - PROTECTED_NAMESPACES)
@@ -152,6 +157,14 @@ def cleanup_all(repo_root: Path) -> None:
         objs = _quiet(["kubectl", "get", kind, "-l", sel, "-o", "name"]).stdout.split()
         for obj in objs:
             _quiet(["kubectl", "patch", obj, "--type=merge", "-p", '{"metadata":{"finalizers":null}}'])
+    # add-on objects whose controller never finishes their finalizers
+    time.sleep(1)
+    for kind in ADDON_KINDS[:2]:
+        r = _quiet(["kubectl", "get", kind, "-A", "-l", sel, "-o",
+                    "jsonpath={range .items[*]}{.metadata.namespace}/{.metadata.name}{'\\n'}{end}"], timeout=30)
+        for line in r.stdout.split() if r.returncode == 0 else []:
+            ns, name = line.split("/", 1)
+            _quiet(["kubectl", "patch", kind, name, "-n", ns, "--type=merge", "-p", '{"metadata":{"finalizers":null}}'], timeout=20)
     _reset_nodes()
 
 
