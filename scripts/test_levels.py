@@ -148,6 +148,12 @@ def test_level(level: Path, reset, baseline) -> dict:
     t0 = time.time()
     try:
         reset.cleanup_all(REPO)
+        # add-ons are part of the environment, not the level: install them before
+        # comparing, so their cluster-scoped objects never count as leaks
+        reset.ensure_addons(mission.get("requires", []), log=lambda m: print("   " + m, flush=True))
+        objs, nodes = snapshot()
+        baseline[0].update(objs)
+        baseline[1][:] = nodes
         sh(["kubectl", "create", "namespace", "k8smissions"])
     except Exception as e:
         res["problems"].append(f"cleanup before level failed: {e}")
@@ -190,7 +196,7 @@ def test_level(level: Path, reset, baseline) -> dict:
         for o in leaked:  # keep later levels isolated
             sh(["kubectl", "delete", o, "--ignore-not-found", "--wait=false"])
             sh(["kubectl", "patch", o, "--type=merge", "-p", '{"metadata":{"finalizers":null}}'])
-    if nodes != baseline[1]:
+    if list(nodes) != list(baseline[1]):
         res["problems"].append("NODE STATE not restored after cleanup")
     res["seconds"] = round(time.time() - t0)
     return res
@@ -203,9 +209,22 @@ def main() -> int:
     ap.add_argument("--mirror", action="store_true", help="use a local docker.io pull-through cache")
     ap.add_argument("--json", help="write results to this file")
     ap.add_argument("--down", action="store_true", help="delete the test cluster and exit")
+    ap.add_argument("--repair-pool", action="store_true",
+                    help="lock each pool cluster in turn and re-apply its installed add-ons")
     ap.add_argument("--pool", type=int, default=0,
                     help="share N clusters (k8sm-pool-1..N; levels needing tekton/argocd use k8sm-pool-cd) between authors")
     args = ap.parse_args()
+    if args.repair_pool:
+        for name in [f"k8sm-pool-{i}" for i in range(1, (args.pool or 2) + 1)] + ["k8sm-pool-cd"]:
+            kc = Path.home() / ".k8smissions" / "test" / f"{name}.kubeconfig"
+            if not kc.exists():
+                continue
+            print(f"waiting for {name}...", flush=True)
+            _, held = acquire_pool([name])
+            subprocess.run([sys.executable, str(REPO / "engine" / "addons.py"), "--repair"],
+                           env={**os.environ, "KUBECONFIG": str(kc)}, check=False)
+            held.close()
+        return 0
     lock = None
     if args.pool and not args.down:
         # Argo CD + Tekton need ~1 GB more RAM, so levels that use them share one dedicated cluster.
@@ -230,7 +249,8 @@ def main() -> int:
     levels = select_levels(args.filters)
     sh(["kubectl", "wait", "--for=condition=Ready", "nodes", "--all", "--timeout=180s"], timeout=200)
     reset.cleanup_all(REPO)
-    baseline = snapshot()
+    objs, nodes = snapshot()
+    baseline = (set(objs), list(nodes))
     results, failed = [], 0
     for level in levels:
         r = test_level(level, reset, baseline)

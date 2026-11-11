@@ -80,5 +80,22 @@ def ensure(names: list[str], log=print) -> None:
                 raise RuntimeError(f"add-on {name}: {' '.join(step[:3])} failed: {r.stderr.strip()[-400:]}")
 
 
+def repair(log=print) -> None:
+    """Re-apply the manifests of every installed add-on (restores deleted cluster-scoped parts)."""
+    for name, spec in ADDONS.items():
+        if not is_installed(name):
+            continue
+        log(f"re-applying add-on {name}")
+        for step in spec["install"]:
+            if step[1] == "apply":
+                subprocess.run(step, capture_output=True, text=True, check=False, timeout=420)
+        for step in spec["install"]:
+            if step[1] == "rollout":
+                subprocess.run(step, capture_output=True, text=True, check=False, timeout=420)
+
+
 if __name__ == "__main__":
-    ensure(sys.argv[1:] or list(ADDONS))
+    if sys.argv[1:] == ["--repair"]:
+        repair()
+    else:
+        ensure(sys.argv[1:] or list(ADDONS))
