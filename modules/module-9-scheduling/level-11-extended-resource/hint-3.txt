@@ -1,1 +1,1 @@
-The pod requests `my.company/fpga: '1'` but the device plugin registered the resource as `company.io/fpga`. Extended resource names must match the device plugin's registration exactly — including the domain prefix.
+Correct the name in both `requests` and `limits` (`kubectl -n k8smissions patch deploy video-transcode --type=json -p '[...]'`, with `/` written `~1` in the JSON pointer). If one pod is still Pending, find the pod outside the Deployment that requests the card and decide whether it still needs it: `kubectl -n k8smissions get pod <name> -o yaml`.

@@ -1,1 +1,1 @@
-Check the init container's logs to see what it's doing: `kubectl logs init-pod -n k8smissions -c db-wait`
+Read the Events of the Pending pod (`kubectl -n k8smissions describe pod -l app=payments-migrator`) and compare the pod's total memory request with each worker's free memory. Remember that a pod has more than one container to add up: `kubectl get pod -o yaml`.

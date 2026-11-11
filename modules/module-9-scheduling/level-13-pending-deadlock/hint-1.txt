@@ -1,1 +1,1 @@
-Try to create any pod and observe the error: `kubectl apply -f ~/.k8smissions/sandbox/manifest.yaml`. Also check admission webhooks: `kubectl get validatingwebhookconfiguration`
+`kubectl -n k8smissions get job,pod -o wide` shows how many pods of each Job run and where. Then read why the Pending ones are Pending (`kubectl describe pod`) and what the running ones are waiting for (`kubectl logs`).

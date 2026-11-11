@@ -1,74 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-frontend
+  namespace: k8smissions
+spec:
+  replicas: 4
+  selector:
+    matchLabels: {app: shop, tier: frontend}
+  template:
+    metadata:
+      labels: {app: shop, tier: frontend}
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: zone
+        minDomains: 2
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels: {app: shop, tier: frontend}
+      containers:
+      - name: web
+        image: busybox:1.37
+        command: ["sh", "-c", "mkdir -p /www; echo \"frontend $HOSTNAME\" > /www/index.html; exec httpd -f -p 8080 -h /www"]
+        ports: [{containerPort: 8080}]
+        readinessProbe:
+          tcpSocket: {port: 8080}
+          periodSeconds: 2
+        resources:
+          requests: {cpu: 10m, memory: 16Mi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-cart
+  namespace: k8smissions
+spec:
+  replicas: 2
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: shop, tier: cart}
+  template:
+    metadata:
+      labels: {app: shop, tier: cart}
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels: {app: shop}
+      containers:
+      - name: cart
+        image: busybox:1.37
+        command: ["sh", "-c", "mkdir -p /www; echo \"cart $HOSTNAME\" > /www/index.html; exec httpd -f -p 8080 -h /www"]
+        ports: [{containerPort: 8080}]
+        readinessProbe:
+          tcpSocket: {port: 8080}
+          periodSeconds: 2
+        resources:
+          requests: {cpu: 10m, memory: 16Mi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-agent
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: shop-agent}
+  template:
+    metadata:
+      labels: {app: shop-agent}
+    spec:
+      containers:
+      - name: agent
+        image: busybox:1.37
+        command: ["sh", "-c", "mkdir -p /tmp/w; exec httpd -f -p 8125 -h /tmp/w"]
+        ports:
+        - {containerPort: 8125, hostPort: 8125}
+        readinessProbe:
+          tcpSocket: {port: 8125}
+          periodSeconds: 2
+        resources:
+          requests: {cpu: 10m, memory: 16Mi}
+---
 apiVersion: v1
-kind: List
-items:
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: team-a-pod
-    namespace: k8smissions
-  spec:
-    # Pod stuck Pending — no nodes available matching nodeSelector.
-    nodeSelector:
-      team: team-a
-    containers:
-    - name: app
-      image: nginx:1.25
-      resources:
-        requests:
-          cpu: 50m
-          memory: 32Mi
-        limits:
-          cpu: 100m
-          memory: 64Mi
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: team-b-deploy
-    namespace: k8smissions
-  spec:
-    replicas: 5
-    selector:
-      matchLabels:
-        app: team-b
-    template:
-      metadata:
-        labels:
-          app: team-b
-      spec:
-        affinity:
-          podAntiAffinity:
-            # topology and 5 replicas — 5 pods need 5 unique nodes but only 2 exist.
-            # At least 3 pods will be permanently Pending.
-            requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app: team-b
-              topologyKey: kubernetes.io/hostname
-        containers:
-        - name: app
-          image: nginx:1.25
-          resources:
-            requests:
-              cpu: 50m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 64Mi
-- apiVersion: v1
-  kind: Pod
-  metadata:
-    name: team-c-pod
-    namespace: k8smissions
-  spec:
-    # The API server rejects the pod — it cannot even enter the scheduling queue.
-    priorityClassName: non-existent-priority
-    containers:
-    - name: app
-      image: nginx:1.25
-      resources:
-        requests:
-          cpu: 50m
-          memory: 32Mi
-        limits:
-          cpu: 100m
-          memory: 64Mi
+kind: Service
+metadata:
+  name: shop-frontend
+  namespace: k8smissions
+spec:
+  selector: {app: shop, tier: frontend}
+  ports: [{port: 80, targetPort: 8080}]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-cart
+  namespace: k8smissions
+spec:
+  selector: {app: shop, tier: cart}
+  ports: [{port: 80, targetPort: 8080}]

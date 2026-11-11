@@ -1,1 +1,1 @@
-Check the Pending pod's events: `kubectl describe pod -n k8smissions -l app=distributed | grep -A10 Events`
+`kubectl -n k8smissions get pods -o wide` and `kubectl -n k8smissions describe pod <the Pending one>`: read the count of nodes in the FailedScheduling message and what each group of nodes was rejected for.

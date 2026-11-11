@@ -1,1 +1,1 @@
-Check total resource requests consumed on the node: `kubectl describe node kind-control-plane | grep -A20 'Allocated resources'`
+Compare usage with reservation: `kubectl top nodes` against the "Allocated resources" block of `kubectl describe node <worker>`. Then list who holds those requests: `kubectl -n k8smissions get pods -o wide`.

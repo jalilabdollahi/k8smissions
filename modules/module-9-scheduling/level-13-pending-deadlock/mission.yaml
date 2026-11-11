@@ -1,17 +1,15 @@
 {
-  "name": "Scheduler Deadlock",
-  "description": "All pods in the cluster are stuck in Pending — even tiny pods with minimal resource requests that should schedule immediately. Nodes have available capacity. This is not a resource problem. A misconfigured admission webhook is blocking every pod creation request cluster-wide.",
-  "objective": "A misconfigured admission webhook is rejecting all scheduling decisions — identify and disable the broken webhook",
-  "xp": 375,
-  "difficulty": "advanced",
+  "name": "Two Jobs, One Barrier Each",
+  "description": "Nightly model training runs as two Jobs, `train-a` and `train-b`. Every worker in a job waits at a barrier until all 3 of its peers are running, then trains. Tonight both Jobs have been sitting at 2 of 3 pods Running for an hour; each has one Pending pod, and the logs of the running pods just say they are waiting for peers. Nothing is crashing and no node is down.",
+  "objective": "Both Jobs `train-a` and `train-b` reach `Complete` with 3 succeeded pods each, and their pods' logs show the barrier was passed with 3 of 3 peers. Each Job keeps `completions: 3`.",
+  "xp": 300,
+  "difficulty": "expert",
   "expected_time": "20m",
-  "concepts": [
-    "admission webhook",
-    "ValidatingWebhook",
-    "scheduling block",
-    "webhook timeout",
-    "failurePolicy"
-  ],
+  "concepts": ["gang scheduling", "Job suspend", "scheduling deadlock", "pod Pending reasons", "resource contention"],
   "module": "module-9-scheduling",
-  "level": "level-13-pending-deadlock"
+  "level": "level-13-pending-deadlock",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 240,
+  "cleanup": []
 }

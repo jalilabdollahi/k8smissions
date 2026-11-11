@@ -1,1 +1,1 @@
-The pod spec has `priorityClassName: low-priority`. Change it to `high-priority` so the scheduler knows this pod outranks the pods currently consuming resources and can preempt them.
+Create a second PriorityClass with `preemptionPolicy: PreemptLowerPriority` and a value above the sandbox's, then point the Deployment at it: `kubectl -n k8smissions patch deploy pay-gateway -p '{"spec":{"template":{"spec":{"priorityClassName":"<new-class>"}}}}'`. Pods already created keep their old policy, so they must be replaced.

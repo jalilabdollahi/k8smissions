@@ -1,16 +1,25 @@
-# Label Not Found
+## What was broken
 
-## What Was Broken
-The pod used nodeSelector for 'accelerator-type: nvidia-v100' but no node had this label. nodeSelector is a hard constraint — no match means Pending forever.
+The Deployment's node affinity had a single term with two expressions: `disktype In [ssd, nvme]` and `drain-pending DoesNotExist`. The only SSD worker still had the label `drain-pending=true` from a maintenance cycle that ended a week ago, and the other worker has an HDD, so no node passed the term.
 
-## The Fix
-Remove the nodeSelector or label a node with the required key-value pair.
+## The evidence
 
-## Why It Matters
-nodeSelector is the simplest scheduling constraint but has no fallback. For workloads that should prefer GPUs but can run without them, use preferredDuringScheduling nodeAffinity.
+The Deployment YAML looked correct for an SSD node, and `disktype=ssd` was indeed on the node. The failure only showed once `kubectl get nodes -L disktype,drain-pending` put the labels next to each other. The scheduler's message, `didn't match Pod's node affinity/selector`, said nothing about which expression failed.
 
-## Pro Tip
-Check all node labels at once: kubectl get nodes -o json | python3 -c "import json,sys; [print(n['metadata']['name'], list(n['metadata']['labels'].keys())) for n in json.load(sys.stdin)['items']]"
+## Why Kubernetes behaves this way
 
-## Concepts
-nodeSelector, node labels, scheduling constraint, Pending pod, label mismatch
+Expressions inside one `matchExpressions` list are ANDed; each entry in `nodeSelectorTerms` is an alternative (OR). Labels are plain data with no owner or expiry, so a label that a runbook added and never removed keeps vetoing pods indefinitely. Affinity is evaluated on the node's current labels, which is why removing the label unblocks pods without touching the Deployment.
+
+## The fix
+
+Remove the stale label from the node. Rewriting the pod's term would also pass, but would leave the node advertising a drain that is not happening, which might block the next consumer too. Relabelling the HDD node as SSD would lie about the hardware.
+
+## In production
+
+Maintenance runbooks that add a label need a matching removal step, ideally in the same script. Check `kubectl get nodes --show-labels` when pods are Pending but their manifests look right, and consider taints (with an effect and a clear lifecycle) for "do not use" states.
+
+## Commands worth remembering
+
+- `kubectl get nodes -L disktype,drain-pending`
+- `kubectl label node <node> <key>-`
+- `kubectl explain pod.spec.affinity.nodeAffinity`

@@ -1,16 +1,15 @@
 {
-  "name": "Label Not Found",
-  "description": "A GPU pod is stuck in Pending. The pod uses a `nodeSelector` to target nodes with a specific GPU label, but no node in the cluster has that label. The label was intended to be applied to a GPU node that hasn't been labeled yet — or the label key itself is wrong.",
-  "objective": "The nodeSelector uses a label key that doesn't exist on any node — fix the label key or remove the constraint",
-  "xp": 275,
-  "difficulty": "intermediate",
-  "expected_time": "8m",
-  "concepts": [
-    "nodeSelector",
-    "node labels",
-    "scheduling",
-    "Pending pods"
-  ],
+  "name": "Right Disk, Wrong Answer",
+  "description": "`inference-gateway` (2 replicas) is Pending. The model weights need a fast disk, one worker has an SSD, and the Deployment's node affinity lists `ssd` as an accepted disk type, yet the scheduler claims no node matches. Last week that same node went through a maintenance cycle.",
+  "objective": "Both `inference-gateway` pods are Running on the SSD worker (the node labelled `disktype=ssd`) and none on the HDD worker.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "10m",
+  "concepts": ["nodeAffinity", "matchExpressions", "node labels", "DoesNotExist"],
   "module": "module-9-scheduling",
-  "level": "level-7-node-selector-miss"
+  "level": "level-7-node-selector-miss",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,1 +1,1 @@
-Check where pods are trying to reschedule after eviction: `kubectl describe pod -n k8smissions -l app=batch | grep -A10 Events`
+`kubectl -n k8smissions describe pod -l app=render-farm` shows how the scheduler rejected each node. Then compare the nodes: `kubectl get nodes -L lifecycle` and `kubectl describe nodes | grep -E "^Name:|^Taints:"`.

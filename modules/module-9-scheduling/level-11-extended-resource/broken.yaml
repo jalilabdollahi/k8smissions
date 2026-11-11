@@ -1,18 +1,41 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: fpga-pod
+  name: fpga-smoketest
   namespace: k8smissions
+  annotations:
+    owner: platform-hw
+    purpose: "bring-up smoke test of the new cards, finished 3 days ago, nobody cleaned up"
 spec:
   containers:
-  - name: compute
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - sleep 3600
+  - name: smoketest
+    image: busybox:1.37
+    command: ["sh", "-c", "echo smoke test passed; while true; do sleep 30; done"]
     resources:
-      limits:
-        # plugin registered 'company.io/fpga'. Names must match exactly.
-        # No node reports 'my.company/fpga' capacity → pod stuck Pending.
-        my.company/fpga: '1'
+      requests: {cpu: 10m, memory: 16Mi, example.com/fpgas: "1"}
+      limits: {example.com/fpgas: "1"}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-transcode
+  namespace: k8smissions
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: video-transcode}
+  template:
+    metadata:
+      labels: {app: video-transcode}
+    spec:
+      containers:
+      - name: transcoder
+        image: busybox:1.37
+        command: ["sh", "-c", "echo transcoder attached to its FPGA card; while true; do sleep 30; done"]
+        resources:
+          requests:
+            cpu: 20m
+            memory: 32Mi
+            example.com/fpga: "1"
+          limits:
+            example.com/fpga: "1"

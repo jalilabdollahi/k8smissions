@@ -1,1 +1,1 @@
-The pod was scheduled by `default-scheduler`. Verify that the ML-specific scheduler is running: `kubectl get pods -A | grep ml-scheduler`. The custom scheduler exists but the pod never asked for it.
+Each scheduler only handles pods whose `spec.schedulerName` equals one of its profile names. If no scheduler has that name, the pod stays Pending in silence. `kubectl explain pod.spec.schedulerName`. The field cannot be changed on an existing pod, so change it where the pods come from.

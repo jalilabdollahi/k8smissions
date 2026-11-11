@@ -1,17 +1,15 @@
 {
-  "name": "Queue Jumped",
-  "description": "A critical workload pod is stuck Pending while lower-priority development pods consume all available CPU and memory. The critical pod is assigned the wrong PriorityClass — it has lower priority than the pods it needs to displace, so the scheduler never preempts them to make room.",
-  "objective": "The critical pod has the wrong PriorityClass — assign it the high-priority class so it can preempt lower-priority pods",
-  "xp": 325,
+  "name": "Outranked but Not Evicting",
+  "description": "`pay-gateway` has been Pending since the 02:00 deploy because both workers are full of `dev-sandbox` pods, a batch of throwaway developer environments. Payments is the highest-priority workload on the cluster and its PriorityClass `payments-high` has a very large value, so the team expected the scheduler to make room. Nothing has ever been evicted.",
+  "objective": "Both `pay-gateway` pods are Running, made room by displacing lower-priority `dev-sandbox` pods; Deployment `dev-sandbox` still exists with its 8 replicas and a priority below `pay-gateway`'s.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "PriorityClass",
-    "preemption",
-    "pod priority",
-    "scheduling",
-    "resource contention"
-  ],
+  "expected_time": "15m",
+  "concepts": ["PriorityClass", "preemptionPolicy", "preemption", "immutable fields"],
   "module": "module-9-scheduling",
-  "level": "level-5-priority-preemption"
+  "level": "level-5-priority-preemption",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": ["priorityclass/payments-high", "priorityclass/payments-critical"]
 }

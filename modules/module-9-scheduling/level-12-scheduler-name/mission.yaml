@@ -1,16 +1,15 @@
 {
-  "name": "Wrong Scheduler",
-  "description": "A machine learning workload pod is being scheduled by the default Kubernetes scheduler instead of the custom ML-aware scheduler deployed for these workloads. Without specifying which scheduler to use, every pod defaults to `default-scheduler` — bypassing all GPU-topology and ML-specific placement logic.",
-  "objective": "The pod uses the default scheduler instead of the custom 'ml-scheduler' — set the schedulerName field",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "schedulerName",
-    "custom scheduler",
-    "multiple schedulers",
-    "pod spec"
-  ],
+  "name": "Nobody Owns These Pods",
+  "description": "The ML platform team runs its own scheduler, `ml-scheduler`, so that `trainer` workers are packed tightly onto as few nodes as possible and the rest of the cluster stays free for inference. The scheduler Deployment is up and reports no errors, but all four `trainer` pods have been Pending for twenty minutes and `kubectl describe pod` shows no events at all, not even a FailedScheduling.",
+  "objective": "All 4 `trainer` pods are Running on the same worker node, and their `Scheduled` events were issued by `ml-scheduler`, not by the default scheduler. The `ml-scheduler` Deployment and its config stay as they are.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["schedulerName", "multiple schedulers", "KubeSchedulerConfiguration", "MostAllocated", "pod template immutability"],
   "module": "module-9-scheduling",
-  "level": "level-12-scheduler-name"
+  "level": "level-12-scheduler-name",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 180,
+  "cleanup": ["clusterrolebinding/ml-scheduler-kube-scheduler", "clusterrolebinding/ml-scheduler-volume-scheduler"]
 }

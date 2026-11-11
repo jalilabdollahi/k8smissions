@@ -1,7 +1,11 @@
-# Common Mistakes — No Room
+## Scaling down to 2 replicas
 
-## Mistake 1: Setting requests: {} empty
+The Pending pod disappears and so does a third of the capacity. The premiere needs 3 encoders.
 
-**Wrong approach:** No resource requests means pods count as zero — the scheduler doesn't account for them accurately
+## Setting the request to a token value (for example 1m)
 
-**Correct approach:** Always set resource requests; use VPA to auto-tune them
+All three replicas schedule, but the scheduler now believes they use nothing, and a busy node can starve them. The check requires the request to stay at least about 40% of the original.
+
+## Trusting `kubectl top node`
+
+It shows usage, and the scheduler does not read usage at all. The numbers that matter are in the Allocated resources section of `kubectl describe node`.

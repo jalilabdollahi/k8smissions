@@ -1,1 +1,1 @@
-You should see `Capacity.memory` (e.g., 6Gi) and `Allocatable.memory` (e.g., something smaller, like 5.5Gi or less after kubelet reserves). The pod's `requests.memory: 5Gi` may exceed the allocatable amount even if it's within capacity.
+The scheduler adds the RuntimeClass's fixed pod overhead to the container requests before it looks for a node. Look at `kubectl get runtimeclass sandboxed -o yaml` and at `spec.overhead` on the Pending pod. `kubectl explain runtimeclass.overhead`. A ConfigMap in the namespace records how much memory the process was measured to need.

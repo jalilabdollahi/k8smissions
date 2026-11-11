@@ -1,16 +1,25 @@
-# Spot Survivor
+## What was broken
 
-## What Was Broken
-The batch-job Deployment used nodeSelector: node-type: spot — restricting to spot nodes only. When spot nodes were reclaimed, pods couldn't reschedule to on-demand nodes (different taint, wrong nodeSelector).
+`render-farm` was pinned with `nodeSelector: lifecycle=spot`. The spot node was reclaimed and tainted `spot-reclaimed:NoSchedule`, so the pods could neither run there nor, because of the selector, anywhere else. The remaining worker carried its own taint, `lifecycle=on-demand:NoSchedule`, which the pods did not tolerate either.
 
-## The Fix
-Remove the nodeSelector or replace with a soft preference (nodeAffinity preferred), and add tolerations for both spot and on-demand node taints.
+## The evidence
 
-## Why It Matters
-Spot instance survival strategy: use preferredDuringScheduling nodeAffinity for spot (cheaper), fall back to on-demand automatically, tolerate both node types. Use PodDistributionBudget to maintain minimum replicas.
+The FailedScheduling event listed two different reasons for the two workers: one node "didn't match Pod's node affinity/selector", the other had "untolerated taint". `kubectl get nodes -L lifecycle` showed the labels, `kubectl describe node` the taints. A reader who fixed only the first sentence of the event still had Pending pods.
 
-## Pro Tip
-Cloud providers label spot nodes: EKS uses node.kubernetes.io/lifecycle=spot, GKE uses cloud.google.com/gke-spot=true. Use these labels in soft affinity rules.
+## Why Kubernetes behaves this way
 
-## Concepts
-spot instances, tolerations, nodeSelector, fallback scheduling, preemptible nodes
+Node selection is a pipeline of filters. `nodeSelector` and affinity say where a pod wants to be, taints say who is welcome, and a node must pass every filter. The scheduler reports each node's first failing reason, which is why two blockers show up as two groups in one message.
+
+## The fix
+
+Drop the hard requirement for the spot label and add a toleration matching the on-demand taint (key `lifecycle`, value `on-demand`, effect `NoSchedule`). Tolerating `spot-reclaimed` would be the wrong fix: it lets pods back onto a node that no longer exists as capacity.
+
+## In production
+
+Spot workloads usually prefer spot nodes (`preferredDuringScheduling` affinity) and tolerate the on-demand taint as a fallback, so they flow to on-demand capacity during reclaims and drift back later. Combine with a PodDisruptionBudget so a reclaim does not take the whole farm at once.
+
+## Commands worth remembering
+
+- `kubectl get nodes -L lifecycle`
+- `kubectl describe nodes | grep -E "^Name:|^Taints:"`
+- `kubectl explain pod.spec.affinity.nodeAffinity`

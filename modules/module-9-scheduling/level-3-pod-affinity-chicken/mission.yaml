@@ -1,16 +1,15 @@
 {
-  "name": "Chicken and Egg",
-  "description": "A new pod is stuck in Pending. It requires affinity to a pod with the label `tier: cache` — but no such pod exists in the cluster yet. The hard affinity rule creates a deadlock: the app pod can't start without the cache pod, but nothing is deploying the cache pod either.",
-  "objective": "The podAffinity rule requires a pod with label 'tier: cache' but no such pod exists — the affinity creates a deadlock. Fix it using preferredDuringScheduling instead",
-  "xp": 325,
-  "difficulty": "advanced",
+  "name": "Neither Goes First",
+  "description": "The new reports stack, Deployments `reports-web` (3 replicas) and `reports-cache` (2 replicas), went out an hour ago and not one of its five pods is Running. They were meant to run side by side so the web tier can hit the cache over the node-local socket, and the scheduler reports that none of the nodes matches the pod affinity rules.",
+  "objective": "Both Deployments are fully Ready, and every `reports-web` pod runs on a node that also runs at least one `reports-cache` pod.",
+  "xp": 150,
+  "difficulty": "intermediate",
   "expected_time": "12m",
-  "concepts": [
-    "podAffinity",
-    "requiredDuringScheduling",
-    "preferredDuringScheduling",
-    "scheduling deadlock"
-  ],
+  "concepts": ["podAffinity", "requiredDuringScheduling", "topologyKey", "scheduling deadlock"],
   "module": "module-9-scheduling",
-  "level": "level-3-pod-affinity-chicken"
+  "level": "level-3-pod-affinity-chicken",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

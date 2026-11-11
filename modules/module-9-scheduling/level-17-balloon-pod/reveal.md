@@ -1,19 +1,5 @@
-## What went wrong
-
-The pause container (`registry.k8s.io/pause`) does nothing — it's a minimal binary that just sleeps. But its `requests.cpu: 2000m` and `requests.memory: 4Gi` tell the scheduler that 2 full CPUs and 4Gi of memory are reserved on this node. Real workloads can't schedule because from the scheduler's perspective, the capacity is gone.
-
-## Fix
-
-```yaml
-resources:
-  requests:
-    cpu: 100m
-    memory: 128Mi
-  limits:
-    cpu: 200m
-    memory: 256Mi
-```
-
-## Why this matters
-
-Balloon pods are a legitimate technique — they're used to pre-warm Cluster Autoscaler by keeping a node alive that would otherwise scale down, so it's available immediately for burst traffic. The key: the balloon pod should have a low PriorityClass and `cluster-autoscaler.kubernetes.io/safe-to-evict: 'true'`, so it gets preempted instantly when real work arrives. An oversized balloon defeats the purpose — it hogs the capacity instead of yielding it. Balloon requests should be small enough that real workloads can always preempt them.
+1. `kubectl top nodes` shows under 10% CPU, but `describe node` shows requests near 100%: the 6 `capacity-reserve` pause pods request most of the CPU.
+2. Placeholder and checkout pods both have priority 0, so no preemption can happen. Create a negative priority class and put the placeholders in it:
+   `kubectl apply -f -` with `kind: PriorityClass`, `name: overprovisioning`, `value: -10`
+   `kubectl -n k8smissions patch deploy capacity-reserve --type=merge -p '{"spec":{"template":{"spec":{"priorityClassName":"overprovisioning"}}}}'`
+3. The placeholder Deployment uses `Recreate`, so all its pods are replaced at priority -10. The Pending `checkout` pods now outrank them: they are scheduled first (and would preempt placeholders if needed), and the remaining placeholders stay as headroom.

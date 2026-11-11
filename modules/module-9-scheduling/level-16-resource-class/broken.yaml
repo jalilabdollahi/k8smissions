@@ -1,8 +1,40 @@
-apiVersion: resource.k8s.io/v1alpha2
-kind: ResourceClaim
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
 metadata:
-  name: my-fpga-claim
+  name: notebook-gpu
   namespace: k8smissions
 spec:
-  # The ResourceClaim cannot be allocated → any pod referencing it stays Pending.
-  resourceClassName: non-existent-fpga-class
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly:
+          deviceClassName: gpu.example.com
+          selectors:
+          - cel:
+              expression: 'device.attributes["gpu.lab.example.com"].model == "t4"'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lab-notebook
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: lab-notebook}
+  template:
+    metadata:
+      labels: {app: lab-notebook}
+    spec:
+      resourceClaims:
+      - name: accel
+        resourceClaimTemplateName: notebook-gpu
+      containers:
+      - name: notebook
+        image: busybox:1.37
+        command: ["sh", "-c", "echo notebook up; while true; do sleep 30; done"]
+        resources:
+          requests: {cpu: 20m, memory: 32Mi}
+          claims:
+          - name: accel

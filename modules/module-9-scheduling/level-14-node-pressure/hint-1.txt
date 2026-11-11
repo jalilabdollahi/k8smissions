@@ -1,1 +1,1 @@
-Check node conditions to confirm memory pressure: `kubectl describe node kind-control-plane | grep -A5 Conditions`
+Look at why the pods died: `kubectl -n k8smissions get events --field-selector reason=Evicted` and `kubectl -n k8smissions describe pod <evicted-pod>`. The message names the resource that was exceeded.

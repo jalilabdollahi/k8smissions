@@ -1,1 +1,1 @@
-The pod is using `low-priority` class. Check what PriorityClasses exist: `kubectl get priorityclass`. The `critical-workload` pod should be using a high-priority class so the scheduler will preempt lower-priority pods to schedule it.
+A high priority value only allows preemption if the class's `preemptionPolicy` does. The policy is copied into each pod when it is created, and PriorityClass `value` and `preemptionPolicy` cannot be edited afterwards. `kubectl explain priorityclass.preemptionPolicy`.

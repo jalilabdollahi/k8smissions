@@ -1,1 +1,1 @@
-You should see `MemoryPressure: True`. Now find the pod causing it: `kubectl top pods -n k8smissions`. Look at the `memory-hog` pod's actual memory usage vs. its declared requests.
+The Deployment sets no ephemeral-storage limit, but a LimitRange in the namespace can inject defaults into every container that has none: `kubectl -n k8smissions get limitrange -o yaml`, and check the running pod's real limits with `kubectl get pod <pod> -o yaml`. `kubectl explain limitrange.spec.limits`.

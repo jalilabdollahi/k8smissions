@@ -1,17 +1,15 @@
 {
-  "name": "Pressure Evictions",
-  "description": "Pods are being unexpectedly evicted from a node that appears healthy — CPU utilization is low but memory pods keep disappearing. One pod is allocating nearly 1GB of memory using a `dd` command while declaring only 50Mi in its requests. This mismatch triggers the kubelet's eviction manager.",
-  "objective": "Node memory pressure is triggering kubelet eviction — the node has too many high-memory pods. Remove or reschedule some pods",
-  "xp": 325,
+  "name": "Evicted by a Limit Nobody Set",
+  "description": "`log-compactor` keeps dying. Its three pods show `Evicted`, new ones appear, and they are evicted again a few seconds after they begin compacting. The nodes report no pressure and CPU is idle. The Deployment's manifest has no storage settings at all, and the compaction really does write about 120Mi of output into the container's own filesystem.",
+  "objective": "Deployment `log-compactor` has 3 replicas Running and Ready, each pod has finished writing its compaction output (`/work/compacted.bin`) and has been running long enough not to be evicted again, with an effective ephemeral-storage limit above what the compaction writes.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "node pressure",
-    "eviction",
-    "kubelet",
-    "memory pressure",
-    "eviction thresholds"
-  ],
+  "expected_time": "15m",
+  "concepts": ["ephemeral-storage", "LimitRange defaults", "kubelet eviction", "effective limits", "Evicted pods"],
   "module": "module-9-scheduling",
-  "level": "level-14-node-pressure"
+  "level": "level-14-node-pressure",
+  "requires": [],
+  "settle_seconds": 45,
+  "solve_timeout": 200,
+  "cleanup": []
 }

@@ -1,1 +1,1 @@
-Check which scheduler placed the pod: `kubectl describe pod ml-pod -n k8smissions | grep Scheduler`
+A pod with no events was never looked at by any scheduler. Check which scheduler each side thinks it is: `kubectl -n k8smissions get pod -l app=trainer -o yaml | grep schedulerName`, and the name in the scheduler's own profile (`kubectl -n k8smissions get configmap ml-scheduler-config -o yaml`).

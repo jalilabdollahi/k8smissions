@@ -1,1 +1,1 @@
-The pod spec has no `tolerations`. Add a toleration matching the `maintenance=draining:NoExecute` taint and include `tolerationSeconds: 300` to get a 5-minute grace window before eviction.
+Print the toleration with `kubectl -n k8smissions get deploy session-cache -o jsonpath='{.spec.template.spec.tolerations}'`, then change the one field that limits how long it holds, for example with `kubectl -n k8smissions patch deploy session-cache --type=json -p '[{"op":"remove","path":"/spec/template/spec/tolerations/0/<field>"}]'`. Leave the node and its taint alone.

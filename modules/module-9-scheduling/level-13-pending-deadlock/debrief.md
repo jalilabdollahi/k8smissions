@@ -1,16 +1,25 @@
-# Scheduler Deadlock
+## What was broken
 
-## What Was Broken
-A ValidatingWebhookConfiguration with failurePolicy: Fail was configured for all pod CREATE operations. The webhook service (validator-svc) was down. Every pod creation attempt timed out waiting for webhook response.
+`train-a` and `train-b` each need three pods running at the same moment, and the cluster has room for four. The Job controller created pods for both, the scheduler placed two of each, and the third pod of each Job could not fit. The running pods wait at their barrier for a peer that cannot start until somebody leaves.
 
-## The Fix
-Change failurePolicy to Ignore so that webhook failures don't block resource creation. Or fix/restart the webhook service.
+## The evidence
 
-## Why It Matters
-failurePolicy: Fail is the secure-by-default choice — if the webhook can't be reached, block the operation. But it's a reliability risk: if the webhook crashes, the entire cluster stops accepting new pods. Use Ignore + alerting for non-critical validation webhooks.
+`kubectl get pod -o wide` showed 2 Running and 1 Pending per Job. `describe pod` said `Insufficient cpu` for the Pending pods, and the logs of the running ones said `2 of 3 peers running`. Neither Job had an error: a deadlock has no failing component.
 
-## Pro Tip
-Scope webhooks narrowly: use namespaceSelector to apply only to specific namespaces, and objectSelector to target specific pods. Never apply a Fail-policy webhook to kube-system.
+## Why Kubernetes behaves this way
 
-## Concepts
-ValidatingWebhook, failurePolicy, Fail, Ignore, webhook outage, scheduling block
+The scheduler places pods one by one with no idea that they belong together. It has no gang scheduling, so a job that needs all-or-nothing can be half placed. Two half-placed jobs hold exactly the resources the other one needs.
+
+## The fix
+
+Serialise the work. `spec.suspend: true` on one Job deletes its pods and gives their room back; the other Job finishes, and resuming the first lets it run alone. Reducing parallelism of both would only break the barrier, and the validator looks for 3 of 3 peers in the logs.
+
+## In production
+
+Use a queueing layer (Kueue, Volcano, or at least `suspend` driven by a controller) so whole jobs are admitted atomically. PriorityClass preemption can also break a tie, but it kills running work. Quotas per team stop one tenant from half-filling a cluster.
+
+## Commands worth remembering
+
+- `kubectl patch job <name> --type=merge -p '{"spec":{"suspend":true}}'`
+- `kubectl wait --for=condition=complete job/<name>`
+- `kubectl get pod -l app=trainer -o wide`

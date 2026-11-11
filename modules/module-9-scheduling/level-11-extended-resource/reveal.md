@@ -1,21 +1,4 @@
-## What went wrong
-
-The device plugin advertises `company.io/fpga` as an allocatable resource on each node. The pod requests `my.company/fpga` — a different name. The scheduler searches for nodes with `my.company/fpga` capacity, finds zero, and keeps the pod Pending.
-
-## Fix
-
-```yaml
-resources:
-  limits:
-    company.io/fpga: '1'
-```
-
-## Why this matters
-
-Extended resources (also called device plugin resources) follow the format `<vendor-domain>/<resource-name>`. They must:
-1. Use a domain prefix with a `/` separator (e.g., `nvidia.com/gpu`, `intel.com/ioatdma`)
-2. Be declared under `limits` only (not `requests` — the scheduler treats limits = requests for extended resources)
-3. Use whole numbers (no millicores equivalent for GPUs)
-4. Match exactly the string registered by the device plugin DaemonSet
-
-Verify available extended resources with `kubectl describe node | grep -v 'kubernetes.io'` to filter out built-in resources.
+1. `kubectl describe pod` says `Insufficient example.com/fpga`: the nodes advertise `example.com/fpgas` (plural). Fix the name in requests and limits with a JSON patch on the Deployment:
+   `kubectl -n k8smissions patch deploy video-transcode --type=json -p '[{"op":"remove","path":"/spec/template/spec/containers/0/resources/requests/example.com~1fpga"},{"op":"remove","path":"/spec/template/spec/containers/0/resources/limits/example.com~1fpga"},{"op":"add","path":"/spec/template/spec/containers/0/resources/requests/example.com~1fpgas","value":"1"},{"op":"add","path":"/spec/template/spec/containers/0/resources/limits/example.com~1fpgas","value":"1"}]'`
+2. Only 2 of 3 pods start: the cluster has 3 cards and Pod `fpga-smoketest` (a finished bring-up test) holds one. `kubectl describe node` shows 1 allocated card on its node.
+3. Delete the stale pod to release the card: `kubectl -n k8smissions delete pod fpga-smoketest`; the third transcoder schedules.

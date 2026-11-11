@@ -1,1 +1,1 @@
-Check the node's actual allocatable memory vs. its total capacity: `kubectl describe node kind-control-plane | grep -E 'Capacity|Allocatable' -A6`
+Read the scheduler's own words: `kubectl -n k8smissions describe pod -l app=ledger-batch`. Then compare the free memory on each worker (`kubectl describe node`, "Allocated resources") with what this pod really costs the scheduler, not just the number in its container spec.

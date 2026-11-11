@@ -1,16 +1,15 @@
 {
-  "name": "Class Not Found",
-  "description": "A pod using Dynamic Resource Allocation (DRA) is stuck in Pending. It references a ResourceClaim that can't be satisfied because the ResourceClass it names doesn't exist. Without the class, the DRA driver has no configuration to allocate the resource from.",
-  "objective": "The ResourceClaim references a ResourceClass that doesn't exist — create the ResourceClass or fix the reference",
-  "xp": 375,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "ResourceClaim",
-    "ResourceClass",
-    "Dynamic Resource Allocation",
-    "DRA"
-  ],
+  "name": "A Notebook Waiting for a GPU That Is Not Named",
+  "description": "The data-science team moved `lab-notebook` to Dynamic Resource Allocation: the pod asks for one GPU through a ResourceClaimTemplate instead of a node label. The pod has been Pending since the migration. The driver reports two GPUs published, one per worker, and the team can see them in the cluster, but the scheduler never picks either.",
+  "objective": "The `lab-notebook` pod is scheduled onto a worker, its ResourceClaim is allocated a device from a ResourceSlice published for that same worker, and DeviceClass `gpu.example.com` exists. (There is no kubelet driver on this cluster, so the pod itself will not reach Running; allocation by the scheduler is the goal.)",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "25m",
+  "concepts": ["Dynamic Resource Allocation", "DeviceClass", "ResourceClaimTemplate", "ResourceSlice", "CEL selectors"],
   "module": "module-9-scheduling",
-  "level": "level-16-resource-class"
+  "level": "level-16-resource-class",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": ["deviceclass/gpu.example.com"]
 }

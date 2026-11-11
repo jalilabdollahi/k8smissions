@@ -1,1 +1,1 @@
-Look at the webhook's `failurePolicy` field: `kubectl get validatingwebhookconfiguration strict-validator -o yaml | grep failurePolicy`. If the webhook service is unreachable and `failurePolicy: Fail`, every pod creation is rejected.
+Each Job needs all 3 of its pods at once, but the cluster has room for 4 pods in total. Two Jobs each holding 2 pods leave neither able to start. Neither Job is wrong on its own: it is the interleaving that deadlocks, and the way out is to run them one after the other. `kubectl explain job.spec.suspend`.

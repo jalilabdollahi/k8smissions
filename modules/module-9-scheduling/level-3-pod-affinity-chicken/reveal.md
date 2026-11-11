@@ -1,26 +1,5 @@
-## What went wrong
-
-`requiredDuringSchedulingIgnoredDuringExecution` is a hard constraint: if the condition can't be met, the pod stays Pending forever. Requiring colocation with a pod that doesn't exist yet creates a chicken-and-egg deadlock.
-
-## Fix
-
-```yaml
-spec:
-  affinity:
-    podAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          labelSelector:
-            matchLabels:
-              tier: cache
-          topologyKey: kubernetes.io/hostname
-```
-
-## Why this matters
-
-The naming is long but the distinction matters:
-- `required`: hard constraint — pod stays Pending if unmet
-- `preferred`: soft constraint — scheduler tries to satisfy it but schedules anyway if it can't
-
-Use `required` only when the placement constraint is a hard correctness requirement (e.g., a pod that literally cannot function without a local cache sidecar). Use `preferred` for performance optimization — scheduling near a cache pod is faster, but not necessary for correctness. When in doubt, start with `preferred` and only upgrade to `required` if you're sure the target pod will always exist first.
+1. The events say `didn't match pod affinity rules` for both tiers; the Deployments show web requires `tier=cache` pods and cache requires `tier=web` pods on the same node.
+2. Required pod affinity is checked against pods that already run, so each side waits for the other forever.
+3. Remove the affinity from the cache Deployment; it is the tier that can be placed on its own (its `nodeSelector` already pins it to the cache pool):
+   `kubectl -n k8smissions patch deploy reports-cache --type=json -p '[{"op":"remove","path":"/spec/template/spec/affinity"}]'`
+4. Cache pods start, the web pods' affinity is satisfied and they land on the same node. Keep the web rule: dropping it from web would let those pods spread onto the other worker.

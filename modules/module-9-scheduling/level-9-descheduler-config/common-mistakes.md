@@ -1,7 +1,11 @@
-# Common Mistakes — Hot Node
+## Fixing the first error and stopping there
 
-## Mistake 1: Manually deleting pods to rebalance
+Moving the plugin to `balance` makes the Job turn green, so it looks solved. The log still has no `Evicted pod` lines: the thresholds are the second problem, and only a Job that logs evictions counts.
 
-**Wrong approach:** kubectl delete pod repeatedly to force rescheduling — disruptive and doesn't stay balanced
+## Raising `thresholds` above `targetThresholds`
 
-**Correct approach:** Use the Descheduler for automated, controlled rebalancing
+The Descheduler rejects a policy where a threshold exceeds its target (underutilized would overlap overutilized). Keep thresholds clearly below the targets.
+
+## Waiting for the CronJob to pick the change up
+
+A Job reads the ConfigMap when it starts, and the CronJob uses `concurrencyPolicy: Forbid`, so a slow or failed run can delay the next one. Start a Job yourself with `kubectl create job --from=cronjob/descheduler`, and remember that deleting pods by hand is not what this level is about.

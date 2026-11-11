@@ -1,1 +1,1 @@
-Check the critical pod's events and its current priority: `kubectl describe pod critical-workload -n k8smissions | grep -E 'Priority|Events' -A5`
+Compare the two classes: `kubectl get priorityclass` and `kubectl get priorityclass payments-high -o yaml`. Read the pay-gateway pod's scheduling event too (`kubectl -n k8smissions describe pod -l app=pay-gateway`): does it say anything about preemption?

@@ -1,7 +1,11 @@
-# Common Mistakes — Class Not Found
+## Creating the class and stopping
 
-## Mistake 1: Using old device plugin model
+With the class present, the event moves from "not found" to an allocation failure. The pod is still Pending, and the cause is now in the claim's own selector.
 
-**Wrong approach:** Requesting nvidia.com/gpu in limits — this is the device plugin model, not DRA
+## Guessing the driver name from the class name
 
-**Correct approach:** DRA uses ResourceClaims; device plugins use extended resources in limits; don't mix them
+`gpu.example.com` is only the class's name. The selector has to name the driver the slices really publish (`gpu.lab.example.net`), which is only visible in the ResourceSlices.
+
+## Editing the template and waiting
+
+The pod's claim was generated from the old template when the pod was created. Replace the template, then delete the pod so the Deployment creates a new one with a new claim.

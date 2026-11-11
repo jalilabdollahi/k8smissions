@@ -1,22 +1,40 @@
 apiVersion: v1
-kind: Pod
+kind: LimitRange
 metadata:
-  name: memory-hog
+  name: container-defaults
   namespace: k8smissions
 spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    # Combined with a 2Gi limit and 50Mi request, this pod causes node memory
-    # pressure and triggers kubelet eviction of other pods.
-    - dd if=/dev/zero bs=1M count=1000 | cat > /tmp/data; sleep 3600
-    resources:
-      requests:
-        cpu: 10m
-        memory: 50Mi
-      limits:
-        cpu: 100m
-        memory: 2Gi
+  limits:
+  - type: Container
+    default:
+      ephemeral-storage: 50Mi
+    defaultRequest:
+      ephemeral-storage: 20Mi
+      cpu: 10m
+      memory: 16Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: log-compactor
+  namespace: k8smissions
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: log-compactor}
+  template:
+    metadata:
+      labels: {app: log-compactor}
+    spec:
+      containers:
+      - name: compactor
+        image: busybox:1.37
+        command:
+        - sh
+        - -c
+        - |
+          mkdir -p /work
+          echo "compacting segment..."
+          dd if=/dev/zero of=/work/compacted.bin bs=1M count=120 2>/dev/null
+          echo "compaction written"
+          while true; do sleep 30; done

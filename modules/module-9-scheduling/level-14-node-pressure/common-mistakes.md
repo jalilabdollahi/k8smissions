@@ -1,7 +1,11 @@
-# Common Mistakes — Pressure Evictions
+## Looking at the nodes
 
-## Mistake 1: Adding more memory limit when already causing pressure
+`kubectl describe node` and `kubectl top node` show no pressure, because there is none. This eviction is the kubelet enforcing a per-pod limit, not the node running out of disk.
 
-**Wrong approach:** Increasing limit to 4Gi — a higher limit doesn't help if the node runs out of memory
+## Editing the LimitRange and waiting
 
-**Correct approach:** Fix the actual memory usage first; right-size the limit after profiling
+A LimitRange only acts when a pod is admitted. The existing replicas keep their 50Mi limit and are evicted again, so the change has to be followed by a rollout. It also changes the default for everything else in the namespace.
+
+## Setting only the request
+
+A request of 200Mi with the injected 50Mi limit is rejected or ignored in favour of the limit; the limit is what the kubelet enforces. Raise the limit, and set the request alongside it.

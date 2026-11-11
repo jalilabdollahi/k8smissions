@@ -1,16 +1,25 @@
-# Wrong Scheduler
+## What was broken
 
-## What Was Broken
-The ML training pod used the default scheduler. The ML-aware scheduler reserves GPU-optimized nodes and handles topology for distributed training — the pod needed to be assigned to it explicitly.
+The `trainer` pods asked for scheduler `ml-sheduler`. The team's second scheduler runs a profile named `ml-scheduler`. A one-letter typo meant that no scheduler claimed the pods.
 
-## The Fix
-Add 'schedulerName: ml-scheduler' to the pod spec.
+## The evidence
 
-## Why It Matters
-Multiple schedulers can coexist in a cluster. The default scheduler handles all pods with no schedulerName or those explicitly specifying 'default-scheduler'. Custom schedulers register themselves and process pods bearing their name.
+No events at all. Normally an unschedulable pod gets a `FailedScheduling` event from `default-scheduler`; that event is written by a scheduler that tried and failed. Here the default scheduler skipped the pods because the name was not its own, and the custom scheduler skipped them for the same reason. Silence is the clue. `kubectl get pod -o yaml | grep schedulerName` against the profile name finds it in seconds.
 
-## Pro Tip
-Check what schedulers are running: kubectl get pods -n kube-system | grep scheduler. Custom schedulers often have a human-readable name in their config that must match the schedulerName field exactly.
+## Why Kubernetes behaves this way
 
-## Concepts
-schedulerName, custom scheduler, default-scheduler, pod spec, GPU scheduling
+Every scheduler watches for unscheduled pods but only acts on pods whose `schedulerName` equals one of its profile names (the default is `default-scheduler`). A name nobody serves is not an error to the API server, so the pod stays Pending forever. The field is immutable on a Pod, which is why the fix lives in the Deployment's template and the pods are recreated.
+
+## The fix
+
+Correct the name in the template. The ml-scheduler profile uses `MostAllocated` scoring and disables other scorers, so the four pods land together on one node, which is what proves the right scheduler ran. Pointing the pods back at `default-scheduler` would also start them, but it would spread them and defeat the team's packing.
+
+## In production
+
+Run schedulers with leader election and RBAC like the default one, and put the scheduler name in a shared Helm value so a typo breaks one place. A mutating policy can also default `schedulerName` per namespace.
+
+## Commands worth remembering
+
+- `kubectl get pod <pod> -o jsonpath='{.spec.schedulerName}'`
+- `kubectl get events --field-selector reason=Scheduled -o wide`
+- `kubectl logs deploy/ml-scheduler`

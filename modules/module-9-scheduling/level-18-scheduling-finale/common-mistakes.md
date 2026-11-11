@@ -1,7 +1,11 @@
-# Common Mistakes — Scheduler Overload
+## Stopping at the first fix
 
-## Mistake 1: Fixing all three at once blindly
+Labelling the second worker makes the frontend spread out and the first symptom vanishes, but the cart and the agent are still short of a pod. Each Deployment has its own cause. Check every pod with `get pods -o wide` before stopping.
 
-**Wrong approach:** Making random changes hoping something helps — introduces new issues
+## Tolerating the control plane or dropping rules
 
-**Correct approach:** Debug one pod at a time; understand the root cause before changing anything
+Allowing pods on the control-plane node, or deleting the anti-affinity and spread rules, would start every pod and would also remove the guarantees the team relies on. The checks require worker nodes, one cart per node and an even frontend split.
+
+## Deleting `statsd-debug` without looking
+
+It is somebody's capture, with an owner and a note in its annotations. Delete it, but read them first: in a real incident you would tell the owner. Changing the agents to a different hostPort also breaks whatever sends metrics to 8125.

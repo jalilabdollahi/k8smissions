@@ -1,22 +1,39 @@
-apiVersion: v1
-kind: Pod
+apiVersion: node.k8s.io/v1
+kind: RuntimeClass
 metadata:
-  name: mem-pod
+  name: sandboxed
+handler: runc
+overhead:
+  podFixed:
+    memory: 700Mi
+    cpu: 10m
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledger-batch-sizing
+  namespace: k8smissions
+data:
+  measured-working-set-mi: "300"
+  note: "p99 RSS of one ledger-batch process over the last 30 nights (profiling run, ticket PLAT-2210)"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-batch
   namespace: k8smissions
 spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - sleep 3600
-    resources:
-      requests:
-        cpu: 100m
-        # but exceeds the allocatable memory (capacity minus kubelet/system reserves).
-        # The scheduler sees Insufficient memory even though the node looks available.
-        memory: 5Gi
-      limits:
-        cpu: 200m
-        memory: 6Gi
+  replicas: 1
+  selector:
+    matchLabels: {app: ledger-batch}
+  template:
+    metadata:
+      labels: {app: ledger-batch}
+    spec:
+      runtimeClassName: sandboxed
+      containers:
+      - name: reconcile
+        image: busybox:1.37
+        command: ["sh", "-c", "echo ledger reconciliation worker ready; while true; do sleep 30; done"]
+        resources:
+          requests: {cpu: 50m, memory: 900Mi}

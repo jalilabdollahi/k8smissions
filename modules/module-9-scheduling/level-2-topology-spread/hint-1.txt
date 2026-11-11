@@ -1,1 +1,1 @@
-Check where the pods are currently running: `kubectl get pods -n k8smissions -l app=ha-app -o wide`
+See where the pods actually run: `kubectl -n k8smissions get pods -o wide`. Then compare the pods' labels (`--show-labels`) with what the Deployment's spread constraint says it counts.

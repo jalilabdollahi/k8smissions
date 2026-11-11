@@ -1,1 +1,1 @@
-Check the pod's scheduling events: `kubectl describe pod large-pod -n k8smissions | grep -A5 Events`
+Compare what the Pending pod asks for with what each node has left: `kubectl -n k8smissions describe pod <pending>` and `kubectl describe node <worker>` (the Allocated resources section, not the usage graphs).

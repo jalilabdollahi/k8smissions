@@ -1,17 +1,4 @@
-## What went wrong
-
-Every pod is processed by exactly one scheduler. The default is `default-scheduler`. Custom schedulers (for GPU topology, ML workloads, etc.) are deployed alongside it and process only pods that explicitly request them via `schedulerName`.
-
-## Fix
-
-```yaml
-spec:
-  schedulerName: ml-scheduler
-  containers:
-  - name: trainer
-    ...
-```
-
-## Why this matters
-
-Kubernetes supports running multiple schedulers simultaneously. Each scheduler watches the API server for pods in its queue (pods with a matching `schedulerName` that have no `nodeName` assigned yet). Custom schedulers implement specialized placement logic: GPU-topology-aware schedulers place ML pods so GPUs can communicate via NVLink; gang schedulers ensure all pods of a distributed training job start simultaneously; deadline schedulers prioritize time-sensitive batch jobs. The pod must explicitly opt in via `schedulerName` — there is no automatic routing based on pod content.
+1. The trainer pods have `schedulerName: ml-sheduler`; the scheduler's profile is called `ml-scheduler`. No scheduler matches, so nobody emits an event.
+2. `schedulerName` is immutable on a pod, so fix the Deployment template and let it roll:
+   `kubectl -n k8smissions patch deploy trainer --type=merge -p '{"spec":{"template":{"spec":{"schedulerName":"ml-scheduler"}}}}'`
+3. The new pods are placed by `ml-scheduler` with the `MostAllocated` strategy, which packs all four onto one worker. `kubectl get events` shows `Scheduled` from `ml-scheduler`.

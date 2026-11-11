@@ -1,17 +1,15 @@
 {
-  "name": "Scheduler Overload",
-  "description": "Three teams are reporting scheduling problems simultaneously, each for a different reason. Team A's pod has a nodeSelector pointing to a nonexistent label. Team B's Deployment needs more unique nodes than exist. Team C's pod references a PriorityClass that was never created. All three are stuck Pending and must be diagnosed and fixed independently.",
-  "objective": "Fix all three scheduling issues: bad node selector, anti-affinity impossible constraint, and misconfigured priority — to unblock all teams",
-  "xp": 400,
-  "difficulty": "advanced",
-  "expected_time": "20m",
-  "concepts": [
-    "nodeSelector",
-    "podAntiAffinity",
-    "PriorityClass",
-    "multi-issue debugging",
-    "scheduling"
-  ],
+  "name": "Black Friday Scale-Out",
+  "description": "The Black Friday scale-out went out an hour ago and the storefront is wobbling. `shop-frontend` (4 replicas), `shop-cart` (2) and the `shop-agent` metrics agent (2, one per node on hostPort 8125) are all meant to be up, but only some of the pods are Running: frontend has a single pod, cart is short a replica and one agent is Pending. The workers have plenty of CPU and memory, and each workload has its own, different-looking Events.",
+  "objective": "All three Deployments are fully Ready on the worker nodes: `shop-frontend` 4 pods spread over both workers (at most 1 pod of difference), `shop-cart` 2 pods on different nodes, `shop-agent` 2 pods on different nodes. Requests through Services `shop-frontend` and `shop-cart` succeed and are served by every pod behind them.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "30m",
+  "concepts": ["topologySpreadConstraints", "minDomains", "podAntiAffinity selectors", "hostPort", "FailedScheduling analysis", "node labels"],
   "module": "module-9-scheduling",
-  "level": "level-18-scheduling-finale"
+  "level": "level-18-scheduling-finale",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 240,
+  "cleanup": []
 }

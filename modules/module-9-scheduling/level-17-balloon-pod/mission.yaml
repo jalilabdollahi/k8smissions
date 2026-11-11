@@ -1,17 +1,15 @@
 {
-  "name": "Reserved Space",
-  "description": "A node shows low CPU and memory *utilization* but new pods won't schedule — the scheduler reports `Insufficient cpu` and `Insufficient memory`. A balloon pod is running a no-op pause container but has declared enormous resource *requests*, silently consuming node scheduling capacity without using any real resources.",
-  "objective": "A 'balloon pod' is holding node capacity — delete it to free resources for real workloads",
-  "xp": 325,
+  "name": "Idle Nodes, Full Cluster",
+  "description": "Black Friday traffic is coming and `checkout` needs 4 replicas, but all 4 pods are Pending with `Insufficient cpu`. `kubectl top nodes` shows both workers at under 10% CPU. The platform team keeps a `capacity-reserve` Deployment of placeholder pods that hold headroom for exactly this situation, but the headroom does not get out of the way (the usual convention here is a PriorityClass named `overprovisioning`).",
+  "objective": "Deployment `checkout` has 4 replicas Running and Ready, while `capacity-reserve` still exists and still keeps at least half of its original placeholder capacity (it is made to yield, not removed).",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "balloon pods",
-    "capacity reservation",
-    "resource requests",
-    "scheduling trick",
-    "cluster autoscaler"
-  ],
+  "expected_time": "15m",
+  "concepts": ["overprovisioning", "PriorityClass", "preemption", "requests vs usage", "kubectl top"],
   "module": "module-9-scheduling",
-  "level": "level-17-balloon-pod"
+  "level": "level-17-balloon-pod",
+  "requires": ["metrics-server"],
+  "settle_seconds": 20,
+  "solve_timeout": 180,
+  "cleanup": ["priorityclass/overprovisioning"]
 }

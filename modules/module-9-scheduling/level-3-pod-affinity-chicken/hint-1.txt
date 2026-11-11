@@ -1,1 +1,1 @@
-Check the pod's scheduling events: `kubectl describe pod app-pod -n k8smissions | grep -A10 Events`
+`kubectl -n k8smissions describe pod` on one web pod and one cache pod, and read the scheduler event at the bottom. Then print each Deployment's `spec.template.spec.affinity`.

@@ -1,24 +1,51 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: app-pod
+  name: reports-web
   namespace: k8smissions
 spec:
-  affinity:
-    podAffinity:
-      # if no pod with label 'tier: cache' exists, the scheduler cannot place this pod anywhere.
-      requiredDuringSchedulingIgnoredDuringExecution:
-      - labelSelector:
-          matchLabels:
-            tier: cache
-        topologyKey: kubernetes.io/hostname
-  containers:
-  - name: app
-    image: nginx:1.25
-    resources:
-      requests:
-        cpu: 50m
-        memory: 32Mi
-      limits:
-        cpu: 100m
-        memory: 64Mi
+  replicas: 3
+  selector:
+    matchLabels: {app: reports-web}
+  template:
+    metadata:
+      labels: {app: reports-web, tier: web}
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels: {tier: cache}
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: web
+        image: registry.k8s.io/pause:3.10
+        resources:
+          requests: {cpu: 100m, memory: 64Mi}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reports-cache
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: reports-cache}
+  template:
+    metadata:
+      labels: {app: reports-cache, tier: cache}
+    spec:
+      nodeSelector:
+        pool: cache
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels: {tier: web}
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: cache
+        image: registry.k8s.io/pause:3.10
+        resources:
+          requests: {cpu: 500m, memory: 256Mi}
