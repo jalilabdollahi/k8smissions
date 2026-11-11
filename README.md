@@ -42,10 +42,26 @@ cd k8smissions
 ./play.sh             # start the game
 ```
 
-> First run after cloning? Generate the level registry:
+> After cloning, and after every `git pull`, regenerate the level registry so the
+> game sees the current levels:
 > ```bash
-> python3 scripts/generate_registry.py
+> venv/bin/python scripts/generate_registry.py
 > ```
+
+### Upgrading from an earlier version
+
+The levels were rewritten and now expect a three-node cluster (one control plane,
+two workers). Your progress in `progress.json` is kept; level ids did not change.
+
+```bash
+git pull
+kind delete cluster --name k8smissions   # the old cluster has a single node
+./install.sh                             # creates the new cluster from kind-config.yaml
+venv/bin/python scripts/generate_registry.py
+./play.sh
+```
+
+`install.sh` warns when it finds an existing cluster with the wrong number of nodes.
 
 ---
 
@@ -57,6 +73,8 @@ cd k8smissions
 | [kind](https://kind.sigs.k8s.io/) | `brew install kind` |
 | [kubectl](https://kubernetes.io/docs/tasks/tools/) | `brew install kubectl` |
 | Python **3.9+** | `brew install python@3.11` |
+| git | `brew install git` *(modules 7–8 push fixes to an in-cluster Git server)* |
+| [jq](https://jqlang.org/) | `brew install jq` *(`install.sh` installs it if missing)* |
 | [Helm](https://helm.sh/) | `brew install helm` *(module 7)* |
 
 ---
@@ -127,20 +145,6 @@ against exactly this shape.
 | 11 | ⚫ Performance & SRE | 18 | 4,400 | Expert | CPU throttling, memory sizing, DNS ndots, timeouts, rollout speed, SLOs measured live |
 | 12 | ⚫ Production War Games | 18 | 5,400 | Expert | Multi-cause incidents with real faults across all earlier modules |
 
----|-------|--------|----|-----------|------------|
-| 1 | 🟢 Foundations | 20 | 3,025 | Beginner | Pods, Services, ConfigMaps, Secrets, Jobs |
-| 2 | 🟢 Workloads | 15 | 2,950 | Beginner | Deployments, HPA, rollouts, StatefulSets |
-| 3 | 🟡 Networking | 15 | 3,275 | Intermediate | DNS, Ingress, NetworkPolicy, Services |
-| 4 | 🟡 Storage | 15 | 3,375 | Intermediate | PV, PVC, StorageClass, volume permissions |
-| 5 | 🟡 Security | 15 | 4,300 | Intermediate | RBAC, SecurityContext, Pod Security Standards |
-| 6 | 🔴 Observability | 15 | 3,800 | Advanced | Metrics, logs, events, tracing, debugging |
-| 7 | 🔴 GitOps | 15 | 5,100 | Advanced | Helm, Kustomize, ArgoCD, production patterns |
-| 8 | 🔴 CI/CD & Pipelines | 18 | 5,425 | Advanced | GitOps pipelines, Tekton, image builds |
-| 9 | 🔴 Advanced Scheduling | 18 | 5,775 | Advanced | Affinity, taints, topology, priority classes |
-| 10 | ⚫ Operators & CRDs | 18 | 6,225 | Expert | Custom controllers, CRDs, admission webhooks |
-| 11 | ⚫ Performance & SRE | 18 | 6,075 | Expert | Profiling, resource tuning, SLOs, chaos |
-| 12 | ⚫ Production War Games | 18 | 6,600 | Expert | Multi-failure incidents, live production scenarios |
-
 ---
 
 ## 🐚 Shell Completion
@@ -149,8 +153,9 @@ Tab-complete all commands in bash or zsh:
 
 **zsh (oh-my-zsh):**
 ```bash
+# run from the k8smissions folder
 ln -sf "$PWD/completion/_k8smissions" ~/.oh-my-zsh/completions/_k8smissions
-echo 'alias k8sm="$HOME/Desktop/Learning/K8s/k8smissions/play.sh"' >> ~/.zshrc
+echo "alias k8sm=\"$PWD/play.sh\"" >> ~/.zshrc
 source ~/.zshrc
 ```
 
@@ -203,8 +208,16 @@ venv/bin/python scripts/lint_levels.py module-3
 venv/bin/python scripts/check_duplicates.py module-3
 ```
 
-`test_levels.py` runs on its own kind cluster (never the game cluster);
-`--mirror` adds a local docker.io pull-through cache. See `docs/LEVEL_AUTHORING.md`.
+`test_levels.py` creates its own kind cluster from `kind-config.yaml` (never the
+game cluster) and keeps it between runs; `--down` deletes it.
+
+- `--mirror` adds a local docker.io pull-through cache, so repeated runs don't hit
+  Docker Hub rate limits.
+- `--pool N` shares N light clusters between parallel test runs, plus two heavier
+  ones for Argo CD and Tekton levels. Each test cluster needs about 1 GB of Docker
+  memory.
+
+See `docs/LEVEL_AUTHORING.md` for the full level contract.
 
 ---
 
