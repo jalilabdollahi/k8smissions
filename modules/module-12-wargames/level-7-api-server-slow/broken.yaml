@@ -1,25 +1,193 @@
-# to the Kubernetes API server. 50 concurrent watchers overwhelm the API server,
-# causing cluster-wide latency spikes for all kubectl commands and controllers.
-# Symptoms: kubectl commands hang, controllers slow to reconcile, pod scheduling delays.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-guard-handler
+  namespace: k8smissions
+data:
+  handler.py: |
+    def validate(request):
+        obj = request.get("object") or {}
+        labels = (obj.get("metadata") or {}).get("labels") or {}
+        if labels.get("unreviewed") == "true":
+            return False, "config-guard: ConfigMaps labelled unreviewed=true are not allowed"
+        return True, ""
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-src
+  namespace: k8smissions
+data:
+  sync.py: |
+    import json, os, ssl, threading, time, urllib.request
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount/"
+    NS = open(SA + "namespace").read()
+    CTX = ssl.create_default_context(cafile=SA + "ca.crt")
+    INTERVAL = int(os.environ.get("POLL_INTERVAL_MS", "10")) / 1000.0
+    stamps = []
+    def poll():
+        while True:
+            tok = open(SA + "token").read()
+            for res in ("pods", "configmaps"):
+                r = urllib.request.Request("https://kubernetes.default.svc/api/v1/namespaces/%s/%s?limit=50" % (NS, res),
+                                           headers={"Authorization": "Bearer " + tok})
+                try:
+                    urllib.request.urlopen(r, context=CTX, timeout=10).read()
+                except Exception as e:
+                    print("sync error:", e, flush=True)
+                stamps.append(time.time())
+            del stamps[:-5000]
+            time.sleep(INTERVAL)
+    threading.Thread(target=poll, daemon=True).start()
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def do_GET(self):
+            now = time.time()
+            rate = len([s for s in stamps if now - s < 10]) / 10.0
+            b = json.dumps({"requests_per_sec": round(rate, 1), "interval_ms": int(INTERVAL * 1000)}).encode()
+            self.send_response(200); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+    print("inventory-sync: polling every %d ms" % int(INTERVAL * 1000), flush=True)
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: inventory-sync
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: inventory-sync
+  namespace: k8smissions
+rules:
+- apiGroups: [""]
+  resources: ["pods", "configmaps"]
+  verbs: ["list", "get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: inventory-sync
+  namespace: k8smissions
+subjects:
+- {kind: ServiceAccount, name: inventory-sync}
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: inventory-sync}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-watcher
+  name: inventory-sync
   namespace: k8smissions
 spec:
-  replicas: 50
+  replicas: 1
   selector:
-    matchLabels:
-      app: api-watcher
+    matchLabels: {app: inventory-sync}
   template:
     metadata:
-      labels:
-        app: api-watcher
+      labels: {app: inventory-sync}
+    spec:
+      serviceAccountName: inventory-sync
+      containers:
+      - name: sync
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/sync.py"]
+        env:
+        - {name: POLL_INTERVAL_MS, value: "10"}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: inventory-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-sync
+  namespace: k8smissions
+spec:
+  selector: {app: inventory-sync}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-guard
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: config-guard}
+  template:
+    metadata:
+      labels: {app: config-guard}
     spec:
       containers:
-      - name: api-watcher
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - while true; do sleep 1; done
+      - name: guard
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/server.py"]
+        ports:
+        - {containerPort: 8443}
+        readinessProbe:
+          tcpSocket: {port: 8443}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: handler, mountPath: /handler}
+        - {name: tls, mountPath: /tls, readOnly: true}
+      volumes:
+      - name: app
+        configMap: {name: webhook-server}
+      - name: handler
+        configMap: {name: config-guard-handler}
+      - name: tls
+        secret: {secretName: config-guard-tls}
+---
+# Service and Endpoints for the webhook, as they were hand-written when the pod had a fixed address.
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-guard
+  namespace: k8smissions
+spec:
+  ports:
+  - {port: 443, targetPort: 8443}
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: config-guard
+  namespace: k8smissions
+subsets:
+- addresses:
+  - {ip: 192.0.2.10}
+  ports:
+  - {port: 8443}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: config-guard
+webhooks:
+- name: config-guard.k8smissions.example.com
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  timeoutSeconds: 10
+  namespaceSelector:
+    matchLabels: {k8smissions/lab: "true"}
+  rules:
+  - apiGroups: [""]
+    apiVersions: ["v1"]
+    operations: ["CREATE"]
+    resources: ["configmaps"]
+  clientConfig:
+    service: {name: config-guard, namespace: k8smissions, path: /validate, port: 443}
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUJpekNDQVRLZ0F3SUJBZ0lVSGxOMlFMYzFDTkFSNUNFZGRMVXVpS3UwcnYwd0NnWUlLb1pJemowRUF3SXcKSXpFaE1COEdBMVVFQXd3WWF6aHpiV2x6YzJsdmJuTXRabWw0ZEhWeVpTMWpZUzFpTUNBWERUSXdNREV3TVRBdwpNREF3TUZvWUR6SXhNakF3TVRBeE1EQXdNREF3V2pBak1TRXdId1lEVlFRRERCaHJPSE50YVhOemFXOXVjeTFtCmFYaDBkWEpsTFdOaExXSXdXVEFUQmdjcWhrak9QUUlCQmdncWhrak9QUU1CQndOQ0FBU1FtOVVBMnhQbHZ5Ti8KYUtpb1NzMjM0OUcyN21LblRGZGZLY2xlQ056RFVhdVBmL1YwU2oyTDlnMmhkajZtZWJyMkU3R3BZaE1hVnR3ZgpYNnVGZ09hNG8wSXdRREFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQTRHQTFVZER3RUIvd1FFQXdJQkJqQWRCZ05WCkhRNEVGZ1FVSVB5YzV6MS85M2M4VkNETDh5WXEyRkY5MzIwd0NnWUlLb1pJemowRUF3SURSd0F3UkFJZ0w4QjIKa2hINFdKbE54RUtPeVEydTBsZ3AweUlyaERkVnpOaGJYVitNK2lFQ0lHSkJqdWkzczhFanV4ZFViT0lOcTNHaQpzY25pRjJJY3c1c25iSWZiUDVpcQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==

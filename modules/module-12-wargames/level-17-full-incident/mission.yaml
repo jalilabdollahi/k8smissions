@@ -1,16 +1,15 @@
 {
-  "name": "P0 Incident",
-  "description": "A P0 incident: five separate failures hit the namespace simultaneously. A missing Secret prevents pods from starting, a missing ServiceAccount blocks the Deployment spec from being satisfied, the Deployment itself is scaled to 0 with an impossible nodeSelector, a NetworkPolicy blocks DNS resolution for all pods, and a PVC requests an impossibly large storage size. Fix all five in the correct dependency order.",
-  "objective": "Fix five simultaneous production failures: missing Secret, zero-replica Deployment, DNS-blocking NetworkPolicy, Pending PVC, and bad nodeSelector",
-  "xp": 500,
+  "name": "Black Friday P0",
+  "description": "P0: `http://shop.local/` through the ingress controller returns `503 Service Temporarily Unavailable`. The on-call started with the Ingress because it was changed in the last deploy, and found nothing wrong with it. `kubectl get pods` for `shop-web` is empty: no Pending pods, no crash loops, nothing. A schema migration was part of the same release.",
+  "objective": "A request to `http://shop.local/` (Host header `shop.local`) sent to the ingress controller returns the shop page with schema v7 from a `shop-web` pod, both `shop-web` replicas are Ready, Job `db-migrate` has completed, and PVC `shop-data` is Bound.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "30m",
-  "concepts": [
-    "incident response",
-    "triage",
-    "multi-failure",
-    "systematic debugging"
-  ],
+  "expected_time": "35m",
+  "concepts": ["ReplicaSet FailedCreate", "ServiceAccount", "StorageClass", "PVC protection", "Job immutability", "initContainers", "Ingress backend port"],
   "module": "module-12-wargames",
-  "level": "level-17-full-incident"
+  "level": "level-17-full-incident",
+  "requires": ["ingress-nginx"],
+  "settle_seconds": 25,
+  "solve_timeout": 200,
+  "cleanup": []
 }

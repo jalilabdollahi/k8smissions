@@ -1,1 +1,1 @@
-Try draining a node and read the exact error: `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data`. You'll see 'Cannot evict pod as it would violate the pod's disruption budget'.
+Run the drain and read what it refuses, one message at a time: `kubectl drain <node> --ignore-daemonsets`. Find the node with `kubectl get nodes -l maintenance=pending`, and look at what runs on it with `kubectl -n k8smissions get pods -o wide`.

@@ -1,16 +1,15 @@
 {
-  "name": "Registry Gone",
-  "description": "The internal container registry went offline. New pod creations are failing with `ImagePullBackOff` — all images reference `internal-registry.company.local` which is unreachable. Worse, `imagePullPolicy: Always` forces every pod creation (even on previously-cached nodes) to contact the registry. No new pods can start.",
-  "objective": "All new pods reference an unreachable registry — change the image to a public registry image so pods can start",
+  "name": "The Retired Mirror",
+  "description": "Release 3.2 of `storefront` was rolled out this morning and the new pods never start (`ErrImagePull`, `Init:ImagePullBackOff`). The company's internal image mirror, `registry.corp-mirror.invalid`, was retired last week and nothing was updated. The old 3.1 pods keep serving because they have not restarted, but anything that restarts is on borrowed time.",
+  "objective": "Deployment `storefront` completes its rollout with 2 Ready pods running every container (the app, the `metrics-sidecar` and the init container have all run), Service `storefront` answers with the 3.2 page on every request, and no image in the Deployment refers to the retired mirror host.",
   "xp": 300,
   "difficulty": "expert",
   "expected_time": "15m",
-  "concepts": [
-    "ImagePullBackOff",
-    "image registries",
-    "imagePullPolicy",
-    "Always vs IfNotPresent"
-  ],
+  "concepts": ["image references", "imagePullPolicy", "init containers", "ErrImagePull", "ErrImageNeverPull"],
   "module": "module-12-wargames",
-  "level": "level-8-registry-down"
+  "level": "level-8-registry-down",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

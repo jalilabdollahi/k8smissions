@@ -1,1 +1,1 @@
-Delete all `ci-run-*` ConfigMaps: `kubectl delete configmap -n k8smissions $(kubectl get cm -n k8smissions --no-headers | awk '/^ci-run-/{print $1}')`. Then prevent future leaks by adding `ttlSecondsAfterFinished: 300` to CI Job specs.
+Delete the old releases by name or label but keep the two newest (`kubectl -n k8smissions delete secret <name>...`), bound the history with `kubectl -n k8smissions set env cronjob/release-deployer MAX_REVISIONS=<n>`, and slow the poller with `kubectl -n k8smissions set env deploy/config-syncer SYNC_INTERVAL_MS=<ms>`.

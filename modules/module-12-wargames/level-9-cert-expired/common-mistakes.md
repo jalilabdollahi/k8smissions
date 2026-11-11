@@ -1,7 +1,5 @@
-# Common Mistakes — Mass Cert Expiry
+**Renewing only the server certificate.** The error message changes side but the incident goes on: mutual TLS means the client certificate has its own expiry, and `ledger` rejects the expired one. Check the dates of every certificate in the path.
 
-## ❌ Not having alerting on cert expiry
-Set up monitoring for certificate expiration well in advance (30/14/7 day alerts).
+**Updating the Secret and waiting.** `ledger` mounts the files by `subPath`, which Kubernetes never refreshes in running containers, so the Secret is correct and the pods still hold the old expired file. Restart the Deployment (or mount the directory without `subPath`).
 
-## ❌ Restarting the API server to fix certs
-The API server uses the certs on disk — renew them first, then restart.
+**Generating a self-signed certificate, or turning verification off.** A self-signed server certificate does not chain to `internal-ca`, so `gateway` rejects it, and disabling verification would leave the connection unauthenticated. Sign new certificates with the CA key in `internal-ca`, and give the server certificate the names the old one had.

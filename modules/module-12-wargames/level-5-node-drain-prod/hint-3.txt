@@ -1,1 +1,1 @@
-The PDB has `minAvailable: 3` but the Deployment has `replicas: 2`. Change `minAvailable` to `1` so that 1 pod can be evicted (draining) while 1 pod remains available: `allowed = 2 - 1 = 1` disruption.
+Fix the budget so one pod may be down (`kubectl -n k8smissions patch pdb checkout-pdb --type=merge -p '{"spec":{"minAvailable":<n>}}'`), remove the leftover taint from the other worker (`kubectl taint node <node> <key>-`), then `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --force`. Do not delete the PDB.

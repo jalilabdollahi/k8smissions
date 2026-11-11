@@ -1,16 +1,15 @@
 {
-  "name": "Bad Config Rollout",
-  "description": "A CI/CD pipeline pushed a bad ConfigMap — someone merged a config change with empty values for `APP_MODE` and `DB_HOST`. All 3 replicas crashed simultaneously on the next pod restart, creating a namespace-wide CrashLoopBackOff storm. The application's startup check fails immediately when either variable is empty.",
-  "objective": "A bad ConfigMap was deployed that causes all pods to crash — fix the ConfigMap so pods can read their configuration and start",
+  "name": "Config Storm",
+  "description": "The release pipeline rolled a new `shop-config` ConfigMap an hour ago. The three `shop-web` pods are crash-looping on start. `shop-worker` is running but its `/config` page looks wrong, and the nightly `shop-report` CronJob reads the same ConfigMap. The pipeline keeps its earlier versions as `shop-config-v38` and `shop-config-v41`; v41 was the last release that worked.",
+  "objective": "Every `shop-web` pod (3 replicas) and every `shop-worker` pod serves the same values on `/config` that release v41 had, and a Job started from CronJob `shop-report` completes.",
   "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "ConfigMap rollout",
-    "pod restarts",
-    "environment variables",
-    "config management"
-  ],
+  "expected_time": "20m",
+  "concepts": ["immutable ConfigMap", "envFrom", "subPath volumes", "rollout restart", "CronJob"],
   "module": "module-12-wargames",
-  "level": "level-3-config-storm"
+  "level": "level-3-config-storm",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 200,
+  "cleanup": []
 }

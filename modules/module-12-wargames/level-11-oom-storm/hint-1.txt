@@ -1,1 +1,1 @@
-Check the OOMKill status: `kubectl get pods -n k8smissions`. Look for pods with `OOMKilled` in their status, or check restart counts: `kubectl get pods -n k8smissions -o wide`
+Ask Kubernetes why the containers died: `kubectl -n k8smissions describe pod -l app=svc-alpha` (look at `Last State` and `Reason`), then compare the three services. What do they share? `kubectl -n k8smissions get deploy -o yaml | grep -B2 -A6 envFrom`. The logs of a killed container are still there with `kubectl logs --previous`.

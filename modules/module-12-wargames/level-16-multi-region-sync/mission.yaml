@@ -1,16 +1,15 @@
 {
-  "name": "Region Lag",
-  "description": "A multi-region cluster's primary has gone down. The leader election ConfigMap shows a `renewTime` that is over 2 years stale — the primary never renewed its lease before dying. The secondary cluster should take over as leader, but `failover-enabled: false` prevents automatic promotion. The system is leaderless and stuck.",
-  "objective": "The leader-election ConfigMap shows the passive cluster is stale and failover is disabled — update it to enable active failover",
-  "xp": 400,
+  "name": "Two Regions, One Lease",
+  "description": "The `eu` store takes writes, but the `us` store has not received anything for two hours and the gap grows. The cross-region `replicator` in `eu` runs two replicas, both Ready, with no restarts. The two regions are the namespaces `eu` and `us`; after last week's hardening the `us` namespace only accepts traffic from regional peers, and the replication token was re-issued by hand.",
+  "objective": "A key written to the `eu` store (`/put?k=<key>&v=<value>`) shows up in the `us` store (`/get?k=<key>`) within 20 seconds, Lease `eu-leader` is held by one of the live `replicator` pods and kept fresh, a write to `us` without the replication token is refused, and pods outside `eu` (for example the `probe` pod in `k8smissions`) still cannot reach the `us` store.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "20m",
-  "concepts": [
-    "multi-cluster",
-    "leader election",
-    "failover",
-    "ConfigMap annotations"
-  ],
+  "expected_time": "30m",
+  "concepts": ["Lease leader election", "holderIdentity", "NetworkPolicy namespaceSelector", "namespace labels", "Secret trailing newline"],
   "module": "module-12-wargames",
-  "level": "level-16-multi-region-sync"
+  "level": "level-16-multi-region-sync",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

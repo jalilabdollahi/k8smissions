@@ -1,1 +1,1 @@
-Check API server responsiveness: `time kubectl get pods -A`. Then look for any unusually large Deployments: `kubectl get deployment -n k8smissions`
+Time a create and read the error: `time kubectl -n k8smissions create configmap probe-x --from-literal=a=b`. Something is called on every create: `kubectl get validatingwebhookconfigurations` and `kubectl describe validatingwebhookconfiguration config-guard`. Separately, `kubectl -n k8smissions logs deploy/inventory-sync` shows how the other tool behaves.

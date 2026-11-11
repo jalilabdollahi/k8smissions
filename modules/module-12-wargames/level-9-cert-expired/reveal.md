@@ -1,31 +1,5 @@
-## What went wrong
+1. **`ledger-tls` (server certificate) expired in April 2024.** `gateway` fails with `certificate verify failed: certificate has expired`. Issue a new certificate from `internal-ca` (`ca.crt` and `ca.key` in that Secret) with the same names in `subjectAltName` (`ledger.k8smissions.svc` ...), and update Secret `ledger-tls`.
+2. **`gateway-client-tls` (client certificate) expired too.** After the first fix the error moves to the other side: `ledger` logs `TLS handshake failed: ... certificate has expired` and `gateway` sees a handshake failure. Issue a new client certificate (`extendedKeyUsage=clientAuth`) and update `gateway-client-tls`.
+3. **`ledger` mounts the certificate with `subPath`.** Files mounted that way are never refreshed from the Secret, so running pods keep the old expired certificate: `kubectl rollout restart deploy/ledger` (or mount the directory without `subPath`). `gateway` mounts the Secret as a directory, but restarting it makes the new client certificate effective at once instead of after the kubelet's sync delay.
 
-Kubernetes cluster certificates (API server TLS, kubelet client cert, etcd peer certs) expire after 1 year by default when created with kubeadm. After expiry, all TLS handshakes fail — kubectl returns x509 errors, components can't communicate with the API server, and the cluster is effectively down.
-
-## Fix
-
-```yaml
-metadata:
-  annotations:
-    cert-status: valid
-    expiry: '2027-01-01'
-stringData:
-  status: valid
-```
-
-Real cluster cert renewal:
-```bash
-kubeadm certs check-expiration
-kubeadm certs renew all
-# Restart static pods (they use cert files directly):
-kubectl -n kube-system rollout restart deployment/coredns
-# kube-apiserver, scheduler, controller-manager restart automatically as static pods
-```
-
-## Why this matters
-
-Certificate expiry is a silent time bomb — everything works until midnight on expiry day, then nothing works. Prevention:
-1. **Monitoring**: alert when any cert has `<30 days` remaining (`kubeadm certs check-expiration` in a CronJob)
-2. **Automated renewal**: cert-manager can manage cluster certificates and auto-renew; Kubernetes 1.15+ auto-rotates kubelet client certs if `RotateKubeletClientCertificate` is enabled
-3. **Annual calendar reminder**: set a reminder 30 days before each cert's anniversary
-4. **kubeadm upgrade**: running `kubeadm upgrade apply` also renews certificates as a side effect
+A self-signed certificate fails the chain check: it must come from `internal-ca`. Verification must stay on in the gateway.

@@ -1,1 +1,1 @@
-Start at the dependency root: `kubectl get deployment -n k8smissions`. Look for any Deployment with 0/0 READY pods. That's your blast radius origin.
+Start at the bottom, not at the top. `gateway` is only NotReady because its readiness check calls `auth`. Walk the chain: `kubectl -n k8smissions get pods`, then `kubectl -n k8smissions logs deploy/auth --previous` and `kubectl -n k8smissions describe pod -l app=users-cache`.

@@ -1,16 +1,15 @@
 {
-  "name": "Quota Flood",
-  "description": "A CI/CD pipeline retry bug fired 20 times — each retry created a new `ci-test-pod-*` pod that completed successfully but was never deleted. The pods (all with `restartPolicy: Never`) are completed and doing nothing, but they each count against the namespace's ResourceQuota. New legitimate Deployments can't create pods because quota is exhausted.",
-  "objective": "Stale duplicate pods from a CI/CD bug have exhausted the namespace quota — delete all the duplicate ci-test-pod-* pods",
-  "xp": 350,
+  "name": "Quota Storm",
+  "description": "The `release-v42` pipeline run never started: the Job does not exist and the release driver logs `exceeded quota` on every attempt. In the `ci` namespace `kubectl describe quota` shows `count/jobs.batch` at 20 of 20, and the numbers go back to full within minutes whenever someone cleans up. The `ci-retrier` controller re-runs a flaky test suite on a schedule, and a `flaky-suite` run from this morning is still going. Releases `release-v40` and `release-v41` must stay for the audit trail.",
+  "objective": "In namespace `ci`, Job `release-v42` completes while `release-v40` and `release-v41` are kept, `flaky-suite` is no longer running, the quota object `ci-quota` is unchanged, and every new Job created by `ci-retrier` carries a `ttlSecondsAfterFinished` of at most 120 seconds so the namespace cleans itself up.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "ResourceQuota",
-    "namespace quotas",
-    "bulk pod management",
-    "CI/CD hygiene"
-  ],
+  "expected_time": "25m",
+  "concepts": ["ResourceQuota", "count/jobs.batch", "ttlSecondsAfterFinished", "requests.cpu quota", "controller env"],
   "module": "module-12-wargames",
-  "level": "level-14-quota-storm"
+  "level": "level-14-quota-storm",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 150,
+  "cleanup": []
 }

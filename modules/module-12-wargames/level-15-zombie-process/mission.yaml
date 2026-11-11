@@ -1,16 +1,15 @@
 {
-  "name": "Zombie Pod",
-  "description": "An HTTP service appears Running and healthy from Kubernetes' perspective, but requests are failing — the application process has become unresponsive. Because there are no readiness or liveness probes configured, Kubernetes has no way to detect the zombie state: the pod stays in Service endpoints (routing traffic to a dead process) and is never restarted.",
-  "objective": "The pod is Running but has no readiness probe — add a readiness probe so Kubernetes can detect the zombie and stop routing traffic to it",
-  "xp": 350,
+  "name": "Walking Dead",
+  "description": "`thumb-worker` (2 replicas, behind Service `thumb-worker`) is Running and shows `1/1 Ready` on both pods, with no restarts and no events. Yet about a minute after each deploy the thumbnail endpoint starts failing for roughly half the callers, and it stays that way until someone deletes the pod by hand. CPU and memory graphs are flat. The `thumb-client` Deployment sends a steady stream of requests.",
+  "objective": "Behind Service `thumb-worker`, `/thumb` answers 200 on every request during 12 seconds of traffic, neither replica accumulates more than three zombie processes (reported by `/stats`), and when one replica is wedged (the QA hook `/admin/wedge` on its pod IP) the Service answers every request again within 35 seconds, the wedged pod's container is restarted, and both pods end up Ready.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "zombie processes",
-    "readiness probes",
-    "container runtime",
-    "PID 1"
-  ],
+  "expected_time": "30m",
+  "concepts": ["zombie processes", "PID 1", "shareProcessNamespace", "readinessProbe", "livenessProbe"],
   "module": "module-12-wargames",
-  "level": "level-15-zombie-process"
+  "level": "level-15-zombie-process",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

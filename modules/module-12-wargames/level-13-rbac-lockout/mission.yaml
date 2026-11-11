@@ -1,16 +1,15 @@
 {
-  "name": "Locked Out",
-  "description": "An application is returning 403 Forbidden on all Kubernetes API calls — it can't list pods or read ConfigMaps. During a ServiceAccount rotation, the RoleBinding connecting the ServiceAccount to its Role was accidentally deleted. The ServiceAccount and Role both exist, but without the RoleBinding there's no grant of permissions.",
-  "objective": "The app-sa ServiceAccount lost its RoleBinding during rotation — recreate the binding to restore API access",
-  "xp": 400,
+  "name": "Lockout After Rotation",
+  "description": "Last night the platform team rotated the `ledger-sync` ServiceAccount: `ledger-sync-v1` was deleted and `ledger-sync-v2` created, with the same role. Since then the `ledger-sync` Deployment shows `0/2` pods ready, and the few times a pod existed its log was full of `403 Forbidden`. The service reads the pods of its own namespace and the pricing settings published by the platform team in the `platform-config` namespace.",
+  "objective": "Both `ledger-sync` pods are Ready and each reports through `/status` that it listed the pods of its namespace and read ConfigMap `ledger-settings` in `platform-config`, while its ServiceAccount stays least-privilege: it cannot list Secrets in either namespace, read cluster-scoped resources, delete pods, or act as an admin.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "RBAC",
-    "ServiceAccount",
-    "RoleBinding",
-    "403 Forbidden"
-  ],
+  "expected_time": "25m",
+  "concepts": ["ServiceAccount", "RoleBinding subjects", "automountServiceAccountToken", "cross-namespace RBAC", "kubectl auth can-i"],
   "module": "module-12-wargames",
-  "level": "level-13-rbac-lockout"
+  "level": "level-13-rbac-lockout",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,59 +1,178 @@
-# This blocks ALL ingress and egress for every pod, including DNS (UDP/TCP 53).
-# The frontend cannot reach the backend — and neither can reach CoreDNS for name resolution.
-# This is good security posture but catastrophic without corresponding allow rules.
+# kv-store: three members that find each other through a headless Service, gossip on :9000 and serve
+# clients on :8080. A member is Ready only while it sees a quorum (itself plus one peer).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kv-src
+  namespace: k8smissions
+data:
+  kv.py: |
+    import json, os, socket, threading, time, urllib.request
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import urlparse, parse_qs
+    ME = os.environ["POD_NAME"]
+    PEERS = [p for p in os.environ["PEERS"].split(",") if p != ME]
+    DOMAIN = os.environ["PEER_DOMAIN"]
+    QUORUM = 2
+    store, peers = {}, {p: "unknown" for p in PEERS}
+    def check():
+        while True:
+            for p in PEERS:
+                try:
+                    urllib.request.urlopen("http://%s.%s:9000/ping" % (p, DOMAIN), timeout=1.5).read()
+                    state = "ok"
+                except Exception as e:
+                    state = "unreachable: %s" % str(getattr(e, "reason", e))
+                if state != peers[p]:
+                    print("peer %s: %s" % (p, state), flush=True)
+                peers[p] = state
+            time.sleep(2)
+    def alive(): return [p for p, s in peers.items() if s == "ok"]
+    def has_quorum(): return 1 + len(alive()) >= QUORUM
+    class Quiet(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+    class Peer(Quiet):                      # port 9000: member to member
+        def do_GET(self):
+            self.reply(200, "pong " + ME)
+        def do_POST(self):
+            q = parse_qs(urlparse(self.path).query)
+            store[q["k"][0]] = q["v"][0]
+            self.reply(200, "stored")
+    class Client(Quiet):                    # port 8080: clients
+        def do_GET(self):
+            u = urlparse(self.path); q = parse_qs(u.query)
+            if u.path == "/ready":
+                return self.reply(200 if has_quorum() else 503, "quorum" if has_quorum() else "no quorum")
+            if u.path == "/status":
+                return self.reply(200, json.dumps({"member": ME, "quorum": has_quorum(), "peers": peers}))
+            if not has_quorum():
+                return self.reply(503, "no quorum")
+            if u.path == "/put":
+                k, v = q["k"][0], q["v"][0]
+                store[k] = v
+                acks = 1
+                for p in alive():
+                    try:
+                        req = urllib.request.Request("http://%s.%s:9000/replicate?k=%s&v=%s" % (p, DOMAIN, k, v), method="POST")
+                        urllib.request.urlopen(req, timeout=2).read(); acks += 1
+                    except Exception:
+                        pass
+                return self.reply(200 if acks >= QUORUM else 503, "acks=%d" % acks)
+            if u.path == "/get":
+                v = store.get(q["k"][0])
+                return self.reply(200 if v is not None else 404, v or "not found")
+            self.reply(404, "not found")
+    threading.Thread(target=check, daemon=True).start()
+    threading.Thread(target=lambda: ThreadingHTTPServer(("0.0.0.0", 9000), Peer).serve_forever(), daemon=True).start()
+    ThreadingHTTPServer(("0.0.0.0", 8080), Client).serve_forever()
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kv-peers
+  namespace: k8smissions
+spec:
+  clusterIP: None
+  selector: {app: kv}
+  ports:
+  - {name: client, port: 8080}
+  - {name: peer, port: 9000}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kv
+  namespace: k8smissions
+spec:
+  selector: {app: kv}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kv
+  namespace: k8smissions
+spec:
+  serviceName: kv-peers
+  replicas: 3
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels: {app: kv}
+  template:
+    metadata:
+      labels: {app: kv}
+    spec:
+      containers:
+      - name: kv
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/kv.py"]
+        env:
+        - name: POD_NAME
+          valueFrom: {fieldRef: {fieldPath: metadata.name}}
+        - {name: PEERS, value: "kv-0,kv-1,kv-2"}
+        - {name: PEER_DOMAIN, value: "kv-peers.k8smissions.svc.cluster.local"}
+        ports:
+        - {containerPort: 8080, name: client}
+        - {containerPort: 9000, name: peer}
+        readinessProbe:
+          httpGet: {path: /ready, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: kv-src}
+---
+# Security team, Friday: lock the store down to its peers and its clients.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: deny-all
+  name: kv-lockdown
   namespace: k8smissions
+  annotations: {owner: security-platform, ticket: SEC-2291}
 spec:
-  podSelector: {}
-  policyTypes:
-  - Ingress
-  - Egress
+  podSelector:
+    matchLabels: {app: kv}
+  policyTypes: [Ingress, Egress]
+  ingress:
+  - from:
+    - podSelector: {matchLabels: {app: kv}}
+    ports:
+    - {port: 8080, protocol: TCP}
+  - from:
+    - podSelector: {matchLabels: {role: kv-client}}
+    ports:
+    - {port: 8080, protocol: TCP}
+  egress:
+  - to:
+    - podSelector: {matchLabels: {app: kv}}
+    ports:
+    - {port: 8080, protocol: TCP}
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: frontend
+  name: kv-client
   namespace: k8smissions
+  labels: {role: kv-client}
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: frontend
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      containers:
-      - name: frontend
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+  containers:
+  - name: curl
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "3600"]
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
-  name: backend
+  name: intruder
   namespace: k8smissions
+  labels: {app: intruder}
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: backend
-  template:
-    metadata:
-      labels:
-        app: backend
-    spec:
-      containers:
-      - name: backend
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+  containers:
+  - name: curl
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "3600"]

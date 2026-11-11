@@ -1,14 +1,173 @@
-# NTP sync is not running (ntp_sync: false). JWT tokens include iat/exp timestamps.
-# A 10-minute clock skew makes tokens appear expired before they are, causing
-# all authentication requests to fail with "token expired" errors cluster-wide.
-# Kubernetes itself tolerates up to 5 minutes of skew — 10 minutes exceeds that limit.
+# A tiny identity stack: `auth` issues HMAC-signed tokens, `api` checks them.
+# Timestamps in the claims are ISO strings without a zone suffix, as the old library wrote them.
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: node-clock-status
+  name: idp-src
   namespace: k8smissions
 data:
-  node: kind-worker
-  ntp_sync: 'false'
-  skew_seconds: '600'
-  status: critical
+  auth.py: |
+    import base64, hashlib, hmac, json, os, time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import urlparse, parse_qs
+    KEY = os.environ["SIGNING_KEY"].encode()
+    TTL = int(os.environ.get("TOKEN_TTL_SECONDS", "300"))
+    FMT = "%Y-%m-%dT%H:%M:%S"
+    def b64(b): return base64.urlsafe_b64encode(b).decode().rstrip("=")
+    def stamp(t): return time.strftime(FMT, time.localtime(t))   # wall clock of this process, no zone
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            u = urlparse(self.path); q = parse_qs(u.query)
+            if u.path == "/healthz": return self.reply(200, "ok")
+            if u.path == "/login":
+                # ?age=N issues the token as if it had been issued N seconds ago (used by the QA suite)
+                iat = time.time() - int(q.get("age", ["0"])[0])
+                claims = {"sub": q.get("user", ["anonymous"])[0], "iat": stamp(iat), "exp": stamp(iat + TTL)}
+                body = b64(json.dumps(claims).encode())
+                sig = hmac.new(KEY, body.encode(), hashlib.sha256).hexdigest()
+                print("issued token sub=%s iat=%s exp=%s" % (claims["sub"], claims["iat"], claims["exp"]), flush=True)
+                return self.reply(200, body + "." + sig)
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+  api.py: |
+    import base64, calendar, hashlib, hmac, json, os, time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    KEY = os.environ["VERIFY_KEY"].encode()
+    LEEWAY = int(os.environ.get("LEEWAY_SECONDS", "0"))
+    FMT = "%Y-%m-%dT%H:%M:%S"
+    def unb64(s): return base64.urlsafe_b64decode(s + "=" * (-len(s) % 4))
+    def parse(ts): return calendar.timegm(time.strptime(ts, FMT))   # claims are read as UTC
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def check(self, tok):
+            body, _, sig = tok.partition(".")
+            claims = json.loads(unb64(body))
+            now = time.time()
+            if now > parse(claims["exp"]) + LEEWAY: return 401, "token expired", claims
+            if parse(claims["iat"]) > now + LEEWAY + 5: return 401, "token issued in the future", claims
+            good = hmac.new(KEY, body.encode(), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(good, sig): return 401, "bad signature", claims
+            return 200, "ok", claims
+        def do_GET(self):
+            if self.path == "/healthz": return self.reply(200, "ok")
+            if self.path == "/orders":
+                try:
+                    code, msg, claims = self.check(self.headers.get("Authorization", "")[7:])
+                except Exception as e:
+                    code, msg, claims = 401, "malformed token", {}
+                print("%s %s sub=%s" % (code, msg, claims.get("sub")), flush=True)
+                if code != 200: return self.reply(code, json.dumps({"error": msg}))
+                return self.reply(200, json.dumps({"user": claims["sub"], "orders": [101, 102]}))
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
+# Signing key rotated on the auth side to v2; the verifying side still has v1.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: auth-signing
+  namespace: k8smissions
+  annotations: {rotation/kid: "2026-10"}
+stringData:
+  key: "k2-7f3a9c41d85e60b2"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-verify
+  namespace: k8smissions
+  annotations: {rotation/kid: "2026-04"}
+stringData:
+  key: "k1-0b66e2d91a34c7f8"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: auth}
+  template:
+    metadata:
+      labels: {app: auth}
+    spec:
+      containers:
+      - name: auth
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/auth.py"]
+        env:
+        - {name: TZ, value: "PST8"}
+        - {name: TOKEN_TTL_SECONDS, value: "5"}
+        - name: SIGNING_KEY
+          valueFrom: {secretKeyRef: {name: auth-signing, key: key}}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: idp-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth
+  namespace: k8smissions
+spec:
+  selector: {app: auth}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: api}
+  template:
+    metadata:
+      labels: {app: api}
+    spec:
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/api.py"]
+        env:
+        - {name: LEEWAY_SECONDS, value: "0"}
+        - name: VERIFY_KEY
+          valueFrom: {secretKeyRef: {name: api-verify, key: key}}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: idp-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api
+  namespace: k8smissions
+spec:
+  selector: {app: api}
+  ports:
+  - {port: 80, targetPort: 8080}

@@ -1,49 +1,8 @@
-## What went wrong
+Four faults in four areas:
 
-Five independent failures compounded:
-1. **Missing Secret** `p0-secret` → `CreateContainerConfigError`
-2. **Missing ServiceAccount** `p0-sa` → pod spec unresolvable
-3. **Deployment**: `replicas: 0` + `nodeSelector: environment: prod-zone-nonexistent` → no pods scheduled
-4. **NetworkPolicy**: egress only allows TCP:80 → DNS (UDP/TCP 53) blocked → all name resolution fails
-5. **PVC**: `999Ti` storage → `Pending` forever (no storage class can provision this)
+1. `shop-web` runs as ServiceAccount `shop-runner`, which does not exist, so the ReplicaSet creates no pods (`FailedCreate`). `kubectl create serviceaccount shop-runner`.
+2. PVC `shop-data` names StorageClass `fast-ssd`, which does not exist; the field is immutable. Delete `db-migrate` (its pod references the claim), delete the PVC, and re-create it with `storageClassName: standard` (the cluster default is fine too). It binds when the migration pod is scheduled.
+3. `db-migrate` is invoked with `--schema=v9`, unknown to the script (`known: v6 v7`), and the web init container waits for `v7`. A Job's pod template cannot be edited: delete it and create it again with `--schema=v7` (v6 would run but leave the web pods waiting).
+4. The Ingress backend asks for port name `http`; the Service port is named `web`. Patch the Ingress to `web` (or to number 80).
 
-## Fix (in dependency order)
-
-```yaml
-# Fix 1: Recreate Secret
-apiVersion: v1
-kind: Secret
-metadata: {name: p0-secret, namespace: k8smissions}
-stringData: {password: productionpassword}
----
-# Fix 2: Recreate ServiceAccount
-apiVersion: v1
-kind: ServiceAccount
-metadata: {name: p0-sa, namespace: k8smissions}
----
-# Fix 3: Scale Deployment + remove nodeSelector
-spec:
-  replicas: 2
-  # remove nodeSelector entirely
----
-# Fix 4: Allow DNS in NetworkPolicy
-egress:
-- ports:
-  - {port: 53, protocol: UDP}
-  - {port: 53, protocol: TCP}
-  - {port: 80, protocol: TCP}
-  - {port: 443, protocol: TCP}
----
-# Fix 5: Realistic PVC size
-resources:
-  requests:
-    storage: 1Gi
-```
-
-## Why this matters
-
-Multi-failure incidents require methodical triage. Dependency order matters: fixing the Deployment before creating its Secret and ServiceAccount has no effect — the pods still won't start. A P0 incident checklist:
-1. **Identify all failures first** — don't fix sequentially without mapping the blast radius
-2. **Fix in dependency order** — infrastructure (Secrets, SAs) before workloads
-3. **Verify each fix** — `kubectl get pods -w` after each change
-4. **Document the sequence** — post-mortem the fix order for the runbook
+The migration cannot run until the PVC binds, so the storage fix comes before the Job.

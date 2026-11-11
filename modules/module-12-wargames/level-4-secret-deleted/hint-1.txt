@@ -1,1 +1,1 @@
-Check the pod error state: `kubectl describe pod -n k8smissions -l app=secret-app | grep -A5 'Warning\|Error'`. The error message will identify the missing Secret.
+`kubectl -n k8smissions get pods` and `kubectl -n k8smissions describe pod <a stuck pod>` name what is missing. Then look at who else references it: `kubectl -n k8smissions get deploy,cronjob -o yaml | grep -B2 -A4 secretKeyRef`.

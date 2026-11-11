@@ -1,16 +1,15 @@
 {
-  "name": "DB Down",
-  "description": "The database pod and its Service were deleted — possibly during a botched maintenance window. The application server Deployment is still running, but all 3 pods are stuck in NotReady because their readinessProbe checks for a live database connection that no longer exists. Traffic has stopped flowing entirely.",
-  "objective": "The primary database pod was deleted — restore it so the application pods can reconnect and stop crashing",
+  "name": "Failover Drill Gone Wrong",
+  "description": "During this morning's failover drill the on-call deleted the `ledger-db` pod to simulate a crash. Since then every write through `ledger-app` returns HTTP 500 and the app logs say the database refuses connections. Finance needs the entries booked before the drill (for example `entry-0001`) to be there when the database is back.",
+  "objective": "A write through Service `ledger-app` succeeds and can be read back, the entry `entry-0001` booked before the drill is still returned, the database data volume is the original one, and the database still accepts connections only from the `ledger-app` pods (a pod outside the app tier cannot reach it).",
   "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "pod recovery",
-    "database resilience",
-    "readiness probes",
-    "CrashLoopBackOff"
-  ],
+  "expected_time": "20m",
+  "concepts": ["volume node affinity", "cordon", "Service selector", "NetworkPolicy", "StatefulSet storage"],
   "module": "module-12-wargames",
-  "level": "level-1-database-failover"
+  "level": "level-1-database-failover",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,29 +1,110 @@
-# The app process can become a zombie (Z state) — container stays Running because
-# PID 1 is technically alive, but the app serves no requests.
-# Without probes, Kubernetes cannot detect the unhealthy state:
-#   - Pod stays Running (never marked NotReady)
-#   - Pod stays in Service endpoints (traffic routes to dead process)
-#   - Pod is never restarted (no liveness to trigger restart)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: thumb-src
+  namespace: k8smissions
+data:
+  thumb.py: |
+    import json, os, resource, threading, time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    # a per-user process cap, as the platform sets for untrusted image code
+    resource.setrlimit(resource.RLIMIT_NPROC, (int(os.environ.get("MAX_PROCS", "60")),) * 2)
+    wedged = threading.Event()
+    def zombies():
+        n = 0
+        for d in os.listdir("/proc"):
+            if d.isdigit():
+                try:
+                    s = open("/proc/%s/stat" % d).read()
+                    if s[s.rindex(")") + 2] == "Z":
+                        n += 1
+                except OSError:
+                    pass
+        return n
+    def render():
+        # the resize runs in a detached grandchild so a crash in image code cannot take the server down
+        pid = os.fork()
+        if pid == 0:
+            try:
+                if os.fork() == 0:
+                    time.sleep(0.2)
+                    os._exit(0)
+            finally:
+                os._exit(0)
+        os.waitpid(pid, 0)
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            if self.path == "/admin/wedge":
+                wedged.set(); return self.reply(200, "wedged")
+            if wedged.is_set():
+                time.sleep(3600)
+            if self.path == "/healthz": return self.reply(200, "ok")
+            if self.path == "/stats": return self.reply(200, json.dumps({"zombies": zombies(), "pid": os.getpid()}))
+            if self.path == "/thumb":
+                try:
+                    render()
+                except OSError as e:
+                    return self.reply(500, "cannot start resize: %s" % e)
+                return self.reply(200, "thumbnail ready")
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: zombie-app
+  name: thumb-worker
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: thumb-worker}
+  template:
+    metadata:
+      labels: {app: thumb-worker}
+    spec:
+      containers:
+      - name: worker
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/thumb.py"]
+        ports:
+        - {containerPort: 8080}
+        securityContext:
+          runAsUser: 31337
+          allowPrivilegeEscalation: false
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: thumb-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thumb-worker
+  namespace: k8smissions
+spec:
+  selector: {app: thumb-worker}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thumb-client
   namespace: k8smissions
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: zombie-app
+    matchLabels: {app: thumb-client}
   template:
     metadata:
-      labels:
-        app: zombie-app
+      labels: {app: thumb-client}
     spec:
       containers:
-      - name: zombie-app
-        image: hashicorp/http-echo:1.0.0
-        args:
-        - -text=ok
-        - -listen=:8080
-        ports:
-        - containerPort: 8080
+      - name: client
+        image: curlimages/curl:8.10.1
+        command: ["sh", "-c", "while true; do curl -s -m 3 -o /dev/null http://thumb-worker/thumb; sleep 0.5; done"]

@@ -74,3 +74,54 @@ network partitions cannot be touched on kind, so those slugs are reinterpreted
   deleting NetworkPolicies (l12, l16), deleting the webhook (l7), deleting the
   PDB (l5), deleting Secrets or PVCs (l1, l6), relaxing Pod Security to
   `privileged` (l18).
+- First-half build notes (levels 1 to 9), where the built level differs from its row:
+  - l2: the bottom tier is `users-cache` (not `users-db`); the three faults are the Secret
+    key (`jwt-secret` vs `JWT_SECRET`, read as a mounted file so it crash-loops), a
+    `users-cache` volume naming a ConfigMap that does not exist (ContainerCreating), and the
+    `users-cache` Service `targetPort`. The gateway's dependent readiness is the misleading
+    symptom, not a fault.
+  - l3: recreating an `immutable` ConfigMap under the same name does not work reliably (the
+    kubelet keeps the old cached object while pods that use it still run on the node, spiked
+    on kind 1.36), so the intended fix is a new versioned ConfigMap and repointing all three
+    consumers (`shop-web` env, `shop-worker` subPath files, the CronJob).
+  - l6: scaled to 24 releases of about 330 KiB (about 8 MB) so a shared test cluster is not
+    hurt; the validator proves the deploy tool prunes through a canary app series run by the
+    real CronJob, and requires the deployed release (v24) and the previous one (v23) to stay.
+  - l7: a selector mismatch makes the API server fail instantly ("no endpoints"), not slowly,
+    so the slow fault is a selectorless Service with hand-written Endpoints on an unroutable
+    address (10 s webhook timeout); a stale `caBundle` is added as a second webhook fault,
+    and the noisy `inventory-sync` client is the third.
+  - l8: the sidecar image for the `imagePullPolicy: Never` fault is `busybox:1.34.1`.
+  - l9: certificates are fixtures signed by module 10's `ca-a`; the CA certificate and key are
+    put in Secret `internal-ca` so players can issue new ones with `openssl x509 -req`.
+- Second-half build notes (levels 10 to 18), where the built level differs from its row:
+  - l10: a third fault was added: the signing key was rotated on `auth` (`auth-signing`) but not on `api`
+    (`api-verify`); `api` checks expiry before the signature, so it only shows after the clock faults are
+    fixed, and the Secret is read as an env var (restart needed). The TZ fault uses a POSIX zone (`PST8`)
+    because `python:3.12-alpine` has no tzdata. The "token from two hours ago stays rejected" check uses a
+    QA `?age=` parameter on `auth`'s `/login`.
+  - l11: readiness only passes once the cache is fully warm, so a pod that is Ready has already allocated
+    its memory; the validator then requires no restarts for 20 s and `/work` reporting the cache and (gamma)
+    the 40 MB spool really on the volume.
+  - l12: peers gossip on :9000; the single `kv-lockdown` policy is both the DNS fault and the port fault
+    (ingress and egress); `kv-client` and `intruder` pods are part of the level, because the validator needs
+    a permitted client and an outsider. StatefulSet uses `Parallel` so the deadlock is the headless Service.
+  - l13: after the Deployment and ServiceAccount are fixed the pods must also be restarted (they were created
+    while `automountServiceAccountToken` was false); the validator runs `can-i` as the Deployment's real
+    ServiceAccount.
+  - l14: uses its own namespace `ci` (a quota in `k8smissions` would hit the probe pods and the engine), and
+    `release-v42` is created by a `release-driver` Deployment as soon as the quota allows, because a Job cannot
+    exist while `count/jobs.batch` is full. Retry Jobs must carry a TTL of at most 120 s.
+  - l15: the wedge is a QA hook (`/admin/wedge`); both probes can use `/healthz` because a real wedge also
+    stops thread creation. Zombies come from a double fork reparented to PID 1 and are reaped by
+    `shareProcessNamespace: true`; the per-user `RLIMIT_NPROC` (user 31337) makes the pod wedge.
+  - l16: the dead holder's lease has a ten-year duration (a fixed `renewTime` in the past keeps the manifest
+    static); the validator also checks the lease holder is a live pod and was renewed in the last 20 s; the
+    outsider check uses the `probe` pod in `k8smissions`.
+  - l17: PVC protection adds a wrinkle: the PVC cannot be deleted while the `db-migrate` pod references it, so
+    the Job goes first. The migration only works with `--schema=v7` (v6 is accepted by the script but the web
+    init container waits for v7).
+  - l18: uses its own namespace `checkout` (created with the Pod Security labels); `setup.sh` labels both
+    workers `pool=general` and taints them `dedicated=batch:NoSchedule`. The HPA fault is: memory metric,
+    `maxReplicas` equal to `minReplicas`, and (once the metric is switched to CPU) a sidecar without a CPU
+    request. The validator runs a 4-client load from the `probe` pod and checks the HPA scales and p95 < 1 s.

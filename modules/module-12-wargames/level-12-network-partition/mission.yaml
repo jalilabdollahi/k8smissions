@@ -1,16 +1,15 @@
 {
-  "name": "Split Cluster",
-  "description": "A security team applied a 'default deny all' NetworkPolicy to the namespace — which is excellent security posture. But they forgot to add the corresponding allow rules. Now ALL traffic is blocked: frontend cannot reach backend, and both cannot even resolve DNS names (port 53 UDP/TCP is also blocked by the egress deny). The namespace is completely network-isolated.",
-  "objective": "A NetworkPolicy is blocking all inter-service traffic — add a targeted allow rule to restore required connectivity",
-  "xp": 400,
+  "name": "Split Brain by Policy",
+  "description": "`kv-store`, a three-member quorum key-value service, has answered `503 no quorum` for an hour. It was healthy until the security team shipped a network-policy change on Friday. All three pods are Running but none is Ready, so Service `kv` has no endpoints and the orders team cannot write. Restarting the StatefulSet changed nothing.",
+  "objective": "All three `kv-store` members are Ready and each reports quorum, a key written through Service `kv` (from the `kv-client` pod) can be read back from every member, and the isolation the security team wanted still holds: the `intruder` pod cannot reach any member, and `kv-client` can reach only the client port.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "20m",
-  "concepts": [
-    "NetworkPolicy",
-    "ingress rules",
-    "podSelector",
-    "network segmentation"
-  ],
+  "expected_time": "30m",
+  "concepts": ["NetworkPolicy egress", "DNS egress", "headless Service", "publishNotReadyAddresses", "StatefulSet peers"],
   "module": "module-12-wargames",
-  "level": "level-12-network-partition"
+  "level": "level-12-network-partition",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 150,
+  "cleanup": []
 }

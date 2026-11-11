@@ -1,1 +1,1 @@
-Check the image pull errors: `kubectl describe pod -n k8smissions -l app=registry-app | grep -A10 'Events\|Warning'`. You should see 'Failed to pull image' with connection refused or DNS resolution errors.
+`kubectl -n k8smissions get pods` and `kubectl -n k8smissions describe pod <new pod>`: read the Events for every container, including the init container, and list all images in the Deployment: `kubectl -n k8smissions get deploy storefront -o jsonpath='{.spec.template.spec..image}'`.

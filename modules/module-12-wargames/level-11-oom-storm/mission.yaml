@@ -1,16 +1,15 @@
 {
-  "name": "Memory Wave",
-  "description": "A shared library update caused all three services (`svc-alpha`, `svc-beta`, `svc-gamma`) to experience a memory spike simultaneously. Because all three have `memory limits == requests` (32Mi each), the kernel OOM-killed all three at the same moment. The namespace is in a simultaneous restart storm.",
-  "objective": "Multiple deployments have unsafe memory limits that are too low — increase all memory limits so the OOM storm stops",
-  "xp": 400,
+  "name": "OOM Storm",
+  "description": "Three services (`svc-alpha`, `svc-beta`, `svc-gamma`, 64Mi memory limit each) started to be OOMKilled in waves after Tuesday's shared-library update. Each pod restarts, runs for half a minute, and is killed again; the restart counters climb and the on-call has paused the rollout twice. The team that owns the library says the new version is 'faster, it just uses a bit more cache'.",
+  "objective": "`svc-alpha`, `svc-beta` and `svc-gamma` are Ready and run for 20 seconds without a single restart, each answers `/work` with a warm cache of at least 16 MB, `svc-gamma` has written its 40 MB export spool, and every service still has a memory limit set (at most 512Mi).",
+  "xp": 300,
   "difficulty": "expert",
   "expected_time": "20m",
-  "concepts": [
-    "OOMKilled",
-    "memory limits",
-    "resource tuning",
-    "namespace pressure"
-  ],
+  "concepts": ["OOMKilled", "envFrom shared ConfigMap", "emptyDir medium Memory", "container memory limits", "kubectl top"],
   "module": "module-12-wargames",
-  "level": "level-11-oom-storm"
+  "level": "level-11-oom-storm",
+  "requires": [],
+  "settle_seconds": 50,
+  "solve_timeout": 180,
+  "cleanup": []
 }

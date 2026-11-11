@@ -1,25 +1,7 @@
-## What went wrong
+Three faults, each hidden behind the previous one:
 
-Two problems compounded: (1) the private registry became unreachable, and (2) `imagePullPolicy: Always` bypasses the node's local image cache on every pod creation. Even nodes that already had the image cached couldn't start pods — `Always` unconditionally contacts the registry. Both new pods and rescheduled pods failed.
+1. **App image on the dead host.** `registry.corp-mirror.invalid/shop/http-echo:1.0` can never resolve; the same image is `hashicorp/http-echo:1.0` on Docker Hub. Do not swap the app for another image: the page body (`storefront 3.2 - spring catalogue`) identifies the right one.
+2. **Init container `schema-check` on the dead host** (`registry.corp-mirror.invalid/tools/busybox:1.36` -> `busybox:1.36`). Init containers run before the app, so this shows up first as `Init:ImagePullBackOff`.
+3. **`metrics-sidecar` has `imagePullPolicy: Never`** for `busybox:1.34.1`, which is not on the nodes, so it fails with `ErrImageNeverPull`. Set the policy to `IfNotPresent` (or remove it) so the node pulls the image.
 
-## Fix
-
-```yaml
-containers:
-- name: registry-app
-  image: nginx:1.27.4
-  imagePullPolicy: IfNotPresent
-```
-
-## Why this matters
-
-`imagePullPolicy` semantics:
-- `Always`: pull from registry on every pod creation (ignores cache) — provides freshness at the cost of registry availability dependency
-- `IfNotPresent`: use cached image if present; only pull if the image isn't cached on the node
-- `Never`: only use cached image; fail if not present
-
-Production registry resilience strategies:
-1. **Mirror registry**: configure a pull-through cache or mirror (`registry.k8s.io` → local mirror)
-2. **IfNotPresent**: never use `Always` in production unless you specifically need it
-3. **Pinned tags**: use image digests (`nginx@sha256:abc123`) instead of mutable tags — guarantees exactly what image you're running
-4. **Pre-pull DaemonSet**: ensure critical images are cached on all nodes before incidents
+`kubectl set image deploy/storefront storefront=hashicorp/http-echo:1.0 schema-check=busybox:1.36`, then patch the sidecar's pull policy.
