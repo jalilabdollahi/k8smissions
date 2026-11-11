@@ -1,6 +1,6 @@
 ## What was broken
 
-`search-api` is single threaded: a request in progress blocks every other one, including the kubelet's health checks. The load generator keeps three searches in flight per replica, each 600 ms of work, so a probe waits 1.5 seconds or more. Both probes had the default `timeoutSeconds: 1`, so they failed on every attempt.
+`search-api` is single threaded: a request in progress blocks every other one, including the kubelet's health checks. The load generator keeps four searches in flight per replica, each 600 ms of work, so a probe waits 2 seconds or more. Both probes had the default `timeoutSeconds: 1`, so they failed on every attempt.
 
 ## The evidence
 

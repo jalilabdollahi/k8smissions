@@ -177,6 +177,11 @@ def apply_broken_state(level_path: Path, log=print) -> None:
     ensure_addons(mission.get("requires", []), log=log)
     _run(["kubectl", "create", "namespace", NAMESPACE], check=False)
     _quiet(["kubectl", "label", "namespace", NAMESPACE, f"{LABEL}=true", "--overwrite"])
+    # Pods are rejected until the controller creates the namespace's default ServiceAccount.
+    for _ in range(30):
+        if _quiet(["kubectl", "-n", NAMESPACE, "get", "serviceaccount", "default"], timeout=20).returncode == 0:
+            break
+        time.sleep(1)
 
     if (level_path / "setup.sh").exists():
         _run(["bash", "setup.sh"], cwd=level_path, timeout=300)

@@ -97,7 +97,7 @@ spec:
         - sh
         - -c
         - |
-          for i in 1 2 3; do
+          for i in 1 2 3 4; do
             (while true; do wget -q -T 30 -O /dev/null "http://search-api/search?q=boots" || sleep 1; done) &
           done
           wait
