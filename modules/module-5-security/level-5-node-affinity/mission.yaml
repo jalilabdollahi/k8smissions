@@ -1,16 +1,15 @@
 {
-  "name": "Node Affinity Mismatch",
-  "description": "An ML workload pod is stuck in Pending and won't schedule anywhere. There are nodes available and no resource pressure — the scheduling constraint in the manifest itself is what prevents placement. The affinity rule references a node label that doesn't exist on any node in the cluster.",
-  "objective": "The nodeAffinity rule requires a label that no node has — fix the affinity to match labels that actually exist",
-  "xp": 300,
-  "difficulty": "advanced",
+  "name": "Restricted Data Stays Put",
+  "description": "Compliance requires the `ledger-api` pods to run only on the node labelled `data-class=restricted`. The Deployment was configured for it weeks ago, yet `kubectl get pods -o wide` shows replicas on both worker nodes and an audit script has flagged them.",
+  "objective": "All pods of Deployment `ledger-api` (4 replicas) run on the node that carries `data-class=restricted`, the Deployment is fully rolled out, and the label stays on that single node.",
+  "xp": 150,
+  "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "requiredDuringSchedulingIgnoredDuringExecution",
-    "preferredDuringScheduling",
-    "labelSelector",
-    "matchExpressions"
-  ],
+  "concepts": ["nodeAffinity", "required vs preferred", "IgnoredDuringExecution", "node labels"],
   "module": "module-5-security",
-  "level": "level-5-node-affinity"
+  "level": "level-5-node-affinity",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 120,
+  "cleanup": []
 }

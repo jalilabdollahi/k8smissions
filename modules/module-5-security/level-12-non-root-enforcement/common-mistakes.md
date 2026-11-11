@@ -1,13 +1,6 @@
-# Common Mistakes — Root Rejected
+## Mistakes on this level
 
-## Mistake 1: Using runAsUser: 0 explicitly
-
-**Wrong approach:** Setting runAsUser: 0 — this is explicitly root and will always be rejected by strict policies
-
-**Correct approach:** Choose any non-zero UID; 1000 is a common convention for application users
-
-## Mistake 2: Setting runAsNonRoot: true without runAsUser
-
-**Wrong approach:** If the image has USER 0 by default, runAsNonRoot: true alone will fail at runtime
-
-**Correct approach:** Set both runAsNonRoot: true AND runAsUser: <non-zero>
+- **Deleting or loosening the policy.** The rollout works, but the platform team's rule is gone for the whole namespace; the validator checks that a root pod is still rejected.
+- **Stopping at pod-level `runAsNonRoot: true`.** The web container starts, the sidecar does not: `CreateContainerConfigError`. The flag is a promise the kubelet verifies against the image's real UID.
+- **Using a user name such as `runAsUser: nobody`.** The field is an integer. Use a non-zero number such as 101.
+- **Setting `runAsNonRoot: false` or `runAsUser: 0` to see what happens.** Both are rejected or fail the UID check; the goal is a real non-zero UID in both containers.

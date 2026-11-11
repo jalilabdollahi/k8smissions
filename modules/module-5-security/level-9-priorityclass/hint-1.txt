@@ -1,1 +1,1 @@
-Check the critical pod's scheduling events: `kubectl describe pod critical-api -n k8smissions`
+Start with the events of a Pending checkout pod: `kubectl -n k8smissions describe pod -l app=checkout`. Then list the classes: `kubectl get priorityclass` and look at every column, not only VALUE.

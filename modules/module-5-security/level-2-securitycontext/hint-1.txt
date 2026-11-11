@@ -1,1 +1,1 @@
-Look at the pod's events to get the exact rejection message: `kubectl describe pod web-app -n k8smissions`
+Read the error of the container that crashed: `kubectl -n k8smissions logs deploy/status-page --previous` (or `describe pod` and look at the last state). It names the path nginx could not write.

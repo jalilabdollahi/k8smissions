@@ -1,1 +1,1 @@
-Inspect the operator's ClusterRole to see if it has any rules: `kubectl get clusterrole operator-role -o yaml`
+Compare the role the group is bound to with the roles that should feed it: `kubectl get clusterrole ticket-viewer -o yaml` (read `aggregationRule`) and `kubectl get clusterrole --show-labels | grep ticket`. Test as the group with `kubectl auth can-i list jobs -n k8smissions --as=x --as-group=support`.

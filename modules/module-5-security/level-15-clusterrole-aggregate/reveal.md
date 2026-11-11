@@ -1,26 +1,9 @@
-## What went wrong
+**Fix**
 
-Kubernetes aggregated ClusterRoles work by continuously scanning all ClusterRoles for matching labels and merging their rules into the parent. `operator-role` looks for label `rbac.example.io/aggregate-to-operator: 'true'`. The source role has `aggregate-to-viewer` — one word off — so the selector never matches and the parent's `rules:` stays empty.
+1. `kubectl get clusterrole ticket-viewer -o yaml` shows `aggregationRule` selecting `aggregate-to-ticket-viewer: "true"` and rules without jobs or events: the hand edits were overwritten by the aggregation controller.
+2. `kubectl get clusterrole --show-labels | grep ticket` shows `ticket-jobs` labelled `aggregate-to-ticket-viewer=ture` (typo in the value) and `ticket-events` labelled `rbac.shop.example/aggregate-to-ticket-viewer=true` (different key).
+3. `kubectl label clusterrole ticket-jobs aggregate-to-ticket-viewer=true --overwrite`
+4. `kubectl label clusterrole ticket-events aggregate-to-ticket-viewer=true`
+5. After a few seconds `kubectl auth can-i list jobs -n k8smissions --as=x --as-group=support` answers yes.
 
-## Fix
-
-Change the label on `deployments-reader` to match the selector:
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: deployments-reader
-  labels:
-    rbac.example.io/aggregate-to-operator: 'true'  # was: aggregate-to-viewer
-rules:
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "list", "watch"]
-```
-
-Kubernetes will automatically detect the new label and merge the rules into `operator-role` within seconds — no restart required.
-
-## Why this matters
-
-ClusterRole aggregation is how Kubernetes itself builds the built-in `admin`, `edit`, and `view` roles — CRD controllers add permissions by labeling a ClusterRole with `rbac.authorization.k8s.io/aggregate-to-edit: 'true'`. This pattern lets you extend roles without modifying them directly, which is important in multi-tenant clusters where you don't own the parent role. The entire mechanism is label-matching, so a single character difference silently breaks it — always verify with `kubectl get clusterrole operator-role -o yaml` after applying labels to confirm the rules were merged.
+Do not bind `support` to `cluster-admin` and do not add a wildcard to `ticket-viewer`.

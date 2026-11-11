@@ -1,76 +1,104 @@
-# BROKEN: NetworkPolicy blocks all traffic
-# Problem: Too restrictive - blocks legitimate communication
-# Result: Pods can't communicate with each other
-
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: k8smissions
-
----
-# Database pod
 apiVersion: v1
 kind: Pod
 metadata:
-  name: database
+  name: payments-db
   namespace: k8smissions
-  labels:
-    app: database
-    tier: data
+  labels: {app: payments-db}
 spec:
+  terminationGracePeriodSeconds: 0
   containers:
-  - name: postgres
-    image: postgres:13
-    env:
-    - name: POSTGRES_PASSWORD
-      value: example
+  - name: db
+    image: hashicorp/http-echo:1.0
+    args: ["-listen=:8080", "-text=payments-db: ledger ready"]
     ports:
-    - containerPort: 5432
-
+    - containerPort: 8080
 ---
-# Service for database (so "database" resolves inside the cluster)
 apiVersion: v1
 kind: Service
 metadata:
-  name: database
+  name: payments-db
   namespace: k8smissions
 spec:
-  selector:
-    app: database
+  selector: {app: payments-db}
   ports:
-  - protocol: TCP
-    port: 5432
-    targetPort: 5432
-  type: ClusterIP
-
+  - port: 8080
+    targetPort: 8080
 ---
-# Backend pod
 apiVersion: v1
 kind: Pod
 metadata:
-  name: backend
+  name: payments-api
   namespace: k8smissions
-  labels:
-    app: backend
-    tier: api
+  labels: {app: payments-api}
 spec:
+  terminationGracePeriodSeconds: 0
   containers:
-  - name: app
-    image: busybox
-    command: ['sh', '-c', 'while true; do nc -vz database 5432; sleep 5; done']
-
+  - name: api
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "86400"]
 ---
-# NetworkPolicy that blocks EVERYTHING
+apiVersion: v1
+kind: Pod
+metadata:
+  name: batch-exporter
+  namespace: k8smissions
+  labels: {app: batch-exporter}
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: exporter
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "86400"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: debug-shell
+  namespace: k8smissions
+  labels: {app: debug-shell}
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: shell
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "86400"]
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: deny-all
+  name: default-deny-ingress
   namespace: k8smissions
 spec:
-  podSelector: {}  # Applies to all pods
-  policyTypes:
-  - Ingress
-  - Egress
-  
-# Result: Backend can't connect to database (egress blocked)
-# Result: Database can't receive connections (ingress blocked)
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: payments-db-from-api
+  namespace: k8smissions
+spec:
+  podSelector:
+    matchLabels: {app: payments-db}
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels: {app: payments-api}
+    ports:
+    - port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ns-ingress
+  namespace: k8smissions
+  annotations:
+    note: "added during the 2023 migration, TODO remove"
+spec:
+  podSelector:
+    matchLabels: {app: payments-db}
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - podSelector: {}

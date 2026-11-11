@@ -1,37 +1,9 @@
-## What went wrong
+**Fix**
 
-The ServiceAccount `config-reader-sa` exists but has no RBAC resources backing it. When the pod calls the Kubernetes API to list ConfigMaps, the API server checks the ServiceAccount's permissions, finds none, and returns HTTP 403 Forbidden.
+1. `kubectl -n k8smissions logs deploy/feature-flags` shows the 403 for `system:serviceaccount:k8smissions:default`: the Deployment never names a ServiceAccount.
+2. `kubectl -n k8smissions patch deploy feature-flags --type=merge -p '{"spec":{"template":{"spec":{"serviceAccountName":"flags-reader"}}}}'`
+3. The new pod now fails with `no service account token found`: `flags-reader` has `automountServiceAccountToken: false`. Override it in the pod template:
+   `kubectl -n k8smissions patch deploy feature-flags --type=merge -p '{"spec":{"template":{"spec":{"automountServiceAccountToken":true}}}}'`
+4. `kubectl -n k8smissions rollout status deploy/feature-flags`
 
-## Fix
-
-Create a Role scoped to configmaps and bind it to the ServiceAccount:
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: configmap-reader
-  namespace: k8smissions
-rules:
-- apiGroups: [""]
-  resources: ["configmaps"]
-  verbs: ["get", "list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: config-reader-binding
-  namespace: k8smissions
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: configmap-reader
-subjects:
-- kind: ServiceAccount
-  name: config-reader-sa
-  namespace: k8smissions
-```
-
-## Why this matters
-
-This is the same RBAC pattern as level 1, but applied to ConfigMaps instead of Pods. The lesson to reinforce: ServiceAccounts are identities, not permission grants. You can verify the fix before the pod even restarts with: `kubectl auth can-i list configmaps --as=system:serviceaccount:k8smissions:config-reader-sa -n k8smissions`. That command should return `yes` once the RoleBinding is applied.
+Do not bind the Role to `default`: every pod in the namespace would inherit the access.

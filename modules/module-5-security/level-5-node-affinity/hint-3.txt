@@ -1,1 +1,1 @@
-The `affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms` block specifies the wrong label key and value. The key in the manifest doesn't match any label key on any node.
+Replace the preferred rule with a required one in the pod template: `kubectl -n k8smissions edit deployment ledger-api` (`requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[].matchExpressions`: key `data-class`, operator `In`, values to fill in). Changing the template starts a rollout, which is what moves the old pods. Do not label the other worker.

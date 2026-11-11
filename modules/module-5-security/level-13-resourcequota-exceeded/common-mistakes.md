@@ -1,13 +1,6 @@
-# Common Mistakes — Quota Breached
+## Mistakes on this level
 
-## Mistake 1: Deleting the quota to fix the problem
-
-**Wrong approach:** Removing the ResourceQuota — this removes all guardrails from the namespace
-
-**Correct approach:** Fix the pod resources to be within the quota; quotas exist to protect the cluster
-
-## Mistake 2: Increasing quota instead of fixing the pod
-
-**Wrong approach:** Upping quota because it is easiest — the pod is probably over-requested
-
-**Correct approach:** Right-size the pod's requests based on actual profiled usage
+- **Raising `count/pods`.** It would unblock tonight, and the quota is the team's decision: the validator checks it still says 10.
+- **Only deleting the old Jobs.** The room appears and `catalog-web` goes green, but with `successfulJobsHistoryLimit: 20` the CronJob will refill the namespace. Bound the history or add a TTL too.
+- **Deleting the CronJob or suspending it.** Prices stop syncing; the objective keeps `price-sync` on schedule.
+- **Looking for Pending pods.** There are none: the quota refuses pods at creation, so the evidence is in the ReplicaSet events and in `describe quota`.

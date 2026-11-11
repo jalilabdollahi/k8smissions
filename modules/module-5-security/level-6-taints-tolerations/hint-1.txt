@@ -1,1 +1,1 @@
-Read the pod's scheduling events: `kubectl describe pod regular-app -n k8smissions`
+Ask the scheduler why: `kubectl -n k8smissions describe pod -l app=etl-runner` (Events), then look at the node itself with `kubectl describe node -l pool=etl` or `kubectl get node -l pool=etl -o jsonpath='{.items[0].spec.taints}'`.

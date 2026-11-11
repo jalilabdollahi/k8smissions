@@ -1,16 +1,15 @@
 {
-  "name": "PDB Blocks Node Drain",
-  "description": "A routine node maintenance procedure is failing. The operator runs `kubectl drain` but it errors immediately saying pod eviction would violate the disruption budget. The Deployment is running but its replica count and the PDB's minimum availability requirement are mathematically incompatible.",
-  "objective": "The PDB's minAvailable is higher than the Deployment replica count — lower minAvailable so drain can proceed",
-  "xp": 300,
+  "name": "Quorum Without Protection",
+  "description": "Last night a node drain evicted two of the three `consul` members at once and the cluster lost quorum. The team already created a PodDisruptionBudget `consul-pdb` for it, and its YAML looks right, but the drain went straight through. `kubectl get pdb` shows `ALLOWED DISRUPTIONS 0`, which nobody understood, since all three pods are healthy.",
+  "objective": "The PodDisruptionBudget protecting `consul` selects its 3 pods and allows exactly one voluntary disruption at a time: quorum (2 of 3) is protected and one member can still be drained. The StatefulSet stays at 3 Ready pods.",
+  "xp": 200,
   "difficulty": "advanced",
   "expected_time": "10m",
-  "concepts": [
-    "PodDisruptionBudget",
-    "voluntary disruption",
-    "cluster upgrades",
-    "kubectl drain --ignore-daemonsets"
-  ],
+  "concepts": ["PodDisruptionBudget", "label selectors", "disruptionsAllowed", "quorum", "Eviction API"],
   "module": "module-5-security",
-  "level": "level-7-poddisruptionbudget"
+  "level": "level-7-poddisruptionbudget",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 60,
+  "cleanup": []
 }

@@ -1,22 +1,62 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: port-binder
+  name: edge-conf
+  namespace: k8smissions
+data:
+  nginx.conf: |
+    user nginx;
+    worker_processes 1;
+    pid /var/run/nginx.pid;
+    events { worker_connections 256; }
+    http {
+      access_log off;
+      server {
+        listen 80;
+        location /healthz { return 200 "edge ok\n"; }
+        location / { return 200 "shop edge\n"; }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-nginx
+  namespace: k8smissions
+  labels: {tier: edge, owner: platform}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: edge-nginx}
+  template:
+    metadata:
+      labels: {app: edge-nginx, tier: edge}
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        args: ["nginx", "-g", "daemon off;", "-c", "/etc/edge/nginx.conf"]
+        ports:
+        - {name: http, containerPort: 80}
+        securityContext:
+          capabilities:
+            drop: ["ALL"]
+        readinessProbe:
+          httpGet: {path: /healthz, port: http}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: conf, mountPath: /etc/edge}
+      volumes:
+      - name: conf
+        configMap: {name: edge-conf}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-nginx
   namespace: k8smissions
 spec:
-  containers:
-  - name: binder
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - nc -l -p 80 || echo 'FAILED to bind port 80'
-    securityContext:
-      runAsNonRoot: true
-      runAsUser: 1000
-      capabilities:
-        drop:
-        - ALL
-                       # A non-root process needs NET_BIND_SERVICE to bind ports < 1024.
-                       # Without it, binding port 80 returns: "permission denied".
-                       # Fix: add NET_BIND_SERVICE back under capabilities.add.
+  selector: {app: edge-nginx}
+  ports:
+  - {name: web, port: 80, targetPort: http}

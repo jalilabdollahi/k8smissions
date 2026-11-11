@@ -1,18 +1,15 @@
 {
-  "name": "Tainted Nodes",
-  "description": "A pod is stuck in Pending and cannot be scheduled anywhere. The node has capacity, the namespace quota is fine, and there is no affinity misconfiguration — but every node in the cluster has been reserved for a specific workload type using a taint. The pod has nothing to let it past that gate.",
-  "objective": "Nodes are tainted but pods have no toleration — add the matching toleration to allow scheduling",
-  "xp": 350,
+  "name": "Dedicated Pool, Closed Door",
+  "description": "One worker is a dedicated pool for the nightly `etl-runner` job service: it is labelled `pool=etl` and fenced with taints so ordinary workloads stay away. Tonight both `etl-runner` pods are Pending and the batch window is closing. Meanwhile `web-frontend` runs fine on the other worker and must never land on the pool.",
+  "objective": "Both `etl-runner` pods run on the node labelled `pool=etl`, the node keeps all its taints, and `web-frontend` pods stay off that node.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Taints (NoSchedule",
-    "PreferNoSchedule",
-    "NoExecute)",
-    "tolerations",
-    "taint-based eviction",
-    "node pools"
-  ],
+  "expected_time": "12m",
+  "concepts": ["taints", "tolerations", "NoSchedule", "dedicated nodes", "FailedScheduling"],
   "module": "module-5-security",
-  "level": "level-6-taints-tolerations"
+  "level": "level-6-taints-tolerations",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 90,
+  "cleanup": []
 }

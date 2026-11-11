@@ -1,16 +1,15 @@
 {
-  "name": "Quota Breached",
-  "description": "New pods in this namespace fail to schedule with 'exceeded quota' errors even though the node has plenty of free CPU. The problem is not node capacity — one existing pod is consuming nearly all of the namespace's CPU quota allocation, leaving almost nothing for other workloads.",
-  "objective": "Namespace ResourceQuota limits are exceeded — reduce resource requests or remove the over-requesting pod",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "ResourceQuota",
-    "namespace quota",
-    "resource requests",
-    "limits"
-  ],
+  "name": "Ten Pods, Eight Of Them Done",
+  "description": "`catalog-web` should run 3 replicas, but only 2 pods exist and the ReplicaSet keeps failing to create the third with an \"exceeded quota\" error. The team lead wants to know why the namespace is \"full\" when `kubectl get pods` shows just a handful of Running pods. The quota was set on purpose and must not change.",
+  "objective": "`catalog-web` has 3 Ready pods while the `object-counts` quota keeps its hard limits. The nightly `price-sync` CronJob must keep running on schedule, but must no longer be able to fill the namespace with finished pods.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": ["ResourceQuota", "count/pods", "successfulJobsHistoryLimit", "ttlSecondsAfterFinished", "CronJob"],
   "module": "module-5-security",
-  "level": "level-13-resourcequota-exceeded"
+  "level": "level-13-resourcequota-exceeded",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

@@ -1,13 +1,6 @@
-# Common Mistakes — Capability Gap
+## Mistakes on this level
 
-## Mistake 1: Removing drop: ALL instead of adding the capability
-
-**Wrong approach:** Removing capabilities.drop to make the pod work — this gives the container full capabilities
-
-**Correct approach:** Keep drop: ALL and selectively add only what is needed
-
-## Mistake 2: Using privileged: true for port binding
-
-**Wrong approach:** Setting privileged: true gives all root capabilities — far more than needed for port binding
-
-**Correct approach:** Use capabilities.add: [NET_BIND_SERVICE] which is the minimal privilege needed
+- **Adding only `NET_BIND_SERVICE`.** Port 80 is the last error in the chain, but nginx fails earlier, on `chown` and `setgid`. Each fix reveals the next missing capability.
+- **Removing `drop: ["ALL"]`.** It works, because the runtime default set is back, and it throws away the baseline the security team wants. The validator requires `ALL` in `drop`.
+- **Using `privileged: true`, `SYS_ADMIN` or `add: ["ALL"]`.** Everything starts, and the container is now one step from root on the node. The validator reads the process's real `CapEff` and rejects dangerous bits.
+- **Restarting without reading the new error.** Every attempt prints a different line in `logs --previous`; read it, it names the operation and so the capability.

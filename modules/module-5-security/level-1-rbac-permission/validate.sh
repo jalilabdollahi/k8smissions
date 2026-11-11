@@ -1,98 +1,60 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
+SA="system:serviceaccount:$NS:log-shipper"
+can() { kubectl auth can-i "$@" --as="$SA" 2>/dev/null; }
 
-NAMESPACE="k8smissions"
-POD_NAME="pod-lister"
-SA_NAME="pod-reader"
-ROLE_NAME="pod-reader-role"
-ROLEBINDING_NAME="pod-reader-binding"
-
-echo "🔍 Stage 1: Checking if ServiceAccount exists..."
-if ! kubectl get serviceaccount "$SA_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ ServiceAccount '$SA_NAME' not found"
-    exit 1
-fi
-echo "✅ ServiceAccount exists"
-
-echo ""
-echo "🔍 Stage 2: Checking if Role exists..."
-if ! kubectl get role "$ROLE_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ Role '$ROLE_NAME' not found"
-    echo "💡 Hint: Create a Role with permissions to list pods"
-    exit 1
-fi
-echo "✅ Role exists"
-
-echo ""
-echo "🔍 Stage 3: Verifying Role has correct permissions..."
-ROLE_VERBS=$(kubectl get role "$ROLE_NAME" -n "$NAMESPACE" -o jsonpath='{.rules[0].verbs}' | grep -o 'list')
-if [ -z "$ROLE_VERBS" ]; then
-    echo "❌ Role missing 'list' permission for pods"
-    echo "💡 Hint: Role needs verbs: [get, list, watch]"
-    exit 1
-fi
-echo "✅ Role has list permission"
-
-echo ""
-echo "🔍 Stage 4: Checking if RoleBinding exists..."
-if ! kubectl get rolebinding "$ROLEBINDING_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ RoleBinding '$ROLEBINDING_NAME' not found"
-    echo "💡 Hint: Create RoleBinding to connect ServiceAccount to Role"
-    exit 1
-fi
-echo "✅ RoleBinding exists"
-
-echo ""
-echo "🔍 Stage 5: Verifying RoleBinding connects SA to Role..."
-BINDING_ROLE=$(kubectl get rolebinding "$ROLEBINDING_NAME" -n "$NAMESPACE" -o jsonpath='{.roleRef.name}')
-BINDING_SA=$(kubectl get rolebinding "$ROLEBINDING_NAME" -n "$NAMESPACE" -o jsonpath='{.subjects[0].name}')
-
-if [ "$BINDING_ROLE" != "$ROLE_NAME" ]; then
-    echo "❌ RoleBinding not referencing correct Role (found: $BINDING_ROLE)"
-    exit 1
+# 1. the shipper really runs as its own ServiceAccount
+sa=$(k get deploy log-shipper -o jsonpath='{.spec.template.spec.serviceAccountName}' 2>/dev/null)
+if [ "$sa" != "log-shipper" ]; then
+  echo "❌ Deployment log-shipper must run as ServiceAccount log-shipper (found: ${sa:-none})"
+  exit 1
 fi
 
-if [ "$BINDING_SA" != "$SA_NAME" ]; then
-    echo "❌ RoleBinding not referencing correct ServiceAccount (found: $BINDING_SA)"
+# 2. what must be allowed
+for want in "get pods" "list pods" "get pods/log"; do
+  if [ "$(can $want -n "$NS")" != "yes" ]; then
+    echo "❌ $SA cannot $want in $NS"
     exit 1
-fi
-echo "✅ RoleBinding correctly configured"
+  fi
+done
+echo "✅ log-shipper can read pods and their logs"
 
-echo ""
-echo "🔍 Stage 6: Checking if pod exists..."
-if ! kubectl get pod "$POD_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ Pod '$POD_NAME' not found"
+# 3. what must stay forbidden
+for no in "delete pods" "create pods" "get secrets" "list configmaps" "create pods/exec"; do
+  if [ "$(can $no -n "$NS")" = "yes" ]; then
+    echo "❌ log-shipper is too powerful: it can $no"
     exit 1
-fi
-echo "✅ Pod exists"
-
-echo ""
-echo "🔍 Stage 7: Checking if pod is Running..."
-POD_STATUS=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.status.phase}')
-if [ "$POD_STATUS" != "Running" ]; then
-    echo "❌ Pod is in '$POD_STATUS' state (expected Running)"
-    echo "💡 Check logs: kubectl logs $POD_NAME -n $NAMESPACE"
+  fi
+done
+for no in "get pods -n kube-system" "get pods/log -n kube-system" "get secrets -n kube-system"; do
+  if [ "$(can $no)" = "yes" ]; then
+    echo "❌ log-shipper has access outside this namespace: it can $no"
     exit 1
-fi
-echo "✅ Pod is Running"
+  fi
+done
+echo "✅ log-shipper still cannot touch secrets, configmaps, exec or other namespaces"
 
-echo ""
-echo "🔍 Stage 8: Verifying pod successfully lists pods..."
-sleep 2  # Give pod time to execute kubectl command
-if ! kubectl logs "$POD_NAME" -n "$NAMESPACE" 2>/dev/null | grep -q "Success! Can list pods"; then
-    echo "❌ Pod unable to list pods - RBAC permissions not working"
-    echo "💡 Check logs: kubectl logs $POD_NAME -n $NAMESPACE"
-    exit 1
+# 4. the workload is healthy and actually shipping
+if ! k wait --for=condition=Available deploy/log-shipper --timeout=40s >/dev/null 2>&1; then
+  echo "❌ log-shipper is not Available"
+  exit 1
 fi
-echo "✅ Pod successfully listed pods with RBAC permissions"
-
-echo ""
-echo "🔍 Stage 9: Testing RBAC permissions directly..."
-kubectl auth can-i list pods --as=system:serviceaccount:k8smissions:pod-reader -n k8smissions &>/dev/null
-if [ $? -ne 0 ]; then
-    echo "❌ ServiceAccount cannot list pods according to RBAC check"
-    exit 1
+pod=$(k get pods -l app=log-shipper -o jsonpath='{.items[0].metadata.name}')
+r1=$(k get pod "$pod" -o jsonpath='{.status.containerStatuses[0].restartCount}')
+a=$(k exec "$pod" -- cat /data/orders.log 2>/dev/null | tail -1)
+sleep 14
+b=$(k exec "$pod" -- cat /data/orders.log 2>/dev/null | tail -1)
+r2=$(k get pod "$pod" -o jsonpath='{.status.containerStatuses[0].restartCount}')
+if [ "$r1" != "$r2" ] || [ "$(k get pod "$pod" -o jsonpath='{.status.phase}')" != "Running" ]; then
+  echo "❌ log-shipper keeps restarting"
+  exit 1
 fi
-echo "✅ RBAC permissions verified with auth can-i"
-
-echo ""
-echo "🎉 SUCCESS! ServiceAccount has proper RBAC permissions to list pods!"
+case "$a" in order-*) ;; *) echo "❌ output file has no lines from orders yet"; exit 1;; esac
+if [ "$a" = "$b" ]; then
+  echo "❌ output file is not being updated"
+  exit 1
+fi
+echo "✅ log-shipper is Running and the file keeps getting new lines from orders ($b)"
+exit 0
+exit 1

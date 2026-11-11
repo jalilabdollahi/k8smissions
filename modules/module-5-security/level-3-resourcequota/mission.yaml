@@ -1,17 +1,15 @@
 {
-  "name": "Quota Exceeded",
-  "description": "A pod has been sitting in Pending for several minutes, but `kubectl get nodes` shows the cluster has available capacity. There is a ResourceQuota on this namespace and the pod is making a resource request that exceeds what the quota allows in total.",
-  "objective": "The namespace ResourceQuota is exhausted — reduce resource requests or remove a pod to free up quota",
-  "xp": 300,
-  "difficulty": "advanced",
+  "name": "The Quiet Quota",
+  "description": "The new Deployment `invoice-api` (3 replicas) was applied an hour ago and shows `0/3` ready. Strangely there are no pods at all: nothing Pending, nothing crashing, `kubectl get pods` is empty. The team owns a ResourceQuota `team-quota` in this namespace and the platform team will not raise it.",
+  "objective": "`invoice-api` has 3 Ready pods while ResourceQuota `team-quota` keeps its current hard limits (`limits.cpu: 2`, `limits.memory: 2Gi`).",
+  "xp": 150,
+  "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "ResourceQuota",
-    "LimitRange",
-    "requests.cpu",
-    "requests.memory",
-    "namespace-level governance"
-  ],
+  "concepts": ["ResourceQuota", "ReplicaSet events", "limits", "LimitRange"],
   "module": "module-5-security",
-  "level": "level-3-resourcequota"
+  "level": "level-3-resourcequota",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

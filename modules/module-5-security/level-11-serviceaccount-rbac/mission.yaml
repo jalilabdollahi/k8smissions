@@ -1,17 +1,15 @@
 {
-  "name": "Forbidden Access",
-  "description": "A pod that reads ConfigMaps at startup to load application configuration is printing FORBIDDEN and exiting. The ServiceAccount it uses was created and assigned, but it was deployed without any RBAC permissions — making every API call it attempts a 403 error.",
-  "objective": "The pod's ServiceAccount has no Role/RoleBinding — create the RBAC resources to grant configmap read access",
+  "name": "Flags Behind the Wrong Identity",
+  "description": "After last week's migration the `feature-flags` service crash-loops: its log says it is forbidden from reading ConfigMap `flags`, with the name of an identity nobody remembers choosing. A ServiceAccount `flags-reader` with a Role and RoleBinding was prepared during the migration but nobody is sure it was ever wired up.",
+  "objective": "`feature-flags` runs as ServiceAccount `flags-reader`, stays Running without restarts and logs the values it reads from ConfigMap `flags` through the API. `flags-reader` may read that ConfigMap and nothing sensitive, and the `default` ServiceAccount must stay unable to read ConfigMaps.",
   "xp": 200,
-  "difficulty": "intermediate",
+  "difficulty": "advanced",
   "expected_time": "12m",
-  "concepts": [
-    "ServiceAccount",
-    "Role",
-    "RoleBinding",
-    "RBAC",
-    "API access"
-  ],
+  "concepts": ["ServiceAccount", "serviceAccountName", "automountServiceAccountToken", "RoleBinding", "kubectl auth can-i"],
   "module": "module-5-security",
-  "level": "level-11-serviceaccount-rbac"
+  "level": "level-11-serviceaccount-rbac",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

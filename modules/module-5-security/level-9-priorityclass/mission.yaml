@@ -1,17 +1,15 @@
 {
-  "name": "Critical Pods Can't Schedule",
-  "description": "A critical API pod is stuck in Pending even though lower-priority development workloads are consuming the available CPU on the node. The scheduler cannot evict the dev pods to make room because there is no priority difference between them — no PriorityClass has been defined or assigned.",
-  "objective": "The critical pod has no PriorityClass — assign it a high-priority class so it can preempt lower-priority workloads",
-  "xp": 300,
+  "name": "Priority Without Power",
+  "description": "`checkout` (3 replicas) has been Pending since this morning's release. The two workers are full of `batch-reindex` pods, which is expected: they are the nightly search reindexer and should never win against a customer-facing service. Someone already created a PriorityClass `platform-critical` and put it on `checkout`, so the team does not understand why nothing makes room for it.",
+  "objective": "All 3 `checkout` pods are Running under a PriorityClass whose value is above `batch-low` and that is allowed to preempt. `batch-reindex` keeps its 2 replicas configured and the `batch-low` class stays as it is. If you create a new PriorityClass, name it `checkout-critical`.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "PriorityClass",
-    "preemption",
-    "pod priority values",
-    "PriorityClass.globalDefault",
-    "scheduling order"
-  ],
+  "expected_time": "12m",
+  "concepts": ["PriorityClass", "preemptionPolicy", "preemption", "immutable fields"],
   "module": "module-5-security",
-  "level": "level-9-priorityclass"
+  "level": "level-9-priorityclass",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": ["priorityclass/checkout-critical", "priorityclass/platform-critical"]
 }

@@ -1,15 +1,15 @@
 {
-  "name": "Restricted Policy Violation",
-  "description": "A pod is rejected before it even starts — there are no image pull errors and the YAML is syntactically valid, but the pod never appears in `kubectl get pods`. This namespace enforces strict Pod Security Standards, and the pod's security configuration violates several rules simultaneously.",
-  "objective": "The pod violates the namespace's restricted Pod Security Standard (runs as root, privileged) — fix the securityContext to comply",
-  "xp": 350,
+  "name": "Restricted Means Restricted",
+  "description": "Namespace `pay-restricted` enforces the strictest Pod Security Standard. The new `report-ui` Deployment (2 replicas) was applied there this morning and shows `0/2`, with no pods at all and no obvious error in `kubectl get deploy`. The security team will not relax the namespace.",
+  "objective": "Both `report-ui` pods in namespace `pay-restricted` are Ready and serve HTTP, while the namespace keeps `pod-security.kubernetes.io/enforce=restricted`.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Pod Security Standards (PSS): privileged/baseline/restricted",
-    "Pod Security Admission (PSA)",
-    "namespace labels"
-  ],
+  "expected_time": "15m",
+  "concepts": ["Pod Security Admission", "restricted profile", "securityContext", "init containers", "seccompProfile"],
   "module": "module-5-security",
-  "level": "level-8-pod-security"
+  "level": "level-8-pod-security",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

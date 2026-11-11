@@ -1,1 +1,1 @@
-Start by reading the pod's logs to see the exact error message. Run: `kubectl logs pod-lister -n k8smissions`
+Read the log of the crashing container and look at exactly which resource the 403 names. Then ask the API server what the ServiceAccount may do: `kubectl auth can-i <verb> <resource> --as=system:serviceaccount:k8smissions:log-shipper`.

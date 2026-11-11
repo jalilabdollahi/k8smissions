@@ -1,1 +1,1 @@
-The pod spec has no `tolerations` block at all. Without a toleration that matches the node's taint key, value, and effect, the scheduler treats every tainted node as off-limits.
+Add one toleration per taint to the `etl-runner` pod template (`operator: Equal`, with the key, value and `effect: NoSchedule` of each taint): `kubectl -n k8smissions edit deployment etl-runner`. Do not use `operator: Exists` without a key, and leave `web-frontend` alone.

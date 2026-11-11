@@ -1,1 +1,1 @@
-The pod references a ServiceAccount, but that ServiceAccount has no Role granting it any permissions and no RoleBinding connecting it to one. Both resources are entirely absent from the manifest.
+Add a rule to Role `log-reader` for the subresource only, with the single verb the log endpoint needs: `kubectl -n k8smissions edit role log-reader` (rule: apiGroups [""], resources ["pods/<subresource>"], verbs ["<verb>"]). A crash-looping pod waits longer between restarts, so `kubectl rollout restart` afterwards.

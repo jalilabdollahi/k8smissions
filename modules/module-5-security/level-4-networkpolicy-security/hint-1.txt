@@ -1,1 +1,1 @@
-Check the backend container's output to confirm it's failing to connect: `kubectl logs backend -n k8smissions`
+List every policy in the namespace and read each one, not only the strict one: `kubectl -n k8smissions get networkpolicy` and `kubectl -n k8smissions describe networkpolicy`. Look at which pods each policy selects and who it lets in.
