@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+from pathlib import Path
 
 METRICS_SERVER = "v0.9.1"
 INGRESS_NGINX = "controller-v1.15.1"
@@ -51,6 +52,7 @@ ADDONS: dict[str, dict] = {
         "install": [
             ["kubectl", "create", "namespace", "argocd"],
             ["kubectl", "apply", "--server-side", "-n", "argocd", "-f", f"https://raw.githubusercontent.com/argoproj/argo-cd/{ARGOCD}/manifests/core-install.yaml"],
+            ["kubectl", "apply", "-f", str(Path(__file__).resolve().parent / "argocd-default-project.yaml")],
             ["kubectl", "rollout", "status", "statefulset/argocd-application-controller", "-n", "argocd", "--timeout=300s"],
             ["kubectl", "rollout", "status", "deployment/argocd-repo-server", "-n", "argocd", "--timeout=300s"],
         ],

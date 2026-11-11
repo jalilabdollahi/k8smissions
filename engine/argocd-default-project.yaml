@@ -1,0 +1,15 @@
+# Full Argo CD installs create this project on first start; the core install
+# does not, so the add-on adds it to match what users meet in real clusters.
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: default
+  namespace: argocd
+spec:
+  sourceRepos: ["*"]
+  destinations:
+    - namespace: "*"
+      server: "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
