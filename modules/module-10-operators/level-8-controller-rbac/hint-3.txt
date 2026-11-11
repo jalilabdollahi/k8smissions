@@ -1,1 +1,5 @@
-The ClusterRole only grants access to `example.com/workloads`. It's missing rules for: `"" / pods,services,configmaps` (core API), `apps / deployments`, and `example.com / workloads/status` (the status subresource).
+Add one rule per need to the existing Role, with only the verb that is used:
+
+kubectl -n k8smissions patch role report-operator --type=json -p '[{"op":"add","path":"/rules/-","value":{"apiGroups":["<GROUP>"],"resources":["<RESOURCE>"],"verbs":["<VERB>"]}}]'
+
+The API group of core resources (pods, configmaps) is the empty string. A subresource is written `resource/subresource`.

@@ -1,1 +1,5 @@
-Three fixes needed: (1) add `namespaceSelector` to exclude kube-system and change `failurePolicy: Ignore`; (2) add v1 back to CRD with `served: true, storage: false`; (3) change operator args to `--leader-elect=true`.
+kubectl -n k8smissions patch deploy queue-webhook --type=json -p '[{"op":"replace","path":"/spec/template/spec/volumes/<N>/secret/secretName","value":"<REISSUED SECRET>"}]'
+kubectl -n k8smissions patch role queue-operator --type=json -p '[{"op":"add","path":"/rules/-","value":{"apiGroups":["<GROUP>"],"resources":["<RESOURCE>"],"verbs":["get","create","update"]}}]'
+kubectl patch crd queues.queue.acme.io --type=json -p '[{"op":"add","path":"/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/<FIELD>","value":{"type":"object","properties":{...}}}]'
+
+Objects created while the schema dropped the field have to be written again: the manifest is in ConfigMap `queue-requests`.

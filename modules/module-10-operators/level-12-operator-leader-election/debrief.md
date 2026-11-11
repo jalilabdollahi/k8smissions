@@ -1,16 +1,23 @@
-# Split Brain
+## What was broken
 
-## What Was Broken
-The operator had --leader-elect=false with 2 replicas. Both pods ran full reconciliation loops simultaneously. They competed to update resources — patches from one were immediately overwritten by the other, causing flapping.
+Leader election was implemented, but each replica competed for a different Lease: the lease name came from the pod name, so every pod acquired "its" lease immediately and considered itself the leader. Both pods reconciled every `Order`, each rewriting `status.lastWriter` with its own name, and the `claims` counter climbed every time ownership flipped.
 
-## The Fix
-Enable leader election with --leader-elect=true. The Kubernetes Lease mechanism ensures only one replica is active.
+## The evidence
 
-## Why It Matters
-Operator HA with leader election: 2+ replicas, leader election enabled. Active leader holds the Lease. Leader dies → lease expires (configurable duration) → standby becomes leader. Fast failover, no split-brain, simple to configure.
+`kubectl get lease` showed two healthy-looking leases, each with a holder and a fresh `renewTime`. Only comparing names and holders shows that they are two locks instead of one. The operator logs of both pods said `acquired lease ...` at start and `took over order ...` over and over.
 
-## Pro Tip
-Check the current leader: kubectl get lease my-operator -n operators -o yaml. The holderIdentity field shows the pod name that currently holds leadership.
+## Why Kubernetes behaved this way
 
-## Concepts
-leader election, Lease, operator HA, split brain, --leader-elect, controller-runtime
+A Lease is just an object with `holderIdentity`, `renewTime` and `leaseDurationSeconds`; Kubernetes does not enforce who may write it. Mutual exclusion comes from every candidate using the same object name and from optimistic concurrency (`resourceVersion`) when taking over an expired lease. Give candidates different names and there is no election at all.
+
+Scaling the operator to one replica would stop the fight, but loses failover; the lease exists precisely so a second replica can take over after `leaseDurationSeconds` when the leader disappears. The validator deletes the leader pod and expects the survivor to serve a new Order.
+
+## In production
+
+controller-runtime sets `LeaderElection: true` with a fixed `LeaderElectionID` per operator and uses the pod name as identity. Choose `leaseDuration`, `renewDeadline` and `retryPeriod` so failover is quick but a short API server hiccup does not cost the leadership. Make reconcile idempotent anyway: leadership can be lost mid-pass.
+
+## Worth remembering
+
+- `kubectl get lease -o custom-columns=NAME:.metadata.name,HOLDER:.spec.holderIdentity,RENEW:.spec.renewTime`
+- `kubectl logs <pod> --tail=20` for each replica: only the leader acts.
+- `kubectl set env deploy/<name> KEY=value` replaces a downward-API env var with a literal.

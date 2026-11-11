@@ -1,17 +1,15 @@
 {
-  "name": "Operator Missing",
-  "description": "An OLM Subscription for an operator was created, but no operator pod has appeared after 10 minutes. OLM cannot install the operator because the Subscription references a CatalogSource that doesn't exist — OLM has no catalog to search for the operator package.",
-  "objective": "The OLM Subscription references a non-existent CatalogSource — fix the catalogSourceName to point to the correct catalog",
-  "xp": 325,
+  "name": "Pinned to the past",
+  "description": "`widget-operator` was installed from plain manifests with a pinned subscription: channel `stable`, version 1.2.0. This week the platform team upgraded the `Widget` CRD for release 1.4.0, and the new `Widget` objects that the dashboard creates (with `spec.sizing.replicas`) are ignored by the operator. The three older widgets (`gauge`, `dial`, `meter`) are still on the old shape. Release bundles for 1.2.0, 1.3.0 and 1.4.0 sit in the namespace as ConfigMaps.",
+  "objective": "`widget-operator` runs release 1.4.0 and stays up; `gauge`, `dial` and `meter` have been migrated to the new schema (`spec.sizing.replicas` kept in line with their old replicas, `status.schemaVersion: 2`) and are reconciled by 1.4.0; a new Widget using only `spec.sizing.replicas` gets its ConfigMap `widget-<name>`.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "OLM",
-    "Operator Lifecycle Manager",
-    "Subscription",
-    "CatalogSource",
-    "operator install"
-  ],
+  "expected_time": "20m",
+  "concepts": ["operator versions", "upgrade graph", "replaces", "schema migration", "CrashLoopBackOff", "bundle"],
   "module": "module-10-operators",
-  "level": "level-6-olm-subscription"
+  "level": "level-6-olm-subscription",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 200,
+  "cleanup": []
 }

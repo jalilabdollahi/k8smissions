@@ -1,15 +1,8 @@
-## What went wrong
+Each replica takes its Lease name from its own pod name (`LEASE_NAME` comes from `metadata.name`), so every pod creates and wins a lease of its own and both act as leader. The fix is a single shared lease name in the Deployment, while `POD_NAME` stays as the identity:
 
-With `--leader-elect=false`, both operator replicas run as active controllers simultaneously. They race to reconcile the same objects: replica A sets `replicas: 3`, replica B reads the state and also sets `replicas: 3`, but they interleave on conflict resolution and fight over the state. Resources flap and never stabilize.
-
-## Fix
-
-```yaml
-args:
-- --leader-elect=true
-- --leader-elect-lease-duration=30s
+```bash
+kubectl -n k8smissions set env deploy/orders-operator LEASE_NAME=orders-operator-leader
+kubectl -n k8smissions rollout status deploy/orders-operator
 ```
 
-## Why this matters
-
-Controller-runtime implements leader election via a Kubernetes `Lease` object. Only the pod holding the lease actively reconciles; others run as standbys watching the lease. If the leader pod crashes, the lease expires (after `lease-duration`) and a standby acquires it and becomes the new leader. This is active-passive HA: one active reconciler at a time, no split-brain. The trade-off: `lease-duration` is the time between leader failure and new leader election — shorter means faster failover but more false-positive leadership changes under network blips.
+After the rollout one pod holds `orders-operator-leader`, the other logs nothing and waits; if the leader dies, the survivor takes the lease once it has expired (10 seconds) and reconciles. The old per-pod leases are no longer renewed and can be deleted.

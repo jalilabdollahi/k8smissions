@@ -1,16 +1,21 @@
-# Orphaned Resources
+## What was broken
 
-## What Was Broken
-The operator created Deployments and Services without setting ownerReferences. Kubernetes garbage collection only cleans up resources where the owner UID exists. Without ownerReferences, deleting the CR left the child resources running.
+`site-operator` built `ownerReferences` from a constant uid that was copied from one particular Site when the code was written. For the Deployment and ConfigMap of every other Site the reference pointed at an owner that does not exist, and the Service got no reference at all. The two faults look unrelated: children that vanish, and a child that never goes away.
 
-## The Fix
-Set ownerReferences on all resources created by the operator, pointing to the managing CR with controller: true.
+## The evidence
 
-## Why It Matters
-ownerReferences for cross-namespace is not supported — owner and owned resources must be in the same namespace. For cluster-scoped resources (like ClusterRoles) owned by namespace-scoped CRs, use finalizers for cleanup.
+`kubectl get deploy site-storefront -o jsonpath='{.metadata.ownerReferences}'` showed a `uid` that matches no Site. `kubectl get site storefront -o jsonpath='{.metadata.uid}'` gave another. `kubectl get deploy -w` showed `site-*` Deployments being created again every few seconds, and the Service had `ownerReferences: null`.
 
-## Pro Tip
-In controller-runtime: use ctrl.SetControllerReference(myapp, deployment, r.Scheme) to automatically set ownerReferences correctly including the UID and GVK.
+## Why Kubernetes behaved this way
 
-## Concepts
-ownerReferences, garbage collection, cascading delete, operator, resource lifecycle
+The garbage collector builds a graph from `ownerReferences`. When it processes a dependent it checks, for each owner, whether an object with that `kind`, `name` and `uid` exists. A live object with a different uid does not count: it is a different incarnation, so the dependent is deleted. This protects against deleting a Site and recreating it and inheriting its children by accident. An object without references is never touched, which is why the Service leaked and why deleting the Site left it behind.
+
+## In production
+
+Never hand-write uids: take them from the live parent (`controllerutil.SetControllerReference` does it). Set `controller: true` and `blockOwnerDeletion: true` for a clean foreground delete. For cross-namespace or cluster-scoped owners, ownerReferences are not allowed; use finalizers instead. Orphans left by buggy operators have to be found (`kubectl get svc -A -o json | jq` for missing owners) and cleaned up by hand.
+
+## Worth remembering
+
+- `kubectl get <kind> <name> -o jsonpath='{.metadata.ownerReferences}'`
+- `kubectl delete <cr> --cascade=foreground` waits for the children; `--cascade=orphan` leaves them.
+- `kubectl get <kind> -o custom-columns=NAME:.metadata.name,OWNER:.metadata.ownerReferences[0].name`

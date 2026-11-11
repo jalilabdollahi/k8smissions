@@ -1,25 +1,52 @@
-apiVersion: admissionregistration.k8s.io/v1
-kind: MutatingWebhookConfiguration
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: pod-annotations-injector
-webhooks:
-- name: inject.example.com
-  admissionReviewVersions:
-  - v1
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: operators
-      port: 443
-    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk9MREVSVE0K
-  rules:
-  - apiGroups:
-    - ''
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    resources:
-    - pods
-  failurePolicy: Fail
-  sideEffects: None
+  name: policy-guard-handler
+  namespace: k8smissions
+data:
+  handler.py: |
+    # Policy: guarded pods must pin their image tag
+    def validate(req):
+        for c in req["object"]["spec"].get("containers", []):
+            image = c["image"].split("/")[-1]
+            if ":" not in image or image.endswith(":latest"):
+                return False, "policy-guard: image %s is not pinned to a version" % c["image"]
+        return True, ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: policy-guard
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: policy-guard}
+  template:
+    metadata:
+      labels: {app: policy-guard}
+    spec:
+      containers:
+      - name: server
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/server.py"]
+        readinessProbe:
+          tcpSocket: {port: 8443}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: handler, mountPath: /handler}
+        - {name: tls, mountPath: /tls}
+      volumes:
+      - {name: app, configMap: {name: webhook-server}}
+      - {name: handler, configMap: {name: policy-guard-handler}}
+      - {name: tls, secret: {secretName: policy-guard-tls}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: policy-guard
+  namespace: k8smissions
+spec:
+  selector: {app: policy-guard}
+  ports:
+  - {port: 443, targetPort: 8443}

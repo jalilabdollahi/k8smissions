@@ -1,1 +1,1 @@
-Measure how long pod creation takes: `time kubectl run test --image=nginx:1.25 -n k8smissions`. Then check the webhook configuration: `kubectl get validatingwebhookconfiguration policy-enforcer -o yaml | grep timeoutSeconds`
+Time one admission yourself: `time kubectl -n k8smissions run probe --image=busybox:1.36 --labels=guarded=true,team=payments --dry-run=server -o name`. Then read what the webhook server does with each request (`kubectl -n k8smissions logs deploy/quota-guard`) and what it calls while it thinks.

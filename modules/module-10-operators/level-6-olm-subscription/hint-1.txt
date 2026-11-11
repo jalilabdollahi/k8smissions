@@ -1,1 +1,1 @@
-Check the Subscription status: `kubectl describe subscription my-operator-sub -n operators`
+See what is installed and what is available: `kubectl -n k8smissions get deploy widget-operator -o yaml` (labels and volumes) and `kubectl -n k8smissions get cm -l olm.acme.io/bundle`. Each bundle ConfigMap carries a `bundle.json` that says which release it replaces. Read all three.

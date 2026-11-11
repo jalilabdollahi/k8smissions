@@ -1,17 +1,15 @@
 {
-  "name": "Slow Admission",
-  "description": "Pod creation is extremely slow — every `kubectl apply` for a pod takes 30+ seconds before the pod even enters Pending. The admission webhook has `timeoutSeconds: 30`, meaning the API server waits up to 30 seconds for the webhook's response before timing out. A slow external API call inside the webhook is causing the delay.",
-  "objective": "The admission webhook has a long timeout and is making slow external API calls — reduce timeoutSeconds",
-  "xp": 325,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "admission webhook",
-    "timeoutSeconds",
-    "performance",
-    "latency",
-    "webhook optimization"
-  ],
+  "name": "Twelve seconds per pod",
+  "description": "Since Tuesday's load test every pod labelled `guarded=true` takes about 12 seconds to be accepted in `k8smissions`: `kubectl apply` just sits there and CI jobs that create dozens of guarded pods are timing out. Nothing is rejected, it is only slow. The validating webhook `quota-guard` enforces per-team CPU quotas by asking the `asset-inventory` service, and someone suggested simply cutting the webhook's timeout.",
+  "objective": "A compliant guarded pod (`team=payments`, 100m CPU) is admitted in under 3 seconds. A guarded pod asking for far more CPU than its team's quota is still rejected with the `quota-guard:` message. The webhook configuration `quota-guard` still exists and still fails closed, and `asset-inventory` keeps running.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "15m",
+  "concepts": ["admission latency", "timeoutSeconds", "failurePolicy", "webhook dependencies", "root cause"],
   "module": "module-10-operators",
-  "level": "level-13-webhook-timeout"
+  "level": "level-13-webhook-timeout",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

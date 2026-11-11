@@ -1,1 +1,1 @@
-Check the operator's crash logs: `kubectl logs -n operators -l app=my-operator --previous`
+Read the traceback of the crashed container: `kubectl -n k8smissions logs deploy/workload-operator --previous`. Then ask the API server whether the resource the operator lists exists at all: `kubectl api-resources | grep platform.acme.io` and `kubectl get crd`.

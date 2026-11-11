@@ -1,1 +1,4 @@
-The three problems: (1) webhook has `failurePolicy: Fail` with no namespaceSelector — blocks kube-system; (2) CRD only lists v2 but objects are stored as v1 — they're unreadable; (3) operator has `--leader-elect=false` with 2 replicas — split-brain and resource flapping.
+Three independent faults, in the order they show up:
+1. Admission: the TLS error names the certificate's problem. A certificate must carry the Service's DNS name as a subject alternative name. The platform team's reissue is in the namespace (`kubectl -n k8smissions get secret`).
+2. The operator's log complains about a permission, then carries on anyway. Compare `kubectl auth can-i ... --as=system:serviceaccount:k8smissions:queue-operator` with the Role, and look at what `kubectl get lease` shows.
+3. Once `orders` exists, compare what was posted with what is stored: `kubectl explain queue.spec` lists the fields the CRD schema keeps; unknown fields are silently pruned.

@@ -1,28 +1,134 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: operator-config
+  namespace: k8smissions
+data:
+  watch-namespace: staging
+  loop-seconds: "2"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webapp-operator
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: webapp-operator
+rules:
+- apiGroups: ["apps.acme.io"]
+  resources: ["webapps"]
+  verbs: ["get", "list"]
+- apiGroups: ["apps.acme.io"]
+  resources: ["webapps/status"]
+  verbs: ["patch"]
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "create", "patch"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: webapp-operator
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: webapp-operator}
+subjects:
+- {kind: ServiceAccount, name: webapp-operator, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webapp-operator-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    import os
+    from kapi import api, patch, forever, log
+
+    WATCH = os.environ.get("WATCH_NAMESPACE", "default")
+    EVERY = int(os.environ.get("LOOP_SECONDS", "2"))
+    log("webapp-operator 0.4.2 started")
+
+    def children(app):
+        name, uid = app["metadata"]["name"], app["metadata"]["uid"]
+        owner = [{"apiVersion": "apps.acme.io/v1", "kind": "WebApp", "name": name, "uid": uid,
+                  "controller": True, "blockOwnerDeletion": True}]
+        meta = {"name": name, "ownerReferences": owner, "labels": {"app": name}}
+        spec = app.get("spec", {})
+        dep = {"apiVersion": "apps/v1", "kind": "Deployment", "metadata": meta, "spec": {
+            "replicas": spec.get("replicas", 1),
+            "selector": {"matchLabels": {"app": name}},
+            "template": {"metadata": {"labels": {"app": name}}, "spec": {"containers": [
+                {"name": "web", "image": spec.get("image", "nginx:1.27-alpine"),
+                 "ports": [{"containerPort": 80}]}]}}}}
+        svc = {"apiVersion": "v1", "kind": "Service", "metadata": meta, "spec": {
+            "selector": {"app": name}, "ports": [{"port": 80, "targetPort": 80}]}}
+        return dep, svc
+
+    def reconcile():
+        code, body = api("GET", "/apis/apps.acme.io/v1/namespaces/%s/webapps" % WATCH)
+        if code != 200:
+            return
+        for app in body.get("items", []):
+            name = app["metadata"]["name"]
+            dep, svc = children(app)
+            code, live = api("GET", "/apis/apps/v1/namespaces/%s/deployments/%s" % (WATCH, name))
+            if code == 404:
+                api("POST", "/apis/apps/v1/namespaces/%s/deployments" % WATCH, dep)
+                log("created deployment %s/%s" % (WATCH, name))
+                live = {}
+            code, _ = api("GET", "/api/v1/namespaces/%s/services/%s" % (WATCH, name))
+            if code == 404:
+                api("POST", "/api/v1/namespaces/%s/services" % WATCH, svc)
+                log("created service %s/%s" % (WATCH, name))
+            ready = live.get("status", {}).get("readyReplicas", 0)
+            want = app.get("spec", {}).get("replicas", 1)
+            phase = "Ready" if ready >= want else "Progressing"
+            if app.get("status", {}).get("phase") != phase:
+                patch("/apis/apps.acme.io/v1/namespaces/%s/webapps/%s/status" % (WATCH, name),
+                      {"status": {"phase": phase, "readyReplicas": ready}})
+                log("webapp %s/%s is %s" % (WATCH, name, phase))
+
+    forever(reconcile, EVERY)
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-operator
-  namespace: operators
+  name: webapp-operator
+  namespace: k8smissions
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: my-operator
+    matchLabels: {app: webapp-operator}
   template:
     metadata:
-      labels:
-        app: my-operator
+      labels: {app: webapp-operator}
     spec:
+      serviceAccountName: webapp-operator
       containers:
       - name: operator
-        image: my-operator:v1.0
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
         env:
+        - {name: PYTHONPATH, value: /kapi}
         - name: WATCH_NAMESPACE
-          value: operators
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+          valueFrom:
+            configMapKeyRef: {name: operator-config, key: watch-namespace}
+        - name: LOOP_SECONDS
+          valueFrom:
+            configMapKeyRef: {name: operator-config, key: loop-seconds}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: webapp-operator-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

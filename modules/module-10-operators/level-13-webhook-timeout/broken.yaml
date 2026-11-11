@@ -1,25 +1,129 @@
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingWebhookConfiguration
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: policy-enforcer
-webhooks:
-- name: enforce.example.com
-  admissionReviewVersions:
-  - v1
-  timeoutSeconds: 30
-  clientConfig:
-    service:
-      name: policy-svc
-      namespace: operators
-      port: 443
-  rules:
-  - apiGroups:
-    - ''
-    apiVersions:
-    - v1
-    operations:
-    - CREATE
-    resources:
-    - pods
-  failurePolicy: Fail
-  sideEffects: None
+  name: quota-guard-handler
+  namespace: k8smissions
+data:
+  handler.py: |
+    # Denies a guarded pod whose CPU requests exceed the quota the asset inventory holds for its team.
+    import json, urllib.request
+
+    INVENTORY = "http://asset-inventory.k8smissions.svc/quota/"
+
+    def millis(value):
+        value = str(value)
+        return int(value[:-1]) if value.endswith("m") else int(float(value) * 1000)
+
+    def validate(req):
+        pod = req["object"]
+        team = (pod["metadata"].get("labels") or {}).get("team", "unknown")
+        with urllib.request.urlopen(INVENTORY + team, timeout=25) as resp:
+            quota = json.load(resp)["cpuMilli"]
+        wanted = sum(millis(((c.get("resources") or {}).get("requests") or {}).get("cpu", "0"))
+                     for c in pod["spec"]["containers"])
+        if wanted > quota:
+            return False, "quota-guard: team %s asks for %dm CPU, its quota is %dm" % (team, wanted, quota)
+        return True, ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quota-guard
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: quota-guard}
+  template:
+    metadata:
+      labels: {app: quota-guard}
+    spec:
+      containers:
+      - name: server
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/server.py"]
+        readinessProbe:
+          tcpSocket: {port: 8443}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: handler, mountPath: /handler}
+        - {name: tls, mountPath: /tls}
+      volumes:
+      - {name: app, configMap: {name: webhook-server}}
+      - {name: handler, configMap: {name: quota-guard-handler}}
+      - {name: tls, secret: {secretName: quota-guard-tls}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quota-guard
+  namespace: k8smissions
+spec:
+  selector: {app: quota-guard}
+  ports:
+  - {port: 443, targetPort: 8443}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: asset-inventory-code
+  namespace: k8smissions
+data:
+  inventory.py: |
+    import json, os, time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    DELAY = float(os.environ.get("INVENTORY_DELAY", "0"))
+    QUOTAS = {"payments": 500, "search": 1000, "ml-training": 8000}
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            time.sleep(DELAY)
+            team = self.path.rstrip("/").split("/")[-1]
+            body = json.dumps({"team": team, "cpuMilli": QUOTAS.get(team, 100)}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            print("served %s after %.0fs delay" % (self.path, DELAY), flush=True)
+
+    ThreadingHTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asset-inventory
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: asset-inventory}
+  template:
+    metadata:
+      labels: {app: asset-inventory}
+    spec:
+      containers:
+      - name: inventory
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/inventory.py"]
+        env:
+        - {name: INVENTORY_DELAY, value: "12"}
+        readinessProbe:
+          tcpSocket: {port: 8080}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+      volumes:
+      - {name: app, configMap: {name: asset-inventory-code}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: asset-inventory
+  namespace: k8smissions
+spec:
+  selector: {app: asset-inventory}
+  ports:
+  - {port: 80, targetPort: 8080}

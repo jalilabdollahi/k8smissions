@@ -1,1 +1,1 @@
-Check the operator's environment variables: `kubectl get deployment my-operator -n operators -o yaml | grep -A5 env`
+Start with the operator itself: `kubectl -n k8smissions logs deploy/webapp-operator`. A quiet log can mean "all is well" or "nothing to do". Ask the second question: what is this operator looking at? Compare with `kubectl get webapps -A`.

@@ -1,22 +1,15 @@
-## What went wrong
+The operator needs three more permissions than its Role grants, each of which only shows after the previous one is fixed (it handles a Report one step at a time):
 
-The operator's ClusterRole is too narrow. It can read/write its own CRDs but cannot touch the downstream Kubernetes resources it creates (Deployments, Services, ConfigMaps, Pods). It also can't update the status subresource, which requires a separate rule.
+1. count pods: `list` on `pods` (core group `""`)
+2. write the summary: `create` on `configmaps`
+3. update status: `patch` on `reports/status` in group `audit.acme.io` (a subresource is a separate resource for RBAC; `reports` does not cover it)
 
-## Fix
-
-```yaml
-rules:
-- apiGroups: ["example.com"]
-  resources: ["workloads", "workloads/status"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: [""]
-  resources: ["pods", "services", "configmaps"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+```bash
+kubectl -n k8smissions patch role report-operator --type=json -p '[
+ {"op":"add","path":"/rules/-","value":{"apiGroups":[""],"resources":["pods"],"verbs":["list"]}},
+ {"op":"add","path":"/rules/-","value":{"apiGroups":[""],"resources":["configmaps"],"verbs":["create"]}},
+ {"op":"add","path":"/rules/-","value":{"apiGroups":["audit.acme.io"],"resources":["reports/status"],"verbs":["patch"]}}
+]'
 ```
 
-## Why this matters
-
-Operator RBAC must cover every Kubernetes resource the operator touches — both reading (to build the desired state) and writing (to reconcile toward it). The `status` subresource is separate from the main resource: `update` on `workloads` doesn't grant `update` on `workloads/status`. Common operator RBAC checklist: CR read/write, CR status update, event create (for emitting Kubernetes events), and all owned resource types. The `controller-gen` tool generates RBAC markers from Go annotations to keep this list current automatically.
+Do not bind `cluster-admin` and do not use `*`: it also fixes the 403s but gives a reporting tool the keys to the whole namespace and the cluster.

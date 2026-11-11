@@ -1,7 +1,11 @@
-# Common Mistakes — Orphaned Resources
+## Changing the constant to another uid
 
-## Mistake 1: Using labels to find and delete orphans manually
+Hard-coding the uid of `storefront` fixes `storefront` and breaks `blog` and every Site created later. The uid is different for every Site and for every re-creation of the same name: it has to be read from the live object.
 
-**Wrong approach:** Running kubectl delete -l managed-by=my-operator after CR deletion — manual and error-prone
+## Fixing the references and forgetting the orphan
 
-**Correct approach:** ownerReferences + GC is automatic and correct; use it always for child resource cleanup
+`site-legacy` has no owner, so nothing will ever garbage-collect it, not even the corrected operator. Orphans made by the old code are removed by hand.
+
+## Only adding an ownerReference to the Service
+
+The Service then goes away with its Site, but the Deployment and ConfigMap are still collected and recreated every few seconds, and the validator watches their uids stay the same.

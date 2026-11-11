@@ -1,1 +1,6 @@
-The operator has `--leader-elect=false` with `replicas: 2`. Change the flag to `--leader-elect=true` and optionally add `--leader-elect-lease-duration=30s` to configure the lease TTL.
+Give both replicas the same, fixed lease name (the pods still need their own POD_NAME as identity):
+
+kubectl -n k8smissions set env deploy/orders-operator LEASE_NAME=<A-SHARED-NAME>
+kubectl -n k8smissions rollout status deploy/orders-operator
+
+The two old per-pod leases stay behind but stop being renewed; they are harmless.

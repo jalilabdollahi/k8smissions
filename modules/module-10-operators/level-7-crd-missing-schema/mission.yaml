@@ -1,17 +1,15 @@
 {
-  "name": "Unvalidated Resource",
-  "description": "The API accepts completely invalid values in custom resource fields. Creating a `Workload` with `replicas: -999` succeeds without any error. The CRD uses `x-kubernetes-preserve-unknown-fields: true` with no schema — it accepts any structure, making validation impossible.",
-  "objective": "The CRD has no OpenAPI validation schema — add proper schema validation to reject invalid values",
-  "xp": 325,
+  "name": "Anything goes",
+  "description": "The scheduler tooling downstream of the `Workload` API broke twice this week: once on a Workload with `replicas: -999`, once on `tier: gold-plated`. Both were accepted by `kubectl apply` without a murmur. The platform team wants the API to refuse nonsense. Two live Workloads, `search-indexer` and `thumbnailer`, carry extra bookkeeping fields (`owner`, `costCenter`) that finance relies on.",
+  "objective": "The Workload API rejects a negative or non-numeric `replicas` and a `tier` outside bronze/silver/gold, accepts a valid Workload (including one with `owner` and `costCenter`), and `search-indexer` and `thumbnailer` keep all their data including `owner` and `costCenter`.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "CRD",
-    "OpenAPI schema",
-    "validation",
-    "structural schema",
-    "x-kubernetes-validations"
-  ],
+  "expected_time": "15m",
+  "concepts": ["structural schema", "x-kubernetes-preserve-unknown-fields", "pruning", "enum", "minimum", "kubectl explain"],
   "module": "module-10-operators",
-  "level": "level-7-crd-missing-schema"
+  "level": "level-7-crd-missing-schema",
+  "requires": [],
+  "settle_seconds": 5,
+  "solve_timeout": 90,
+  "cleanup": []
 }

@@ -1,17 +1,89 @@
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: my-operator-role
+  name: report-operator
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: report-operator
+  namespace: k8smissions
 rules:
-- apiGroups:
-  - example.com
-  resources:
-  - workloads
-  verbs:
-  - get
-  - list
-  - watch
-  - create
-  - update
-  - patch
-  - delete
+- apiGroups: ["audit.acme.io"]
+  resources: ["reports"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: report-operator
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: report-operator}
+subjects:
+- {kind: ServiceAccount, name: report-operator, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: report-operator-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    from kapi import api, patch, forever, log, NS
+
+    REPORTS = "/apis/audit.acme.io/v1/namespaces/%s/reports" % NS
+
+    def reconcile():
+        code, body = api("GET", REPORTS)
+        if code != 200:
+            log("cannot list reports: %s %s" % (code, body.get("message")))
+            return
+        for rep in body["items"]:
+            name = rep["metadata"]["name"]
+            if rep.get("status", {}).get("phase") == "Done":
+                continue
+            code, pods = api("GET", "/api/v1/namespaces/%s/pods" % NS)
+            if code != 200:
+                log("report %s: cannot count pods: %s %s" % (name, code, pods.get("message")))
+                continue
+            summary = {"title": rep.get("spec", {}).get("title", name), "podCount": str(len(pods["items"]))}
+            code, res = api("POST", "/api/v1/namespaces/%s/configmaps" % NS,
+                            {"metadata": {"name": "report-" + name}, "data": summary})
+            if code not in (200, 201, 409):
+                log("report %s: cannot write the summary: %s %s" % (name, code, res.get("message")))
+                continue
+            code, res = patch(REPORTS + "/%s/status" % name, {"status": {"phase": "Done", "summary": "report-" + name}})
+            if code != 200:
+                log("report %s: cannot update status: %s %s" % (name, code, res.get("message")))
+                continue
+            log("report %s is Done" % name)
+
+    forever(reconcile, 3)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-operator
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: report-operator}
+  template:
+    metadata:
+      labels: {app: report-operator}
+    spec:
+      serviceAccountName: report-operator
+      containers:
+      - name: operator
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: report-operator-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

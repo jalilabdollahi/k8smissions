@@ -1,17 +1,15 @@
 {
-  "name": "Orphaned Controller",
-  "description": "Deleting a custom resource takes forever — or it enters Terminating state and stays there indefinitely. The CR has a finalizer registered by an operator that no longer exists. Since no controller will ever clear the finalizer, the object is stuck in Terminating permanently.",
-  "objective": "The operator's finalizer logic ran successfully but forgot to actually clean up the backend resources before clearing the finalizer",
-  "xp": 375,
+  "name": "Deleted but still running",
+  "description": "`datastore-operator` gives every `Datastore` a backing Pod and ConfigMap (`ds-<name>`). The DBAs deleted `legacy-orders` yesterday: the Datastore vanished as it should, yet Pod `ds-legacy-orders` and its ConfigMap are still there, running and consuming a node. Deleting any other Datastore leaves its backend behind the same way. The live `orders` Datastore must not be touched.",
+  "objective": "Deleting a Datastore removes its backing Pod and ConfigMap too; the leftovers of `legacy-orders` are gone; `orders` keeps its Datastore, Pod and ConfigMap; `datastore-operator` is Running.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "18m",
-  "concepts": [
-    "finalizers",
-    "operator cleanup",
-    "garbage collection",
-    "ownerReferences",
-    "controller"
-  ],
+  "expected_time": "15m",
+  "concepts": ["finalizers", "deletionTimestamp", "cleanup ordering", "orphaned objects", "controller code"],
   "module": "module-10-operators",
-  "level": "level-4-finalizer-orphan"
+  "level": "level-4-finalizer-orphan",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

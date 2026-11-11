@@ -1,17 +1,10 @@
-## What went wrong
+The `quota-guard` handler asks `asset-inventory` for the team's quota on every admission, and the inventory sleeps for `INVENTORY_DELAY` seconds before answering. A load test left it at 12, so every guarded pod waits 12 seconds (under the webhook's 30-second timeout, so it works, slowly).
 
-The webhook has `timeoutSeconds: 30`, meaning the API server waits up to 30 seconds for each admission response. If the webhook makes a slow external API call (OPA policy engine, external database, DNS lookup), every pod creation is delayed by the webhook's latency.
+Fix the cause in the inventory Deployment:
 
-## Fix
-
-```yaml
-timeoutSeconds: 5
+```bash
+kubectl -n k8smissions set env deploy/asset-inventory INVENTORY_DELAY=0
+kubectl -n k8smissions rollout status deploy/asset-inventory
 ```
 
-## Why this matters
-
-Admission webhooks sit in the synchronous path of every API operation matching their rules. High `timeoutSeconds` values multiply across every pod creation in a busy cluster. The Kubernetes maximum is 30 seconds; the recommended range is 3–10 seconds. Better solutions for slow validation logic:
-1. Reduce the webhook's work — cache expensive lookups
-2. Use async validation — admit immediately, validate asynchronously, update status
-3. Set `failurePolicy: Ignore` so timeouts don't block creation (but do log/alert)
-4. Use more specific `rules` to reduce the number of objects the webhook must process
+Cutting `timeoutSeconds` below 12 would make the webhook fail closed and refuse compliant pods; `failurePolicy: Ignore` would admit over-quota pods when the call times out.

@@ -1,17 +1,15 @@
 {
-  "name": "Version Migration",
-  "description": "A CRD has two versions — `v1alpha1` and `v1beta1`. Resources created with v1alpha1 are invisible when querying the v1beta1 API. The CRD has `conversion.strategy: None`, which means Kubernetes makes no attempt to convert objects between versions. The storage version also needs to move to v1beta1.",
-  "objective": "The CRD has two versions but no conversion webhook — stored v1alpha1 resources won't auto-convert to v1beta1 format",
-  "xp": 375,
+  "name": "Caches read as blank",
+  "description": "The `Cache` API was promoted from `v1alpha1` to `v1` and the new `cache-controller` reads `v1`. Every existing cache (`sessions`, `catalog`, `ratelimits`) now comes back from `kubectl get cache.v1.cache.acme.io -o yaml` with an empty `memory`, and the controller sizes all of them at its 64Mi default. A converter service, `cache-converter`, was deployed last week and is healthy, but nobody remembers wiring it in.",
+  "objective": "Existing caches read as `v1` with the right `memory` (for example `sessions` 512Mi), a cache created through `v1` reads back through `v1alpha1` with the right `maxMemoryMB`, and `cache-controller` sizes each cache from its real memory value (ConfigMap `cache-<name>`).",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "18m",
-  "concepts": [
-    "CRD versioning",
-    "conversion webhook",
-    "hub version",
-    "storage version",
-    "CRD migration"
-  ],
+  "expected_time": "15m",
+  "concepts": ["CRD versions", "conversion webhook", "caBundle", "conversionReviewVersions", "storage version"],
   "module": "module-10-operators",
-  "level": "level-2-crd-conversion"
+  "level": "level-2-crd-conversion",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

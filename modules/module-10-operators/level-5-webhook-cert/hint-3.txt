@@ -1,1 +1,6 @@
-The `caBundle` field is hardcoded and stale. Remove it and add the annotation `cert-manager.io/inject-ca-from: operators/webhook-cert` to let cert-manager automatically inject and rotate the correct CA bundle.
+Point the webhook at the right CA and the pod at the right certificate:
+
+kubectl patch validatingwebhookconfiguration policy-guard --type=json -p '[{"op":"replace","path":"/webhooks/0/clientConfig/caBundle","value":"<BASE64 CA>"}]'
+kubectl -n k8smissions patch deployment policy-guard --type=json -p '[{"op":"replace","path":"/spec/template/spec/volumes/<N>/secret/secretName","value":"<SECRET>"}]'
+
+The Secret stores the CA already base64-encoded under `ca.crt`.

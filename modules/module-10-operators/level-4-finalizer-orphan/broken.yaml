@@ -1,13 +1,145 @@
-apiVersion: example.com/v1alpha1
-kind: Database
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: prod-db
+  name: datastore-operator
   namespace: k8smissions
-  finalizers:
-  - database.example.com/cleanup
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: datastore-operator
+  namespace: k8smissions
+rules:
+- apiGroups: ["data.acme.io"]
+  resources: ["datastores"]
+  verbs: ["get", "list", "patch"]
+- apiGroups: [""]
+  resources: ["pods", "configmaps"]
+  verbs: ["get", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: datastore-operator
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: datastore-operator}
+subjects:
+- {kind: ServiceAccount, name: datastore-operator, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: datastore-operator-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    from kapi import api, patch, forever, log, NS
+
+    STORES = "/apis/data.acme.io/v1/namespaces/%s/datastores" % NS
+    FINALIZER = "data.acme.io/backend-cleanup"
+    NOTE = "data.acme.io/backend"
+
+    def ensure_backend(ds):
+        name = ds["metadata"]["name"]
+        backend = "ds-" + name
+        labels = {"data.acme.io/store": name}
+        code, _ = api("GET", "/api/v1/namespaces/%s/pods/%s" % (NS, backend))
+        if code == 404:
+            api("POST", "/api/v1/namespaces/%s/pods" % NS, {
+                "metadata": {"name": backend, "labels": labels},
+                "spec": {"terminationGracePeriodSeconds": 0, "containers": [
+                    {"name": "db", "image": "busybox:1.36", "command": ["sleep", "86400"]}]}})
+            log("created pod %s" % backend)
+        code, _ = api("GET", "/api/v1/namespaces/%s/configmaps/%s" % (NS, backend))
+        if code == 404:
+            api("POST", "/api/v1/namespaces/%s/configmaps" % NS, {
+                "metadata": {"name": backend, "labels": labels},
+                "data": {"engine": ds.get("spec", {}).get("engine", "unknown")}})
+            log("created configmap %s" % backend)
+        if ds["metadata"].get("annotations", {}).get(NOTE) != backend:
+            patch(STORES + "/" + name, {"metadata": {"annotations": {NOTE: backend}}})
+
+    def cleanup(name):
+        # find the backend through the Datastore's own annotation
+        code, ds = api("GET", STORES + "/" + name)
+        if code != 200:
+            log("datastore %s not found, nothing to clean up" % name)
+            return
+        backend = ds["metadata"]["annotations"][NOTE]
+        api("DELETE", "/api/v1/namespaces/%s/pods/%s" % (NS, backend))
+        api("DELETE", "/api/v1/namespaces/%s/configmaps/%s" % (NS, backend))
+        log("removed backend %s" % backend)
+
+    def release(ds):
+        keep = [f for f in ds["metadata"].get("finalizers", []) if f != FINALIZER]
+        patch(STORES + "/" + ds["metadata"]["name"], {"metadata": {"finalizers": keep}})
+        log("released datastore %s" % ds["metadata"]["name"])
+
+    def reconcile():
+        code, body = api("GET", STORES)
+        if code != 200:
+            log("cannot list datastores:", code)
+            return
+        for ds in body["items"]:
+            name = ds["metadata"]["name"]
+            fins = ds["metadata"].get("finalizers", [])
+            if ds["metadata"].get("deletionTimestamp"):
+                if FINALIZER in fins:
+                    release(ds)           # let the object go ...
+                    cleanup(name)         # ... then tidy up
+                continue
+            if FINALIZER not in fins:
+                patch(STORES + "/" + name, {"metadata": {"finalizers": fins + [FINALIZER]}})
+            ensure_backend(ds)
+
+    forever(reconcile)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: datastore-operator
+  namespace: k8smissions
 spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: datastore-operator}
+  template:
+    metadata:
+      labels: {app: datastore-operator}
+    spec:
+      serviceAccountName: datastore-operator
+      containers:
+      - name: operator
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: datastore-operator-code}}
+      - {name: lib, configMap: {name: kapi-lib}}
+---
+# what the earlier deletion of legacy-orders left behind
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ds-legacy-orders
+  namespace: k8smissions
+  labels: {data.acme.io/store: legacy-orders}
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: db
+    image: busybox:1.36
+    command: ["sleep", "86400"]
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ds-legacy-orders
+  namespace: k8smissions
+  labels: {data.acme.io/store: legacy-orders}
+data:
   engine: postgres
-  storage: 10Gi
-status:
-  phase: Ready
-  endpoint: prod-db.k8smissions.svc.cluster.local:5432

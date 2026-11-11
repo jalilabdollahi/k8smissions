@@ -1,1 +1,6 @@
-The `status.observedGeneration` field is set to `1` but the resource is at `generation: 5`. Update `observedGeneration` to `5` in the status to reflect that the operator has processed the current spec version.
+Edit the controller and restart the pod (a running pod does not re-read a ConfigMap-mounted script it already imported):
+
+kubectl -n k8smissions edit configmap inventory-operator-code
+kubectl -n k8smissions rollout restart deploy/inventory-operator
+
+In `reconcile()`, copy `item["metadata"]["generation"]` into `observedGeneration`, and wrap the status `patch(...)` in `if <stored status differs from what you would write>:`. Leave `ensure_child(...)` outside that `if`.

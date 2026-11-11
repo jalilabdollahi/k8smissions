@@ -1,17 +1,15 @@
 {
-  "name": "Orphaned Resources",
-  "description": "Deleting a custom resource leaves behind Deployments, Services, and other resources that were created by the operator for that CR. The owned resources have no `ownerReferences` pointing back to the CR — so Kubernetes garbage collection doesn't know to delete them when the parent is gone.",
-  "objective": "The owned resources lack ownerReferences pointing to the CR — add ownerReferences for automatic garbage collection",
-  "xp": 350,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "ownerReferences",
-    "garbage collection",
-    "cascading delete",
-    "owner controller",
-    "CRD ownership"
-  ],
+  "name": "Children that leak and children that vanish",
+  "description": "Two complaints about `site-operator` on the same day. Deleting a `Site` custom resource leaves its Service running forever (`site-legacy` has been orphaned for weeks). And when a Site is deleted and created again under the same name, its Deployment and ConfigMap are gone a few seconds later, only to be recreated by the operator, over and over: `kubectl get deploy` shows an AGE of seconds on resources that should be days old.",
+  "objective": "A new Site gets a Deployment, a Service and a ConfigMap (`site-<name>`) that stay put (same UID) for 8 seconds. Deleting the Site removes all three within 30 seconds, and recreating a Site of the same name brings the three back and they stay. The orphaned `site-legacy` Service is removed, and the live Sites `storefront` and `blog` have their children.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["ownerReferences", "garbage collection", "metadata.uid", "dangling owner", "cascading delete"],
   "module": "module-10-operators",
-  "level": "level-16-ownerreference-gc"
+  "level": "level-16-ownerreference-gc",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

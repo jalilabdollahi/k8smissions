@@ -1,7 +1,11 @@
-# Common Mistakes — Controller Crash Loop
+## Installing the CRD and stopping
 
-## Mistake 1: Installing the operator before the CRD always
+The first traceback disappears, the pod crashes again with a different one, and `legacy-sync` never gets a status. A CrashLoopBackOff can hide a second cause behind the first, so re-read `--previous` after each change.
 
-**Wrong approach:** Manual ordering is fragile — automation, CI/CD, DR scenarios can break the order
+## Editing the legacy-sync object so it has options
 
-**Correct approach:** Use init containers or framework-level CRD waiting for robust startup ordering
+That gets the three existing Workloads reconciled, but the next Workload without `spec.options` kills the operator again. The validator creates exactly that, so the controller has to tolerate a missing field.
+
+## Waiting for the back-off
+
+Kubernetes waits up to five minutes between restarts of a crashing container. After a fix, `kubectl rollout restart` starts a fresh pod immediately.

@@ -1,16 +1,21 @@
-# Version Migration
+## What was broken
 
-## What Was Broken
-The CRD had two versions but conversion strategy: None. Objects stored as v1alpha1 are not returned when queried as v1beta1. Without a webhook, there's no translation between schemas.
+The `Cache` CRD serves two versions with different schemas (`v1alpha1` has `maxMemoryMB`, `v1` has `memory`) but its conversion strategy was `None`. With `None`, the API server converts between versions by changing only the `apiVersion` string, so a `v1` client sees the stored `v1alpha1` data with every renamed field missing. `cache-controller` then did exactly what its code says for an object with no `memory`: it used its 64Mi default.
 
-## The Fix
-Add a conversion webhook that transforms v1alpha1 to v1beta1 format, and change the storage version to v1beta1.
+## The evidence
 
-## Why It Matters
-CRD versioning strategy: one version is the 'storage' version (persistent). Conversion webhooks translate between versions on read/write. The Hub-and-Spoke pattern: v1 is the hub, all versions convert to/from v1.
+Reading one object through both versions side by side shows the data is intact in `v1alpha1` and blank in `v1`. The CRD's `spec.conversion` is the only place that explains it. The converter was already running; it simply had no traffic (its logs stayed empty until the CRD was changed).
 
-## Pro Tip
-Never remove a version that users are actively using without migration tooling. Use CRD migration scripts to re-write all stored objects to the new version before removing old version support.
+## Why Kubernetes behaved this way
 
-## Concepts
-CRD versioning, conversion webhook, storage version, hub-and-spoke, migration
+Objects are stored in etcd in one storage version (here `v1alpha1`) and converted on every read or write in a different version. Conversion is the CRD author's responsibility, and the only non-trivial strategy is a webhook: the API server posts a `ConversionReview` over HTTPS to the service, verifies its certificate against `caBundle`, and trusts the converted objects it gets back. A wrong `caBundle` surfaces as an x509 error in `kubectl get`, a wrong `path` as a 404 in the converter's logs.
+
+## In production
+
+Run at least two converter replicas: while the webhook is down, every read of that CRD fails, controllers included. Keep conversions lossless in both directions (the validator's round trip) and never remove a version that has stored objects. Tools such as cert-manager inject `caBundle` for you.
+
+## Worth remembering
+
+- `kubectl get <kind>.<version>.<group> <name> -o yaml` reads through a specific version.
+- `kubectl get crd <name> -o jsonpath='{.spec.conversion}'`
+- `kubectl explain crd.spec.conversion.webhook.clientConfig`

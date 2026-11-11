@@ -1,1 +1,5 @@
-Add `v1alpha1` back to the CRD versions list with `served: true` and `storage: false`. This allows existing v1alpha1 objects to be read and migrated, while new objects are stored as v1.
+kubectl patch crd configs.settings.acme.io --type=json -p '[{"op":"replace","path":"/spec/versions/<N>/storage","value":false},{"op":"replace","path":"/spec/versions/<M>/storage","value":true}]'
+kubectl get configs.<VERSION>.settings.acme.io -A -o json | kubectl replace -f -
+kubectl patch crd configs.settings.acme.io --subresource=status --type=merge -p '{"status":{"storedVersions":["<VERSION>"]}}'
+
+Then give the Job a moment: it retries every 5 seconds.

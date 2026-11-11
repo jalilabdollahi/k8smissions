@@ -62,3 +62,21 @@ Expert module about extending the API server: CRD schemas and versions, controll
 ### Engine requests
 
 None for this module, other than the optional `check_duplicates.py` ignore for PEM blocks.
+
+### First-half build notes (levels 1-9)
+
+- Fixtures are built and documented in `modules/module-10-operators/_fixtures/README.md`. The helper ConfigMap `kapi-lib` must be mounted at `/kapi`, never `/lib` (that hides the musl loader and python fails with "no such file").
+- l9: the validator runs the CronJob `sla-reporter` once with `kubectl create job --from=cronjob/sla-reporter` instead of waiting for its schedule.
+- l1: the Job stops at the first rejected policy (dry run), so the two schema faults appear one after the other.
+- l3: the operator's `WATCH_NAMESPACE` points at an existing empty namespace `staging`, so nothing errors.
+
+### Second-half build notes (levels 10-18)
+
+- Spikes on kind 1.36: mutating webhooks work (the JSON patch is applied, and `--dry-run=server` shows the mutated object, so l11 validates with it). The `nosan` cert fails with `x509: certificate is not valid for any names, but wanted to match <svc>.<ns>.svc`, not the "legacy Common Name" text (corrected in `_fixtures/README.md`, no code change). Dropping a stored version via `storedVersions` before rewriting objects fails reads with `request to convert CR from an invalid group/version` (l17 trap confirmed).
+- l10: the bug is a status patch with a fresh `lastSync` and `observedGeneration = old + 1`; the validator samples `resourceVersion` for 15 s, changes the spec, then deletes a child.
+- l11: `labeler-system` and `shop` are created by `setup.sh` (labelled managed and lab). The webhook is registered while the server is scaled to 0, then the server is scaled up and `storefront` restarted, so the ReplicaSets hit "no endpoints". No `broken.yaml`.
+- l12: the lease name comes from the Deployment env (`LEASE_NAME` from the downward API), not from `operator-config` (l3 owns ConfigMap env); the stability window is 15 s, and liveness of a lease is judged by its `renewTime` moving between two samples.
+- l13: the throttle is the `INVENTORY_DELAY` env of `asset-inventory` (Deployment env, not a ConfigMap).
+- l15: the first crash is `TypeError: 'NoneType' object is not iterable` (the list of a missing CRD), the second is the planned `'NoneType' object is not subscriptable` on `legacy-sync`. `release-manifests` is created by `setup.sh`; the CRD the player applies is in mission `cleanup`. The validator creates a Workload without `spec.options`, so only a controller fix passes.
+- l17: `crd-sync` is a Python Job that retries every 5 s (a stock kubectl image has no shell); the full fix is storage swap, rewrite, `storedVersions`, then the Job removes `v1alpha1`.
+- l18: `orders` is created by a Job (`queue-publisher`, raw API, so pruning is silent; kubectl's strict validation would have shown the unknown field). The cert fault uses `nosan`; the RBAC fault makes the operator fail open (both replicas lead). Because `orders` was already stored without `deadLetter`, it has to be applied again after the schema fix.

@@ -1,17 +1,15 @@
 {
-  "name": "Permission Denied in Controller",
-  "description": "The operator is running but its logs show '403 Forbidden' errors when it tries to list pods. The operator's ClusterRole only grants access to its own CRD resources — it's missing permissions for the standard Kubernetes resources it needs to manage: Pods, Deployments, Services, ConfigMaps, and the status subresource.",
-  "objective": "The operator's ServiceAccount lacks RBAC permissions to list and watch Pods — fix the ClusterRole",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "RBAC",
-    "ServiceAccount",
-    "ClusterRole",
-    "ClusterRoleBinding",
-    "operator permissions"
-  ],
+  "name": "Forbidden, three times",
+  "description": "`report-operator` turns `Report` objects into a summary ConfigMap and a `Done` status, for the quarterly review. It is Running but every `Report` (`q3-capacity`, `q3-access`, `q3-cost`) has an empty status and no summary exists. Its logs are full of `403 Forbidden`, and last week's fix, which let it list pods, only changed the error. Security has said the operator must not get cluster-admin or any other blanket permission.",
+  "objective": "Every `Report` reaches `status.phase: Done` with a summary ConfigMap `report-<name>`, a new `Report` is processed within seconds, and the operator's ServiceAccount can do what it needs (list pods, create configmaps, patch reports/status) but cannot read secrets, delete nodes or do everything.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["RBAC", "controller permissions", "subresource rules", "kubectl auth can-i", "least privilege"],
   "module": "module-10-operators",
-  "level": "level-8-controller-rbac"
+  "level": "level-8-controller-rbac",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

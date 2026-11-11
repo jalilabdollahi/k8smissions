@@ -1,10 +1,180 @@
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: my-operator-sub
-  namespace: operators
+  name: bundle-1.2.0
+  namespace: k8smissions
+  labels: {olm.acme.io/bundle: widget-operator}
+data:
+  bundle.json: '{"name": "widget-operator", "version": "1.2.0", "channel": "stable", "replaces": "1.1.0"}'
+  controller.py: |
+    from kapi import api, patch, forever, log, NS
+    VERSION = "1.2.0"
+    BASE = "/apis/widgets.acme.io/v1/namespaces/%s/widgets" % NS
+    log("widget-operator %s starting" % VERSION)
+
+    def reconcile():
+        code, body = api("GET", BASE)
+        for w in body.get("items", []):
+            name, spec, st = w["metadata"]["name"], w.get("spec", {}), w.get("status", {})
+            if "replicas" not in spec:
+                log("widget %s: no spec.replicas, schema not supported by %s" % (name, VERSION))
+                want = {"phase": "Unsupported", "operatorVersion": VERSION}
+            else:
+                cm = "/api/v1/namespaces/%s/configmaps/widget-%s" % (NS, name)
+                code, cur = api("GET", cm)
+                data = {"replicas": str(spec["replicas"])}
+                if code == 404:
+                    api("POST", "/api/v1/namespaces/%s/configmaps" % NS, {"metadata": {"name": "widget-" + name}, "data": data})
+                elif cur.get("data") != data:
+                    patch(cm, {"data": data})
+                want = {"phase": "Ready", "operatorVersion": VERSION, "schemaVersion": st.get("schemaVersion", 1)}
+            if any(st.get(k) != v for k, v in want.items()):
+                patch(BASE + "/%s/status" % name, {"status": want})
+                log("widget %s -> %s" % (name, want["phase"]))
+
+    forever(reconcile)
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bundle-1.3.0
+  namespace: k8smissions
+  labels: {olm.acme.io/bundle: widget-operator}
+data:
+  bundle.json: '{"name": "widget-operator", "version": "1.3.0", "channel": "stable", "replaces": "1.2.0", "note": "migrates Widgets to schema 2"}'
+  controller.py: |
+    from kapi import api, patch, forever, log, NS
+    VERSION = "1.3.0"
+    BASE = "/apis/widgets.acme.io/v1/namespaces/%s/widgets" % NS
+    log("widget-operator %s starting (migration release)" % VERSION)
+
+    def migrate(w):
+        name = w["metadata"]["name"]
+        if "replicas" in w.get("spec", {}) and "sizing" not in w["spec"]:
+            patch(BASE + "/" + name, {"spec": {"sizing": {"replicas": w["spec"]["replicas"]}}})
+        patch(BASE + "/%s/status" % name, {"status": {"schemaVersion": 2}})
+        log("migrated widget %s to schema 2" % name)
+
+    def reconcile():
+        code, body = api("GET", BASE)
+        for w in body.get("items", []):
+            name, spec, st = w["metadata"]["name"], w.get("spec", {}), w.get("status", {})
+            if st.get("schemaVersion") != 2:
+                migrate(w)
+                continue
+            replicas = spec.get("sizing", {}).get("replicas", spec.get("replicas"))
+            cm = "/api/v1/namespaces/%s/configmaps/widget-%s" % (NS, name)
+            code, cur = api("GET", cm)
+            data = {"replicas": str(replicas)}
+            if code == 404:
+                api("POST", "/api/v1/namespaces/%s/configmaps" % NS, {"metadata": {"name": "widget-" + name}, "data": data})
+            elif cur.get("data") != data:
+                patch(cm, {"data": data})
+            if st.get("operatorVersion") != VERSION or st.get("phase") != "Ready":
+                patch(BASE + "/%s/status" % name, {"status": {"phase": "Ready", "operatorVersion": VERSION}})
+
+    forever(reconcile)
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bundle-1.4.0
+  namespace: k8smissions
+  labels: {olm.acme.io/bundle: widget-operator}
+data:
+  bundle.json: '{"name": "widget-operator", "version": "1.4.0", "channel": "stable", "replaces": "1.3.0"}'
+  controller.py: |
+    import sys
+    from kapi import api, patch, forever, log, NS
+    VERSION = "1.4.0"
+    BASE = "/apis/widgets.acme.io/v1/namespaces/%s/widgets" % NS
+    log("widget-operator %s starting" % VERSION)
+
+    code, body = api("GET", BASE)
+    old = [w["metadata"]["name"] for w in body.get("items", []) if w.get("status", {}).get("schemaVersion") != 2]
+    if old:
+        log("refusing to start: widgets %s are not on schema 2; install the release this one replaces first" % ", ".join(old))
+        sys.exit(1)
+
+    def reconcile():
+        code, body = api("GET", BASE)
+        for w in body.get("items", []):
+            name, st = w["metadata"]["name"], w.get("status", {})
+            replicas = w.get("spec", {}).get("sizing", {}).get("replicas")
+            if replicas is None:
+                continue
+            cm = "/api/v1/namespaces/%s/configmaps/widget-%s" % (NS, name)
+            code, cur = api("GET", cm)
+            data = {"replicas": str(replicas)}
+            if code == 404:
+                api("POST", "/api/v1/namespaces/%s/configmaps" % NS, {"metadata": {"name": "widget-" + name}, "data": data})
+                log("created configmap widget-%s" % name)
+            elif cur.get("data") != data:
+                patch(cm, {"data": data})
+            want = {"phase": "Ready", "operatorVersion": VERSION, "schemaVersion": 2}
+            if any(st.get(k) != v for k, v in want.items()):
+                patch(BASE + "/%s/status" % name, {"status": want})
+
+    forever(reconcile)
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: widget-operator
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: widget-operator
+  namespace: k8smissions
+rules:
+- apiGroups: ["widgets.acme.io"]
+  resources: ["widgets"]
+  verbs: ["get", "list", "patch"]
+- apiGroups: ["widgets.acme.io"]
+  resources: ["widgets/status"]
+  verbs: ["patch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: widget-operator
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: widget-operator}
+subjects:
+- {kind: ServiceAccount, name: widget-operator, namespace: k8smissions}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: widget-operator
+  namespace: k8smissions
+  labels:
+    olm.acme.io/channel: stable
+    olm.acme.io/pinned-version: 1.2.0
 spec:
-  channel: stable
-  name: my-operator
-  source: non-existent-catalog
-  sourceNamespace: olm
+  replicas: 1
+  selector:
+    matchLabels: {app: widget-operator}
+  template:
+    metadata:
+      labels: {app: widget-operator}
+    spec:
+      serviceAccountName: widget-operator
+      containers:
+      - name: operator
+        image: python:3.12-alpine
+        command: ["python", "-u", "/bundle/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: bundle, mountPath: /bundle}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - name: bundle
+        configMap: {name: bundle-1.2.0}
+      - {name: lib, configMap: {name: kapi-lib}}

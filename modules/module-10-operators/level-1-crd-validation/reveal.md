@@ -1,16 +1,13 @@
-## What went wrong
+Two rules in the CRD schema reject the DBA's values:
 
-The CRD's `openAPIV3Schema` sets `minimum: 5` on `spec.replicas`. Every custom resource that sets fewer than 5 replicas is rejected at admission. This is enforced server-side by the API server, which validates all CR writes against the CRD schema.
+1. `spec.retentionDays` has `minimum: 30`, but `nightly-db` keeps 14 days and `hourly-wal` keeps 7. Lower the minimum to a sane floor such as 1 (so 0 and negative numbers are still refused).
+2. `spec.schedule` has a `pattern` that only allows `*` or plain numbers in each cron field, so `*/20 * * * *` fails. Extend each field to allow an optional step: `(\*|[0-9]+)(/[0-9]+)?`.
 
-## Fix
-
-```yaml
-properties:
-  replicas:
-    type: integer
-    minimum: 1
+```bash
+kubectl patch crd backuppolicies.dba.acme.io --type=json -p '[
+ {"op":"replace","path":"/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/retentionDays/minimum","value":1},
+ {"op":"replace","path":"/spec/versions/0/schema/openAPIV3Schema/properties/spec/properties/schedule/pattern","value":"^(\\*|[0-9]+)(/[0-9]+)?( (\\*|[0-9]+)(/[0-9]+)?){4}$"}
+]'
 ```
 
-## Why this matters
-
-CRD OpenAPI validation is the Kubernetes-native way to enforce CR contracts at the API layer — before the operator even sees the object. Common constraints: `minimum`/`maximum` for numbers, `minLength`/`maxLength` for strings, `enum` for allowed values, `pattern` for regex, and `required` for mandatory fields. Bad constraints (like `minimum: 5` when you want to support single replicas) make CRs impossible to use correctly. Always test your schema with `kubectl apply --dry-run=server` before shipping.
+The Job retries by itself and creates the three policies on its next pass. Do not edit the policies or the Job's data, and do not delete the schema: that would "fix" the Job and break the platform team's guard rails.

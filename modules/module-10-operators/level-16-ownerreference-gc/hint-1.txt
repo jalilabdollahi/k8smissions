@@ -1,1 +1,1 @@
-Delete the custom resource and check if its owned Deployment is also deleted: `kubectl delete myapp my-app -n k8smissions` then `kubectl get deployment my-app-deploy -n k8smissions`
+Compare a child with its parent: `kubectl -n k8smissions get deploy site-storefront -o jsonpath='{.metadata.ownerReferences}'` against `kubectl -n k8smissions get site storefront -o jsonpath='{.metadata.uid}'`. Do the same for the Service and the ConfigMap. Also watch `kubectl -n k8smissions get deploy -w` while you delete and recreate a Site.

@@ -1,16 +1,15 @@
 {
-  "name": "Rejected by the API",
-  "description": "Every attempt to create a custom resource of type `AppTemplate` is rejected by the API server with a validation error. The CRD defines an OpenAPI schema, and the schema has a constraint that makes normal use impossible — the minimum allowed replica count is set too high.",
-  "objective": "The CRD's OpenAPI validation schema marks 'replicas' as having minimum: 5 but the resource sets 2 — fix the CR or the CRD schema",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "CRD",
-    "OpenAPI validation",
-    "x-kubernetes-validations",
-    "custom resource"
-  ],
+  "name": "Policies that never land",
+  "description": "The platform team tightened the `BackupPolicy` CRD this week. Since then the Job `policy-sync`, which applies the DBA team's three backup policies (`nightly-db`, `hourly-wal`, `weekly-archive`), keeps failing and retrying, and none of the three policies exist. The DBAs are adamant that their values are correct and have not changed.",
+  "objective": "BackupPolicies `nightly-db` (retentionDays 14), `hourly-wal` (retentionDays 7) and `weekly-archive` (retentionDays 90) exist in `k8smissions` with the DBA team's original values, Job `policy-sync` has completed, and the CRD still rejects nonsense (a `retentionDays` of 0, a schedule that is not a cron expression).",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["CRD", "openAPIV3Schema", "minimum", "pattern", "enum", "dry-run", "kubectl explain"],
   "module": "module-10-operators",
-  "level": "level-1-crd-validation"
+  "level": "level-1-crd-validation",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

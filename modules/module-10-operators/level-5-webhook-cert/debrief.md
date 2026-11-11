@@ -1,16 +1,21 @@
-# Handshake Refused
+## What was broken
 
-## What Was Broken
-The webhook config had a hardcoded caBundle with an expired/invalid certificate. Every pod CREATE request was sent to the webhook, which returned TLS errors. With failurePolicy: Fail, all pod creations were blocked.
+An admission webhook is an HTTPS call from the API server to your service, and it only works if the TLS handshake succeeds. Here it failed twice in a row, for two unrelated reasons: the `caBundle` in the webhook configuration did not match the issuer of the server's certificate, and once that was fixed, the certificate itself turned out to be expired.
 
-## The Fix
-Use cert-manager's CA injection annotation to automatically keep caBundle up-to-date. The caBundle must match the CA that signed the webhook server's TLS certificate.
+## The evidence
 
-## Why It Matters
-Webhook TLS rotation strategy: use cert-manager Certificate + caBundle injection annotation on the webhook config. cert-manager rotates the server cert and updates caBundle automatically — zero-downtime cert rotation.
+Creating a guarded pod printed the handshake error, with the cause in plain words each time: first `certificate signed by unknown authority` (the client's trust is wrong), then `certificate has expired or is not yet valid` (the server's certificate is wrong). `openssl x509 -noout -dates -issuer` on the PEM from the Secret confirms both without guessing.
 
-## Pro Tip
-Check webhook cert expiry: kubectl get secret webhook-tls -n operators -o jsonpath='{.data.tls.crt}' | base64 -d | openssl x509 -noout -dates
+## Why Kubernetes behaved this way
 
-## Concepts
-admission webhook, TLS, caBundle, cert-manager, certificate rotation
+The API server verifies the webhook's certificate against `caBundle` and the service's DNS name; it does not skip verification and it does not fall back. With `failurePolicy: Fail` an unreachable or untrusted webhook rejects the request, which is what you want from a security guard and is also why a stale certificate stops every guarded pod. The server loads its certificate once at start, so renewing the Secret is not enough: the process has to restart (or reload) to use it.
+
+## In production
+
+Do not click through the failure by deleting the webhook or setting `Ignore`: that silently turns the policy off, which the validator's `nginx:latest` probe catches. Use cert-manager with the CA injector so `caBundle` and the serving certificate rotate together, scope webhooks with `namespaceSelector` and `objectSelector` so a failed guard cannot take down the control plane, and alert on certificate expiry.
+
+## Worth remembering
+
+- `kubectl get validatingwebhookconfiguration <name> -o jsonpath='{.webhooks[*].clientConfig}'`
+- `kubectl get secret <name> -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -dates -issuer`
+- `kubectl run ... --dry-run=server` calls webhooks without creating anything

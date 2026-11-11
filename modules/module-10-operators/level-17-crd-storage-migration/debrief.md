@@ -1,16 +1,23 @@
-# Stored Version Gone
+## What was broken
 
-## What Was Broken
-v1alpha1 resources existed in etcd but the CRD version was removed. Kubernetes couldn't decode stored v1alpha1 objects because there was no schema for that version anymore. This breaks all API access to those resources.
+The `Config` CRD still had `v1alpha1` as its storage version, so all 30 objects were stored in etcd as `v1alpha1` and `status.storedVersions` said so. The Job that rolls out the final CRD removes `v1alpha1` from `spec.versions`, and the API server rejects exactly that change.
 
-## The Fix
-Always re-add removed versions as served: false, storage: false, migrate all stored objects, then remove the version.
+## The evidence
 
-## Why It Matters
-Safe CRD version removal checklist: (1) add new version with storage: true, keep old version storage: false, (2) convert all stored objects to new version via mass re-apply, (3) clear status.storedVersions, (4) remove old version from CRD spec.
+The Job's log quoted the API server: `status.storedVersions[0]: Invalid value: "v1alpha1": missing from spec.versions; v1alpha1 was previously a storage version, and must remain in spec.versions until a storage migration ensures no data remains persisted in v1alpha1`. `kubectl get crd ... -o yaml` showed `storage: true` on `v1alpha1` and `storedVersions: [v1alpha1]`.
 
-## Pro Tip
-Check which versions are stored: kubectl get crd configs.example.com -o jsonpath='{.status.storedVersions}'. This array must be empty (or contain only the current storage version) before safely removing a version.
+## Why Kubernetes behaved this way
 
-## Concepts
-CRD versioning, storage migration, storedVersions, etcd, version lifecycle
+The API server never rewrites stored objects by itself when you change the storage version; existing objects stay as written until something writes them again. `storedVersions` is the safety record: it lists every version that might still be in etcd. It only grows automatically, and you may remove a version only after a storage migration. Removing it earlier, by editing the status, makes the API unable to decode objects still stored in that version: reads then fail with `request to convert CR from an invalid group/version`, and the data is stuck.
+
+A migration is therefore: set the new storage version, rewrite all objects (an empty update is enough, since the stored bytes differ), then shrink `storedVersions`, and only then drop the old version from `spec.versions`.
+
+## In production
+
+The Kube Storage Version Migrator or a small Job doing `kubectl get ... -o json | kubectl replace -f -` per namespace does the rewrite. Do it with a backup, and keep serving the old version until clients have moved. Conversion webhooks are needed when the schema, not only the version name, differs.
+
+## Worth remembering
+
+- `kubectl get crd <name> -o jsonpath='{.status.storedVersions}'`
+- `kubectl patch crd <name> --subresource=status --type=merge -p '{"status":{"storedVersions":["v1"]}}'`
+- `kubectl get <kind>.<version>.<group> -A -o json | kubectl replace -f -`

@@ -1,69 +1,276 @@
 apiVersion: v1
-kind: List
-items:
-- apiVersion: admissionregistration.k8s.io/v1
-  kind: ValidatingWebhookConfiguration
-  metadata:
-    name: strict-validator
-  webhooks:
-  - name: validate.example.com
-    admissionReviewVersions:
-    - v1
-    clientConfig:
-      service:
-        name: validator-svc
-        namespace: operators
-        port: 443
-    rules:
-    - apiGroups:
-      - ''
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      resources:
-      - pods
-    failurePolicy: Fail
-    sideEffects: None
-- apiVersion: apiextensions.k8s.io/v1
-  kind: CustomResourceDefinition
-  metadata:
-    name: apps.example.com
-  spec:
-    group: example.com
-    versions:
-    - name: v2
-      served: true
-      storage: true
-    scope: Namespaced
-    names:
-      plural: apps
-      singular: app
-      kind: App
-- apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: my-operator
-    namespace: operators
-  spec:
-    replicas: 2
-    selector:
-      matchLabels:
-        app: my-operator
-    template:
-      metadata:
-        labels:
-          app: my-operator
-      spec:
-        containers:
-        - name: operator
-          image: my-operator:v1.0
-          args:
-          - --leader-elect=false
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
+kind: ConfigMap
+metadata:
+  name: queue-guard-handler
+  namespace: k8smissions
+data:
+  handler.py: |
+    # Queues keep messages for at most 14 days.
+    def validate(req):
+        spec = (req.get("object") or {}).get("spec") or {}
+        days = spec.get("retentionDays", 1)
+        if days > 14:
+            return False, "queue-guard: retentionDays %d exceeds the 14 day maximum" % days
+        return True, ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-webhook
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: queue-webhook}
+  template:
+    metadata:
+      labels: {app: queue-webhook}
+    spec:
+      containers:
+      - name: server
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/server.py"]
+        readinessProbe:
+          tcpSocket: {port: 8443}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: handler, mountPath: /handler}
+        - {name: tls, mountPath: /tls}
+      volumes:
+      - {name: app, configMap: {name: webhook-server}}
+      - {name: handler, configMap: {name: queue-guard-handler}}
+      - {name: tls, secret: {secretName: queue-webhook-tls}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: queue-webhook
+  namespace: k8smissions
+spec:
+  selector: {app: queue-webhook}
+  ports:
+  - {port: 443, targetPort: 8443}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: queue-requests
+  namespace: k8smissions
+data:
+  orders.json: |
+    {"apiVersion": "queue.acme.io/v1", "kind": "Queue", "metadata": {"name": "orders"},
+     "spec": {"partitions": 6, "retentionDays": 7, "deadLetter": {"enabled": true, "maxRetries": 5}}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: queue-publisher-code
+  namespace: k8smissions
+data:
+  publish.py: |
+    import json, sys, time
+    from kapi import api, log, NS
+
+    BODY = json.load(open("/requests/orders.json"))
+    PATH = "/apis/queue.acme.io/v1/namespaces/%s/queues" % NS
+
+    while True:
+        code, res = api("POST", PATH, BODY)
+        if code in (201, 409):
+            log("queue orders is registered (%s)" % code)
+            sys.exit(0)
+        log("queue orders was rejected (%s): %s" % (code, res.get("message")))
+        time.sleep(5)
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: queue-publisher
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: queue-publisher
+  namespace: k8smissions
+rules:
+- apiGroups: ["queue.acme.io"]
+  resources: ["queues"]
+  verbs: ["get", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: queue-publisher
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: queue-publisher}
+subjects:
+- {kind: ServiceAccount, name: queue-publisher, namespace: k8smissions}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: queue-publisher
+  namespace: k8smissions
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: queue-publisher
+      containers:
+      - name: publish
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/publish.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+        - {name: requests, mountPath: /requests}
+      volumes:
+      - {name: app, configMap: {name: queue-publisher-code}}
+      - {name: lib, configMap: {name: kapi-lib}}
+      - {name: requests, configMap: {name: queue-requests}}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: queue-operator
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: queue-operator
+  namespace: k8smissions
+rules:
+- apiGroups: ["queue.acme.io"]
+  resources: ["queues"]
+  verbs: ["get", "list"]
+- apiGroups: ["queue.acme.io"]
+  resources: ["queues/status"]
+  verbs: ["get", "patch"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: queue-operator
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: queue-operator}
+subjects:
+- {kind: ServiceAccount, name: queue-operator, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: queue-operator-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    import datetime, os
+    from kapi import api, patch, forever, log, NS
+
+    ME = os.environ["POD_NAME"]
+    LEASES = "/apis/coordination.k8s.io/v1/namespaces/%s/leases" % NS
+    LEASE = LEASES + "/queue-operator"
+    QUEUES = "/apis/queue.acme.io/v1/namespaces/%s/queues" % NS
+    CMS = "/api/v1/namespaces/%s/configmaps" % NS
+    FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
+    UTC = datetime.timezone.utc
+
+
+    def now():
+        return datetime.datetime.now(UTC)
+
+
+    def leader():
+        code, lease = api("GET", LEASE)
+        if code in (401, 403):
+            log("lease unavailable (%s): %s; continuing without election" % (code, lease.get("message")))
+            return True
+        if code == 404:
+            code, _ = api("POST", LEASES, {"metadata": {"name": "queue-operator"}, "spec": {
+                "holderIdentity": ME, "leaseDurationSeconds": 10,
+                "acquireTime": now().strftime(FMT), "renewTime": now().strftime(FMT)}})
+            return code == 201
+        if code != 200:
+            return False
+        spec = lease["spec"]
+        mine = spec.get("holderIdentity") == ME
+        renewed = datetime.datetime.strptime(spec["renewTime"], FMT).replace(tzinfo=UTC)
+        expired = (now() - renewed).total_seconds() > spec.get("leaseDurationSeconds", 10)
+        if not (mine or expired):
+            return False
+        spec["holderIdentity"] = ME
+        spec["renewTime"] = now().strftime(FMT)
+        code, _ = api("PUT", LEASE, lease)  # carries resourceVersion: a lost race is a 409
+        return code == 200
+
+
+    def ensure(name, data):
+        code, cm = api("GET", "%s/%s" % (CMS, name))
+        if code == 404:
+            api("POST", CMS, {"metadata": {"name": name}, "data": data})
+            log("created ConfigMap", name)
+        elif code == 200 and cm.get("data") != data:
+            patch("%s/%s" % (CMS, name), {"data": data})
+            log("updated ConfigMap", name)
+
+
+    def reconcile():
+        if not leader():
+            return
+        code, body = api("GET", QUEUES)
+        if code != 200:
+            log("cannot list queues:", code, body.get("message"))
+            return
+        for q in body["items"]:
+            name = q["metadata"]["name"]
+            spec = q.get("spec") or {}
+            ensure("queue-" + name, {"partitions": str(spec.get("partitions", 1)),
+                                     "retentionDays": str(spec.get("retentionDays", 1))})
+            dead = spec.get("deadLetter") or {}
+            if dead.get("enabled"):
+                ensure("queue-%s-dlq" % name, {"source": name, "maxRetries": str(dead.get("maxRetries", 3))})
+            status = q.get("status") or {}
+            gen = q["metadata"]["generation"]
+            if (status.get("phase"), status.get("observedGeneration"), status.get("lastWriter")) != ("Ready", gen, ME):
+                patch("%s/%s/status" % (QUEUES, name), {"status": {
+                    "phase": "Ready", "observedGeneration": gen, "lastWriter": ME}})
+                log("reconciled queue %s generation %s" % (name, gen))
+
+
+    forever(reconcile)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-operator
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: queue-operator}
+  template:
+    metadata:
+      labels: {app: queue-operator}
+    spec:
+      serviceAccountName: queue-operator
+      containers:
+      - name: operator
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        - name: POD_NAME
+          valueFrom: {fieldRef: {fieldPath: metadata.name}}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: queue-operator-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

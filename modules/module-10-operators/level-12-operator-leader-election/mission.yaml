@@ -1,17 +1,15 @@
 {
-  "name": "Split Brain",
-  "description": "Two operator replicas are running simultaneously and both are actively reconciling the same custom resources. They produce conflicting updates — resources flip back and forth between states as each replica overwrites the other's changes. Leader election is disabled, causing a split-brain condition.",
-  "objective": "Leader election is disabled on the operator — only one replica should run as leader; others should standby",
-  "xp": 350,
-  "difficulty": "advanced",
+  "name": "Two leaders, one order book",
+  "description": "`orders-operator` runs two replicas for availability and implements leader election on a Lease, so only one of them should ever act. Since the last release both pods are busy: `status.lastWriter` on the `Order` objects flips between the two pod names, and the `claims` counter jumps on every look. `kubectl get lease` looks perfectly healthy.",
+  "objective": "Exactly one `orders-operator` pod holds a live lease and keeps `status.lastWriter` stable on every `Order` for 15 seconds. The Deployment keeps both replicas. When the leader pod is deleted, the other pod takes over and reconciles a brand-new `Order` before the lease would have expired twice over.",
+  "xp": 300,
+  "difficulty": "expert",
   "expected_time": "15m",
-  "concepts": [
-    "leader election",
-    "operator HA",
-    "lease",
-    "split brain",
-    "controller-runtime"
-  ],
+  "concepts": ["leader election", "Lease", "holderIdentity", "split brain", "failover"],
   "module": "module-10-operators",
-  "level": "level-12-operator-leader-election"
+  "level": "level-12-operator-leader-election",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

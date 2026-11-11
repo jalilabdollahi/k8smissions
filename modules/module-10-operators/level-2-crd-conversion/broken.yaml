@@ -1,20 +1,157 @@
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
+apiVersion: v1
+kind: ConfigMap
 metadata:
-  name: databases.example.com
+  name: converter-handler
+  namespace: k8smissions
+data:
+  handler.py: |
+    # Conversion rules for the Cache API: v1alpha1 spec.maxMemoryMB (int) <-> v1 spec.memory (quantity)
+    def _to_v1(spec):
+        mb = spec.pop("maxMemoryMB", None)
+        if mb is not None:
+            spec["memory"] = "%dMi" % mb
+
+    def _to_alpha(spec):
+        mem = spec.pop("memory", None)
+        if mem is not None:
+            spec["maxMemoryMB"] = int(mem[:-2]) * (1024 if mem.endswith("Gi") else 1)
+
+    def convert(objects, desired):
+        out = []
+        for obj in objects:
+            obj = dict(obj, spec=dict(obj.get("spec") or {}))
+            if obj["apiVersion"] != desired:
+                if desired.endswith("/v1"):
+                    _to_v1(obj["spec"])
+                elif desired.endswith("/v1alpha1"):
+                    _to_alpha(obj["spec"])
+                else:
+                    raise ValueError("cannot convert to " + desired)
+                obj["apiVersion"] = desired
+            out.append(obj)
+        return out
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-converter
+  namespace: k8smissions
 spec:
-  group: example.com
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: true
-  - name: v1beta1
-    served: true
-    storage: false
-  conversion:
-    strategy: None
-  scope: Namespaced
-  names:
-    plural: databases
-    singular: database
-    kind: Database
+  replicas: 1
+  selector:
+    matchLabels: {app: cache-converter}
+  template:
+    metadata:
+      labels: {app: cache-converter}
+    spec:
+      containers:
+      - name: server
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/server.py"]
+        readinessProbe:
+          tcpSocket: {port: 8443}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: handler, mountPath: /handler}
+        - {name: tls, mountPath: /tls}
+      volumes:
+      - {name: app, configMap: {name: webhook-server}}
+      - {name: handler, configMap: {name: converter-handler}}
+      - {name: tls, secret: {secretName: converter-tls}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-converter
+  namespace: k8smissions
+spec:
+  selector: {app: cache-converter}
+  ports:
+  - {port: 443, targetPort: 8443}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: cache-controller
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: cache-controller
+  namespace: k8smissions
+rules:
+- apiGroups: ["cache.acme.io"]
+  resources: ["caches"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: cache-controller
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: cache-controller}
+subjects:
+- {kind: ServiceAccount, name: cache-controller, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cache-controller-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    from kapi import api, patch, forever, log, NS
+
+    DEFAULT = "64Mi"
+    LIST = "/apis/cache.acme.io/v1/namespaces/%s/caches" % NS
+
+    def reconcile():
+        code, body = api("GET", LIST)
+        if code != 200:
+            log("cannot list caches:", code, body.get("message"))
+            return
+        for item in body["items"]:
+            name = item["metadata"]["name"]
+            memory = item.get("spec", {}).get("memory") or DEFAULT
+            path = "/api/v1/namespaces/%s/configmaps/cache-%s" % (NS, name)
+            code, cm = api("GET", path)
+            if code == 404:
+                api("POST", "/api/v1/namespaces/%s/configmaps" % NS, {
+                    "metadata": {"name": "cache-" + name}, "data": {"maxmemory": memory}})
+                log("sized cache %s at %s" % (name, memory))
+            elif code == 200 and cm.get("data", {}).get("maxmemory") != memory:
+                patch(path, {"data": {"maxmemory": memory}})
+                log("resized cache %s to %s" % (name, memory))
+
+    forever(reconcile)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-controller
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cache-controller}
+  template:
+    metadata:
+      labels: {app: cache-controller}
+    spec:
+      serviceAccountName: cache-controller
+      containers:
+      - name: controller
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: cache-controller-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

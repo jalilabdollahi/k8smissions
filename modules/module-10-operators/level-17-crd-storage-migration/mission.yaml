@@ -1,17 +1,15 @@
 {
-  "name": "Stored Version Gone",
-  "description": "`kubectl get configs` returns an error: 'no kind is registered for the type in scheme'. The CRD was updated to only list `v1` — but existing objects in etcd were stored as `v1alpha1`. The old version was removed from the CRD before the stored objects were migrated, making them unreadable.",
-  "objective": "A CRD version was removed while stored objects still reference it — complete the storage migration first",
-  "xp": 400,
-  "difficulty": "advanced",
+  "name": "Retiring v1alpha1",
+  "description": "Platform wants `v1alpha1` of the `Config` API gone: everything uses `v1` now. The Job `crd-sync`, which rolls out the final CRD that serves only `v1`, keeps logging an Invalid value error about `storedVersions` and retrying. Thirty `Config` objects were written back when `v1alpha1` was the storage version. The settings in them (`spec.value`) must survive the migration.",
+  "objective": "The `Config` CRD serves only `v1` and its `status.storedVersions` is exactly `[\"v1\"]`. `kubectl get configs.settings.acme.io -A` lists all 30 objects without an error and with their data intact, and the Job `crd-sync` has completed.",
+  "xp": 300,
+  "difficulty": "expert",
   "expected_time": "20m",
-  "concepts": [
-    "CRD version migration",
-    "storage version",
-    "kubectl storage",
-    "migration",
-    "CRD lifecycle"
-  ],
+  "concepts": ["storedVersions", "storage version", "CRD version removal", "storage migration", "kubectl replace"],
   "module": "module-10-operators",
-  "level": "level-17-crd-storage-migration"
+  "level": "level-17-crd-storage-migration",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

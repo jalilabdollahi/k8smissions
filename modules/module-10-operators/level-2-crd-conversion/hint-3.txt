@@ -1,1 +1,3 @@
-The CRD needs two changes: set `storage: true` on v1beta1 (and `storage: false` on v1alpha1), and change `conversion.strategy` from `None` to `Webhook` with a webhook pointing to the conversion service.
+kubectl patch crd caches.cache.acme.io --type=merge -p '{"spec":{"conversion":{"strategy":"Webhook","webhook":{"conversionReviewVersions":["v1"],"clientConfig":{"caBundle":"<BASE64 CA>","service":{"namespace":"k8smissions","name":"<SERVICE>","path":"/<PATH>","port":443}}}}}}'
+
+The CA is already base64 in a Secret: `kubectl -n k8smissions get secret <name> -o jsonpath='{.data.ca\.crt}'`. The converter's logs show which path it serves.

@@ -1,7 +1,15 @@
-# Common Mistakes — Operator Meltdown
+## Stopping after the first fix
 
-## Mistake 1: Fixing all three simultaneously with one multi-resource patch
+Once the certificate is right the Job succeeds and `orders` exists, which feels like the end. But the operator has two leaders and `orders` has no dead-letter queue. The validator checks each fault and the final outcome.
 
-**Wrong approach:** Applying all changes at once makes it impossible to tell which fix resolved which problem
+## Fixing the schema and not rewriting `orders`
 
-**Correct approach:** Fix and verify one issue at a time; document root cause for each
+Adding `deadLetter` to the CRD does not bring back a value that was pruned when the object was stored. The stored `orders` has to be written again (re-apply the manifest in `queue-requests`).
+
+## Granting the operator cluster-admin
+
+It fixes the lease 403 and hides the next permission error, but the validator checks that the operator still cannot read secrets or delete nodes. Add the one rule it needs: `leases`.
+
+## Disabling the webhook or setting failurePolicy: Ignore
+
+Queues are admitted again, but a `retentionDays: 90` Queue is no longer rejected. Fix the certificate instead.
