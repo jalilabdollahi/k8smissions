@@ -1,1 +1,1 @@
-The CronJob is in a suspended state. Look at `spec.suspend` in manifest.yaml. This single field controls whether the CronJob is allowed to fire.
+`kubectl -n k8smissions patch cronjob close-report -p '{"spec":{"suspend":<bool>,"schedule":"<five fields>"}}'` can change both at once. Then watch `kubectl get jobs -w`: the next Job appears at the start of the next minute. `kubectl create job --from=cronjob/close-report` is a manual test run, not the schedule.

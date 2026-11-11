@@ -1,3 +1,1 @@
-Both resources in manifest.yaml have `namespace: default`. They need to be in `k8smissions`.
-
-But editing manifest.yaml alone is not enough — the existing resources in `default` are still there. Think about what steps are needed.
+Simplest path: point the web app at the backend's full name with `kubectl -n k8smissions set env deployment/orders-web UPSTREAM=http://orders-api.<namespace>`. If you copy the objects with `kubectl get ... -o yaml | kubectl apply -n k8smissions -f -`, remember to remove their `namespace:` field and to bring the ConfigMap along too.

@@ -1,13 +1,6 @@
-# Common Mistakes — The Everywhere Pod
+## Common mistakes
 
-## Mistake 1: Adding toleration for wrong taint key
-
-**Wrong approach:** Adding node.kubernetes.io/not-ready — that is for eviction, not scheduling
-
-**Correct approach:** Match the exact taint key: node-role.kubernetes.io/control-plane
-
-## Mistake 2: Using wrong effect
-
-**Wrong approach:** Specifying effect: NoExecute but the taint has NoSchedule — they must match exactly
-
-**Correct approach:** Check the taint effect with kubectl describe node before writing the toleration
+- **Waiting for a Pending pod to explain itself.** There is none: the DaemonSet never created a pod for the tainted node. The signal is `DESIRED 2` against three nodes.
+- **Removing the taint from the control plane node.** It goes against the cluster's policy for everything else and is restored between levels. Make the workload tolerate it.
+- **Using `kubectl label` or a `nodeSelector`.** Selecting the node does not lift the taint; the pod still needs a toleration.
+- **Writing a toleration for the wrong key or effect.** It must match the node's taint (check the exact key and `NoSchedule` in `describe node`), or the pod is not created.

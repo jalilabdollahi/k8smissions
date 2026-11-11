@@ -1,3 +1,1 @@
-The sidecar runs `tail -f /var/log/nonexistent.log`. The file does not exist in the shared emptyDir volume — `tail` exits with an error immediately.
-
-The fix is in spec.containers[1].command in manifest.yaml.
+Add the missing mount to the `log-shipper` container in the Deployment: `kubectl -n k8smissions edit deployment checkout`, under that container add a `volumeMounts` entry whose `name` is the existing volume and whose `mountPath` is the directory the sidecar complains about. The rollout replaces the pods.

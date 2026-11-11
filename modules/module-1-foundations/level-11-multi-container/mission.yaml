@@ -1,16 +1,15 @@
 {
-  "name": "Sidecar Sabotage",
-  "description": "Pod app-with-logging has two containers. Run kubectl get pod app-with-logging -n k8smissions and look at the READY column. What does it show?",
-  "objective": "The sidecar container has a bad command that causes it to crash immediately — fix the sidecar command so both containers run",
-  "xp": 200,
+  "name": "The Silent Shipper",
+  "description": "Since the compliance rollout, Deployment `checkout` shows `1/2` under READY on both replicas. Customers can still pay, because the `nginx` container answers, but the `log-shipper` sidecar keeps restarting and the audit team sees no access lines from `checkout` in its logs. They need every request to `checkout` visible there before Friday.",
+  "objective": "Every `checkout` pod has both containers Ready and not restarting, and each request served through Service `checkout` shows up as an access line in the `log-shipper` container's logs.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "15m",
-  "concepts": [
-    "multi-container pods",
-    "sidecar pattern",
-    "shared volumes",
-    "container independence"
-  ],
+  "expected_time": "10m",
+  "concepts": ["sidecar", "logs -c", "emptyDir", "volumeMounts", "shared volume"],
   "module": "module-1-foundations",
-  "level": "level-11-multi-container"
+  "level": "level-11-multi-container",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 90,
+  "cleanup": []
 }

@@ -1,26 +1,115 @@
 apiVersion: v1
-kind: Pod
+kind: Secret
 metadata:
-  name: secret-pod
+  name: reports-db
   namespace: k8smissions
-  labels:
-    app: secret-pod
+type: Opaque
+stringData:
+  db-user: reports
+  db-password: Rp7-summit-4412
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reports-db-stub
+  namespace: k8smissions
 spec:
-  containers:
-  - name: secret-pod
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - if [ -z "$DB_USERNAME" ] || [ -z "$DB_PASSWORD" ]; then exit 1; fi; sleep 3600
-    env:
-    - name: DB_USERNAME
-      valueFrom:
-        secretKeyRef:
-          name: db-credentials
-          key: username
-    - name: DB_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: db-credentials
-          key: password
+  replicas: 1
+  selector:
+    matchLabels: {app: reports-db-stub}
+  template:
+    metadata:
+      labels: {app: reports-db-stub}
+    spec:
+      containers:
+      - name: db
+        image: python:3.12-alpine
+        command:
+        - python
+        - -u
+        - -c
+        - |
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  ok = self.headers.get("X-Password") == "Rp7-summit-4412"
+                  self.send_response(200 if ok else 403)
+                  self.end_headers()
+                  self.wfile.write(b"welcome\n" if ok else b"access denied\n")
+          HTTPServer(("", 5432), H).serve_forever()
+        ports:
+        - containerPort: 5432
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reports-db-stub
+  namespace: k8smissions
+spec:
+  selector:
+    app: reports-db-stub
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reports-api
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: reports-api}
+  template:
+    metadata:
+      labels: {app: reports-api}
+    spec:
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: reports-db
+              key: password
+        command:
+        - python
+        - -u
+        - -c
+        - |
+          import os, urllib.request, urllib.error
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  req = urllib.request.Request("http://reports-db-stub:5432/",
+                                               headers={"X-Password": os.environ["DB_PASSWORD"]})
+                  try:
+                      urllib.request.urlopen(req, timeout=3)
+                      body = b"db: authenticated\n"
+                  except urllib.error.HTTPError:
+                      body = b"db: rejected\n"
+                  except Exception:
+                      body = b"db: unreachable\n"
+                  self.send_response(200)
+                  self.end_headers()
+                  self.wfile.write(body)
+          HTTPServer(("", 8080), H).serve_forever()
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          tcpSocket: {port: 8080}
+          periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reports-api
+  namespace: k8smissions
+spec:
+  selector:
+    app: reports-api
+  ports:
+  - port: 80
+    targetPort: 8080

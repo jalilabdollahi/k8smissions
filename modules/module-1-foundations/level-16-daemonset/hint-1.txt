@@ -1,5 +1,1 @@
-DaemonSet pods are not being scheduled. When a pod cannot be scheduled, it is almost always because of node constraints. Check what taints the nodes have:
-
-  kubectl describe node | grep -A3 'Taints'
-
-What taint is present? What does it mean for scheduling?
+Compare where the pods run with the nodes you have: `kubectl -n k8smissions get pods -o wide` and `kubectl get nodes`. Then ask the node that has no pod why: `kubectl describe node <that-node>` lists Taints near the top.

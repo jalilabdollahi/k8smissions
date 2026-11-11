@@ -1,7 +1,1 @@
-The pod is not failing to start — the container launches and then exits. That means the problem is inside the application, not Kubernetes config. Read the output:
-
-  kubectl logs env-pod -n k8smissions
-
-If the pod restarted and logs are gone:
-
-  kubectl logs env-pod -n k8smissions --previous
+Read what the mailer says it is doing: `kubectl -n k8smissions logs deploy/invoice-mailer`. Look closely at the exact URL it prints on each `calling` line.

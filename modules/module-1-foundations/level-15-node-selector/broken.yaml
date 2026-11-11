@@ -1,17 +1,30 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: selector-pod
+  name: cache-warm
   namespace: k8smissions
   labels:
-    app: selector-pod
+    app: cache-warm
 spec:
-  containers:
-  - name: selector-pod
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - sleep 3600
   nodeSelector:
-    mission: moon-base
+    disktype: ssd
+  containers:
+  - name: cache
+    image: nginx:1.27-alpine
+    ports:
+    - containerPort: 80
+    readinessProbe:
+      httpGet: {path: /, port: 80}
+      periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-warm
+  namespace: k8smissions
+spec:
+  selector:
+    app: cache-warm
+  ports:
+  - port: 80
+    targetPort: 80

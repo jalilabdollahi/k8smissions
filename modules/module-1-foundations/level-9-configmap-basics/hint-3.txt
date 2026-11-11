@@ -1,3 +1,1 @@
-The ConfigMap `app-config` does not exist yet. The pod declares a Volume that references it in spec.volumes.
-
-The solution is to add the missing ConfigMap to manifest.yaml — above the Pod definition, separated by `---`.
+The ConfigMap is already right, so leave it alone. Make the Deployment create new pods: `kubectl -n k8smissions rollout restart deployment/pricing`, then follow it with `kubectl rollout status deployment/pricing`.

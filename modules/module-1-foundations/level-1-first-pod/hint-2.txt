@@ -1,7 +1,1 @@
-The log says something like 'nginxzz: not found'. The container tried to run a command that does not exist inside the image.
-
-Now look at the full pod spec to find where that command is configured:
-
-  kubectl get pod nginx-broken -n k8smissions -o yaml
-
-Look at spec.containers[0] carefully.
+A container image has a default program (its ENTRYPOINT/CMD). A pod spec field called `command` replaces it. Compare what the container actually ran with what an nginx pod should run: `kubectl explain pod.spec.containers.command`. Also remember most of a running pod spec is immutable.

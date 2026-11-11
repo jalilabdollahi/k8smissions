@@ -1,5 +1,1 @@
-The resources are in the `default` namespace. Now look at why:
-
-  kubectl get pod client-app -n default -o yaml | grep 'namespace'
-
-Then open manifest.yaml and find the same field.
+A short Service name like `orders-api` only resolves inside the caller's own namespace. From another namespace the name must carry it: `<service>.<namespace>` (or the full `<service>.<namespace>.svc.cluster.local`). Either make the name valid for `orders-web`, or put the backend where the name already works.

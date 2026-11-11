@@ -1,21 +1,68 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: app-with-logging
+  name: checkout-nginx
+  namespace: k8smissions
+data:
+  default.conf: |
+    log_format audit '$remote_addr "$request" $status';
+    server {
+      listen 80;
+      access_log /logs/access.log audit;
+      location / {
+        default_type text/plain;
+        return 200 "checkout ok\n";
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout
   namespace: k8smissions
 spec:
-  containers:
-  - name: main-app
-    image: hashicorp/http-echo:latest
-    args: ["-text=Hello from main app"]
-    ports:
-    - containerPort: 5678
-  - name: log-sidecar
-    image: busybox:latest
-    command: ["sh", "-c", "tail -f /var/log/nonexistent.log"]  # File doesn't exist!
-    volumeMounts:
-    - name: logs
-      mountPath: /var/log
-  volumes:
-  - name: logs
-    emptyDir: {}
+  replicas: 2
+  selector:
+    matchLabels: {app: checkout}
+  template:
+    metadata:
+      labels: {app: checkout}
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/nginx/conf.d
+        - name: logs
+          mountPath: /logs
+      - name: log-shipper
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          if [ ! -d /logs ]; then
+            echo "log-shipper: /logs is not there, nothing to ship" >&2
+            exit 1
+          fi
+          touch /logs/access.log
+          exec tail -F /logs/access.log
+      volumes:
+      - name: conf
+        configMap:
+          name: checkout-nginx
+      - name: logs
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout
+  namespace: k8smissions
+spec:
+  selector:
+    app: checkout
+  ports:
+  - port: 80
+    targetPort: 80

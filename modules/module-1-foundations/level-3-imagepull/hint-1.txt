@@ -1,5 +1,1 @@
-ImagePullBackOff means Kubernetes tried to pull the container image from the registry and failed. Get the exact error message:
-
-  kubectl describe pod web-app -n k8smissions
-
-Scroll to the Events section at the bottom of the output.
+Describe one of the failing pods and read the Events at the bottom: `kubectl -n k8smissions describe pod <pod>`. The registry tells you exactly what it could not find.

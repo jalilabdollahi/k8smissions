@@ -1,16 +1,15 @@
 {
-  "name": "Out of Memory",
-  "description": "Pod oom-pod keeps restarting. Run kubectl get pod oom-pod -n k8smissions and note the STATUS and RESTARTS values.",
-  "objective": "The memory limit is set far too low for the application — increase it so the container isn't killed by the OOM killer",
+  "name": "Killed on Arrival",
+  "description": "Deployment `thumbnailer` has been restarting every 20 to 30 seconds since last week's release, which added a bigger image cache. The pods show a growing RESTARTS count, the Service flaps between 200 and connection errors, and the logs just stop in the middle of the start-up messages. The engineers say the code did not change except the cache size.",
+  "objective": "Both `thumbnailer` replicas stay Ready without restarting, Service `thumbnailer` answers with the cache-ready page, and the container keeps a memory limit.",
   "xp": 150,
-  "difficulty": "beginner",
+  "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "OOMKilled",
-    "memory limits",
-    "exit code 137",
-    "resource tuning"
-  ],
+  "concepts": ["OOMKilled", "exit code 137", "resources.limits.memory", "last state", "kubectl set resources"],
   "module": "module-1-foundations",
-  "level": "level-13-oomkilled"
+  "level": "level-13-oomkilled",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

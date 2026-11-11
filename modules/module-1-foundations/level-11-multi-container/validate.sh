@@ -1,22 +1,50 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-echo "🔍 Checking multi-container pod status..."
-
-# Check if pod is running and all containers are ready
-POD_STATUS=$(kubectl get pod app-with-logging -n k8smissions -o jsonpath='{.status.phase}' 2>/dev/null)
-READY_CONTAINERS=$(kubectl get pod app-with-logging -n k8smissions -o jsonpath='{.status.containerStatuses[?(@.ready==true)].name}' 2>/dev/null | wc -w | tr -d ' ')
-TOTAL_CONTAINERS=$(kubectl get pod app-with-logging -n k8smissions -o jsonpath='{.spec.containers[*].name}' 2>/dev/null | wc -w | tr -d ' ')
-
-echo "   Pod Phase: $POD_STATUS"
-echo "   Ready containers: $READY_CONTAINERS/$TOTAL_CONTAINERS"
-
-if [[ "$POD_STATUS" == "Running" ]] && [[ "$READY_CONTAINERS" -eq 2 ]]; then
-    echo "✅ Pod is running with all 2 containers ready"
-    exit 0
-else
-    echo "❌ Pod status: $POD_STATUS, Ready containers: $READY_CONTAINERS/2"
-    echo "💡 Hint: Check logs for each container:"
-    echo "   kubectl logs app-with-logging -n k8smissions -c main-app"
-    echo "   kubectl logs app-with-logging -n k8smissions -c log-sidecar"
-    exit 1
+ready=$(k get deploy checkout -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+if [ "${ready:-0}" -ne 2 ]; then
+  echo "❌ Deployment checkout: ${ready:-0} of 2 pods Ready"
+  exit 1
 fi
+names=$(k get deploy checkout -o jsonpath='{.spec.template.spec.containers[*].name}')
+for c in nginx log-shipper; do
+  if ! echo "$names" | grep -qw "$c"; then
+    echo "❌ container $c is missing from the checkout pod template"
+    exit 1
+  fi
+done
+echo "✅ checkout has 2 Ready pods with nginx and log-shipper"
+
+sleep 15
+bad=$(k get pods -l app=checkout -o json | python3 -c '
+import json,sys
+n=0
+for p in json.load(sys.stdin)["items"]:
+    if p["metadata"].get("deletionTimestamp"): continue
+    cs=p["status"].get("containerStatuses",[])
+    if len(cs)<2 or any((not c["ready"]) or c["restartCount"]>0 for c in cs): n+=1
+print(n)')
+if [ "$bad" != "0" ]; then
+  echo "❌ $bad checkout pod(s) have a container that is not Ready or has restarted"
+  exit 1
+fi
+echo "✅ both containers stayed up for 15s"
+
+tag=$RANDOM$RANDOM
+for i in 1 2 3 4; do
+  k exec probe -- curl -s -o /dev/null --max-time 3 "http://checkout/ping-$tag-$i" 2>/dev/null
+done
+sleep 3
+logs=$(for p in $(k get pods -l app=checkout -o name); do k logs "$p" -c log-shipper 2>/dev/null; done)
+found=0
+for i in 1 2 3 4; do
+  echo "$logs" | grep -q "ping-$tag-$i" && found=$((found+1))
+done
+if [ "$found" -ne 4 ]; then
+  echo "❌ only $found of 4 requests to checkout appear in the log-shipper logs"
+  exit 1
+fi
+echo "✅ all 4 requests are visible in the log-shipper logs"
+exit 0
+exit 1

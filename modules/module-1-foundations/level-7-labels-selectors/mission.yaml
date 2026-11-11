@@ -1,16 +1,15 @@
 {
-  "name": "No Endpoints",
-  "description": "Pod backend-app is Running and the Service exists — but traffic is not reaching the pod. Start with kubectl get endpoints backend-service -n k8smissions.",
-  "objective": "The service selector label doesn't match the pod's labels — align them so the service routes traffic to the pod",
+  "name": "Label Drift",
+  "description": "The blog has been down since the template refactor: every visit to Service `blog` hangs or is refused. Deployment `blog` shows 3/3 Ready and its pods are Running with no restarts. The Service's selector `app=blog,tier=web` was set by the network team and is not to be changed.",
+  "objective": "All 3 replicas of Deployment `blog` are selected by Service `blog` and serve the blog, and any pod the Deployment creates later is selected as well.",
   "xp": 150,
-  "difficulty": "beginner",
+  "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "labels",
-    "selectors",
-    "service endpoints",
-    "kubectl get ep"
-  ],
+  "concepts": ["labels", "selectors", "endpoints", "pod template labels", "kubectl get --show-labels"],
   "module": "module-1-foundations",
-  "level": "level-7-labels-selectors"
+  "level": "level-7-labels-selectors",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 90,
+  "cleanup": []
 }

@@ -1,18 +1,3 @@
-## What went wrong
-
-The Service has `targetPort: 8080`, but nginx is listening on port 80. When traffic arrives at the Service, it gets forwarded to port 8080 on the pod — where nothing is listening. Connection refused.
-
-## Fix
-
-In manifest.yaml, under the Service ports section:
-
-```yaml
-ports:
-- port: 80
-  targetPort: 80
-```
-
-## The difference between port and targetPort
-
-- `port` — the port the Service exposes to clients inside the cluster
-- `targetPort` — the port on the Pod the traffic is forwarded to (must match containerPort)
+1. `kubectl logs deploy/thumb-api` shows the server listening on `:5678`; the manifest only says `containerPort: 80`.
+2. Service `thumb-api` has `targetPort: 80`, so it connects to a port nothing listens on.
+3. `kubectl -n k8smissions patch service thumb-api --type=json -p '[{"op":"replace","path":"/spec/ports/0/targetPort","value":5678}]'` fixes it immediately, no pod restart needed.

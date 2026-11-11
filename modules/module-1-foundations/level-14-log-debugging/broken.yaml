@@ -1,11 +1,93 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: database-app
+  name: rates-sync-conf
+  namespace: k8smissions
+data:
+  rates.conf: |
+    # rates-sync configuration, owned by treasury
+    # one key per line: key = value
+    source = ecb-daily
+    base_currency = EUR
+    timeout = 10s
+    refresh_interval = 5min
+    retries = 3
+    # regions to publish
+    region = eu-west-1
+    region = eu-west-9
+    format = json
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rates-sync
   namespace: k8smissions
 spec:
-  containers:
-  - name: postgres
-    image: postgres:latest
-    ports:
-    - containerPort: 5432
+  replicas: 2
+  selector:
+    matchLabels: {app: rates-sync}
+  template:
+    metadata:
+      labels: {app: rates-sync}
+    spec:
+      containers:
+      - name: rates-sync
+        image: python:3.12-alpine
+        command:
+        - python
+        - -u
+        - -c
+        - |
+          import re, sys, json
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          CONF = "/etc/rates/rates.conf"
+          ALLOWED = ["eu-west-1", "eu-central-1"]
+          for name in ["clock", "resolver", "tls-roots", "scheduler", "cache", "metrics", "http-client", "retry-queue"]:
+              for step in ("init", "self-test", "ready"):
+                  print("INFO  boot: %s %s ok" % (name, step))
+          print("WARN  boot: 3 deprecated keys ignored")
+          regions = []
+          for no, raw in enumerate(open(CONF), 1):
+              line = raw.strip()
+              if not line or line.startswith("#"):
+                  continue
+              key, _, val = [x.strip() for x in line.partition("=")]
+              if key == "refresh_interval" and not re.fullmatch(r"\d+[sm]", val):
+                  print("ERROR rates.conf line %d: invalid refresh_interval '%s'" % (no, val))
+                  sys.exit(2)
+              if key == "region":
+                  if val not in ALLOWED:
+                      print("ERROR rates.conf line %d: unknown region '%s' (allowed: %s)" % (no, val, ", ".join(ALLOWED)))
+                      sys.exit(2)
+                  regions.append(val)
+          print("INFO  rates loaded: %d regions" % len(regions))
+          class H(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  self.send_response(200)
+                  self.end_headers()
+                  self.wfile.write(json.dumps({"base": "EUR", "regions": regions, "EURUSD": 1.08}).encode() + b"\n")
+              def log_message(self, *a):
+                  pass
+          HTTPServer(("", 8080), H).serve_forever()
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/rates
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+      volumes:
+      - name: conf
+        configMap:
+          name: rates-sync-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rates-sync
+  namespace: k8smissions
+spec:
+  selector:
+    app: rates-sync
+  ports:
+  - port: 80
+    targetPort: 8080

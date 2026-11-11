@@ -1,5 +1,1 @@
-The pod responds when accessed directly. The problem is in how the Service routes traffic to the pod.
-
-Check which port the container is actually listening on:
-
-  kubectl get pod web-server -n k8smissions -o yaml | grep -A5 'ports'
+A Service has `port` (what clients call) and `targetPort` (where it connects on the pod). `containerPort` in the pod spec is only documentation, it opens nothing and changes no routing. See `kubectl explain service.spec.ports.targetPort`.

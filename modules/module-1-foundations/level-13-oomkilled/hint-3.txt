@@ -1,3 +1,1 @@
-The memory limit is 64Mi. The Python program allocates 128 arrays of 1MB each — that is about 128MB. The container hits the limit and gets killed.
-
-Find spec.containers[0].resources.limits.memory in manifest.yaml.
+Give the container a limit comfortably above what start-up needs, and keep the request in line with it: `kubectl -n k8smissions set resources deployment thumbnailer --requests=memory=<size> --limits=memory=<size>`. The change rolls out new pods.

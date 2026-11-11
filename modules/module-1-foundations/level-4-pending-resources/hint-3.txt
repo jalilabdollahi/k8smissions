@@ -1,1 +1,1 @@
-Look at spec.containers[0].resources.requests in manifest.yaml. The values there are `memory: 999Gi` and `cpu: 999`. Compare these numbers to what you saw in node Allocatable.
+The request is far larger than any node. Write the amount you really need in millicores and recreate the pod, since resources of a running pod cannot be edited: `kubectl delete pod report-builder` then apply the manifest with `cpu: <n>m`.

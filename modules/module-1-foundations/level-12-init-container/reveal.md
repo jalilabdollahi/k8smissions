@@ -1,30 +1,4 @@
-## What went wrong
-
-The init container waits until `backend-service.k8smissions.svc.cluster.local` resolves in DNS. That Service does not exist, so the init container loops forever and the main container never starts.
-
-## Fix
-
-Add the missing Service to manifest.yaml before the Pod:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-service
-  namespace: k8smissions
-spec:
-  selector:
-    app: backend
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8080
----
-apiVersion: v1
-kind: Pod
-# ... rest of pod spec unchanged
-```
-
-## Why this matters
-
-Using an init container to wait for a dependency is a legitimate Kubernetes pattern — it enforces startup ordering. The mistake here was not the pattern but the missing dependency it was checking for.
+1. `kubectl logs <ledger-web pod> -c wait-for-db` repeats `waiting for ledger-db:5432`; the pod is healthy, it is waiting for a dependency.
+2. `kubectl get endpoints ledger-db` is empty and `kubectl get deploy ledger-db` shows 0/0: the cost-saver scaled it to zero.
+3. Run `kubectl scale deployment ledger-db --replicas=1`.
+4. The init loop succeeds, `web` starts, and Service `ledger-web` answers `db: reachable`. Do not delete the init container; the page would start but report `db: unreachable`.

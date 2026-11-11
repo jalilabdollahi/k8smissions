@@ -1,3 +1,1 @@
-The `args` field contains `/scripts/start.sh`. This script does not exist in the busybox:1.36 image.
-
-Fixing this is not just removing args — you also need to give the container a valid command to keep it running. Open manifest.yaml and look at what needs to change.
+Move the python server to the port nginx proxies to by changing its start command in the Deployment: `kubectl -n k8smissions edit deployment rates-proxy`, container `app`, the number after `http.server`. Pods are replaced by a rollout, so check `kubectl rollout status deployment/rates-proxy`.

@@ -1,20 +1,57 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: oom-pod
+  name: thumbnailer
   namespace: k8smissions
-  labels:
-    app: oom-pod
 spec:
-  containers:
-  - name: oom-pod
-    image: python:3.11-alpine
-    command:
-    - python
-    - -c
-    - data=['x'*1024*1024 for _ in range(128)]; import time; time.sleep(3600)
-    resources:
-      limits:
-        memory: 64Mi
-      requests:
-        memory: 32Mi
+  replicas: 2
+  selector:
+    matchLabels: {app: thumbnailer}
+  template:
+    metadata:
+      labels: {app: thumbnailer}
+    spec:
+      containers:
+      - name: thumbnailer
+        image: python:3.12-alpine
+        command:
+        - python
+        - -u
+        - -c
+        - |
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          print("thumbnailer 2.4: starting", flush=True)
+          print("thumbnailer 2.4: building image cache (150 MiB)", flush=True)
+          cache = bytearray(b"t") * (150 * 1024 * 1024)
+          print("thumbnailer 2.4: cache ready, %d MiB" % (len(cache) >> 20), flush=True)
+          class H(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  self.send_response(200)
+                  self.end_headers()
+                  self.wfile.write(b"thumbnailer cache ready\n")
+              def log_message(self, *a):
+                  pass
+          HTTPServer(("", 8080), H).serve_forever()
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        resources:
+          requests:
+            memory: 32Mi
+            cpu: 50m
+          limits:
+            memory: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: thumbnailer
+  namespace: k8smissions
+spec:
+  selector:
+    app: thumbnailer
+  ports:
+  - port: 80
+    targetPort: 8080

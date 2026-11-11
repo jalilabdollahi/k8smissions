@@ -1,5 +1,1 @@
-The pod is crashing — the container starts and exits right away. Read what it printed before dying:
-
-  kubectl logs nginx-broken -n k8smissions --previous
-
-The --previous flag reads from the last terminated container, not the current one (which may not have output yet).
+Look at the pod first: `kubectl -n k8smissions get pod welcome-page`, then `kubectl -n k8smissions describe pod welcome-page` and read the container State and Last State. What exit code did the container end with, and what did it print (`kubectl logs`)?

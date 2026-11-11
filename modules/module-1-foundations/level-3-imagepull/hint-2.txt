@@ -1,5 +1,1 @@
-The Events say 'Failed to pull image'. Look at the image name being pulled. Does the tag after the colon actually exist on Docker Hub for nginx?
-
-You can also check the image directly:
-
-  kubectl get pod web-app -n k8smissions -o jsonpath='{.spec.containers[0].image}'
+An image reference is `repository:tag`. The pull fails when the tag does not exist in the registry. Compare the image on `storefront` with the one on its working sibling (`kubectl get deploy -o wide`), and look at `kubectl set image --help`.

@@ -1,16 +1,15 @@
 {
-  "name": "Too Greedy",
-  "description": "Pod hungry-app was submitted but has been in Pending ever since — no node has been assigned to it. Run kubectl get pods -n k8smissions.",
-  "objective": "The Pod requests far more CPU and memory than any node can provide — reduce both requests to schedulable values",
-  "xp": 150,
+  "name": "The Hungry Report",
+  "description": "The nightly report builder pod `report-builder` was applied an hour ago and still sits in `Pending`. There is nothing in its logs and it has not been assigned to any node. The data engineer who wrote the manifest says the job only needs about half a CPU core to run.",
+  "objective": "Pod `report-builder` is Running and Ready on a node, and it still declares a CPU request of at least 250m so the scheduler keeps reserving capacity for it.",
+  "xp": 100,
   "difficulty": "beginner",
-  "expected_time": "10m",
-  "concepts": [
-    "resource requests",
-    "resource limits",
-    "scheduling",
-    "millicores"
-  ],
+  "expected_time": "6m",
+  "concepts": ["Pending", "scheduler events", "resources.requests", "CPU units", "millicores"],
   "module": "module-1-foundations",
-  "level": "level-4-pending-resources"
+  "level": "level-4-pending-resources",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 90,
+  "cleanup": []
 }

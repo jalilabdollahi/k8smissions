@@ -1,3 +1,1 @@
-The Secret `db-credentials` does not exist. The pod spec has two env vars that use `secretKeyRef` to pull values from it.
-
-You need to create this Secret and add it to manifest.yaml — above the Pod definition.
+The Secret is right; the Deployment asks for the wrong key. Change `key:` in the `secretKeyRef` of `reports-api` to the key you saw in the Secret: `kubectl -n k8smissions edit deployment reports-api`. Making up a new Secret with a guessed value will be rejected by the database.

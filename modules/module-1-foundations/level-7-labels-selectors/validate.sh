@@ -1,24 +1,39 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-echo "🔍 Checking service and pod status..."
+ep_count() { k get endpointslices -l kubernetes.io/service-name=blog -o jsonpath='{range .items[*].endpoints[?(@.conditions.ready==true)]}{.addresses[0]}{"\n"}{end}' 2>/dev/null | grep -c .; }
+serve() { k exec probe -- sh -c 'for i in 1 2 3 4 5 6 7 8 9; do curl -s --max-time 3 http://blog; echo; done' 2>/dev/null | grep -c '^Acme blog: latest posts$'; }
 
-# Check if pod is running
-POD_STATUS=$(kubectl get pod backend-app -n k8smissions -o jsonpath='{.status.phase}' 2>/dev/null)
-READY=$(kubectl get pod backend-app -n k8smissions -o jsonpath='{.status.containerStatuses[0].ready}' 2>/dev/null)
-
-echo "   Pod Phase: $POD_STATUS"
-echo "   Pod Ready: $READY"
-
-# Check if service has endpoints
-ENDPOINTS=$(kubectl get endpoints backend-service -n k8smissions -o jsonpath='{.subsets[0].addresses[0].ip}' 2>/dev/null)
-echo "   Endpoints: ${ENDPOINTS:-none}"
-
-if [[ "$POD_STATUS" == "Running" ]] && [[ "$READY" == "true" ]] && [[ -n "$ENDPOINTS" ]]; then
-    echo "✅ Service successfully connected to pod!"
-    exit 0
-else
-    echo "❌ Service has no endpoints (can't find matching pods)"
-    echo "💡 Hint: Check 'kubectl get endpoints backend-service -n k8smissions'"
-    echo "💡 Debug: 'kubectl describe service backend-service -n k8smissions'"
-    exit 1
+ready=$(k get deploy blog -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+if [ "${ready:-0}" -ne 3 ]; then
+  echo "❌ Deployment blog: ${ready:-0} of 3 replicas Ready"
+  exit 1
 fi
+n=$(ep_count)
+if [ "$n" -ne 3 ]; then
+  echo "❌ Service blog selects $n of 3 replicas"
+  exit 1
+fi
+echo "✅ Service blog selects all 3 replicas"
+
+if [ "$(serve)" -ne 9 ]; then
+  echo "❌ not every request through Service blog returned the blog page"
+  exit 1
+fi
+echo "✅ Service blog serves the blog on 9 of 9 requests"
+
+victim=$(k get pods -l app=blog --no-headers | awk '$3=="Running"{print $1; exit}')
+k delete pod "$victim" --wait=false >/dev/null 2>&1
+ok=no
+for i in $(seq 25); do
+  sleep 2
+  if [ "$(k get deploy blog -o jsonpath='{.status.readyReplicas}')" = "3" ] && [ "$(ep_count)" -eq 3 ] && ! k get pod "$victim" >/dev/null 2>&1; then ok=yes; break; fi
+done
+if [ "$ok" != "yes" ]; then
+  echo "❌ after replacing a pod, Service blog no longer selects every replica"
+  exit 1
+fi
+echo "✅ a replacement pod is selected by the Service too"
+exit 0
+exit 1

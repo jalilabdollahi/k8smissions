@@ -1,5 +1,1 @@
-In the output of get cronjobs, look at the SUSPEND and LAST SCHEDULE columns. Then get more detail:
-
-  kubectl describe cronjob report-generator -n k8smissions
-
-Pay attention to the Suspend field and whether any Jobs have been created.
+`kubectl -n k8smissions get cronjob close-report` has two columns worth reading: SUSPEND and LAST SCHEDULE. `kubectl describe cronjob close-report` shows the schedule and the events.

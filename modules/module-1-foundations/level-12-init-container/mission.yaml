@@ -1,16 +1,15 @@
 {
-  "name": "Waiting Forever",
-  "description": "Pod web-with-init is stuck in Init:0/1 and never reaches Running. Run kubectl get pod web-with-init -n k8smissions.",
-  "objective": "The init container waits for a service that doesn't exist and blocks forever — fix the dependency so the init container can complete",
-  "xp": 200,
+  "name": "Waiting for Godot",
+  "description": "The ledger page has been down since Monday. Its pod `ledger-web` has sat in `Init:0/1` for days and the app container never starts. Nobody touched `ledger-web` itself. The platform team mentions that the cost-saver job trimmed the namespace last Thursday.",
+  "objective": "Service `ledger-web` returns the ledger page with the line `db: reachable`, served by pods that still run their `wait-for-db` init container, and Service `ledger-db` has a Ready backend.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "15m",
-  "concepts": [
-    "initContainers",
-    "pod initialization",
-    "startup ordering",
-    "dependency waiting"
-  ],
+  "expected_time": "10m",
+  "concepts": ["init container", "Init:0/1", "logs -c", "service endpoints", "dependencies between workloads"],
   "module": "module-1-foundations",
-  "level": "level-12-init-container"
+  "level": "level-12-init-container",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

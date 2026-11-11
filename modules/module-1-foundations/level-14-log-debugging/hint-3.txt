@@ -1,3 +1,1 @@
-There is no `env` section. PostgreSQL requires at least one specific environment variable to be set before it will start. The log message names it directly.
-
-Add the missing variable to spec.containers[0] in manifest.yaml.
+Edit the value the error names with `kubectl -n k8smissions edit configmap rates-sync-conf`, replace it with one the message accepts (it lists the allowed values for the region), then `kubectl -n k8smissions delete pod -l app=rates-sync` so new pods read the file. Repeat the log check until you see a line saying the rates loaded.

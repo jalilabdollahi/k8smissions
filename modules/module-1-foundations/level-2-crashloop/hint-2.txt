@@ -1,7 +1,1 @@
-The log shows something like '/scripts/start.sh: not found'. The container tried to execute a shell script that does not exist inside the busybox image.
-
-Confirm what the container is actually trying to run:
-
-  kubectl get pod crashloop-pod -n k8smissions -o yaml
-
-Look at spec.containers[0].args
+Containers in one pod share a single network namespace, so they share ports as well as `localhost`. Look at which port each container tries to listen on, and at where nginx forwards its traffic (the ConfigMap `rates-proxy-edge`).

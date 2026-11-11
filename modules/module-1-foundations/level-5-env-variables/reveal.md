@@ -1,17 +1,3 @@
-## What went wrong
-
-The container runs a shell script that checks `$DATABASE_URL`. If the variable is empty, it prints an error and calls `exit 1`. Since no `env` is defined in the pod spec, the variable is never set.
-
-## Fix
-
-Add the `env` section under the container in manifest.yaml:
-
-```yaml
-env:
-- name: DATABASE_URL
-  value: postgres://localhost/app
-```
-
-## Why this matters
-
-In production, sensitive values like connection strings should never be hardcoded into a pod spec. They belong in a Secret, then referenced with `secretKeyRef`. For this lab, a plain value is fine.
+1. The logs show `calling http://$(SMTP_HOST):$(SMTP_PORT)/send`: the variables were never expanded.
+2. In the pod's `env` list `SMTP_URL` comes before `SMTP_HOST` and `SMTP_PORT`, and `$(VAR)` only expands to earlier entries.
+3. Edit the Deployment so `SMTP_HOST` and `SMTP_PORT` come first and `SMTP_URL` last; the rollout starts pods whose logs show `send status 200`.

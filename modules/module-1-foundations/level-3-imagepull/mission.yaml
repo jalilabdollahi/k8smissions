@@ -1,16 +1,15 @@
 {
-  "name": "Image Not Found",
-  "description": "Pod web-app is stuck in ImagePullBackOff and will never start. Run kubectl get pods -n k8smissions to confirm the status.",
-  "objective": "The image name contains a typo that prevents Kubernetes from pulling it — correct the image reference",
+  "name": "Friday's Typo",
+  "description": "After a late edit on Friday, Deployment `storefront` shows `0/2` available and its pods flip between `ErrImagePull` and `ImagePullBackOff`. The sibling Deployment `storefront-canary`, which uses the same nginx build, is running fine. Customers hitting the main storefront Service get connection errors.",
+  "objective": "Deployment `storefront` has 2 Ready replicas and Service `storefront` returns the storefront page. Deployment `storefront-canary` is left as it is.",
   "xp": 100,
   "difficulty": "beginner",
   "expected_time": "5m",
-  "concepts": [
-    "ImagePullBackOff",
-    "ErrImagePull",
-    "image registry",
-    "tags"
-  ],
+  "concepts": ["ImagePullBackOff", "ErrImagePull", "describe events", "image tag", "kubectl set image"],
   "module": "module-1-foundations",
-  "level": "level-3-imagepull"
+  "level": "level-3-imagepull",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 90,
+  "cleanup": []
 }

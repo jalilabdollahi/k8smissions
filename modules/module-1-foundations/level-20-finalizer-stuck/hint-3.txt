@@ -1,3 +1,1 @@
-The operator that should clear this finalizer does not exist in the cluster. Kubernetes will wait forever.
-
-This level cannot be solved by editing manifest.yaml and applying it — the object is already being deleted. You need a different kubectl command to remove the finalizer directly.
+Only after confirming nobody needs the cleanup, empty the list: `kubectl -n k8smissions patch configmap export-lock --type=merge -p '{"metadata":{"finalizers":<value>}}'`. The object then disappears and you can create the new ConfigMap with `kubectl create configmap`.

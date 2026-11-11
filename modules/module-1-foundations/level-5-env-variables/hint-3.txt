@@ -1,1 +1,1 @@
-There is no `env` section under spec.containers[0]. The application requires `DATABASE_URL` to be injected as an environment variable. Find the right place to add it in manifest.yaml.
+Make the variables that `SMTP_URL` refers to come first: `kubectl -n k8smissions edit deployment invoice-mailer` and reorder the `env` list (or put the full URL in `SMTP_URL`), then watch `kubectl rollout status deployment/invoice-mailer`.

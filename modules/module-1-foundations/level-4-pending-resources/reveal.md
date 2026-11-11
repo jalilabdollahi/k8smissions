@@ -1,21 +1,3 @@
-## What went wrong
-
-`memory: 999Gi` and `cpu: 999` are larger than any node in the cluster can provide. The scheduler checks every node and finds none that can satisfy the request — so the pod stays Pending forever.
-
-## Fix
-
-Set realistic values in manifest.yaml:
-
-```yaml
-resources:
-  requests:
-    memory: "64Mi"
-    cpu: "100m"
-  limits:
-    memory: "128Mi"
-    cpu: "200m"
-```
-
-## Why this matters
-
-`requests` is what the scheduler uses to decide where to place the pod — it guarantees that amount is available. `limits` is the ceiling the container cannot exceed. Both should reflect what the application actually needs.
+1. `kubectl describe pod report-builder` Events: `Insufficient cpu` on the workers.
+2. The manifest has `requests.cpu: "1500"`, which means 1500 whole cores (it was meant as `500m`, half a core).
+3. Pod resources are immutable, so delete the pod and apply the manifest again with `cpu: 500m`, keeping a request in place.

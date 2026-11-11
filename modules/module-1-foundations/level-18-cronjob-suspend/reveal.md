@@ -1,15 +1,4 @@
-## What went wrong
-
-`spec.suspend: true` puts the CronJob into a paused state. Kubernetes will not create any new Jobs from it until suspend is set to false.
-
-## Fix
-
-In manifest.yaml:
-
-```yaml
-suspend: false
-```
-
-## Why this matters
-
-`suspend` exists so you can temporarily stop a CronJob without deleting it — useful during maintenance windows or while debugging a failing schedule. If you inherit a CronJob that is never running, checking `suspend` is the first thing to do.
+1. `kubectl get cronjob close-report` shows `SUSPEND True` and `LAST SCHEDULE <none>`.
+2. Unsuspending alone is not enough: the schedule `1 * * * *` means minute 1 of every hour, so the first Job could be up to an hour away.
+3. Patch both: `kubectl patch cronjob close-report -p '{"spec":{"suspend":false,"schedule":"* * * * *"}}'`.
+4. At the start of the next minute a Job named `close-report-<number>` appears and completes; `LAST SCHEDULE` gets a time.

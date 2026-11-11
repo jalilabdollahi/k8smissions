@@ -1,5 +1,1 @@
-The Events reference a Secret that could not be found. Check what Secrets exist:
-
-  kubectl get secrets -n k8smissions
-
-Is `db-credentials` in the list?
+`secretKeyRef` needs both a Secret name and a key that exists in that Secret's `data`. List what the Secret really holds with `kubectl -n k8smissions get secret reports-db -o jsonpath='{.data}'` (values are base64, keys are not). `kubectl explain pod.spec.containers.env.valueFrom.secretKeyRef`.

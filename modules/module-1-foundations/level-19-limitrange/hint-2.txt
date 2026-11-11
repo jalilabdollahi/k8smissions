@@ -1,5 +1,1 @@
-A LimitRange exists. Get its details:
-
-  kubectl describe limitrange -n k8smissions
-
-What is the default memory limit it injects into containers? How much memory does the program actually use?
+The refusal quotes a rule about the ratio between a container's memory limit and its memory request; the rule lives in a LimitRange in this namespace: `kubectl describe limitrange`. The pod needs a limit big enough for a render, so the request has to be sized along with it. `kubectl explain limitrange.spec.limits` has the fields.

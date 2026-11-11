@@ -1,3 +1,1 @@
-The command is `/scripts/init-db.sh`. This script does not exist inside the busybox:1.36 image — it exits with code 127 (command not found).
-
-Look at spec.template.spec.containers[0].command in manifest.yaml.
+Export the Job with `kubectl -n k8smissions get job nightly-import -o yaml`, give `activeDeadlineSeconds` room for three shards (or remove it), delete the Job and create it again from a clean manifest (drop `status`, `uid`, `resourceVersion` and the controller-generated labels and selector before applying).

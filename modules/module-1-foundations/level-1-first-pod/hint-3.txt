@@ -1,3 +1,1 @@
-There is a 'command' field in spec.containers[0]. When 'command' is set, Kubernetes replaces the image's ENTRYPOINT with whatever you wrote there.
-
-Open manifest.yaml and find this field.
+Export the pod, remove the field that overrides the image's program, delete the old pod and create it again: `kubectl -n k8smissions get pod welcome-page -o yaml > pod.yaml`, edit `pod.yaml` (also drop the status and generated metadata), `kubectl delete pod welcome-page`, `kubectl apply -f pod.yaml`.

@@ -1,5 +1,1 @@
-The Events say 'Insufficient memory' or 'Insufficient cpu'. The pod is requesting more resources than any node can provide.
-
-See how much is actually available in the cluster:
-
-  kubectl describe nodes | grep -A5 'Allocatable'
+The scheduler only places a pod where the sum of requests fits the node's allocatable resources. Compare the pod's `resources.requests.cpu` with `kubectl describe node <worker>` (Allocatable). CPU is written in cores (`1`, `0.5`) or millicores (`500m`): `kubectl explain pod.spec.containers.resources.requests`.

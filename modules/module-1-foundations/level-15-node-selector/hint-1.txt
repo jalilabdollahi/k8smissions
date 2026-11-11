@@ -1,5 +1,1 @@
-The scheduler explains why it could not place the pod. Look at Events:
-
-  kubectl describe pod selector-pod -n k8smissions
-
-Find the line that says 'node(s) didn't match' or similar. What constraint could not be satisfied?
+A Pending pod has no logs; the scheduler explains itself in events. Run `kubectl -n k8smissions describe pod cache-warm` and read the last lines, then look at what the nodes actually carry: `kubectl get nodes --show-labels`.

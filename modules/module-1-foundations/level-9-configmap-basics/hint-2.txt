@@ -1,5 +1,1 @@
-The Events mention a ConfigMap that could not be found. Check if it actually exists:
-
-  kubectl get configmaps -n k8smissions
-
-Is `app-config` in the list?
+Values injected into environment variables (`envFrom`, `configMapKeyRef`) are copied when the container starts and never refreshed. Only ConfigMaps mounted as files update in a live pod. Look at `kubectl rollout --help` for a way to start fresh pods from the same Deployment.

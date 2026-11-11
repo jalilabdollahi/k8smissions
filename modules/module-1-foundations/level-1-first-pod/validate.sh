@@ -1,36 +1,30 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-echo "🔍 Checking pod status..."
-
-# Check if pod exists
-if ! kubectl get pod nginx-broken -n k8smissions &>/dev/null; then
-  echo "❌ Pod 'nginx-broken' not found in namespace k8smissions"
+if ! k get pod welcome-page >/dev/null 2>&1; then
+  echo "❌ Pod welcome-page does not exist"
   exit 1
 fi
-
-# Get pod status
-STATUS=$(kubectl get pod nginx-broken -n k8smissions -o jsonpath='{.status.phase}' 2>/dev/null)
-READY=$(kubectl get pod nginx-broken -n k8smissions -o jsonpath='{.status.containerStatuses[0].ready}' 2>/dev/null)
-
-echo "   Phase: $STATUS"
-echo "   Ready: $READY"
-
-# Check if pod is running AND ready
-if [[ "$STATUS" == "Running" ]] && [[ "$READY" == "true" ]]; then
-  # Verify the command is correct (not the broken "nginxzz")
-  COMMAND=$(kubectl get pod nginx-broken -n k8smissions -o jsonpath='{.spec.containers[0].command[0]}' 2>/dev/null)
-  
-  if [[ "$COMMAND" == "nginxzz" ]]; then
-    echo "❌ Pod still has broken command 'nginxzz'"
-    echo "💡 Hint: Delete the pod and apply the fixed solution.yaml"
-    exit 1
-  fi
-  
-  echo "✅ Level complete! Pod is running correctly"
-  exit 0
-else
-  echo "❌ Pod is not running properly"
-  echo "💡 Current status: $STATUS"
-  echo "💡 Hint: Check 'kubectl describe pod nginx-broken -n k8smissions' for errors"
+if [ "$(k get pod welcome-page -o jsonpath='{.status.containerStatuses[0].ready}' 2>/dev/null)" != "true" ]; then
+  echo "❌ Pod welcome-page is not Ready ($(k get pod welcome-page --no-headers 2>/dev/null | awk '{print $3}'))"
   exit 1
 fi
+echo "✅ Pod welcome-page is Ready"
+
+sleep 15
+restarts=$(k get pod welcome-page -o jsonpath='{.status.containerStatuses[0].restartCount}' 2>/dev/null)
+if [ "${restarts:-1}" -ne 0 ] || [ "$(k get pod welcome-page -o jsonpath='{.status.phase}')" != "Running" ]; then
+  echo "❌ Pod welcome-page keeps restarting (restarts: ${restarts:-?})"
+  exit 1
+fi
+echo "✅ Pod welcome-page ran 15s without a restart"
+
+body=$(k exec probe -- curl -s --max-time 5 -w '\nHTTP %{http_code}' http://welcome-page 2>/dev/null)
+if ! echo "$body" | grep -q 'HTTP 200' || ! echo "$body" | grep -q 'Welcome to nginx'; then
+  echo "❌ Service welcome-page did not return the nginx welcome page"
+  exit 1
+fi
+echo "✅ Service welcome-page returns 200 with the welcome page"
+exit 0
+exit 1

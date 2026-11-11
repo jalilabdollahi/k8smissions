@@ -1,5 +1,1 @@
-The scheduler says no node matches the nodeSelector. Check what labels your nodes actually have:
-
-  kubectl get nodes --show-labels
-
-Look through the labels carefully. Is `mission=moon-base` present on any node?
+`nodeSelector` is a set of key=value pairs that must all appear as labels on the node. Compare the pod's selector with the labels on the two workers; one of them is spelled differently. A pod's `nodeSelector` cannot be edited once the pod exists (`kubectl explain pod.spec.nodeSelector`).

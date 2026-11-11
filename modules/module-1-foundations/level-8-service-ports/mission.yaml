@@ -1,16 +1,15 @@
 {
-  "name": "Connection Refused",
-  "description": "Pod web-server is Running and the Service has endpoints. But connecting to the Service returns 'Connection refused'. Run kubectl get endpoints web-service -n k8smissions to confirm endpoints exist.",
-  "objective": "The service targetPort points to the wrong container port — correct it to match what the container actually listens on",
+  "name": "Refused at the Door",
+  "description": "The new image thumbnail service `thumb-api` was handed to the web team yesterday. Its pods are Running and Ready, `kubectl get endpoints thumb-api` lists their addresses, yet every call to `http://thumb-api` from another pod ends in `Connection refused`. The developers say the manifest declares the port the app uses.",
+  "objective": "Calls to Service `thumb-api` on port 80 return the thumbnail service's answer, with both replicas of Deployment `thumb-api` Ready.",
   "xp": 100,
   "difficulty": "beginner",
   "expected_time": "8m",
-  "concepts": [
-    "port",
-    "targetPort",
-    "containerPort",
-    "service routing"
-  ],
+  "concepts": ["Service port", "targetPort", "containerPort", "endpoints", "kubectl logs"],
   "module": "module-1-foundations",
-  "level": "level-8-service-ports"
+  "level": "level-8-service-ports",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 60,
+  "cleanup": []
 }

@@ -1,18 +1,4 @@
-## What went wrong
-
-`nodeSelector: {mission: moon-base}` — no node in the cluster has this label. The scheduler checked every node and found no match, so the pod stays Pending indefinitely.
-
-## Fix
-
-Change the nodeSelector to a label that exists on your nodes:
-
-```yaml
-nodeSelector:
-  kubernetes.io/os: linux
-```
-
-This label is automatically applied to every Linux node by Kubernetes itself.
-
-## Why this matters
-
-nodeSelector is used to restrict a pod to specific nodes — for example nodes with GPUs, high memory, or in a specific availability zone. If the label does not exist, the pod will never run. Always verify labels with `kubectl get nodes --show-labels` before adding a nodeSelector.
+1. `kubectl describe pod cache-warm` says `didn't match Pod's node affinity/selector`; the selector is `disktype=ssd`.
+2. `kubectl get nodes --show-labels` shows the SSD worker carries `disk=ssd` and the other `disk=hdd`; no node has `disktype`.
+3. A pod's nodeSelector is immutable, so export the pod, change the key to `disk`, delete the pod and apply it again.
+4. Labelling a node `disktype=ssd` also makes the pod schedulable, but labelling the HDD node would put the cache on the slow disk, which the check rejects.

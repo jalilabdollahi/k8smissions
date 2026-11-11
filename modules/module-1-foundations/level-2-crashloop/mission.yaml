@@ -1,16 +1,15 @@
 {
-  "name": "The Infinite Restart",
-  "description": "Pod crashloop-pod is stuck in CrashLoopBackOff. Run kubectl get pods -n k8smissions and watch the RESTARTS column climb.",
-  "objective": "The container args reference a script that doesn't exist — fix the startup args so the container runs without immediately exiting",
+  "name": "Half a Pod",
+  "description": "Since this morning's deploy, Deployment `rates-proxy` shows `1/2` under READY on both replicas and the pods keep restarting. The currency widget on the pricing page, which calls Service `rates-proxy`, gets connection errors. The team that owns the app says its logs look perfectly healthy.",
+  "objective": "Both containers of every `rates-proxy` pod are Ready and stay up, and requests to Service `rates-proxy` return the rates page through the nginx `edge` container.",
   "xp": 100,
   "difficulty": "beginner",
   "expected_time": "8m",
-  "concepts": [
-    "CrashLoopBackOff",
-    "args",
-    "restartPolicy",
-    "exit codes"
-  ],
+  "concepts": ["multi-container pod", "logs -c", "shared network namespace", "container args", "CrashLoopBackOff"],
   "module": "module-1-foundations",
-  "level": "level-2-crashloop"
+  "level": "level-2-crashloop",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

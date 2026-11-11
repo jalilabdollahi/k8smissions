@@ -1,1 +1,1 @@
-The image is `nginx:nonexistent-tag-xyz-123`. This tag does not exist on Docker Hub. The fix is in the `image` field inside spec.containers[0] in manifest.yaml.
+Point the container at the tag that works for the canary: `kubectl -n k8smissions set image deployment/storefront web=nginx:<tag>`, then `kubectl rollout status deployment/storefront`.

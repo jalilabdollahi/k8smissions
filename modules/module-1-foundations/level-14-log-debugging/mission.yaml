@@ -1,16 +1,15 @@
 {
-  "name": "Silent Failure",
-  "description": "Pod database-app starts and exits repeatedly. The logs are the only clue. Run kubectl logs database-app -n k8smissions and read the full output.",
-  "objective": "Use the container logs to identify the required PostgreSQL setting, then add the missing environment variable",
+  "name": "Needle in the Log",
+  "description": "Deployment `rates-sync` keeps crashing. Each start prints a long screen of boot messages and then the container exits with code 2; `kubectl get pods` alternates between `Error` and `CrashLoopBackOff`. The treasury desk has had no exchange rates since the config was touched yesterday, and nobody can say what the container is complaining about.",
+  "objective": "Deployment `rates-sync` has 2 Ready pods that stay up, its log reports the rates loaded from its configuration, and Service `rates-sync` serves the rates JSON.",
   "xp": 150,
-  "difficulty": "beginner",
+  "difficulty": "intermediate",
   "expected_time": "12m",
-  "concepts": [
-    "kubectl logs",
-    "application logs",
-    "debugging startup failures",
-    "environment variables"
-  ],
+  "concepts": ["logs --previous", "grep ERROR", "ConfigMap as file", "reading line numbers", "CrashLoopBackOff"],
   "module": "module-1-foundations",
-  "level": "level-14-log-debugging"
+  "level": "level-14-log-debugging",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

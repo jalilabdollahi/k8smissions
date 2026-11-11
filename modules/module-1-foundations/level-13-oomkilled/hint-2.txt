@@ -1,5 +1,1 @@
-Last State shows Reason: OOMKilled and Exit Code: 137. The Linux kernel killed the container because it exceeded its memory limit.
-
-Now check what the memory limit is:
-
-  kubectl get pod oom-pod -n k8smissions -o yaml | grep -A8 'resources'
+The container is terminated by the kernel when it goes over its memory limit (`resources.limits.memory`). The logs say how much the service tries to hold at start-up. `kubectl explain deployment.spec.template.spec.containers.resources` shows the fields, and the limit is the one that kills, not the request.

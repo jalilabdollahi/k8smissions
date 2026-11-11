@@ -1,5 +1,1 @@
-The pods are in Error state. Read the logs from one of them:
-
-  kubectl logs -n k8smissions -l job-name=db-init
-
-What command ran? What exit code did it produce and why?
+A Job can be told to give up after a total running time (`kubectl explain job.spec.activeDeadlineSeconds`), which counts from the Job's start, across all its pods. Compare that number with how long three shards take one after another. Most of a Job's spec cannot be changed once it exists, and a finished Job does not run again.

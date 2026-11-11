@@ -1,5 +1,1 @@
-The log-sidecar container is crashing. Read its logs specifically — in a multi-container pod you must use -c to pick the container:
-
-  kubectl logs app-with-logging -n k8smissions -c log-sidecar
-
-What command is the sidecar running and why does it fail?
+A pod's volumes are declared once at pod level, but every container has to mount the ones it wants in its own `volumeMounts`. Compare what each container mounts with what `kubectl get deployment checkout -o yaml` declares under `volumes`. `kubectl explain deployment.spec.template.spec.containers.volumeMounts` describes the fields.
