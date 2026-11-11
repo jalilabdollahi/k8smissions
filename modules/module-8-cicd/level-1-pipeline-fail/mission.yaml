@@ -1,17 +1,15 @@
 {
-  "name": "Broken Stage",
-  "description": "A Tekton Pipeline run has failed and the build stage exits immediately — before any build command even runs. The problem isn't in the build script. The step container itself can't start because the image it references doesn't exist in the registry.",
-  "objective": "The Tekton Task uses a non-existent image — fix the image reference so the Task succeeds",
-  "xp": 250,
+  "name": "Version Not Found",
+  "description": "Pipeline `release-notes` has failed on every run since Monday. The last run, `notes-0714`, stops at its `build` Task, and the release notes for 2.9 were never published. People have been re-running the pipeline by hand a few times a day and it fails the same way each time.",
+  "objective": "A fresh run of Pipeline `release-notes` finishes Succeeded, Task `build` reports the release version the `generate` step computes through its `version` result, and the `publish` step prints that version.",
+  "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "Tekton",
-    "Task",
-    "Pipeline",
-    "image pull",
-    "CI/CD"
-  ],
+  "concepts": ["Tekton Task", "steps", "results", "TaskRun", "kubectl logs -c step-NAME"],
   "module": "module-8-cicd",
-  "level": "level-1-pipeline-fail"
+  "level": "level-1-pipeline-fail",
+  "requires": ["tekton"],
+  "settle_seconds": 25,
+  "solve_timeout": 120,
+  "cleanup": []
 }

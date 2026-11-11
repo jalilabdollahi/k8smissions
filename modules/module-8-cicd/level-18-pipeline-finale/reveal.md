@@ -1,50 +1,7 @@
-## What went wrong
+Three independent faults, each hidden behind the one before it:
 
-Three independent failures:
-1. `image: alpine/git:999` — tag doesn't exist, pod enters ErrImagePull
-2. `git-url` param has no default — TaskRun fails admission validation if the param isn't supplied
-3. `multi-sa` has no RBAC — 403 Forbidden when trying to create TaskRuns
+1. `clone`: the Pipeline default `revision: main`, but the repository's only branch is `master` (`git clone --branch main` fails with "Remote branch main not found"). Set the default to `master`. The Git credentials were never the problem.
+2. `push`: the registry at `registry.k8smissions.svc.cluster.local:5000` is plain HTTP, and `crane append` defaults to HTTPS, so the push fails with an HTTP-versus-HTTPS error. Add `--insecure` to the command.
+3. `deploy`: RoleBinding `deploy-sa-payments` in `payments-prod` names subject `deploy-sa` in namespace `ci-system`, a ServiceAccount that does not exist. Change the subject namespace to `k8smissions`; the Role itself is fine. Do not grant more than the Role gives.
 
-## Fix
-
-```yaml
-# Fix 1: valid image tag
-steps:
-- name: clone
-  image: alpine/git:latest
-  script: git clone $(params.git-url) /workspace/output
----
-# Fix 2: default param value
-params:
-- name: git-url
-  default: https://github.com/example/repo
----
-# Fix 3: RBAC
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: multi-sa-role
-  namespace: k8smissions
-rules:
-- apiGroups: ["tekton.dev"]
-  resources: ["taskruns"]
-  verbs: ["create", "get", "list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: multi-sa-rb
-  namespace: k8smissions
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: multi-sa-role
-subjects:
-- kind: ServiceAccount
-  name: multi-sa
-  namespace: k8smissions
-```
-
-## Why this matters
-
-Production pipeline failures are rarely single-cause. When multiple independent failures stack, they can mask each other — fixing the image pull error reveals the param validation error, fixing that reveals the RBAC error. The diagnostic discipline: collect all failure modes first, then fix in order of what blocks others. Image pull errors block everything; param validation errors block the run before pods start; RBAC errors surface only when the pipeline actually tries to create resources. Fixing in this order minimizes the number of fix-deploy-debug cycles.
+Start a new run (as `deploy-sa`) after each fix to meet the next failure.

@@ -1,1 +1,1 @@
-Check the EventListener pod logs for the forbidden error: `kubectl logs -n k8smissions -l eventlistener=git-listener`
+Read the error of the last run: `kubectl logs -l tekton.dev/pipelineRun=orchestrate-nightly-3 --all-containers`. It names the verb, the resource and the ServiceAccount. Ask the API server the same question: `kubectl auth can-i create pipelineruns.tekton.dev --as=system:serviceaccount:k8smissions:dispatcher`.

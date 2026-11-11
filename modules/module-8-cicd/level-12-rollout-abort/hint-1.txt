@@ -1,1 +1,1 @@
-Check the Rollout status and event history: `kubectl argo rollouts get rollout web-rollout -n k8smissions`
+Two places to look: why the `rollback` Task of `release-ledger-0907` shows as skipped (`kubectl get pipelinerun release-ledger-0907 -o yaml`, field `status.skippedTasks`) and what the Deployment could roll back to (`kubectl rollout history deployment/ledger-api`).

@@ -1,1 +1,1 @@
-Start with a broad diagnosis: `kubectl describe taskrun -n k8smissions` and `kubectl get events -n k8smissions --sort-by=.lastTimestamp | tail -20`. Identify each distinct failure type before touching the manifest.
+Start at the beginning of the chain: `kubectl get pipelinerun ship-payments-0611 -o yaml` and the log of the first failed TaskRun (`kubectl logs -l tekton.dev/pipelineRun=ship-payments-0611 --all-containers`). Fix one failure, start a new run, and read the next: each Task only runs when the one before it worked.

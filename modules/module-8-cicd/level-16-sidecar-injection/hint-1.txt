@@ -1,1 +1,1 @@
-Describe a failing Task pod to see all its containers: `kubectl describe pod -n k8smissions -l tekton.dev/task=injected-task | grep -E 'Container|Image'`
+Compare the two containers of a failed TaskRun pod: `kubectl logs POD -c sidecar-mock-db` (when it started listening) and `kubectl logs POD -c step-query` (when it asked). A pod's steps and sidecars start together; the timestamps tell the story.

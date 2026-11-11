@@ -1,1 +1,1 @@
-The TriggerBinding extracts `$(body.commits[0].sha)` but the GitHub push webhook uses `$(body.head_commit.id)` for the pushed commit's SHA. The field name mismatch means the parameter resolves to an empty string.
+Change the path for `revision` in `kubectl edit configmap hook-binding` to the key that holds the commit SHA, then make the receiver pick the file up again with `kubectl rollout restart deployment/hook` and wait for `kubectl rollout status deployment/hook`. The startup log line `binding loaded: ...` confirms the new mapping.

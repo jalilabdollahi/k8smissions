@@ -1,18 +1,105 @@
-apiVersion: tekton.dev/v1beta1
-kind: TaskRun
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: approval-gate
   namespace: k8smissions
-  annotations:
-    awaiting-approval: "true"
+  name: release-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: k8smissions
+  name: approval-reader
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: k8smissions
+  name: release-sa-approvals
+subjects:
+- kind: ServiceAccount
+  name: release-sa
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: approval-reader
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: k8smissions
+  name: release-approvers
+data:
+  approvers: "maria.k"
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: release
 spec:
-  taskSpec:
-    steps:
-    - name: wait
-      image: busybox:1.36
-      script: |
-        #!/bin/sh
-        while [ ! -f /approval/approved ]; do sleep 5; done
-  workspaces:
-  - name: approval
-    emptyDir: {}
+  params:
+  - name: approval-timeout
+    type: string
+    description: seconds the gate waits for an approval before failing
+    default: "600"
+  tasks:
+  - name: wait-approval
+    params:
+    - name: run
+      value: $(context.pipelineRun.name)
+    - name: expiry
+      value: "0"
+    taskSpec:
+      params:
+      - name: run
+      - name: expiry
+      steps:
+      - name: poll
+        image: alpine/kubectl:1.36.0
+        script: |
+          #!/bin/sh
+          start=$(date +%s)
+          echo "waiting for ConfigMap approval-$(params.run) (expiry $(params.expiry)s, 0 means never)"
+          while true; do
+            by=$(kubectl get configmap approval-$(params.run) -o jsonpath='{.data.by}' 2>/dev/null)
+            if [ -n "$by" ]; then
+              if echo ",$(kubectl get configmap release-approvers -o jsonpath='{.data.approvers}')," | grep -q ",$by,"; then
+                echo "approved by $by"
+                exit 0
+              fi
+              echo "approval by $by ignored: not a listed approver"
+            fi
+            if [ "$(params.expiry)" -gt 0 ] && [ $(( $(date +%s) - start )) -ge "$(params.expiry)" ]; then
+              echo "approval window of $(params.expiry)s expired"
+              exit 1
+            fi
+            sleep 2
+          done
+  - name: ship
+    runAfter: ["wait-approval"]
+    taskSpec:
+      results:
+      - name: released
+      steps:
+      - name: publish
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          echo "release published"
+          printf done > $(results.released.path)
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: release-2041
+spec:
+  pipelineRef:
+    name: release
+  taskRunTemplate:
+    serviceAccountName: release-sa

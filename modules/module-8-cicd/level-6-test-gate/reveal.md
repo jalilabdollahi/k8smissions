@@ -1,20 +1,5 @@
-## What went wrong
+The `test` step has `onError: continue`, so its failure is swallowed, and `report` only prints the exit code and exits 0. Every run is green, and `deploy` always follows.
 
-The test Task script has `exit 1` hardcoded. In Tekton, each step's exit code determines whether the TaskRun succeeds or fails. Exit code 0 = success; any non-zero = failure. Because the test step always exits 1, the TaskRun always fails, and any downstream Task with `runAfter: [run-tests]` never runs.
-
-## Fix
-
-```yaml
-spec:
-  steps:
-  - name: test
-    image: busybox:1.36
-    script: |
-      #!/bin/sh
-      echo "all tests passed"
-      exit 0
-```
-
-## Why this matters
-
-Pipeline gates are only as reliable as their exit codes. A test step that always exits 0 is not a gate — it's theater. A real test gate runs the actual test suite and exits with the test runner's own exit code: `go test ./... && exit 0 || exit 1`. The power of pipeline gates is that they *prevent* bad code from reaching deployment — but only if the exit code honestly reflects the test result. Never hardcode exit codes in a gate unless you're explicitly creating a bypass.
+1. `kubectl get taskrun <unit-tests run> -o yaml`: step `test` terminated with exit code 1 while the Task is Succeeded.
+2. Edit Task `unit-tests`: keep `onError: continue` on `test` (the report must run), and in `report` read the code with `cat $(steps.step-test.exitCode.path)`, print the summary, then `exit "$code"`.
+3. A run with `suite=regression` now Fails at `unit-tests`, `deploy` is skipped, and the report is in the log; `suite=smoke` still deploys.

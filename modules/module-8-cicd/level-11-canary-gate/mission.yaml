@@ -1,17 +1,15 @@
 {
-  "name": "Frozen Canary",
-  "description": "A canary deployment is stuck at 50% traffic and never promotes to 100%. All metrics are green, no errors are detected, but the rollout has been frozen for hours. A `pause` step in the canary strategy has no duration — making it an indefinite manual gate that waits forever.",
-  "objective": "The Argo Rollout analysis run is paused waiting for a manual approval — approve it to promote",
-  "xp": 325,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "Argo Rollouts",
-    "canary",
-    "analysis",
-    "manual gate",
-    "promotion"
-  ],
+  "name": "The Canary Nobody Samples",
+  "description": "Release pipeline `release-checkout` puts one canary pod (`checkout-canary`) next to the four `checkout-stable` pods behind Service `checkout`, lets Task `canary-gate` watch real answers from the Service, and only then promotes. Run `release-checkout-0914` has been sitting in `canary-gate` since the morning, printing progress lines but never finishing, and the release train behind it is blocked. A pipeline that cannot decide should say no, not wait.",
+  "objective": "A release of a healthy build through `release-checkout` ends Succeeded with Pipeline result `promoted=true`, `checkout-stable` serves only the new version through Service `checkout`, and a release whose canary never becomes healthy ends Failed within about a minute of the gate starting with `checkout-stable` still on the previous version.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "25m",
+  "concepts": ["canary gate", "Service selectors", "pipeline task timeout", "kubectl logs of a Task", "promotion logic"],
   "module": "module-8-cicd",
-  "level": "level-11-canary-gate"
+  "level": "level-11-canary-gate",
+  "requires": ["tekton"],
+  "settle_seconds": 60,
+  "solve_timeout": 240,
+  "cleanup": []
 }

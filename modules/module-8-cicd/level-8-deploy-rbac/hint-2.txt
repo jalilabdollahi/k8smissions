@@ -1,1 +1,1 @@
-The logs should show a 403 Forbidden error from the Kubernetes API. Check what RBAC is attached to the deploy ServiceAccount: `kubectl get role,rolebinding -n k8smissions | grep deploy`
+A RoleBinding grants only inside the namespace it lives in; the existing Role and RoleBinding sit in the pipeline's own namespace, but the objects are applied to `shop-staging`. Rules are listed per apiGroup: Deployments are in `apps`, Services in the core group `""`. `kubectl apply` of an object that may exist needs `get` and `patch` besides `create`. See `kubectl create role --help`.

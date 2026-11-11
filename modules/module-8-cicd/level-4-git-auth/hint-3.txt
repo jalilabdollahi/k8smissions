@@ -1,1 +1,1 @@
-The `pipeline-sa` ServiceAccount has no `secrets` attached. Tekton git-clone mounts secrets listed on the ServiceAccount into Task pods. You need to add a reference to the SSH key Secret: `secrets: [{name: git-ssh-key}]`.
+Correct the annotation: `kubectl annotate secret ci-git --overwrite tekton.dev/git-0=<scheme>://<host>:<port>` with the values from the clone URL. Then create a new PipelineRun of `build-payments` with `taskRunTemplate: {serviceAccountName: ci-runner}` and compare its `commit` result with `git rev-parse main` in the Git server pod.

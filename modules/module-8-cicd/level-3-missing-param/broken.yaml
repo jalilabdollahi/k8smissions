@@ -1,9 +1,51 @@
-apiVersion: tekton.dev/v1beta1
-kind: TaskRun
+apiVersion: tekton.dev/v1
+kind: Pipeline
 metadata:
-  name: push-run
   namespace: k8smissions
+  name: deploy-notify
 spec:
-  taskRef:
-    name: image-push
-  params: []
+  params:
+  - name: env
+    type: string
+    description: environment that was deployed to
+  - name: targets
+    type: array
+    description: notification channels
+  tasks:
+  - name: notify
+    params:
+    - name: env
+      value: $(params.env)
+    - name: targets
+      value: ["$(params.targets[*])"]
+    taskSpec:
+      params:
+      - name: env
+        type: string
+      - name: targets
+        type: array
+      steps:
+      - name: send
+        image: busybox:1.36
+        env:
+        - name: DEPLOY_ENV
+          value: $(params.env)
+        args: ["$(params.targets[*])"]
+        script: |
+          #!/bin/sh
+          echo "env=$DEPLOY_ENV"
+          for t in "$@"; do
+            echo "notified $t"
+          done
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: notify-prod-9
+spec:
+  pipelineRef:
+    name: deploy-notify
+  params:
+  - name: targets
+    value: "slack-payments,pager-oncall,email-finance"

@@ -1,18 +1,6 @@
-## What went wrong
+The Pipeline declares `env` (string, no default) and `targets` (array). The run supplied only `targets`, and as a single comma-separated string.
 
-The Task `image-push` declares a required parameter `IMAGE` with no `default` value. Required parameters must be supplied by the caller. With `params: []` in the TaskRun, Tekton's admission validation rejects the run before any pod is created.
-
-## Fix
-
-```yaml
-spec:
-  taskRef:
-    name: image-push
-  params:
-  - name: IMAGE
-    value: registry.example.com/myapp:v1.0.0
-```
-
-## Why this matters
-
-Tekton parameters work like function arguments: a Task declares what inputs it needs, and the caller (TaskRun or Pipeline) supplies the values. Parameters without a `default` are mandatory — this is how Task authors express that the caller must make an explicit choice (like which image to push). Parameters with a `default` are optional overrides. Tekton validates all required params at admission time rather than at runtime, which means you get a clear error message immediately rather than a cryptic script failure minutes into the run.
+1. `kubectl get pipelinerun notify-prod-9 -o jsonpath='{.status.conditions[0].message}'` names the missing param `env`; once that is supplied, the type mismatch for `targets` shows up.
+2. Create a new PipelineRun of `deploy-notify` with `env: prod` and `targets` as a list of `slack-payments`, `pager-oncall`, `email-finance`.
+3. (Alternative for `env`: add `default: prod` to the Pipeline param.)
+4. The `send` step logs `env=prod` and three `notified` lines.

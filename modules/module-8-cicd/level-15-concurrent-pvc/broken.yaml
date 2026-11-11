@@ -1,29 +1,67 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: k8smissions
+  name: build-scratch
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: ci-pipeline
   namespace: k8smissions
+  name: build-shop
 spec:
   workspaces:
-  - name: source
+  - name: scratch
   tasks:
   - name: build
-    taskRef:
-      name: build-task
     workspaces:
-    - name: source
-      workspace: source
----
-# PipelineRun — multiple concurrent instances reference the SAME shared PVC
-apiVersion: tekton.dev/v1beta1
-kind: PipelineRun
-metadata:
-  name: ci-run-001
-  namespace: k8smissions
-spec:
-  pipelineRef:
-    name: ci-pipeline
-  workspaces:
-  - name: source
-    persistentVolumeClaim:
-      claimName: shared-build-pvc
+    - name: scratch
+      workspace: scratch
+    taskSpec:
+      workspaces:
+      - name: scratch
+      results:
+      - name: expected
+      steps:
+      - name: package
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          set -e
+          out=$(workspaces.scratch.path)/shop.tar
+          printf 'artifact for %s' "$(context.pipelineRun.name)" > "$out"
+          sha256sum "$out" | cut -d' ' -f1 | tr -d '\n' > $(results.expected.path)
+          echo "packaged $out, sha256 $(cat $(results.expected.path))"
+          sleep 12
+  - name: verify
+    runAfter: ["build"]
+    params:
+    - name: expected
+      value: $(tasks.build.results.expected)
+    workspaces:
+    - name: scratch
+      workspace: scratch
+    taskSpec:
+      params:
+      - name: expected
+      workspaces:
+      - name: scratch
+      results:
+      - name: checksum
+      steps:
+      - name: checksum
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          sum=$(sha256sum $(workspaces.scratch.path)/shop.tar | cut -d' ' -f1)
+          echo "archive sha256 $sum, build recorded $(params.expected)"
+          if [ "$sum" != "$(params.expected)" ]; then
+            echo "checksum mismatch: the archive is not the one build produced"
+            exit 1
+          fi
+          printf '%s' "$sum" > $(results.checksum.path)

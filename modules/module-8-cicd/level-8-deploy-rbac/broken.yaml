@@ -1,5 +1,120 @@
 apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-staging
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shop-prod
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
+  namespace: k8smissions
+  name: deploy-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: k8smissions
+  name: storefront-deployer
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: k8smissions
+  name: deploy-sa-storefront-deployer
+subjects:
+- kind: ServiceAccount
   name: deploy-sa
   namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: storefront-deployer
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  namespace: k8smissions
+  name: deploy
+spec:
+  params:
+  - name: version
+    type: string
+  steps:
+  - name: apply
+    image: alpine/kubectl:1.36.0
+    script: |
+      #!/bin/sh
+      set -e
+      cat > /tmp/storefront.yaml <<MANIFEST
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: storefront
+        labels: {app: storefront}
+      spec:
+        replicas: 2
+        selector:
+          matchLabels: {app: storefront}
+        template:
+          metadata:
+            labels: {app: storefront}
+          spec:
+            containers:
+            - name: storefront
+              image: hashicorp/http-echo:0.2.3
+              args: ["-listen=:5678", "-text=storefront $(params.version)"]
+              ports:
+              - containerPort: 5678
+      ---
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: storefront
+      spec:
+        selector: {app: storefront}
+        ports:
+        - port: 80
+          targetPort: 5678
+      MANIFEST
+      kubectl apply -n shop-staging -f /tmp/storefront.yaml
+      kubectl rollout status deployment/storefront -n shop-staging --timeout=90s
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: release-storefront
+spec:
+  params:
+  - name: version
+    type: string
+    default: "7.6.0"
+  tasks:
+  - name: deploy
+    params:
+    - name: version
+      value: $(params.version)
+    taskRef:
+      name: deploy
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: release-1182
+spec:
+  pipelineRef:
+    name: release-storefront
+  params:
+  - name: version
+    value: "7.6.1"
+  taskRunTemplate:
+    serviceAccountName: deploy-sa

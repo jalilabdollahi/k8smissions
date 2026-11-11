@@ -1,20 +1,182 @@
-apiVersion: tekton.dev/v1beta1
-kind: Task
+apiVersion: v1
+kind: Namespace
 metadata:
-  name: multi-task
+  name: payments-prod
+---
+apiVersion: v1
+kind: Secret
+metadata:
   namespace: k8smissions
-spec:
-  params:
-  - name: git-url
-  workspaces:
-  - name: output
-  steps:
-  - name: clone
-    image: alpine/git:999
-    script: git clone $(params.git-url) /workspace/output
+  name: ci-git
+  annotations:
+    tekton.dev/git-0: http://gitserver.gitops-git.svc.cluster.local:8080
+type: kubernetes.io/basic-auth
+stringData:
+  username: ci-bot
+  password: ci-bot-secret
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: multi-sa
   namespace: k8smissions
+  name: deploy-sa
+secrets:
+- name: ci-git
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: payments-prod
+  name: payments-deployer
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "patch"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["get", "list", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: payments-prod
+  name: deploy-sa-payments
+subjects:
+- kind: ServiceAccount
+  name: deploy-sa
+  namespace: ci-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: payments-deployer
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: ship-payments
+spec:
+  params:
+  - name: repo-url
+    type: string
+    default: http://gitserver.gitops-git.svc.cluster.local:8080/cgi-bin/git/private/payments-api.git
+  - name: revision
+    type: string
+    default: main
+  tasks:
+  - name: clone
+    params:
+    - name: repo-url
+      value: $(params.repo-url)
+    - name: revision
+      value: $(params.revision)
+    taskSpec:
+      params:
+      - name: repo-url
+      - name: revision
+      results:
+      - name: commit
+      steps:
+      - name: git-clone
+        image: alpine/git:2.49.1
+        env:
+        - name: GIT_TERMINAL_PROMPT
+          value: "0"
+        script: |
+          #!/bin/sh
+          set -e
+          git clone --quiet --branch "$(params.revision)" "$(params.repo-url)" /tmp/src
+          git -C /tmp/src rev-parse HEAD | tr -d '\n' > $(results.commit.path)
+          echo "cloned $(params.revision) at $(cat $(results.commit.path))"
+  - name: push
+    params:
+    - name: commit
+      value: $(tasks.clone.results.commit)
+    - name: tag
+      value: $(context.pipelineRun.name)
+    taskSpec:
+      params:
+      - name: commit
+      - name: tag
+      results:
+      - name: digest
+      steps:
+      - name: layer
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          set -e
+          mkdir -p /workspace/app
+          echo "payments-api at $(params.commit)" > /workspace/app/COMMIT
+          tar -C /workspace/app -czf /workspace/layer.tar.gz .
+      - name: push
+        image: gcr.io/go-containerregistry/crane:debug@sha256:e78770b31258a3846f878036d9c1f63fbe4c871f9f56990bf77fd95c013e3c1b
+        script: |
+          #!/busybox/sh
+          set -e
+          ref=registry.k8smissions.svc.cluster.local:5000/payments/api:$(params.tag)
+          out=$(crane append -f /workspace/layer.tar.gz -t "$ref")
+          printf '%s' "${out##*@}" > $(results.digest.path)
+          echo "pushed $ref"
+  - name: deploy
+    params:
+    - name: digest
+      value: $(tasks.push.results.digest)
+    taskSpec:
+      params:
+      - name: digest
+      steps:
+      - name: roll-out
+        image: alpine/kubectl:1.36.0
+        script: |
+          #!/bin/sh
+          set -e
+          kubectl apply -n payments-prod -f - <<MANIFEST
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: payments-api
+            annotations:
+              release/digest: $(params.digest)
+          spec:
+            replicas: 2
+            selector:
+              matchLabels: {app: payments-api}
+            template:
+              metadata:
+                labels: {app: payments-api}
+                annotations:
+                  release/digest: $(params.digest)
+              spec:
+                containers:
+                - name: api
+                  image: hashicorp/http-echo:1.0.0
+                  args: ["-listen=:5678", "-text=payments-api $(params.digest)"]
+                  ports:
+                  - containerPort: 5678
+                  readinessProbe:
+                    httpGet: {path: /, port: 5678}
+                    periodSeconds: 2
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: payments-api
+          spec:
+            selector: {app: payments-api}
+            ports:
+            - port: 80
+              targetPort: 5678
+          MANIFEST
+          kubectl -n payments-prod rollout status deployment/payments-api --timeout=90s
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: ship-payments-0611
+spec:
+  pipelineRef:
+    name: ship-payments
+  taskRunTemplate:
+    serviceAccountName: deploy-sa

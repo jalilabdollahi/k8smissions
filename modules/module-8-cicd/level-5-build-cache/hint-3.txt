@@ -1,1 +1,1 @@
-The TaskRun binds the `source` workspace but is missing a binding for the `cache` workspace. Add a second workspace entry that maps `cache` to the PVC `maven-cache-pvc`.
+In Pipeline `inventory-build`, add to the `compile` entry: `workspaces: [{name: cache, workspace: cache}]`. In Task `compile`, point `DEPS` at a directory below `$(workspaces.cache.path)` instead of `$HOME`. Test it by running the Pipeline twice with the same PVC under `spec.workspaces` and comparing `kubectl get taskrun -o jsonpath='{.items[*].status.results}'`.

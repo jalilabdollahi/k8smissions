@@ -1,17 +1,15 @@
 {
-  "name": "Pipeline Locked Out",
-  "description": "A Tekton EventListener fires when GitHub webhooks arrive and tries to create PipelineRuns, but it fails with 403 Forbidden. The `trigger-sa` ServiceAccount the EventListener uses has no RBAC permissions to create resources in the `tekton.dev` API group.",
-  "objective": "The pipeline SA needs RBAC to create PipelineRuns and TaskRuns — add the required Role and RoleBinding",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "Tekton",
-    "RBAC",
-    "ServiceAccount",
-    "PipelineRun",
-    "tekton resources"
-  ],
+  "name": "Dispatcher Locked Out",
+  "description": "The nightly Pipeline `orchestrate` has a Task `dispatch` that starts a follow-up PipelineRun of Pipeline `reindex` and waits for it to finish. Since the ServiceAccount `dispatcher` was created for it, every nightly run, `orchestrate-nightly-3` included, ends Failed in `dispatch` with a Forbidden error. Security has reviewed the request and wants the ServiceAccount to do exactly this job and nothing more.",
+  "objective": "A new run of `orchestrate` with ServiceAccount `dispatcher` ends Succeeded, its `reindex-*` child run exists and Succeeded, and `dispatcher` can create and read PipelineRuns in `k8smissions` but cannot delete Pipelines, create Pods or read Secrets there.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["Role and RoleBinding", "tekton.dev API group", "kubectl wait permissions", "least privilege", "kubectl auth can-i --as"],
   "module": "module-8-cicd",
-  "level": "level-14-pipeline-rbac"
+  "level": "level-14-pipeline-rbac",
+  "requires": ["tekton"],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

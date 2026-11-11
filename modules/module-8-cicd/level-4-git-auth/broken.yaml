@@ -1,5 +1,61 @@
 apiVersion: v1
+kind: Secret
+metadata:
+  namespace: k8smissions
+  name: ci-git
+  annotations:
+    tekton.dev/git-0: https://gitserver.gitops-git.svc.cluster.local
+type: kubernetes.io/basic-auth
+stringData:
+  username: ci-bot
+  password: ci-bot-secret
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: pipeline-sa
   namespace: k8smissions
+  name: ci-runner
+secrets:
+- name: ci-git
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: build-payments
+spec:
+  params:
+  - name: repo-url
+    type: string
+    default: http://gitserver.gitops-git.svc.cluster.local:8080/cgi-bin/git/private/payments-ci.git
+  tasks:
+  - name: clone
+    params:
+    - name: url
+      value: $(params.repo-url)
+    taskSpec:
+      params:
+      - name: url
+      results:
+      - name: commit
+      steps:
+      - name: git-clone
+        image: alpine/git:2.49.1
+        env:
+        - name: GIT_TERMINAL_PROMPT
+          value: "0"
+        script: |
+          #!/bin/sh
+          set -e
+          git clone --quiet "$(params.url)" /tmp/src
+          git -C /tmp/src rev-parse HEAD | tr -d '\n' > $(results.commit.path)
+          echo "cloned $(params.url) at $(cat $(results.commit.path))"
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: build-payments-31
+spec:
+  pipelineRef:
+    name: build-payments

@@ -1,1 +1,1 @@
-Inspect the Pipeline spec to see where the cleanup Task is defined: `kubectl get pipeline build-and-clean -n k8smissions -o yaml | grep -A20 tasks`
+Start with what is left: `kubectl get pods,services -l app=scratch` and `kubectl get resourcequota`. Then read Pipeline `integration-test` (`kubectl get pipeline integration-test -o yaml`) and ask what happens to the `teardown` Task when `provision` or `smoke` fails. A run with param `scenario=bad-fixture` shows it.

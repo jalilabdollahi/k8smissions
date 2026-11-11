@@ -1,12 +1,68 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: injected-task
   namespace: k8smissions
-  # Istio admission webhook injects istio-proxy into every pod in the namespace
-  # Tekton's entrypoint/init-container lifecycle conflicts with the sidecar — steps run out of order or time out
+  name: db-test
 spec:
+  params:
+  - name: db-startup
+    type: string
+    default: "8"
+  - name: db-port
+    type: string
+    default: "8080"
+  results:
+  - name: rows
+  sidecars:
+  - name: mock-db
+    image: python:3.12-alpine
+    script: |
+      #!/bin/sh
+      mkdir -p /tmp/db
+      printf 'order-1\norder-2\norder-3\n' > /tmp/db/rows.txt
+      echo "mock-db: loading fixtures for $(params.db-startup)s"
+      sleep $(params.db-startup)
+      echo "mock-db: listening on 8080"
+      exec python -m http.server 8080 --bind 127.0.0.1 --directory /tmp/db
   steps:
-  - name: build
-    image: busybox:1.36
-    script: echo building
+  - name: query
+    image: curlimages/curl:8.10.1
+    script: |
+      #!/bin/sh
+      set -e
+      sleep 5
+      curl -sf --max-time 3 http://127.0.0.1:$(params.db-port)/rows.txt > /tmp/rows.txt
+      printf '%s' "$(wc -l < /tmp/rows.txt | tr -d ' ')" > $(results.rows.path)
+      echo "query returned $(cat $(results.rows.path)) rows"
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: integration-db-test
+spec:
+  params:
+  - name: db-startup
+    type: string
+    default: "8"
+  - name: db-port
+    type: string
+    default: "8080"
+  tasks:
+  - name: db-test
+    params:
+    - name: db-startup
+      value: $(params.db-startup)
+    - name: db-port
+      value: $(params.db-port)
+    taskRef:
+      name: db-test
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: db-test-0812
+spec:
+  pipelineRef:
+    name: integration-db-test

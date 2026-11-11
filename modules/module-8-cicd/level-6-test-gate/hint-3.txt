@@ -1,1 +1,1 @@
-The test Task's script ends with `exit 1` — hardcoded failure. A CI gate should exit 0 when tests pass and non-zero when they fail. Change `exit 1` to `exit 0` to unblock the pipeline.
+Keep `onError: continue` on `test`, and make the last line of the `report` step end the step (and so the Task) with the code of `test`: read it with `cat $(steps.step-test.exitCode.path)` into a variable and finish with `exit "$code"`. Check with a run that sets param `suite` to `regression`: `kubectl get pipelinerun,taskrun`.

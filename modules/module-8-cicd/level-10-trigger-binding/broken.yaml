@@ -1,11 +1,209 @@
-apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerBinding
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: git-push-binding
   namespace: k8smissions
+  name: hook
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: k8smissions
+  name: hook-runner
+rules:
+- apiGroups: ["tekton.dev"]
+  resources: ["pipelineruns"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: k8smissions
+  name: hook-runner
+subjects:
+- kind: ServiceAccount
+  name: hook
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: hook-runner
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: k8smissions
+  name: hook-binding
+data:
+  binding.json: |
+    {
+      "pipeline": "clone-at",
+      "params": {
+        "revision": "body.head_commit.sha",
+        "repo-url": "body.repository.clone_url"
+      }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: k8smissions
+  name: hook-code
+data:
+  receiver.py: |
+    import json, ssl, urllib.request
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    BINDING = json.load(open("/etc/binding/binding.json"))
+    print("binding loaded:", json.dumps(BINDING), flush=True)
+
+    def lookup(doc, path):
+        cur = {"body": doc}
+        for part in path.split("."):
+            if isinstance(cur, dict) and part in cur:
+                cur = cur[part]
+            else:
+                return None
+        return cur
+
+    class Hook(BaseHTTPRequestHandler):
+        def reply(self, code, obj):
+            raw = json.dumps(obj).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(raw)))
+            self.end_headers()
+            self.wfile.write(raw)
+
+        def do_POST(self):
+            size = int(self.headers.get("Content-Length", 0))
+            doc = json.loads(self.rfile.read(size) or b"{}")
+            params = []
+            for name, path in BINDING["params"].items():
+                value = lookup(doc, path)
+                if value is None:
+                    print("binding: %s not found in payload, param %s left empty" % (path, name), flush=True)
+                    value = ""
+                params.append({"name": name, "value": str(value)})
+            run = {
+                "apiVersion": "tekton.dev/v1",
+                "kind": "PipelineRun",
+                "metadata": {"generateName": "push-", "labels": {"source": "webhook"}},
+                "spec": {"pipelineRef": {"name": BINDING["pipeline"]}, "params": params},
+            }
+            ns = open(SA + "/namespace").read()
+            req = urllib.request.Request(
+                "https://kubernetes.default.svc/apis/tekton.dev/v1/namespaces/%s/pipelineruns" % ns,
+                data=json.dumps(run).encode(), method="POST",
+                headers={"Authorization": "Bearer " + open(SA + "/token").read(),
+                         "Content-Type": "application/json"})
+            try:
+                out = json.load(urllib.request.urlopen(req, context=ssl.create_default_context(cafile=SA + "/ca.crt")))
+            except Exception as e:
+                print("create failed:", e, flush=True)
+                return self.reply(502, {"error": str(e)})
+            name = out["metadata"]["name"]
+            print("created", name, json.dumps(params), flush=True)
+            self.reply(201, {"pipelinerun": name})
+
+        def log_message(self, *a):
+            pass
+
+    HTTPServer(("", 8080), Hook).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: k8smissions
+  name: hook
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: hook}
+  template:
+    metadata:
+      labels: {app: hook}
+    spec:
+      serviceAccountName: hook
+      containers:
+      - name: receiver
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/receiver.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          tcpSocket: {port: 8080}
+          periodSeconds: 2
+        volumeMounts:
+        - {name: code, mountPath: /app}
+        - {name: binding, mountPath: /etc/binding}
+      volumes:
+      - name: code
+        configMap: {name: hook-code}
+      - name: binding
+        configMap: {name: hook-binding}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: k8smissions
+  name: hook
+spec:
+  selector: {app: hook}
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: clone-at
 spec:
   params:
-  - name: git-revision
-    value: $(body.commits[0].sha)
-  - name: git-repo-url
-    value: $(body.repository.clone_url)
+  - name: repo-url
+    type: string
+  - name: revision
+    type: string
+    default: ""
+  tasks:
+  - name: clone
+    params:
+    - name: repo-url
+      value: $(params.repo-url)
+    - name: revision
+      value: $(params.revision)
+    taskSpec:
+      params:
+      - name: repo-url
+      - name: revision
+      results:
+      - name: commit
+      steps:
+      - name: checkout
+        image: alpine/git:2.49.1
+        script: |
+          #!/bin/sh
+          set -e
+          if [ -z "$(params.revision)" ]; then
+            echo "revision is empty, nothing to check out"
+            exit 1
+          fi
+          git clone --quiet "$(params.repo-url)" /tmp/src
+          git -C /tmp/src checkout --quiet "$(params.revision)"
+          git -C /tmp/src rev-parse HEAD | tr -d '\n' > $(results.commit.path)
+          echo "checked out $(cat $(results.commit.path))"
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: push-8f21
+  labels:
+    source: webhook
+spec:
+  pipelineRef:
+    name: clone-at
+  params:
+  - name: repo-url
+    value: http://gitserver.gitops-git.svc.cluster.local:8080/cgi-bin/git/webhook-app.git

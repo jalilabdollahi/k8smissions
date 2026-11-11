@@ -1,17 +1,15 @@
 {
-  "name": "Reverted Release",
-  "description": "An Argo Rollout is in Degraded state after being automatically aborted. The canary pods used a bad image tag and entered ErrImagePull — Argo Rollouts detected the failure, aborted the rollout, and rolled back traffic. The Rollout is now stuck in Degraded and won't recover until the image is fixed and the rollout is retried.",
-  "objective": "The Rollout is in Degraded state after an abort — retry the rollout with a fixed image to recover",
+  "name": "The Rollback That Never Ran",
+  "description": "Last week a `ledger-api` release with a typo in the image tag went out through Pipeline `release-ledger`: the `deploy` Task timed out waiting for the rollout and the run `release-ledger-0907` ended Failed, exactly as it should. The pipeline also has a `rollback` Task meant to restore the previous version, but it never ran and ledger-api stayed degraded until someone noticed. The same will happen at the next bad release unless the pipeline is repaired.",
+  "objective": "After a good release and then a release with a bad image tag through `release-ledger`: the bad run ends Failed, Deployment `ledger-api` is back on the previously deployed good image with all 3 replicas available and answering through Service `ledger-api`, and the good release has Succeeded with its new image running.",
   "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Argo Rollouts",
-    "abort",
-    "rollback",
-    "degraded state",
-    "retry"
-  ],
+  "difficulty": "expert",
+  "expected_time": "25m",
+  "concepts": ["finally tasks", "when expressions", "$(tasks.status)", "kubectl rollout undo", "revisionHistoryLimit"],
   "module": "module-8-cicd",
-  "level": "level-12-rollout-abort"
+  "level": "level-12-rollout-abort",
+  "requires": ["tekton"],
+  "settle_seconds": 60,
+  "solve_timeout": 240,
+  "cleanup": []
 }

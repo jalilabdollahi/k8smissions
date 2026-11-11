@@ -1,20 +1,8 @@
-## What went wrong
+The `generate` and `publish` steps pass the version through `/tmp/version.txt`, but each step is a separate container, so `publish` never sees the file, and the declared `version` result stays empty.
 
-The Tekton Task step uses `image: golang:99.9-nonexistent`. Before any step script runs, Kubernetes must pull the container image. If the image doesn't exist in the registry, the pod enters `ErrImagePull` → `ImagePullBackOff` and no step ever executes.
+1. Edit Task `build` (`kubectl edit task build`).
+2. In `generate`, write the version to `$(results.version.path)` instead of `/tmp/version.txt` (`printf '%s.%s.%s' ... > $(results.version.path)`).
+3. In `publish`, read it from `$(results.version.path)`.
+4. Start a new PipelineRun of `release-notes`; old runs keep their old Task definition and never turn green. The TaskRun result `version` is now `2.9.42` and `publish` prints it.
 
-## Fix
-
-```yaml
-spec:
-  steps:
-  - name: build
-    image: golang:1.21
-    script: |
-      #!/bin/bash
-      echo "Building..."
-      go build ./...
-```
-
-## Why this matters
-
-In Tekton, each step runs in its own container within the same pod. The pod is not considered running until all step images have been pulled. A single bad image reference in any step causes the entire TaskRun to fail at the pod scheduling phase — before the pipeline even starts. Always pin image tags in CI steps (as in all production containers) and test image references with `docker pull` locally before committing them to a pipeline definition.
+A shared path such as `/workspace/version.txt` also lets `publish` read the file, but the result still has to be written for the objective to hold.

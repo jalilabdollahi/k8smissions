@@ -1,28 +1,214 @@
-apiVersion: argoproj.io/v1alpha1
-kind: Rollout
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: api-rollout
   namespace: k8smissions
+  name: release-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: k8smissions
+  name: release-manager
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["get", "list", "watch", "create", "patch", "update", "delete"]
+- apiGroups: [""]
+  resources: ["pods", "services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  namespace: k8smissions
+  name: release-sa-manager
+subjects:
+- kind: ServiceAccount
+  name: release-sa
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: release-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: k8smissions
+  name: checkout-stable
 spec:
-  replicas: 5
-  strategy:
-    canary:
-      steps:
-      - setWeight: 20
-      - pause:
-          duration: 10m
-      - setWeight: 50
-      - pause: {}
-      - setWeight: 100
-      analysis: {}
+  replicas: 4
   selector:
-    matchLabels:
-      app: api
+    matchLabels: {app: checkout, track: stable}
   template:
     metadata:
-      labels:
-        app: api
+      labels: {app: checkout, track: stable}
     spec:
       containers:
-      - name: api
-        image: nginx:1.25
+      - name: web
+        image: hashicorp/http-echo:1.0.0
+        args: ["-listen=:5678", "-text=v1"]
+        ports:
+        - containerPort: 5678
+        readinessProbe:
+          httpGet: {path: /, port: 5678}
+          periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: k8smissions
+  name: checkout
+spec:
+  selector: {app: checkout}
+  ports:
+  - port: 80
+    targetPort: 5678
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: release-checkout
+spec:
+  params:
+  - name: version
+    type: string
+  - name: canary-name
+    type: string
+    description: name of the canary Deployment (one per release)
+    default: checkout-canary
+  - name: canary-mode
+    type: string
+    description: how the candidate build behaves in a rehearsal (ok, error or crash)
+    default: ok
+  results:
+  - name: promoted
+    value: $(tasks.promote.results.promoted)
+  tasks:
+  - name: deploy-canary
+    params:
+    - name: version
+      value: $(params.version)
+    - name: mode
+      value: $(params.canary-mode)
+    - name: canary-name
+      value: $(params.canary-name)
+    taskSpec:
+      params:
+      - name: version
+      - name: mode
+      - name: canary-name
+      steps:
+      - name: apply
+        image: alpine/kubectl:1.36.0
+        script: |
+          #!/bin/sh
+          set -e
+          extra=""
+          [ "$(params.mode)" = "error" ] && extra=', "-status-code=500"'
+          [ "$(params.mode)" = "crash" ] && extra=', "-no-such-flag"'
+          kubectl apply -f - <<MANIFEST
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: $(params.canary-name)
+          spec:
+            replicas: 1
+            selector:
+              matchLabels: {app: checkout-canary, canary: $(params.canary-name)}
+            template:
+              metadata:
+                labels: {app: checkout-canary, track: canary, canary: $(params.canary-name)}
+              spec:
+                containers:
+                - name: web
+                  image: hashicorp/http-echo:1.0.0
+                  args: ["-listen=:5678", "-text=$(params.version)"$extra]
+                  ports:
+                  - containerPort: 5678
+                  readinessProbe:
+                    httpGet: {path: /, port: 5678}
+                    periodSeconds: 2
+          MANIFEST
+          echo "canary $(params.version) applied"
+  - name: canary-gate
+    runAfter: ["deploy-canary"]
+    params:
+    - name: version
+      value: $(params.version)
+    taskSpec:
+      params:
+      - name: version
+      steps:
+      - name: sample
+        image: curlimages/curl:8.10.1
+        script: |
+          #!/bin/sh
+          seen=0; total=0
+          echo "waiting for 20 answers from the canary ($(params.version))"
+          while [ "$seen" -lt 20 ]; do
+            code=$(curl -s -m 2 -o /tmp/body -w '%{http_code}' http://checkout/ || true)
+            body=$(cat /tmp/body 2>/dev/null)
+            if [ "$code" != "200" ] && [ "$code" != "000" ]; then
+              echo "checkout answered $code, canary rejected"
+              exit 1
+            fi
+            [ "$body" = "$(params.version)" ] && seen=$((seen + 1))
+            total=$((total + 1))
+            [ $((total % 25)) -eq 0 ] && echo "requests=$total canary-answers=$seen"
+            sleep 0.2
+          done
+          echo "canary answered $seen of $total requests without errors"
+  - name: promote
+    runAfter: ["canary-gate"]
+    params:
+    - name: version
+      value: $(params.version)
+    - name: canary-name
+      value: $(params.canary-name)
+    taskSpec:
+      params:
+      - name: version
+      - name: canary-name
+      results:
+      - name: promoted
+      steps:
+      - name: roll
+        image: alpine/kubectl:1.36.0
+        script: |
+          #!/bin/sh
+          set -e
+          kubectl patch deployment checkout-stable --type=json \
+            -p '[{"op":"replace","path":"/spec/template/spec/containers/0/args/1","value":"-text=$(params.version)"}]'
+          kubectl rollout status deployment/checkout-stable --timeout=100s
+          kubectl delete deployment $(params.canary-name) --ignore-not-found
+          printf true > $(results.promoted.path)
+  finally:
+  - name: drop-canary
+    params:
+    - name: canary-name
+      value: $(params.canary-name)
+    taskSpec:
+      params:
+      - name: canary-name
+      steps:
+      - name: delete
+        image: alpine/kubectl:1.36.0
+        script: |
+          #!/bin/sh
+          kubectl delete deployment $(params.canary-name) --ignore-not-found
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: release-checkout-0914
+spec:
+  pipelineRef:
+    name: release-checkout
+  taskRunTemplate:
+    serviceAccountName: release-sa
+  params:
+  - name: version
+    value: v2

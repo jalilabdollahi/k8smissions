@@ -1,32 +1,6 @@
-## What went wrong
+The Secret has the right type, but its content is wrong twice: the `auths` key is `registry:5000` while the step pushes to `registry.k8smissions.svc.cluster.local:5000`, so the client finds no credentials and pushes anonymously, and the `auth` value was encoded with `echo`, so the password ends in a newline.
 
-Pushing an image to a private registry requires authentication. Tekton looks for `dockerconfigjson` type secrets attached to the TaskRun's ServiceAccount. With no secrets attached, the push step has no credentials and gets 401 Unauthorized.
-
-## Fix
-
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: ci-sa
-  namespace: k8smissions
-imagePullSecrets:
-- name: registry-creds
-secrets:
-- name: registry-creds
-```
-
-The `registry-creds` Secret should be of type `kubernetes.io/dockerconfigjson`:
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: registry-creds
-type: kubernetes.io/dockerconfigjson
-data:
-  .dockerconfigjson: <base64-encoded-docker-config>
-```
-
-## Why this matters
-
-Both `imagePullSecrets` and `secrets` serve different purposes: `imagePullSecrets` is used by Kubernetes to pull images *for* the ServiceAccount's pods; `secrets` is mounted into the pod and used by tools (like `docker push` or `crane`) running *inside* the pod to push images *from* the step. For a CI image build-and-push step, you need both — the step container image must be pullable, and the step itself must be able to push the built image.
+1. `kubectl logs <pod> -c step-push` shows `UNAUTHORIZED` for host `registry.k8smissions.svc.cluster.local:5000`.
+2. Decode the Secret and its `auth`: key `registry:5000`, value `ci-push:ship-it-4711` plus a newline.
+3. `kubectl create secret docker-registry registry-creds --docker-server=registry.k8smissions.svc.cluster.local:5000 --docker-username=ci-push --docker-password=ship-it-4711 --dry-run=client -o yaml | kubectl apply -f -`
+4. Start a new run as ServiceAccount `builder`; the tag appears in the registry and `digest` matches.

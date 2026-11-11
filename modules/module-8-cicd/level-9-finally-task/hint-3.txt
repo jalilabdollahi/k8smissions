@@ -1,1 +1,1 @@
-The cleanup Task needs to be in `spec.finally`, not `spec.tasks`. Tasks in `spec.finally` run unconditionally after the main task DAG completes or fails — they cannot have `runAfter` dependencies.
+Move `teardown` from `spec.tasks` into `spec.finally`, remove its `runAfter` and its dependency on `$(tasks.provision.results.name)`, and build the object name the way `provision` does: `scratch-$(context.pipelineRun.name)`. Delete the 14 old leftovers yourself, for example `kubectl delete pod,service -l app=scratch`.

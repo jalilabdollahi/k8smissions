@@ -1,17 +1,15 @@
 {
-  "name": "Cleanup Skipped",
-  "description": "A Pipeline runs a cleanup Task after each build to remove temporary resources. But the cleanup only runs when the build succeeds — if the build fails, the cleanup is skipped and temporary resources accumulate. The cleanup is in the wrong section of the Pipeline spec.",
-  "objective": "The cleanup Task is in the tasks list, not the finally list — move it to spec.finally so it always runs",
-  "xp": 275,
+  "name": "Scratch That",
+  "description": "Namespace `k8smissions` is almost out of Services: the quota shows 14 of 16 in use, and every one of them is a `scratch-it-07NN` leftover of a past `integration-test` run, each with a Pod of the same name. Pipeline `integration-test` creates a scratch database Pod and Service per run and removes them in its last Task. It only gets there when everything before it succeeded, and when a run fails the scratch objects stay, so each failed nightly eats another slot.",
+  "objective": "After a failing run and a passing run of Pipeline `integration-test`, no `scratch-*` Pod or Service is left in `k8smissions` (the 14 old ones included), the failing run still ends Failed, and the passing run Succeeds.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Tekton",
-    "finally",
-    "Pipeline",
-    "cleanup",
-    "guaranteed execution"
-  ],
+  "expected_time": "12m",
+  "concepts": ["Pipeline finally", "$(context.pipelineRun.name)", "result availability after failure", "ResourceQuota", "cleanup tasks"],
   "module": "module-8-cicd",
-  "level": "level-9-finally-task"
+  "level": "level-9-finally-task",
+  "requires": ["tekton"],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

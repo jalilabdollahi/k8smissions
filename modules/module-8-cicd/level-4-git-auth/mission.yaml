@@ -1,17 +1,15 @@
 {
-  "name": "Clone Denied",
-  "description": "A Tekton git-clone Task fails with 'authentication required'. The repository is private and the pipeline's ServiceAccount has no SSH credentials attached. Without credentials, the git-clone Task can't authenticate against the remote.",
-  "objective": "The git-clone Task needs SSH credentials — bind the SSH secret to the ServiceAccount used by the TaskRun",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "Tekton",
-    "git-clone",
-    "secrets",
-    "ServiceAccount",
-    "SSH credentials"
-  ],
+  "name": "Locked Out of Our Own Repo",
+  "description": "Pipeline `build-payments` has not built anything since the weekend. Run `build-payments-31` fails in its `clone` Task with a Git authentication error against the in-cluster Git server, although the CI credentials were created last week, are present in the namespace and are attached to the CI ServiceAccount. Security has asked that the password stays in a Secret and not in the repository URL.",
+  "objective": "A new PipelineRun of Pipeline `build-payments` (not `build-payments-31`) finishes Succeeded and its `clone` Task reports result `commit` equal to the current HEAD of the private repository `payments-ci`. Secret `ci-git` must remain a `kubernetes.io/basic-auth` Secret.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["Tekton credentials", "tekton.dev/git-0 annotation", "ServiceAccount secrets", "taskRunTemplate.serviceAccountName", "basic-auth Secret"],
   "module": "module-8-cicd",
-  "level": "level-4-git-auth"
+  "level": "level-4-git-auth",
+  "requires": ["tekton"],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

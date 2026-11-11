@@ -1,1 +1,1 @@
-Check the test TaskRun to see its exit status: `kubectl get taskrun -n k8smissions` and `kubectl logs -n k8smissions -l tekton.dev/task=run-tests`
+Look at run `ship-ledger-0612` the way Tekton sees it: `kubectl get taskrun` for the `unit-tests` run, then `kubectl get taskrun <name> -o yaml` and read `status.steps` (one entry per step, with exit codes), plus `kubectl logs <pod> -c step-test` and `-c step-report`. The Task itself is green, but are the steps?

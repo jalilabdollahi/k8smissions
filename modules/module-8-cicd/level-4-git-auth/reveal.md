@@ -1,32 +1,6 @@
-## What went wrong
+Two independent defects, either one alone leaves the clone unauthenticated:
 
-Tekton git-clone uses the ServiceAccount's attached secrets to find SSH credentials. The ServiceAccount has no secrets, so there are no credentials to present to the remote Git server. The clone fails with an authentication error.
+1. The run uses ServiceAccount `default`; the Secret is attached to `ci-runner`, so Tekton never mounts it. Start the new run with `taskRunTemplate.serviceAccountName: ci-runner`.
+2. The Secret's `tekton.dev/git-0` annotation says `https://gitserver.gitops-git.svc.cluster.local`, but the clone URL is `http://gitserver.gitops-git.svc.cluster.local:8080/...`. Credentials are matched by scheme, host and port, so none are written. Fix it: `kubectl annotate secret ci-git --overwrite tekton.dev/git-0=http://gitserver.gitops-git.svc.cluster.local:8080`.
 
-## Fix
-
-```yaml
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: pipeline-sa
-  namespace: k8smissions
-secrets:
-- name: git-ssh-key
-```
-
-The `git-ssh-key` Secret should be of type `kubernetes.io/ssh-auth`:
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: git-ssh-key
-  annotations:
-    tekton.dev/git-0: github.com
-type: kubernetes.io/ssh-auth
-data:
-  ssh-privatekey: <base64-encoded-private-key>
-```
-
-## Why this matters
-
-Tekton's credential system works through ServiceAccount secret attachments. The `tekton.dev/git-0: github.com` annotation tells Tekton which host this credential applies to. On the pod, Tekton mounts and configures the SSH key automatically — you don't write git config manually in your script. This same pattern applies to registry credentials (`kubernetes.io/dockerconfigjson`) for image push/pull operations.
+Then create the new PipelineRun; `clone` returns the HEAD commit of `payments-ci`. Keep the Secret as `kubernetes.io/basic-auth`; do not put the password into the URL.

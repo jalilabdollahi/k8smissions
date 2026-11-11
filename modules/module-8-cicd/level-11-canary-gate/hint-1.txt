@@ -1,1 +1,1 @@
-Check the Rollout status: `kubectl argo rollouts get rollout api-rollout -n k8smissions`
+Read what the gate says (`kubectl logs <pod of run release-checkout-0914's canary-gate> -c step-sample`): it counts requests and canary answers. Then compare who Service `checkout` actually sends traffic to (`kubectl get endpoints checkout -o wide`, `kubectl get pods --show-labels`) with where the canary pod should be.

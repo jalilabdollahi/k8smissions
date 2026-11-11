@@ -1,17 +1,15 @@
 {
-  "name": "Injected to Failure",
-  "description": "Pipeline Task pods are failing to complete. Istio's admission webhook is injecting the `istio-proxy` sidecar into every pod in the namespace — including Tekton Task pods. The sidecar's lifecycle management conflicts with Tekton's own step container ordering, causing Tasks to time out or run out of sequence.",
-  "objective": "The sidecar injector webhook conflicts with Tekton's step container management — disable injection for pipeline pods",
-  "xp": 350,
+  "name": "Connection Refused, Sometimes",
+  "description": "Task `integration-db-test` runs its checks against a helper container, the sidecar `mock-db`, that serves the fixture rows. About half of the runs pass and the rest die with `connection refused` on the first request, even though the sidecar log shows it serving a moment later. On slow nodes it fails every time. The last red run is `db-test-0812`. Whatever you do, the pipeline must not turn a dead database into a run that hangs for an hour.",
+  "objective": "Runs of `integration-db-test` whose sidecar needs 4, 8 and 12 seconds to start all end Succeeded with result `rows=3`, and a run whose database port is unreachable still ends Failed within about a minute instead of hanging.",
+  "xp": 200,
   "difficulty": "advanced",
   "expected_time": "15m",
-  "concepts": [
-    "Tekton",
-    "sidecar",
-    "admission webhook",
-    "label",
-    "injection annotation"
-  ],
+  "concepts": ["Task sidecars", "startup race", "retry with deadline", "TaskRun timeout", "kubectl logs -c sidecar-NAME"],
   "module": "module-8-cicd",
-  "level": "level-16-sidecar-injection"
+  "level": "level-16-sidecar-injection",
+  "requires": ["tekton"],
+  "settle_seconds": 20,
+  "solve_timeout": 180,
+  "cleanup": []
 }

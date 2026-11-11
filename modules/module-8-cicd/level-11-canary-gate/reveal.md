@@ -1,27 +1,6 @@
-## What went wrong
+Two independent defects, both in Pipeline `release-checkout`:
 
-`pause: {}` in an Argo Rollout canary strategy creates a manual gate — the rollout waits for a human to run `kubectl argo rollouts promote api-rollout` before continuing. With no `duration`, the wait is infinite.
+1. The canary pod template is labelled `app: checkout-canary`, so Service `checkout` (selector `app: checkout`) never routes to it. The gate sees only stable answers and keeps waiting for 20 canary samples. Label the canary pods `app: checkout` (keeping `track: canary` and the `canary: <name>` label) and use the same labels in its Deployment `selector`; stable has `track: stable`, so the two Deployments do not adopt each other's pods.
+2. `canary-gate` has no `timeout`. With a canary that never becomes ready the loop never ends. Add `timeout: 45s` to the `canary-gate` PipelineTask: the task fails, `promote` is skipped and `checkout-stable` is left alone.
 
-## Fix
-
-```yaml
-strategy:
-  canary:
-    steps:
-    - setWeight: 20
-    - pause:
-        duration: 10m
-    - setWeight: 50
-    - pause:
-        duration: 5m
-    - setWeight: 100
-```
-
-To immediately unblock a paused rollout without changing the spec:
-```bash
-kubectl argo rollouts promote api-rollout -n k8smissions
-```
-
-## Why this matters
-
-Canary strategies balance safety and speed. Indefinite `pause: {}` gates are useful when human judgment is required (e.g., QA sign-off). Timed `pause: {duration: 10m}` gates are useful for automated soak periods — give the canary time to accumulate metrics, then auto-promote if analysis passes. For fully automated canaries, pair the pause with an `AnalysisRun` that watches error rate and latency metrics and automatically aborts the rollout if thresholds are breached.
+Run a new PipelineRun (old ones keep their old spec) with a good version to see `promoted=true`, and with `canary-mode=crash` to see the gate fail.

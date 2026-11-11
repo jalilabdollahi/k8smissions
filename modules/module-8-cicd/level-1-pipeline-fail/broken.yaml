@@ -1,10 +1,49 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: build-task
   namespace: k8smissions
+  name: build
 spec:
+  results:
+  - name: version
+    description: release version for the notes
   steps:
+  - name: generate
+    image: busybox:1.36
+    script: |
+      #!/bin/sh
+      set -e
+      major=2
+      minor=9
+      patch=$(( $(printf 'ledger-release' | wc -c) * 3 ))
+      echo "${major}.${minor}.${patch}" > /tmp/version.txt
+      echo "generated version $(cat /tmp/version.txt)"
+  - name: publish
+    image: busybox:1.36
+    script: |
+      #!/bin/sh
+      if [ ! -f /tmp/version.txt ]; then
+        echo "publish: cannot open /tmp/version.txt: No such file or directory"
+        exit 1
+      fi
+      echo "publishing release notes for $(cat /tmp/version.txt)"
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: release-notes
+spec:
+  tasks:
   - name: build
-    image: golang:99.9-nonexistent
-    script: go build ./...
+    taskRef:
+      name: build
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: notes-0714
+spec:
+  pipelineRef:
+    name: release-notes

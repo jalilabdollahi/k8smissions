@@ -1,21 +1,8 @@
-## What went wrong
+The cache volume is bound to the run, but nothing connects it to the Task, and the step writes its dependencies to `$HOME`, which is private to each pod.
 
-The `maven-build` Task declares two workspaces: `source` (for the code) and `cache` (for `~/.m2`). The TaskRun only binds `source`. Without the `cache` binding, Maven sees no local repository on startup and downloads all dependencies from the internet on every run.
+1. Log of `resolve`: `cache workspace bound: false`.
+2. Patch Pipeline `inventory-build`: give the `compile` task `workspaces: [{name: cache, workspace: cache}]`.
+3. Edit Task `compile`: `DEPS="$(workspaces.cache.path)/inventory-deps"` in both steps.
+4. Run the Pipeline twice with the same claim: the second run prints "dependencies restored from cache" and has `cache-hit` = true.
 
-## Fix
-
-```yaml
-spec:
-  taskRef:
-    name: maven-build
-  workspaces:
-  - name: source
-    emptyDir: {}
-  - name: cache
-    persistentVolumeClaim:
-      claimName: maven-cache-pvc
-```
-
-## Why this matters
-
-Build caches are one of the most impactful CI performance improvements available. Maven's `~/.m2` repository, npm's `node_modules`, pip's wheel cache — once downloaded, these should be persisted across runs. The pattern: a Task declares a workspace for the cache directory; the PipelineRun binds it to a PVC with `ReadWriteOnce`; the Task mounts it to the tool's cache path. Build time goes from 15 minutes to under 1 minute once the cache is warm. The only caveat: don't share a `ReadWriteOnce` PVC between concurrent runs (see level 15).
+Mapping alone is not enough: with the step still writing to `$HOME`, the claim is mounted and stays empty.

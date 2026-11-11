@@ -1,1 +1,1 @@
-The Task's step `image` field references `golang:99.9-nonexistent` — a tag that doesn't exist. Replace it with a valid published tag like `golang:1.21`.
+Edit the Task (`kubectl edit task build`). In both steps, replace the `/tmp/version.txt` path with `$(results.version.path)`: `generate` writes the version there, `publish` reads it back. Then start a new run, for example with `kubectl create -f` of a PipelineRun that has `pipelineRef: {name: release-notes}`, and check `kubectl get taskrun -o jsonpath='{.items[*].status.results}'`.

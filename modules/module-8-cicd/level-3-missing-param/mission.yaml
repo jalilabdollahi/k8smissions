@@ -1,16 +1,15 @@
 {
-  "name": "Missing Parameter",
-  "description": "A Tekton TaskRun fails at admission — not during execution. The Task it references requires a parameter named `IMAGE` with no default value, but the TaskRun provides an empty params list. Tekton validates required parameters before creating any pods.",
-  "objective": "The Task requires a param IMAGE but no value is supplied in the TaskRun — add the required parameter",
-  "xp": 250,
+  "name": "Notify Nobody",
+  "description": "The production deploy notification run `notify-prod-9` never produced a message: it ended Failed straight after creation and no pod was ever started. Whoever re-triggers it from the release tool says every attempt \"fails validation\" and that changing the request only changes the error.",
+  "objective": "A new PipelineRun of Pipeline `deploy-notify` (not `notify-prod-9`) finishes Succeeded and its log shows `env=prod` and one `notified` line for each of the targets `slack-payments`, `pager-oncall` and `email-finance`.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "8m",
-  "concepts": [
-    "Tekton",
-    "params",
-    "TaskRun",
-    "required parameters"
-  ],
+  "expected_time": "10m",
+  "concepts": ["Tekton params", "array params", "param defaults", "PipelineRun validation", "kubectl explain"],
   "module": "module-8-cicd",
-  "level": "level-3-missing-param"
+  "level": "level-3-missing-param",
+  "requires": ["tekton"],
+  "settle_seconds": 10,
+  "solve_timeout": 120,
+  "cleanup": []
 }

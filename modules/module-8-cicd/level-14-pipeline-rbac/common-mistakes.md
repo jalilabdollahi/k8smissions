@@ -1,7 +1,5 @@
-# Common Mistakes — Pipeline Locked Out
+**Stopping after `create`.** The child run appears, the Task then fails with a second Forbidden on `get`/`watch`, and the run looks like it is flaky. `kubectl wait` needs read access to the run it waits for.
 
-## Mistake 1: Creating role for 'pipelineruns' without specifying apiGroups
+**Using `apiGroups: [""]`.** Tekton resources are not in the core group. A rule written for `pipelineruns` without `tekton.dev` matches nothing, and `can-i` stays at `no`.
 
-**Wrong approach:** Setting apiGroups: [""] for pipelineruns — core group has no pipelineruns
-
-**Correct approach:** Always set apiGroups: ["tekton.dev"] for Tekton resources
+**Binding a broad role.** `cluster-admin`, a ClusterRole with `*`, or `tekton.dev` wildcards make the nightly run pass, and the dispatcher can then delete Pipelines or create TaskRuns. The check asks for exactly the job's permissions.

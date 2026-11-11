@@ -1,15 +1,5 @@
-## What went wrong
+Two defects stacked on top of each other:
 
-Tekton result variable syntax: `$(tasks.<task-name>.results.<result-name>)`. The result name must exactly match the name declared in the Task's `spec.results`. The build Task declares `name: imageDigest` but the Pipeline references `image-digest` — one character difference (hyphen vs camelCase). Tekton resolves unmatched result references to an empty string without error.
-
-## Fix
-
-```yaml
-params:
-- name: IMAGE_DIGEST
-  value: $(tasks.build.results.imageDigest)
-```
-
-## Why this matters
-
-Tekton results are the primary mechanism for passing data between Tasks in a Pipeline — image digests, git commit SHAs, test counts, file paths. The result name is a contract between the producer Task and the Pipeline. When names drift (due to renaming, copy-paste errors, or case inconsistencies), the consumer silently receives an empty value. Always verify result names with `kubectl get task <name> -o yaml | grep -A5 results` and test pipelines with debug logging to see what values params actually receive.
+1. Pipeline `ship-api` passes `$(tasks.build.results.image-digest)`, but `build-image` declares a result named `digest`. Tekton refuses a reference to an undeclared result. Change the param to `$(tasks.build.results.digest)`.
+2. The push step writes the digest to `/workspace/digest.txt`, which only exists inside the build pod, so the declared result is never filled and `deploy` receives an empty string. Write it to `$(results.digest.path)` instead (`printf '%s' "${out##*@}" > $(results.digest.path)`).
+3. Create a new PipelineRun of `ship-api` (old runs keep the old spec). `deploy` now verifies the digest against the registry and reports it as `deployed-digest`.

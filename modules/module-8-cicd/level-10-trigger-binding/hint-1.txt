@@ -1,1 +1,1 @@
-Check a recent PipelineRun triggered by a webhook to see its parameters: `kubectl get pipelinerun -n k8smissions -o yaml | grep -A5 params`
+Look at what the receiver says about each delivery (`kubectl logs deploy/hook`) and at the params of the failed run (`kubectl get pipelinerun push-8f21 -o jsonpath='{.spec.params}'`). The receiver logs the mapping it loaded and every payload field it could not find.

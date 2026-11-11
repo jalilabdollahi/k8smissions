@@ -1,17 +1,15 @@
 {
-  "name": "Blocked Deploy",
-  "description": "The pipeline's deploy Task runs `kubectl apply` to push new manifests to the cluster, but it fails with '403 Forbidden'. The Task pod runs as the `deploy-sa` ServiceAccount, which has no RBAC permissions — it can't create or update any Kubernetes resources.",
-  "objective": "The pipeline ServiceAccount lacks permission to create Deployments — add the required RBAC role",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "Tekton",
-    "RBAC",
-    "ServiceAccount",
-    "deploy permissions",
-    "kubectl apply"
-  ],
+  "name": "Forbidden Release",
+  "description": "The release pipeline for the storefront cannot deploy to staging. Run `release-1182` fails in Task `deploy` with `forbidden` errors from the API server, first about Deployments and, once people tried to work around it, about Services. The platform team says the permissions \"were set up for deploy-sa on Monday\" and a RoleBinding is there, but staging still runs release 7.5.0.",
+  "objective": "A run of Pipeline `release-storefront` as ServiceAccount `deploy-sa` rolls Deployment `storefront` in namespace `shop-staging` to the requested version and Service `storefront` answers with it. `deploy-sa` must not gain access to Secrets in `shop-staging`, any write access in `shop-prod`, or the right to delete namespaces.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["Role vs ClusterRole", "RoleBinding namespace", "kubectl auth can-i --as", "apiGroups", "least privilege", "pipeline ServiceAccount"],
   "module": "module-8-cicd",
-  "level": "level-8-deploy-rbac"
+  "level": "level-8-deploy-rbac",
+  "requires": ["tekton"],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

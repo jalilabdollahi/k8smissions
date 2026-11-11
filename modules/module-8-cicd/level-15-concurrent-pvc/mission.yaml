@@ -1,17 +1,15 @@
 {
-  "name": "Build Corruption",
-  "description": "Concurrent pipeline runs are corrupting each other's build artifacts. Multiple PipelineRuns all reference the same hardcoded PVC name — so they all write to the same storage paths simultaneously with no locking, resulting in build failures and corrupted outputs.",
-  "objective": "Multiple PipelineRuns share a single PVC without locking — add concurrency limits or per-run PVCs",
-  "xp": 325,
+  "name": "Three Builds, One Scratch Directory",
+  "description": "Merges to `shop` start PipelineRuns of `build-shop` in parallel, and the CI platform binds every one of them to the shared claim `build-scratch`. About two of every three runs now fail the `verify` Task with a checksum that does not match what `build` recorded, as if the archive had been truncated or replaced. A single run on a quiet afternoon always passes. The platform creates the runs from its own template and its owners will not change it.",
+  "objective": "Three runs of `build-shop` started at the same moment, all bound to the existing PVC `build-scratch`, all end Succeeded, and each reports the checksum of its own artifact in the `verify` result `checksum`.",
+  "xp": 200,
   "difficulty": "advanced",
   "expected_time": "15m",
-  "concepts": [
-    "Tekton",
-    "PVC",
-    "concurrency",
-    "workspace isolation",
-    "pipeline runs"
-  ],
+  "concepts": ["shared PVC", "workspace subPath", "$(context.pipelineRun.name)", "concurrent PipelineRuns", "TaskRun pods"],
   "module": "module-8-cicd",
-  "level": "level-15-concurrent-pvc"
+  "level": "level-15-concurrent-pvc",
+  "requires": ["tekton"],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }
