@@ -230,8 +230,7 @@ def main() -> int:
         # Argo CD + Tekton need ~1 GB more RAM, so levels that use them share one dedicated cluster.
         needs = {a for lv in select_levels(args.filters)
                  for a in json.loads((lv / "mission.yaml").read_text()).get("requires", [])}
-        # light levels may also borrow the cd cluster when it is free
-        names = ["k8sm-pool-cd"] if needs & HEAVY_ADDONS else [f"k8sm-pool-{i}" for i in range(1, args.pool + 1)] + ["k8sm-pool-cd"]
+        names = ["k8sm-pool-cd"] if needs & HEAVY_ADDONS else [f"k8sm-pool-{i}" for i in range(1, args.pool + 1)]
         args.cluster, lock = acquire_pool(names)
         print(f"using pool cluster {args.cluster}", flush=True)
 
