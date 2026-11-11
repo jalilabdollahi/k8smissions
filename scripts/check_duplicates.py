@@ -67,7 +67,9 @@ def main() -> int:
             f = l / name
             if f.exists():
                 s = shingles(normalize(f.read_text(errors="replace"), is_code))
-                if len(s) >= 8:  # tiny files (e.g. a one-line hint) are not comparable
+                # tiny files are not comparable: a one-line hint, or a short setup.sh
+                # that only applies a shared fixture (identical by design)
+                if len(s) >= (40 if name == "setup.sh" else 8):
                     sh[l] = s
         limit = args.code if is_code else args.text
         for a, b in combinations(sh, 2):
