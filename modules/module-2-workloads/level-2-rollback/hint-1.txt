@@ -1,7 +1,1 @@
-The image used in the update does not exist. The fastest recovery is not to edit the manifest — it is to roll back to the last working revision that Kubernetes already has recorded.
-
-Check the rollout history:
-
-  kubectl rollout history deployment/web-app -n k8smissions
-
-How many revisions are there?
+Start with the rollout itself: `kubectl -n k8smissions rollout status deployment/web-app`, then `kubectl -n k8smissions get pods` and `kubectl -n k8smissions describe pod <one of the failing pods>`. The Events say why the new pods never start.

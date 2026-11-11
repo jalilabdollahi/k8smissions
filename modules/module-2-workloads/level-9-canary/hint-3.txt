@@ -1,3 +1,1 @@
-Both Deployments need their replica counts adjusted. app-stable should have 9 replicas and app-canary should have 1 replica — giving a 90/10 traffic split.
-
-Find the replicas field for each Deployment in manifest.yaml.
+Shrinking only the canary is not enough: 1 canary next to 2 stable is still a third. Change both Deployments: `kubectl -n k8smissions scale deployment app-stable --replicas=<n>` and `kubectl -n k8smissions scale deployment app-canary --replicas=<m>`, then check `get endpoints app`.

@@ -1,16 +1,15 @@
 {
-  "name": "Blue-Green Gone Wrong",
-  "description": "A new green version of the app has been deployed and all its pods are Running. But users are still seeing the old blue version. Run kubectl get pods -n k8smissions and count how many pods are running per version.",
-  "objective": "The Service selector still points to the old deployment — update it to route traffic to the new green version",
-  "xp": 200,
+  "name": "The Cutover",
+  "description": "Release v2 of the shop is deployed next to v1 as `shop-green` (3 pods, running and smoke-tested). Service `shop` still sends every user to the old version. The cutover ticket says: all traffic to green, keep blue running so we can switch back. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "Every request to Service `shop` returns the green (v2) page, Service `shop` has exactly the `shop-green` pods as endpoints, and Deployment `shop-blue` still has its 3 pods Ready for a rollback.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "Blue-green strategy",
-    "service selectors",
-    "zero-downtime switch",
-    "rollback by switching selector back"
-  ],
+  "expected_time": "10m",
+  "concepts": ["blue-green deployment", "Service selector", "labels", "endpoints"],
   "module": "module-2-workloads",
-  "level": "level-8-blue-green"
+  "level": "level-8-blue-green",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 90,
+  "cleanup": []
 }

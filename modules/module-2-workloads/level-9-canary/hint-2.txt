@@ -1,9 +1,1 @@
-Both app-stable and app-canary have 5 replicas. The total is 10 pods. 5 are canary — that is 50% of traffic going to an unvalidated version.
-
-For a proper canary, only 10% of traffic should go to canary. With a total of 10 pods, that means:
-- stable: 9 pods
-- canary: 1 pod
-
-Check the Deployments:
-
-  kubectl get deployments -n k8smissions
+A plain Service has no traffic weights. It spreads requests across every Ready pod its selector matches, so the share each build gets follows from how many pods each Deployment runs. Work out the pod counts that give about 1 in 10 (`kubectl scale --help`).

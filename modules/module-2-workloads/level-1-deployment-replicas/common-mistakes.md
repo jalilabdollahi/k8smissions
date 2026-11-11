@@ -1,66 +1,11 @@
-# Common Mistakes - Level 1: Ghost Deployment
+## Staring at `kubectl get pods`
 
-## Fastest First Checks
-```bash
-kubectl get deploy,statefulset,rs -n k8smissions
-kubectl rollout status deployment/<name> -n k8smissions
-kubectl describe deployment <name> -n k8smissions
-```
+There are no pods to look at, so `get pods`, `describe pod` and `logs` all come back empty. When a Deployment shows `0/N` with no pods, go down the ownership chain: Deployment, then ReplicaSet.
 
-## ❌ Mistake #1: Editing pods instead of the controller
+## Deleting and re-applying the Deployment
 
-**What players try:**
-Players patch an individual pod in Ghost Deployment because it is the easiest object to see.
+A new Deployment creates a new ReplicaSet with the same pod template, so it fails with exactly the same error. The cause is the missing object, not the Deployment.
 
-**Why it fails:**
-Deployments, StatefulSets, Jobs, and HPAs recreate pods from their own templates. A pod-only fix is wiped out on the next reconciliation loop.
+## Scaling the Deployment up and down
 
-**Correct approach:**
-Find the owning controller and change the template or strategy there, then watch the rollout.
-
-**Key learning:**
-Controllers own pods. Sustainable fixes live at the controller layer.
-## ❌ Mistake #2: Skipping rollout history and status
-
-**What players try:**
-Players apply a change and jump straight to validation.
-
-**Why it fails:**
-A rollout can still be progressing, stuck, or paused even if a few pods look healthy for a moment.
-
-**Correct approach:**
-Use rollout status, describe the controller, and inspect related ReplicaSets before deciding the fix worked.
-
-**Key learning:**
-Healthy pods are useful evidence, but controller status is the source of truth for workload health.
-## ❌ Mistake #3: Confusing readiness, availability, and desired state
-
-**What players try:**
-Players count pods manually and stop there.
-
-**Why it fails:**
-A rollout can have the right replica count while still serving zero traffic because probes, surge rules, or disruption budgets are blocking availability.
-
-**Correct approach:**
-Verify the workload from the controller perspective and the traffic perspective. In this level the focus is rollout and controller state.
-
-**Key learning:**
-Replica count alone does not prove safe delivery.
-## ❌ Mistake #4: Making a traffic change without a rollback plan
-
-**What players try:**
-Players switch selectors, versions, or rollout strategy in one jump and hope it holds.
-
-**Why it fails:**
-Blue-green, canary, and rollout strategy changes are safe only when you know how to undo them quickly.
-
-**Correct approach:**
-Use the smallest reversible change, verify behavior, then continue. Success target: 3/3 pods Ready
-
-**Key learning:**
-Good rollout work is as much about controlled rollback as forward progress.
-
-## What To Prove Before You Move On
-- The controller reports the desired number of ready replicas.
-- You verified rollout status instead of trusting a single pod snapshot.
-- 3/3 pods Ready
+The replica count is already 3 and the controller is already trying. Scaling does not remove the reason the API server refuses the pods.

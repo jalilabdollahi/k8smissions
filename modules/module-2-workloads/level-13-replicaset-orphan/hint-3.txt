@@ -1,3 +1,1 @@
-The ReplicaSet has no ownerReferences. It is not controlled by any Deployment, so it will never be garbage collected automatically. It just keeps its pods running.
-
-This level does not require editing manifest.yaml — you need to delete the orphaned ReplicaSet directly.
+Find the ReplicaSet with no owner: `kubectl -n k8smissions get rs -o custom-columns=NAME:.metadata.name,OWNER:.metadata.ownerReferences[*].kind`, then `kubectl -n k8smissions delete rs <name>`. Do not touch the ReplicaSet of Deployment `checkout`.

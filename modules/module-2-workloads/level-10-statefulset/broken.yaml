@@ -1,46 +1,50 @@
-apiVersion: apps/v1
-kind: Deployment  # PROBLEM! Should be StatefulSet for stateful apps!
+apiVersion: v1
+kind: Service
 metadata:
-  name: database
+  name: ledger-db
+  namespace: k8smissions
+spec:
+  clusterIP: None
+  selector: {app: ledger-db}
+  ports:
+  - name: peer
+    port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-db
   namespace: k8smissions
 spec:
   replicas: 3
   selector:
-    matchLabels:
-      app: database
+    matchLabels: {app: ledger-db}
   template:
     metadata:
-      labels:
-        app: database
+      labels: {app: ledger-db}
     spec:
       containers:
-      - name: db
-        image: hashicorp/http-echo:latest  # Simulating a database
-        args: 
-          - "-text=Database Pod ($(HOSTNAME))"
-          - "-listen=:8080"
+      - name: member
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - mkdir -p /www && echo "$HOSTNAME" > /www/index.html && exec httpd -f -p 8080 -h /www
         ports:
         - containerPort: 8080
-        env:
-        - name: HOSTNAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-# Issues:
-# 1. Pods have random names (database-abc123, database-xyz789)
-# 2. No stable network identity
-# 3. Pods are interchangeable (wrong for databases!)
-# 4. No ordered startup/shutdown
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
 ---
 apiVersion: v1
-kind: Service
+kind: Pod
 metadata:
-  name: database-service
+  name: probe
   namespace: k8smissions
+  labels: {app: probe}
 spec:
-  selector:
-    app: database
-  ports:
-  - port: 80
-    targetPort: 8080
-  clusterIP: None  # Headless service
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: curl
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "86400"]

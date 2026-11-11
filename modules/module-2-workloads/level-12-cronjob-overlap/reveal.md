@@ -1,20 +1,4 @@
-## What went wrong
-
-`concurrencyPolicy: Allow` + a 120-second job on a 60-second schedule = each minute starts a new job while the last one is still running. After 10 minutes there are 10 concurrent pods. After an hour, 60. The cluster eventually runs out of resources.
-
-## Fix
-
-In manifest.yaml:
-
-```yaml
-spec:
-  concurrencyPolicy: Forbid
-```
-
-## The three concurrencyPolicy values
-
-- `Allow` — run concurrent jobs (the default; fine if jobs are short and idempotent)
-- `Forbid` — skip the new run if the previous one is still running
-- `Replace` — cancel the previous run and start a new one
-
-For jobs that must not run in parallel (database exports, report generators), always use `Forbid`.
+1. `kubectl -n k8smissions get cronjob,jobs,pods` shows `data-processor` with `concurrencyPolicy: Allow` and four Jobs running at once.
+2. `kubectl -n k8smissions patch cronjob data-processor --type=merge -p '{"spec":{"concurrencyPolicy":"Forbid"}}'` stops new runs while one is active (`Replace` is also fine and swaps the run for a fresh one).
+3. `kubectl -n k8smissions delete jobs -l app=data-processor` removes the Jobs already running; their pods go with them.
+4. The CronJob stays unsuspended and starts one clean run at the next minute.

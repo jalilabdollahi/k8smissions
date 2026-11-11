@@ -1,14 +1,27 @@
 apiVersion: v1
+kind: Pod
+metadata:
+  name: probe
+  namespace: k8smissions
+  labels: {app: probe}
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: curl
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "86400"]
+---
+apiVersion: v1
 kind: Service
 metadata:
-  name: db-svc
+  name: db
   namespace: k8smissions
 spec:
-  selector:
-    app: db
+  selector: {app: db}
   ports:
-  - port: 3306
-    targetPort: 3306
+  - name: sql
+    port: 80
+    targetPort: 8080
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -16,27 +29,59 @@ metadata:
   name: db
   namespace: k8smissions
 spec:
-  serviceName: db-svc
-  replicas: 2
+  serviceName: db-hs
+  replicas: 3
   selector:
-    matchLabels:
-      app: db
+    matchLabels: {app: db}
   template:
     metadata:
-      labels:
-        app: db
+      labels: {app: db}
     spec:
       containers:
-      - name: db
+      - name: member
         image: busybox:1.36
         command:
-        - /bin/sh
+        - sh
         - -c
-        - while true; do sleep 30; done
-        resources:
-          requests:
-            cpu: 50m
-            memory: 32Mi
-          limits:
-            cpu: 100m
-            memory: 64Mi
+        - mkdir -p /www && echo "$HOSTNAME" > /www/index.html && exec httpd -f -p 8080 -h /www
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db-monitor
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: db-monitor}
+  template:
+    metadata:
+      labels: {app: db-monitor}
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: monitor
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          while true; do
+            for p in db-0 db-1 db-2; do
+              wget -q -T 2 -O /dev/null "http://$p.db-hs:8080" && echo "$p.db-hs: member answers" || echo "$p.db-hs: cannot reach member"
+            done
+            sleep 5
+          done
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - wget -q -T 2 -O /dev/null http://db-0.db-hs:8080 && wget -q -T 2 -O /dev/null http://db-1.db-hs:8080 && wget -q -T 2 -O /dev/null http://db-2.db-hs:8080
+          periodSeconds: 3
+          timeoutSeconds: 8

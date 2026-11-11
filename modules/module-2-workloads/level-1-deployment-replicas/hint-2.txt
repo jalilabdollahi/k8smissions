@@ -1,5 +1,1 @@
-The DESIRED column shows 0. Kubernetes is doing exactly what was asked — running zero replicas.
-
-Get the full spec to see where this is set:
-
-  kubectl get deployment ghost-deployment -n k8smissions -o yaml | grep 'replicas'
+The ReplicaSet controller tried to create pods and the API server refused them (`FailedCreate`). The message names an object that the pod spec points at but that does not exist in the namespace. Compare it with `kubectl -n k8smissions get deployment reports -o yaml` and with what `kubectl -n k8smissions get <kind>` lists. `kubectl explain pod.spec` shows the field involved.

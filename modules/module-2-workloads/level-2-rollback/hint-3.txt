@@ -1,5 +1,1 @@
-Revision 1 used a working image. You can roll back to it without touching manifest.yaml at all:
-
-  kubectl rollout undo deployment/web-app -n k8smissions
-
-After rolling back, update manifest.yaml to match the restored state so the next apply does not re-break it.
+Go back one revision: `kubectl -n k8smissions rollout undo deployment/web-app`. Run it once and check with `rollout history` and `get pods`; a second undo would swap the two newest revisions again. Setting the correct image with `kubectl set image` is accepted too.

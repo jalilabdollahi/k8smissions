@@ -1,5 +1,1 @@
-Pending without resource pressure usually means a volume, scheduler constraint, or configuration problem. Read the pod events:
-
-  kubectl describe pod db-0 -n k8smissions
-
-Scroll to the Events section — what reason does Kubernetes give for not starting the pod?
+Read what the StatefulSet expects (`kubectl -n k8smissions get statefulset db -o yaml`, look at `serviceName`), then list what exists (`kubectl -n k8smissions get svc`). Check the monitor's log with `kubectl -n k8smissions logs deploy/db-monitor`.

@@ -1,27 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-app
+  namespace: k8smissions
+data:
+  app.py: |
+    import http.server, time
+    print("inventory: loading catalogue...", flush=True)
+    time.sleep(15)
+    print("inventory: catalogue loaded, listening on :8080", flush=True)
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200); self.end_headers()
+            self.wfile.write(b"inventory: 4812 items in stock\n")
+        def log_message(self, *a): pass
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-server
+  name: inventory
   namespace: k8smissions
 spec:
   replicas: 2
   selector:
-    matchLabels:
-      app: api
+    matchLabels: {app: inventory}
   template:
     metadata:
-      labels:
-        app: api
+      labels: {app: inventory}
     spec:
       containers:
-      - name: api
-        image: nginx:alpine
+      - name: app
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
         ports:
-        - containerPort: 80
+        - containerPort: 8080
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
         livenessProbe:
-          httpGet:
-            path: /nonexistent-healthz
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          failureThreshold: 2
+          httpGet: {path: /, port: 8080}
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          failureThreshold: 1
+      volumes:
+      - name: app
+        configMap: {name: inventory-app}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory
+  namespace: k8smissions
+spec:
+  selector: {app: inventory}
+  ports:
+  - port: 80
+    targetPort: 8080

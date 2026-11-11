@@ -1,13 +1,11 @@
-# Common Mistakes — The Flood
+## Deleting the pods
 
-## Mistake 1: Deleting all the pods manually
+The Jobs notice and create replacement pods (or the CronJob keeps adding Jobs), so the number never drops. The pods are the last link in the chain; the Jobs and the policy are what to change.
 
-**Wrong approach:** Manually deleting pods without fixing the CronJob — new pods appear immediately
+## Suspending the CronJob
 
-**Correct approach:** Fix concurrencyPolicy first, then clean up stale pods
+`suspend: true` stops new Jobs, but the batch no longer runs, and the check treats a suspended CronJob as failure. The goal is one run at a time, not none.
 
-## Mistake 2: Using Replace when idempotency matters
+## Changing only the policy
 
-**Wrong approach:** Replace kills the current run; if the job is a DB migration this causes partial writes
-
-**Correct approach:** Use Forbid for non-idempotent jobs that must not overlap
+`Forbid` or `Replace` prevent new pile-ups, but the four runs that already exist keep running to completion unless their Jobs are deleted.

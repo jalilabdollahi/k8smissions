@@ -1,16 +1,25 @@
-# Frozen Rollout
+## What was broken
 
-## What Was Broken
-The Deployment had `spec.paused: true`. This is a legitimate feature used when you want to batch multiple config changes before triggering a single rollout. If forgotten, rollouts silently freeze.
+Someone paused `frontend` to batch several edits, changed the version and a feature flag, and never resumed. The new settings sat in the spec while the pods kept running release 2.3.
 
-## The Fix
-Use `kubectl rollout resume deployment/<name> -n <ns>` — the dedicated command for this. Alternatively patch `spec.paused: false`.
+## The evidence
 
-## Why It Matters
-The pause/resume workflow is safe and intentional. The danger is when someone pauses during debugging and forgets. Always check `kubectl rollout status` — the 'paused' message is clearly visible.
+`rollout status` did not move, the ReplicaSet history had no new revision, and `get deploy -o yaml` had `paused: true` while the pod template already said `APP_VERSION=2.4`. `rollout undo` answered `you cannot rollback a paused deployment`.
 
-## Pro Tip
-You can chain changes while paused then resume once: pause → change image → change env → change resources → resume. This prevents three separate rollouts from happening.
+## Why Kubernetes behaves this way
 
-## Concepts
-Deployment, rollout pause, rollout resume, kubectl rollout, rolling update
+Pausing tells the Deployment controller to stop reconciling the pod template. Edits are saved but ignored, which is what makes it useful for batching: ten edits become one rollout on resume. What a pause does not stop is scaling, because replicas are not part of the template; the app looked alive and the missing rollout was easy to miss.
+
+## The fix
+
+`kubectl rollout resume deployment/frontend`. The controller creates one new ReplicaSet from the current template and rolls it out with the normal strategy.
+
+## In production
+
+Pause is cheap to forget. Add `kubectl rollout status` to the pipeline step that follows an edit, and alert on Deployments whose `observedGeneration` or `updatedReplicas` lag for long. Rolling back first (`undo`) is not possible until you resume.
+
+## Commands worth remembering
+
+- `kubectl rollout pause|resume deployment/<name>`
+- `kubectl get deploy <name> -o jsonpath='{.spec.paused}'`
+- `kubectl rollout history deployment/<name>`

@@ -1,13 +1,11 @@
-# Common Mistakes — The Unmovable Update
+## Deleting the Pending pod
 
-## Mistake 1: Thinking the image is invalid
+The ReplicaSet creates another one that cannot schedule either. The strategy decides whether a surge pod is allowed at all, so the pod is not the problem.
 
-**Wrong approach:** Assuming nginx:1.25 doesn't exist and changing the image tag
+## Switching to `Recreate`
 
-**Correct approach:** The image is fine; the rollout strategy itself blocks progress
+It would unblock the rollout, but takes both pods down together and drops requests during every release. The validator runs a second rollout and fails the Service if any request is lost.
 
-## Mistake 2: Setting maxUnavailable: 3 (equal to replicas)
+## Setting `maxSurge` to 0 and leaving `maxUnavailable` at the default
 
-**Wrong approach:** This works but causes downtime — all 3 pods are killed before new ones start
-
-**Correct approach:** Prefer maxSurge:1 maxUnavailable:0 for zero-downtime rolling updates
+`maxSurge: 0` with `maxUnavailable` rounded down to 0 is invalid, and the API server rejects it. The second value has to move too.

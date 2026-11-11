@@ -1,5 +1,1 @@
-The Deployment description shows `Paused: True`. This is a deliberate Deployment feature — you can pause a rollout to apply multiple changes before continuing.
-
-Check the spec directly:
-
-  kubectl get deployment frontend -n k8smissions -o yaml | grep 'paused'
+A paused Deployment still accepts spec changes, but its controller does not create a new ReplicaSet for them until the pause is lifted. `kubectl rollout --help` lists the subcommand that undoes a pause. Do not try to redo the changes by hand.

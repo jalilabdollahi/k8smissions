@@ -1,3 +1,1 @@
-The field `spec.paused: true` is set in manifest.yaml. This freezes all rollout activity. Any changes to the pod template are recorded but not applied until the Deployment is resumed.
-
-Find this field in manifest.yaml.
+One command: `kubectl -n k8smissions rollout <verb> deployment/frontend`, where the verb is the opposite of what a colleague did three days ago. Then `rollout status` to watch it finish.

@@ -1,21 +1,4 @@
-## What went wrong
-
-Both Deployments have 5 replicas. Since the Service selector matches all pods with `app: myapp`, Kubernetes distributes traffic evenly across all 10 pods — 50% to stable, 50% to canary. A canary should expose only 10% of users to the new version.
-
-## Fix
-
-In manifest.yaml:
-
-```yaml
-# app-stable
-spec:
-  replicas: 9
-
-# app-canary
-spec:
-  replicas: 1
-```
-
-## Why this matters
-
-This is how Kubernetes-native canary deployments work: replica count controls traffic percentage. 1 out of 10 pods = ~10% traffic to canary. Tools like Argo Rollouts or Flagger automate this pattern and add metrics-based promotion/rollback — but the underlying mechanism is the same replica ratio.
+1. `kubectl -n k8smissions get endpoints app` lists four pod IPs: two stable, two canary. Service `app` selects `app=app`, which both Deployments carry.
+2. A Service balances per pod, so two canary pods out of four is roughly 50%.
+3. Change the ratio: `kubectl -n k8smissions scale deployment app-stable --replicas=9` and `kubectl -n k8smissions scale deployment app-canary --replicas=1` gives about 10%.
+4. `kubectl -n k8smissions get endpoints app` now shows ten addresses; one belongs to the canary.

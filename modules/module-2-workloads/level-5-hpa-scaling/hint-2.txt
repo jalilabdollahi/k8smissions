@@ -1,5 +1,1 @@
-The HPA says 'unable to get metrics for resource cpu: unable to fetch metrics from resource metrics API'. This means the Metrics Server — the component that collects pod resource usage — is not available.
-
-Check if metrics-server is running:
-
-  kubectl get pods -n k8smissions -l app=metrics-server
+A utilisation percentage is usage divided by the CPU *request*, so the HPA needs a request on the containers it measures. Look at every container in the pod template, not only the busy one: `kubectl -n k8smissions get deploy web-backend -o yaml`, and `kubectl explain pod.spec.containers.resources`.

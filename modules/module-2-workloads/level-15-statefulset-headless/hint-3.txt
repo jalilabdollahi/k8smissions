@@ -1,3 +1,1 @@
-A StatefulSet requires its `serviceName` to point to a **headless** Service — one with `clusterIP: None`. Without this, Kubernetes cannot create the stable DNS entries (`db-0.db-svc`) that StatefulSet pods depend on.
-
-The current Service `db-svc` is a regular ClusterIP Service. You need to either modify it to be headless or create a new headless Service and update the StatefulSet's serviceName.
+Create a second Service whose name is exactly the StatefulSet's `serviceName`, with `clusterIP: None` and the members' labels as selector, via `kubectl -n k8smissions apply -f -`. Give it a port. Then test `kubectl -n k8smissions exec probe -- curl -s http://db-0.<that name>:8080`.

@@ -1,16 +1,15 @@
 {
-  "name": "The Headless Mystery",
-  "description": "StatefulSet db was just created alongside its Service, but all pods are stuck in Pending. There are no obvious resource constraints. Run kubectl get pods -n k8smissions.",
-  "objective": "The StatefulSet's serviceName points to a ClusterIP Service instead of a headless Service — fix or create the headless Service",
-  "xp": 225,
+  "name": "Names Nobody Can Look Up",
+  "description": "StatefulSet `db` (3 members) is up and clients reach it fine through Service `db`. The replication monitor `db-monitor`, however, never becomes Ready: its log keeps saying it cannot reach `db-0.db-hs`, `db-1.db-hs` and `db-2.db-hs`, the per-member names written into the StatefulSet's configuration. A debug pod `probe` with curl is available.",
+  "objective": "Each member answers at `<pod>.db-hs` (`db-0.db-hs`, `db-1.db-hs`, `db-2.db-hs`) from inside the cluster, `db-monitor` is Ready, and Service `db` keeps load-balancing across the members through its cluster IP.",
+  "xp": 200,
   "difficulty": "advanced",
   "expected_time": "15m",
-  "concepts": [
-    "StatefulSet",
-    "headless service",
-    "clusterIP: None",
-    "stable network identity"
-  ],
+  "concepts": ["StatefulSet serviceName", "headless Service", "per-pod DNS", "clusterIP immutability"],
   "module": "module-2-workloads",
-  "level": "level-15-statefulset-headless"
+  "level": "level-15-statefulset-headless",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

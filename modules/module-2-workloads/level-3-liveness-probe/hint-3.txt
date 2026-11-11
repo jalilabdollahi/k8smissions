@@ -1,3 +1,1 @@
-The livenessProbe is configured with `path: /nonexistent-healthz`. Nginx does not serve anything at that path — it returns 404 on every probe check.
-
-The fix is in `spec.template.spec.containers[0].livenessProbe.httpGet.path` in manifest.yaml.
+Give the probe more time with a patch such as `kubectl -n k8smissions patch deployment inventory --type=json -p '[{"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/initialDelaySeconds","value":<seconds>}]'`. Pick a value comfortably above the app's start time, and keep the probe itself.

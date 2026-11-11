@@ -1,3 +1,1 @@
-The combination `maxSurge: 0` AND `maxUnavailable: 0` creates a deadlock — the update cannot proceed in either direction. Kubernetes detects this and the rollout stalls indefinitely.
-
-Find `spec.strategy.rollingUpdate.maxSurge` in manifest.yaml. At least one of maxSurge or maxUnavailable must be greater than zero.
+Let the rollout remove an old pod before it creates a new one: `kubectl -n k8smissions patch deployment api-server --type=merge -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":<n>,"maxUnavailable":<m>}}}}'`. Both can not be 0, so pick the pair that frees a port.

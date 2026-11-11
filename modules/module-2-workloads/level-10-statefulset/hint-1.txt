@@ -1,6 +1,1 @@
-Compare pod names between restart cycles. Delete one pod and watch what name it comes back with:
-
-  kubectl delete pod <database-pod-name> -n k8smissions
-  kubectl get pods -n k8smissions -w
-
-Is the new pod name predictable or random?
+Compare what exists with what the protocol wants: `kubectl -n k8smissions get deploy,svc,pods -l app=ledger-db`. Look at the pod names, and at what `kubectl -n k8smissions get svc ledger-db -o yaml` says about clusterIP.

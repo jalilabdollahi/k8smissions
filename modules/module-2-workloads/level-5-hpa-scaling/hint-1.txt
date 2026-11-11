@@ -1,7 +1,1 @@
-The HPA reads CPU metrics from the Kubernetes Metrics API. If it shows <unknown>, that API is not returning data.
-
-Check the HPA's status in detail:
-
-  kubectl describe hpa web-backend-hpa -n k8smissions
-
-Look for the reason it cannot fetch metrics.
+Ask the HPA itself why it has no number: `kubectl -n k8smissions describe hpa web-backend` and read the Conditions and Events. Compare with `kubectl -n k8smissions top pods --containers`.

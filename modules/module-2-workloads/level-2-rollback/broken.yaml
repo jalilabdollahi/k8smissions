@@ -4,33 +4,20 @@ metadata:
   name: web-app
   namespace: k8smissions
   annotations:
-    kubernetes.io/change-cause: "Update to v2.0 (broken image)"
+    kubernetes.io/change-cause: "friday hotfix: pin nginx"
 spec:
-  replicas: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+  replicas: 4
   selector:
-    matchLabels:
-      app: web
+    matchLabels: {app: web-app}
   template:
     metadata:
-      labels:
-        app: web
-        version: v2
+      labels: {app: web-app}
     spec:
       containers:
-      - name: web
-        image: nginx:nonexistent-v2.0-xyz
+      - name: nginx
+        image: nginx:1.27-alpne # lint: allow-image
         ports:
         - containerPort: 80
-        resources:
-          requests:
-            cpu: "10m"
-            memory: "32Mi"
-          limits:
-            cpu: "50m"
-            memory: "64Mi"
-
+        readinessProbe:
+          httpGet: {path: /, port: 80}
+          periodSeconds: 2

@@ -1,3 +1,1 @@
-The metrics-server Deployment exists but has 0 replicas — it is not running. Without it, the Metrics API returns nothing, and the HPA cannot make scaling decisions.
-
-Open manifest.yaml and find the metrics-server Deployment.
+Set the missing CPU request with `kubectl -n k8smissions set resources deployment web-backend -c <container> --requests=cpu=<amount>`. Pick the container that the HPA event complains about; a small value is enough. Then give metrics-server a minute to collect the new pod's usage.

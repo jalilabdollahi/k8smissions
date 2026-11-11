@@ -1,3 +1,1 @@
-The strategy shows `Max Unavailable: 100%`. This means during an update, Kubernetes is permitted to take down all 3 pods at once before starting new ones. With `Max Surge: 0`, no extra pods can be created — so the cluster goes to zero capacity.
-
-This is a valid configuration for a Recreate-style update, but deadly for a service that needs to stay available.
+A Deployment has two update strategies. One stops every old pod before the first new pod starts; the other replaces pods a few at a time while the Service keeps the rest. See `kubectl explain deployment.spec.strategy.type` and decide which one this Deployment needs.

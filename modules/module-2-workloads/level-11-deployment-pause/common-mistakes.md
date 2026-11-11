@@ -1,13 +1,11 @@
-# Common Mistakes — Frozen Rollout
+## Trying `rollout undo`
 
-## Mistake 1: Deleting replicas hoping new ones replace them
+It refuses while the Deployment is paused, and even without the refusal it would roll back to something the team does not want. Nothing is broken in the template; it is just not being applied.
 
-**Wrong approach:** Deleting pods — since spec.paused, the controller still won't roll out the new template
+## Deleting the pods
 
-**Correct approach:** Resume the deployment; then the controller triggers a fresh rollout
+The ReplicaSet recreates them from the old template, so they come back on 2.3 with the new settings still queued. The pause has to be lifted for pods to change.
 
-## Mistake 2: Assuming rollout is stuck due to image pull
+## Re-applying the same edits
 
-**Wrong approach:** Checking image pull logs when the real issue is paused spec
-
-**Correct approach:** Always check kubectl get deployment -o yaml for spec.paused first
+Re-patching the image or env vars changes nothing while the Deployment is paused, and takes effect only after a resume, when it was already queued anyway.

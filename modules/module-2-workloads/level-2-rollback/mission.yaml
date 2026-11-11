@@ -1,15 +1,15 @@
 {
-  "name": "Bad Update — Roll Back!",
-  "description": "Deployment web-app was recently updated and all pods are stuck in ImagePullBackOff. The application is down. Run kubectl get pods -n k8smissions.",
-  "objective": "The Deployment was updated to a non-existent image tag — roll back to the last working revision",
-  "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "15m",
-  "concepts": [
-    "kubectl rollout undo/history/status",
-    "deployment revision",
-    "annotations"
-  ],
+  "name": "Friday's Hotfix",
+  "description": "The shop has been very slow since last night's hotfix. Deployment `web-app` should have 4 pods, but `kubectl rollout status` has been hanging for hours, some pods show `ImagePullBackOff`, and the few that serve are overloaded. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "Deployment `web-app` has 4 of 4 replicas available on an image that really exists, the rollout is complete, Service `web-app` answers every request with 200, and the Deployment's revision history is still there.",
+  "xp": 100,
+  "difficulty": "beginner",
+  "expected_time": "8m",
+  "concepts": ["rollout history", "rollout undo", "ImagePullBackOff", "revisions"],
   "module": "module-2-workloads",
-  "level": "level-2-rollback"
+  "level": "level-2-rollback",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 120,
+  "cleanup": []
 }

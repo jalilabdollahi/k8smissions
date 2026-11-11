@@ -1,17 +1,15 @@
 {
-  "name": "Database Needs Identity",
-  "description": "A database workload is running as a Deployment. After any pod restarts, the pod gets a new random name and a new hostname — breaking application-level replication that depends on stable identities. Run kubectl get pods -n k8smissions.",
-  "objective": "The database workload is a Deployment — change it to a StatefulSet so pods get stable, predictable identities",
-  "xp": 200,
-  "difficulty": "advanced",
-  "expected_time": "18m",
-  "concepts": [
-    "StatefulSet vs Deployment",
-    "stable network IDs",
-    "ordered deploys",
-    "headless service",
-    "VolumeClaimTemplates"
-  ],
+  "name": "Members With Names",
+  "description": "The `ledger-db` replication protocol needs three members called `ledger-db-0`, `ledger-db-1` and `ledger-db-2`, each reachable at a DNS name that survives restarts. Today `ledger-db` runs as a Deployment: its pods have random names, and every restart changes them, so the peers keep losing each other. A headless Service `ledger-db` is already in place. A debug pod `probe` with curl is available.",
+  "objective": "`ledger-db` runs as a workload with stable identities: pods `ledger-db-0`, `ledger-db-1` and `ledger-db-2` are Ready, each answers at `<pod>.ledger-db` from inside the cluster, a deleted member comes back with the same name and DNS name, and no Deployment pods are left running behind Service `ledger-db`.",
+  "xp": 150,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": ["StatefulSet", "serviceName", "stable network identity", "headless Service"],
   "module": "module-2-workloads",
-  "level": "level-10-statefulset"
+  "level": "level-10-statefulset",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

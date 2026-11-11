@@ -1,13 +1,11 @@
-# Common Mistakes — The Headless Mystery
+## Making Service `db` headless
 
-## Mistake 1: Adding clusterIP: None to existing Service via kubectl apply
+Changing `clusterIP` is not allowed on an existing Service, so people delete and recreate `db`. Even then `db-0.db-hs` still does not resolve, because the Service has the wrong name, and clients lose their cluster IP. The validator checks that `db` keeps one.
 
-**Wrong approach:** kubectl apply cannot change clusterIP on an existing Service — it returns an error
+## Trying to edit `serviceName`
 
-**Correct approach:** Delete the old Service first, then create with clusterIP: None
+The field is immutable on a StatefulSet. Deleting the StatefulSet to change it risks the members and anything they store; adding the Service the set already asks for is safe.
 
-## Mistake 2: Assuming any Service name works
+## Creating the Service but with another name or no selector
 
-**Wrong approach:** StatefulSet does not validate serviceName at creation — the error is silent until pods need DNS
-
-**Correct approach:** Always verify the referenced service exists and has clusterIP: None
+`db-headless` instead of `db-hs` produces no records, and a headless Service without `app=db` as selector has no endpoints, so there is nothing to publish. The name must equal `serviceName` exactly.

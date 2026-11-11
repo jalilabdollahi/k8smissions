@@ -1,21 +1,3 @@
-## What went wrong
-
-`maxUnavailable: 100%` with `maxSurge: 0` tells Kubernetes: 'you can take down all 3 pods before creating any new ones'. This is essentially the Recreate strategy written in RollingUpdate form. The service had zero running pods during the entire update window.
-
-## Fix
-
-In manifest.yaml:
-
-```yaml
-strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxUnavailable: 1
-    maxSurge: 1
-```
-
-## Rule of thumb
-
-- `maxUnavailable: 1` → at most 1 pod down at any time
-- `maxSurge: 1` → one extra pod can be created during the update
-- Result: 3 replicas always has at least 2 running while new ones are being prepared
+1. `kubectl -n k8smissions get deployment critical-api -o jsonpath='{.spec.strategy}'` prints `{"type":"Recreate"}`: on every release all four pods are terminated first, then four new pods start, hence about 25 seconds with no backend.
+2. `kubectl -n k8smissions patch deployment critical-api -p '{"spec":{"strategy":{"type":"RollingUpdate"}}}'` restores the default behaviour (25% surge, 25% unavailable), so at least three pods always serve.
+3. Check with a release: `kubectl -n k8smissions set env deployment/critical-api RELEASE=2` and `rollout status`.

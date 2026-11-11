@@ -1,26 +1,5 @@
-## What went wrong
-
-A Deployment was used for a stateful workload. Deployments treat pods as interchangeable — random names, no ordering guarantees. Databases need stable network identities (`database-0.database-service`) so replicas can discover and connect to each other.
-
-## Fix
-
-In manifest.yaml, change the resource:
-
-```yaml
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: database
-  namespace: k8smissions
-spec:
-  serviceName: "database-service"   # required field for StatefulSet
-  replicas: 3
-  # ... rest of spec unchanged
-```
-
-## StatefulSet guarantees
-
-- Stable pod names: `database-0`, `database-1`, `database-2`
-- Stable DNS: `database-0.database-service.k8smissions.svc.cluster.local`
-- Ordered startup: pod N does not start until pod N-1 is Running and Ready
-- Ordered shutdown: reverse order
+1. `kubectl -n k8smissions get deploy,pods,svc -l app=ledger-db` shows a Deployment with random pod names and a headless Service (`clusterIP: None`) called `ledger-db`.
+2. Export the container spec: `kubectl -n k8smissions get deploy ledger-db -o yaml`.
+3. `kubectl -n k8smissions delete deployment ledger-db` removes the random pods that also match the Service.
+4. Apply a StatefulSet named `ledger-db` with `serviceName: ledger-db`, 3 replicas, the same selector, labels and container.
+5. `kubectl -n k8smissions rollout status statefulset/ledger-db` waits for `ledger-db-0..2`; each is reachable at `<pod>.ledger-db`.

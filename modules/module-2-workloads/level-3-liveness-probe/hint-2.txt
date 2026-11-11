@@ -1,5 +1,1 @@
-Events show 'Liveness probe failed: HTTP probe failed with statuscode: 404'. The probe is hitting an endpoint that does not exist on nginx — nginx returns 404, which the probe treats as failure.
-
-See what path the probe is checking:
-
-  kubectl get deployment api-server -n k8smissions -o yaml | grep -A8 'livenessProbe'
+The kubelet kills the container as soon as the liveness probe fails, and this app needs about 15 seconds before its port opens. Look at the timing fields of the probe with `kubectl explain pod.spec.containers.livenessProbe` (`initialDelaySeconds`, `periodSeconds`, `failureThreshold`): the first failures must not happen before the app can answer.

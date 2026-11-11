@@ -1,27 +1,6 @@
-## What went wrong
+1. `kubectl -n k8smissions describe pod <pod>` shows `Failed to pull image "nginx:1.27-alpne"`: the tag is a typo.
+2. `kubectl -n k8smissions rollout history deployment/web-app` lists three revisions; revision 3 is the typo.
+3. `kubectl -n k8smissions rollout undo deployment/web-app` restores the previous pod template (nginx 1.27-alpine) as a new revision.
+4. `kubectl -n k8smissions rollout status deployment/web-app` waits until 4 of 4 pods are available.
 
-The Deployment was updated to `image: nginx:nonexistent-v2.0-xyz` — a tag that does not exist. All pods entered ImagePullBackOff because the registry returned 404.
-
-## Fix
-
-Roll back immediately:
-
-```bash
-kubectl rollout undo deployment/web-app -n k8smissions
-```
-
-Then verify recovery:
-
-```bash
-kubectl rollout status deployment/web-app -n k8smissions
-```
-
-Finally update manifest.yaml image to match the working revision:
-
-```yaml
-image: nginx:latest
-```
-
-## Why this matters
-
-Kubernetes keeps a rollout history (controlled by `revisionHistoryLimit`, default 10). This makes rollback instant — no rebuild, no re-push, just pointer to an old ReplicaSet. In a real incident, `kubectl rollout undo` is often the first command you run.
+`kubectl set image deployment/web-app nginx=nginx:1.27-alpine` gives the same end state.

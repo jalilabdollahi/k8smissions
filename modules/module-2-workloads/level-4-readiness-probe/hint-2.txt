@@ -1,5 +1,1 @@
-The new pod appears in Endpoints immediately — before it is actually ready to serve. The application runs `sleep 20` before starting nginx, so for the first 20 seconds it cannot respond to requests.
-
-Check whether a readiness probe exists:
-
-  kubectl get deployment slow-startup-app -n k8smissions -o yaml | grep -A8 'readinessProbe'
+A pod joins the Service's endpoints as soon as it is Ready, and a container with no readiness probe is Ready the moment it runs. The app already exposes a way to tell when it is warm (try `curl` against its paths from the `probe` pod). `kubectl explain pod.spec.containers.readinessProbe` shows how to make Kubernetes ask.

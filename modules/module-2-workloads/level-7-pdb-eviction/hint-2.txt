@@ -1,7 +1,1 @@
-The PDB shows `minAvailable: 3` and the Deployment has 3 replicas. This means all 3 pods must be running at all times — but evicting even one pod would temporarily drop the count to 2, violating the budget.
-
-Kubernetes respects the PDB and refuses to evict any pod. The drain cannot proceed.
-
-Check the replica count:
-
-  kubectl get deployment database-proxy -n k8smissions
+The eviction API refuses to remove a pod if the PodDisruptionBudget would then be violated. With as many replicas as the budget demands to stay up, zero pods may ever be evicted. Either the budget or the replica count has to leave room for one pod to go. `kubectl explain pdb.spec` shows `minAvailable` and `maxUnavailable`.

@@ -1,27 +1,33 @@
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
-  name: legacy-app-7d8f9
+  name: checkout
   namespace: k8smissions
-  labels:
-    app: legacy-app
 spec:
-  replicas: 2
+  replicas: 3
   selector:
-    matchLabels:
-      app: legacy-app
+    matchLabels: {app: checkout, track: stable}
   template:
     metadata:
-      labels:
-        app: legacy-app
+      labels: {app: checkout, track: stable}
     spec:
       containers:
-      - name: legacy
-        image: nginx:1.20
-        resources:
-          requests:
-            cpu: 100m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:8080", "-text=v2"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: checkout
+  namespace: k8smissions
+spec:
+  selector: {app: checkout}
+  ports:
+  - port: 80
+    targetPort: 8080

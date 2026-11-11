@@ -1,18 +1,15 @@
 {
-  "name": "Autoscaler Blind",
-  "description": "An HPA has been configured for web-backend but it shows <unknown> for current CPU metrics and is not scaling. Run kubectl get hpa -n k8smissions.",
-  "objective": "The HPA shows <unknown> for CPU because metrics-server is not running — install or enable metrics-server",
-  "xp": 250,
+  "name": "The Blind Autoscaler",
+  "description": "HPA `web-backend` (min 1, max 4, target 50% CPU) shows `<unknown>/50%` and never scales, although the `web-backend` pod is clearly busy: `kubectl top pods` reports real CPU numbers, so metrics-server is working. The Deployment is sized for one pod and checkout latency climbs every afternoon.",
+  "objective": "HPA `web-backend` reports a real CPU utilisation, is able to scale (`ScalingActive`), and under the load the pod generates it scales `web-backend` above 1 replica. The HPA must still target Deployment `web-backend`.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "20m",
-  "concepts": [
-    "HPA",
-    "metrics-server",
-    "resource metrics API",
-    "CPU utilization",
-    "minReplicas",
-    "maxReplicas"
-  ],
+  "expected_time": "12m",
+  "concepts": ["HorizontalPodAutoscaler", "resource requests", "metrics-server", "sidecar containers"],
   "module": "module-2-workloads",
-  "level": "level-5-hpa-scaling"
+  "level": "level-5-hpa-scaling",
+  "requires": ["metrics-server"],
+  "settle_seconds": 60,
+  "solve_timeout": 240,
+  "cleanup": []
 }

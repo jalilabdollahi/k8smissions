@@ -1,16 +1,15 @@
 {
-  "name": "Ghost Deployment",
-  "description": "Deployment ghost-deployment exists in the cluster but there are no running pods. Run kubectl get pods -n k8smissions and notice the output is empty.",
-  "objective": "The Deployment replica count is set to zero — scale it up so pods are actually running",
-  "xp": 150,
+  "name": "The Empty Dashboard",
+  "description": "The finance team's dashboards have been blank since this morning's apply. `kubectl get deployment reports` shows `0/3` and has done for hours. `kubectl get pods` is empty: no pods, no crash loops, no errors. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "Deployment `reports` has 3 available replicas and Service `reports` answers 200 with the dashboard page.",
+  "xp": 100,
   "difficulty": "beginner",
   "expected_time": "8m",
-  "concepts": [
-    "Deployment",
-    "replicas",
-    "ReplicaSet",
-    "desired vs actual state"
-  ],
+  "concepts": ["Deployment", "ReplicaSet", "FailedCreate events", "ServiceAccount"],
   "module": "module-2-workloads",
-  "level": "level-1-deployment-replicas"
+  "level": "level-1-deployment-replicas",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

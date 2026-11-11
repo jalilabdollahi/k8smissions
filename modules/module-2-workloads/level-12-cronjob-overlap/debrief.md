@@ -1,16 +1,25 @@
-# The Flood
+## What was broken
 
-## What Was Broken
-The CronJob's `concurrencyPolicy: Allow` (the default) lets new jobs start regardless of whether the previous one finished. The job sleeps 120s but fires every minute — so jobs pile up geometrically.
+`data-processor` fires every minute and each run lasts about three minutes. With `concurrencyPolicy: Allow`, the default, the CronJob starts a new Job on schedule no matter what is still running, so the runs stacked up and used more memory every minute.
 
-## The Fix
-Set `concurrencyPolicy: Forbid` to skip new runs while one is active, or `Replace` to cancel the running job and start fresh. `Forbid` is safest for batch processors that shouldn't run in parallel.
+## The evidence
 
-## Why It Matters
-CronJob flooding is a real production incident pattern. A slow downstream (DB under load) makes jobs run longer → more overlap → more DB load → positive feedback loop. Monitor `kubectl get pods` count from CronJob labels.
+`get cronjob` showed several active Jobs, `get jobs` listed runs created one minute apart that were all unfinished, and `get pods` showed one pod per Job. `kubectl explain cronjob.spec.concurrencyPolicy` describes the three behaviours.
 
-## Pro Tip
-Add `successfulJobsHistoryLimit: 3` and `failedJobsHistoryLimit: 1` to prevent thousands of completed/failed Job objects accumulating in etcd.
+## Why Kubernetes behaves this way
 
-## Concepts
-CronJob, concurrencyPolicy, Forbid, Replace, Allow, batch pile-up
+The CronJob controller only creates Jobs; it never looks at what they do. Pods belong to Jobs, and Jobs belong to the CronJob through `ownerReferences`, so deleting a pod just makes the Job start another one. Only deleting the Job removes its pods for good.
+
+## The fix
+
+Set `concurrencyPolicy` to `Forbid` (skip the new run while one is active) or `Replace` (cancel the old run for the new one), then delete the stale Jobs. Suspending would also stop the flood, but also stops the batch, which the team did not accept.
+
+## In production
+
+Choose the policy from the workload: `Forbid` for jobs that must finish, `Replace` for idempotent ones that only need the newest data. Also set `activeDeadlineSeconds` so a stuck run cannot block `Forbid` forever, and alert when scheduled runs are skipped.
+
+## Commands worth remembering
+
+- `kubectl get cronjob,jobs,pods`
+- `kubectl explain cronjob.spec.concurrencyPolicy`
+- `kubectl delete job <name>`

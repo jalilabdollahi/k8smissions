@@ -1,3 +1,1 @@
-The Service selector is `version: blue` — it only routes to the old Deployment. The green pods exist and are healthy, but no traffic reaches them because the Service ignores them.
-
-Find the selector field inside the Service spec in manifest.yaml.
+Switch the selector in one step so the Service never has an empty endpoint list for long: `kubectl -n k8smissions patch service shop --type=merge -p '{"spec":{"selector":{"<old-key>":null,"<green-key>":"green"}}}'`. Then check `get endpoints shop` lists three green IPs.

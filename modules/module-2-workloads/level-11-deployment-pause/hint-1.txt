@@ -1,7 +1,1 @@
-The rollout status command may say 'Waiting for deployment to finish: 0 out of 3 new replicas have been updated'. This is different from a failed rollout — the Deployment is not progressing at all.
-
-Get more detail:
-
-  kubectl describe deployment frontend -n k8smissions
-
-Look for any mention of 'paused' in the output.
+Compare what the Deployment's spec says with what its pods run. `kubectl -n k8smissions get deploy frontend -o yaml` has a field near the top of `spec` that explains why nothing happens, and `kubectl -n k8smissions rollout undo deployment/frontend` tells you the same thing.

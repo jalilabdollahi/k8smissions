@@ -1,7 +1,1 @@
-The Events may not be obvious here. Check the StatefulSet's requirement for its governing Service:
-
-  kubectl get statefulset db -n k8smissions -o yaml | grep 'serviceName'
-
-Then check if that Service exists and what type it is:
-
-  kubectl get service db-svc -n k8smissions -o yaml | grep 'clusterIP'
+Per-pod names like `db-0.<service>` are only published when the pod's `subdomain` (set from `serviceName`) names a headless Service that selects the pod. `kubectl explain service.spec.clusterIP` explains headless. Service `db` has to keep serving clients, so it is not the one to change.

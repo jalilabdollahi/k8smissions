@@ -1,5 +1,1 @@
-The Service selector shows `version=blue`. Now check what labels the green pods have:
-
-  kubectl get pods -n k8smissions --show-labels | grep green
-
-Does the Service selector match the green pods?
+A Service sends traffic to pods whose labels contain every key and value of its selector. The green pods do not have the label that the selector asks for, and a merge patch only adds or changes keys: it does not remove old ones. See `kubectl patch --help` for how to delete a key with a merge patch, and keep both Deployments running.

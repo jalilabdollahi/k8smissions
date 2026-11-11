@@ -1,3 +1,1 @@
-The resource is a `kind: Deployment`. For stateful workloads that need stable, predictable pod names like `database-0`, `database-1`, `database-2`, you need a `kind: StatefulSet`.
-
-Open manifest.yaml — you need to change the kind and add the required `serviceName` field.
+Write a StatefulSet named `ledger-db` with `serviceName: ledger-db`, `replicas: 3`, selector and pod labels `app=ledger-db`, and the same container as the Deployment (`kubectl -n k8smissions get deploy ledger-db -o yaml` to copy it). Delete the Deployment, then `kubectl -n k8smissions apply -f <file>`.

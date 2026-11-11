@@ -1,17 +1,15 @@
 {
-  "name": "The Unmovable Update",
-  "description": "Deployment api-server had its image updated but the rollout is completely stalled — no new pods have been created and nothing has changed. Run kubectl rollout status deployment/api-server -n k8smissions.",
-  "objective": "Both maxSurge and maxUnavailable are set to 0 — fix the RollingUpdate strategy so the rollout can proceed",
+  "name": "The Rollout That Waits for a Free Port",
+  "description": "`api-server` runs two pods, one per worker, and each one claims port 9000 on its node for the node-local metrics agent. A new image went out and the rollout has been stuck ever since: one new pod is `Pending`, two old pods keep serving, and `rollout status` waits forever. A debug pod `probe` with curl is available.",
+  "objective": "Deployment `api-server` finishes its rollout to `nginx:1.27-alpine` with 2 of 2 replicas available, its pods still bind hostPort 9000, and Service `api-server` keeps answering while a further rollout runs.",
   "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Deployment",
-    "RollingUpdate",
-    "maxSurge",
-    "maxUnavailable",
-    "update strategy"
-  ],
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["maxSurge", "maxUnavailable", "hostPort", "rolling update"],
   "module": "module-2-workloads",
-  "level": "level-14-maxsurge-zero"
+  "level": "level-14-maxsurge-zero",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

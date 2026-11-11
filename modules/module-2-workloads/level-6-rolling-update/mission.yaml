@@ -1,16 +1,15 @@
 {
-  "name": "Zero-Downtime Gone Wrong",
-  "description": "A rolling update was triggered on Deployment critical-api and all pods went down at once, causing a complete outage. Run kubectl get pods -n k8smissions.",
-  "objective": "The rolling update strategy allows 100% unavailability — fix maxUnavailable so at least one pod stays running during updates",
-  "xp": 200,
+  "name": "Dark at Every Release",
+  "description": "`critical-api` (4 replicas) goes completely dark for about 25 seconds at every release: the Service answers nothing, then recovers by itself. The release process is just \"push the new image tag\". Between releases everything is perfectly healthy. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "A release of Deployment `critical-api` (any change to its pod template) completes with 4 of 4 pods on the new template and not a single failed request through Service `critical-api` while it rolls out.",
+  "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "12m",
-  "concepts": [
-    "RollingUpdate strategy",
-    "maxUnavailable",
-    "maxSurge",
-    "Recreate"
-  ],
+  "concepts": ["Deployment strategy", "Recreate vs RollingUpdate", "rollout status", "zero downtime"],
   "module": "module-2-workloads",
-  "level": "level-6-rolling-update"
+  "level": "level-6-rolling-update",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }
