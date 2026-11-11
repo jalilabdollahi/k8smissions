@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledger-api-code
+data:
+  app.py: |
+    import urllib.request
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    REQUIRED = 3
+
+
+    class Handler(BaseHTTPRequestHandler):
+        def reply(self, code, body):
+            data = body.encode()
+            self.send_response(code)
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self):
+            try:
+                version = int(urllib.request.urlopen("http://schema-db/version", timeout=2).read())
+            except Exception:
+                return self.reply(503, "schema service unreachable")
+            if version < REQUIRED:
+                return self.reply(503, "schema %d is older than %d" % (version, REQUIRED))
+            self.reply(200, "ledger-api v3 schema=%d" % version)
+
+        def log_message(self, *args):
+            pass
+
+
+    ThreadingHTTPServer(("", 8080), Handler).serve_forever()

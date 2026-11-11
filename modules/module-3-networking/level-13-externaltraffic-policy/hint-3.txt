@@ -1,3 +1,1 @@
-Backend pods are not on every node. Nodes without a pod silently drop incoming NodePort traffic when `externalTrafficPolicy: Local` is set.
-
-Find the `externalTrafficPolicy` field in the Service in manifest.yaml.
+Replace the placement rule in the pod template rather than touching the Service: `kubectl -n k8smissions patch deploy audit-gw --type=json -p '[{"op":"remove","path":"/spec/template/spec/<the field that groups the pods>"},{"op":"add","path":"/spec/template/spec/topologySpreadConstraints","value":[{"maxSkew":1,"topologyKey":"kubernetes.io/hostname","whenUnsatisfiable":"DoNotSchedule","labelSelector":{"matchLabels":{"app":"audit-gw"}}}]}]'`.

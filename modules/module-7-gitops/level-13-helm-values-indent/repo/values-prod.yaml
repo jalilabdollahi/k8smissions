@@ -1,0 +1,4 @@
+replicaCount: 2
+image:
+  tag: 1.0
+message: "search prod: ranking v1.0"

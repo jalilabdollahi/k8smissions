@@ -1,1 +1,1 @@
-The webhook has `failurePolicy: Fail` and the webhook service is down. Change `failurePolicy` to `Ignore` so pod creation can proceed even when the webhook is unreachable.
+Suspend one Job so its pods release their room: `kubectl -n k8smissions patch job <name> --type=merge -p '{"spec":{"suspend":true}}'`. Let the other Job complete (`kubectl wait --for=condition=complete job/<name>`), then set `suspend` back to `false` on the first.

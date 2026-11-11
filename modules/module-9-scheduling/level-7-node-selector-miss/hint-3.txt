@@ -1,1 +1,1 @@
-The pod's `nodeSelector` has `accelerator-type: nvidia-v100` but no node has this label. Remove the `nodeSelector` block so the pod can schedule on any available node (or label a node correctly first).
+The cleanest fix is on the node: remove the leftover label with `kubectl label node <ssd-node> <label-key>-` (note the trailing dash). The scheduler retries Pending pods on its own once the node matches; no rollout is needed.

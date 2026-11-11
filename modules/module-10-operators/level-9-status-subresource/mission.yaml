@@ -1,16 +1,15 @@
 {
-  "name": "Status Not Updating",
-  "description": "Status updates on a custom resource silently succeed but the status never changes. `kubectl patch` returns no error, but `kubectl get` shows the old status. The CRD has a `status` field defined in its schema but is missing the subresource configuration that makes status updates actually work.",
-  "objective": "The CRD doesn't have the status subresource enabled — status updates require a separate subresource config",
-  "xp": 325,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "status subresource",
-    "CRD",
-    "operator status",
-    "kubectl patch"
-  ],
+  "name": "Status that goes nowhere",
+  "description": "`backup-operator` is Running and looks calm, yet every `Backup` (`orders-db`, `ledger-db`, `audit-db`) shows an empty PHASE and the operator's log is a wall of `404 Not Found`. A second writer, the CronJob `sla-reporter`, stamps `status.lastSlaCheck` on the same objects for the compliance dashboard. Compliance needs both fields current by the end of the day.",
+  "objective": "Every `Backup` shows `status.phase` written by `backup-operator` and a fresh `status.lastSlaCheck` written by a run of `sla-reporter`; writing status does not bump `metadata.generation`; the Backup API keeps its `status` subresource.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["status subresource", "metadata.generation", "kubectl patch --subresource", "CRD subresources", "silent failure"],
   "module": "module-10-operators",
-  "level": "level-9-status-subresource"
+  "level": "level-9-status-subresource",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

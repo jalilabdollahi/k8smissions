@@ -1,1 +1,1 @@
-The status should say something like 'workspace source not bound' or 'expected workspace source'. Look at the `workspaces` field in the PipelineRun spec — it's an empty list.
+A workspace the Pipeline declares must be bound by every PipelineRun, under `spec.workspaces`; `kubectl explain pipelinerun.spec.workspaces` lists the volume sources. Each Task of a run is a separate pod, so ask what survives the end of a pod: some sources are created per pod and gone with it, others are claims that outlive it.

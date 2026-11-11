@@ -1,1 +1,1 @@
-The TaskRun has `params: []` but the `image-push` Task requires a parameter named `IMAGE` with no default. Add a params entry with `name: IMAGE` and the target image reference as the value.
+Create a new PipelineRun (`kubectl create -f`) with `pipelineRef: {name: deploy-notify}` and `params`: `env` with a plain string value and `targets` with a YAML list value, one item per target. Alternatively give `env` a `default` on the Pipeline; either way, check `kubectl logs <pod> -c step-send` afterwards.

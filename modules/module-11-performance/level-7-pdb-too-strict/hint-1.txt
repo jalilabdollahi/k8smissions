@@ -1,1 +1,4 @@
-Try draining a node and read the error: `kubectl drain <node> --ignore-daemonsets`. Check the PDB: `kubectl get pdb my-pdb -n k8smissions -o yaml`
+Ask each budget how many pods it will let go right now:
+  kubectl get pdb
+  kubectl describe pdb orders-api
+Look at ALLOWED DISRUPTIONS, and compare it with the replica count of the Deployment the budget selects.

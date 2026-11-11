@@ -1,84 +1,44 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-NAMESPACE="k8smissions"
-DEPLOYMENT="web-app"
-PDB_NAME="web-pdb"
-
-echo "🔍 VALIDATION STAGE 1: Checking if deployment exists..."
-if ! kubectl get deployment $DEPLOYMENT -n $NAMESPACE &>/dev/null; then
-    echo "❌ FAILED: Deployment '$DEPLOYMENT' not found"
-    exit 1
+ready=$(k get sts consul -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+if [ "${ready:-0}" -ne 3 ] || [ "$(k get sts consul -o jsonpath='{.spec.replicas}')" != "3" ]; then
+  echo "❌ StatefulSet consul must have 3 Ready replicas (found: ${ready:-0})"
+  exit 1
 fi
-echo "✅ Deployment exists"
+echo "✅ consul: 3 of 3 pods Ready"
 
-echo ""
-echo "🔍 VALIDATION STAGE 2: Checking if PodDisruptionBudget exists..."
-if ! kubectl get pdb $PDB_NAME -n $NAMESPACE &>/dev/null; then
-    echo "❌ FAILED: PodDisruptionBudget '$PDB_NAME' not found"
-    exit 1
+n=$(k get pdb -o name 2>/dev/null | wc -l)
+if [ "$n" -ne 1 ]; then
+  echo "❌ expected exactly one PodDisruptionBudget in the namespace, found $n"
+  exit 1
 fi
-echo "✅ PodDisruptionBudget exists"
-
-echo ""
-echo "🔍 VALIDATION STAGE 3: Checking deployment replica count..."
-REPLICAS=$(kubectl get deployment $DEPLOYMENT -n $NAMESPACE -o jsonpath='{.spec.replicas}')
-if [ "$REPLICAS" -lt 2 ]; then
-    echo "❌ FAILED: Deployment has $REPLICAS replica(s), need at least 2"
-    exit 1
+pdb=$(k get pdb -o jsonpath='{.items[0].metadata.name}')
+expected=$(k get pdb "$pdb" -o jsonpath='{.status.expectedPods}')
+healthy=$(k get pdb "$pdb" -o jsonpath='{.status.currentHealthy}')
+allowed=$(k get pdb "$pdb" -o jsonpath='{.status.disruptionsAllowed}')
+if [ "${expected:-0}" -ne 3 ] || [ "${healthy:-0}" -ne 3 ]; then
+  echo "❌ PDB $pdb protects ${expected:-0} pods (healthy: ${healthy:-0}), it should protect the 3 consul pods"
+  exit 1
 fi
-echo "✅ Deployment has $REPLICAS replicas"
-
-echo ""
-echo "🔍 VALIDATION STAGE 4: Verifying PDB configuration..."
-MIN_AVAILABLE=$(kubectl get pdb $PDB_NAME -n $NAMESPACE -o jsonpath='{.spec.minAvailable}')
-MAX_UNAVAILABLE=$(kubectl get pdb $PDB_NAME -n $NAMESPACE -o jsonpath='{.spec.maxUnavailable}')
-
-if [ -n "$MIN_AVAILABLE" ]; then
-    echo "PDB minAvailable: $MIN_AVAILABLE"
-    if [ "$MIN_AVAILABLE" -gt "$REPLICAS" ]; then
-        echo "❌ FAILED: minAvailable ($MIN_AVAILABLE) > replicas ($REPLICAS)"
-        echo "💡 Hint: minAvailable must be ≤ replicas"
-        exit 1
-    fi
-elif [ -n "$MAX_UNAVAILABLE" ]; then
-    echo "PDB maxUnavailable: $MAX_UNAVAILABLE"
-else
-    echo "❌ FAILED: PDB has neither minAvailable nor maxUnavailable"
-    exit 1
+echo "✅ PDB $pdb selects the 3 consul pods"
+if [ "${allowed:-0}" -ne 1 ]; then
+  echo "❌ PDB $pdb allows ${allowed:-0} disruptions; quorum needs exactly 1 at a time (so one member can still be drained)"
+  exit 1
 fi
-echo "✅ PDB configuration is valid"
+echo "✅ exactly 1 voluntary disruption is allowed"
 
-echo ""
-echo "🔍 VALIDATION STAGE 5: Checking PDB status..."
-ALLOWED_DISRUPTIONS=$(kubectl get pdb $PDB_NAME -n $NAMESPACE -o jsonpath='{.status.disruptionsAllowed}')
-if [ -z "$ALLOWED_DISRUPTIONS" ]; then
-    echo "⚠️  PDB status not yet available (pods may still be starting)"
-    sleep 5
-    ALLOWED_DISRUPTIONS=$(kubectl get pdb $PDB_NAME -n $NAMESPACE -o jsonpath='{.status.disruptionsAllowed}')
+# the Eviction API agrees: one eviction is admitted (dry run, nothing is deleted)
+cat > /tmp/evict-$$.json <<EOP
+{"apiVersion":"policy/v1","kind":"Eviction","metadata":{"name":"consul-0","namespace":"$NS"},"deleteOptions":{"dryRun":["All"]}}
+EOP
+out=$(kubectl create --raw "/api/v1/namespaces/$NS/pods/consul-0/eviction" -f /tmp/evict-$$.json 2>&1)
+rm -f /tmp/evict-$$.json
+if ! echo "$out" | grep -q '"status": *"Success"'; then
+  echo "❌ an eviction of consul-0 was refused: $(echo "$out" | head -c 200)"
+  exit 1
 fi
-
-if [ "$ALLOWED_DISRUPTIONS" = "0" ]; then
-    echo "⚠️  WARNING: No disruptions allowed (disruptionsAllowed: 0)"
-    echo "   This means node drain would be blocked"
-    echo "💡 Hint: Increase replicas or reduce minAvailable"
-else
-    echo "✅ Disruptions allowed: $ALLOWED_DISRUPTIONS"
-fi
-
-echo ""
-echo "🔍 VALIDATION STAGE 6: Verifying pods are running..."
-READY_REPLICAS=$(kubectl get deployment $DEPLOYMENT -n $NAMESPACE -o jsonpath='{.status.readyReplicas}')
-if [ "$READY_REPLICAS" != "$REPLICAS" ]; then
-    echo "⚠️  Only $READY_REPLICAS/$REPLICAS pods ready"
-else
-    echo "✅ All $REPLICAS pods are ready"
-fi
-
-echo ""
-echo "🎉 SUCCESS! PodDisruptionBudget configured correctly!"
-echo ""
-echo "PDB Status:"
-kubectl get pdb $PDB_NAME -n $NAMESPACE
-echo ""
-echo "Configuration allows $ALLOWED_DISRUPTIONS voluntary disruption(s)"
-echo "This enables node maintenance while maintaining availability!"
+echo "✅ the Eviction API admits one eviction"
+exit 0
+exit 1

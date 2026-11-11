@@ -1,17 +1,15 @@
 {
-  "name": "No Cache Hit",
-  "description": "Every CI build takes 15 minutes downloading Maven dependencies from the internet. The `maven-build` Task declares a `cache` workspace for persisting the local Maven repository between runs, but the TaskRun doesn't bind it — so the cache PVC exists but is never mounted, and every build starts cold.",
-  "objective": "The build Task doesn't mount the cache PVC — add the workspace binding to enable build cache",
-  "xp": 275,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Tekton",
-    "workspace",
-    "PVC",
-    "build cache",
-    "performance"
-  ],
+  "name": "Cold Cache Every Time",
+  "description": "Builds of `inventory` take over a minute every run, and the build team swears the cache volume was set up properly three weeks ago: PVC `build-cache` exists, the last run of Pipeline `inventory-build` (`inventory-build-0905`) was started with it. The CI bill for this pipeline has doubled and each build prints `cache miss: resolving dependencies...`.",
+  "objective": "When Pipeline `inventory-build` is run twice in a row with the same cache volume, the second run reports result `cache-hit` = true from Task `compile` and its `resolve` step is much faster than the first run's.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["optional workspaces", "Pipeline task workspaces mapping", "$(workspaces.NAME.bound)", "build cache", "TaskRun results"],
   "module": "module-8-cicd",
-  "level": "level-5-build-cache"
+  "level": "level-5-build-cache",
+  "requires": ["tekton"],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

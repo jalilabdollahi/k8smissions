@@ -1,23 +1,7 @@
-## What went wrong
+`teardown` is an ordinary Task at the end of the chain, so it is skipped when anything earlier fails, and it also takes its target from a result of `provision`.
 
-In Tekton, `spec.tasks` tasks only run when their `runAfter` dependencies succeed. When `build` fails, `cleanup` (which has `runAfter: [build]`) is skipped — exactly like a skipped `catch` block. Temporary resources pile up with each failed build.
-
-## Fix
-
-```yaml
-spec:
-  tasks:
-  - name: build
-    taskRef:
-      name: build-task
-  finally:
-  - name: cleanup
-    taskRef:
-      name: cleanup-task
-```
-
-Tasks in `spec.finally` cannot have `runAfter` (they have no ordering relative to each other) and they always run — even if the main pipeline is cancelled.
-
-## Why this matters
-
-`spec.finally` is Tekton's equivalent of a `finally` block in a try/catch/finally pattern. It guarantees execution regardless of whether the main task DAG succeeded, failed, or was cancelled. Common uses: sending a Slack notification with the pipeline result, cleaning up temporary namespaces, releasing a distributed lock, or uploading test reports to a storage bucket. Without `finally`, cleanup logic that depends on a successful prior step is unreliable and leads to resource leaks.
+1. `kubectl get pods,services -l app=scratch`: 14 leftovers; `kubectl get resourcequota`: 14/16 Services.
+2. Edit Pipeline `integration-test`: move `teardown` to `spec.finally` (no `runAfter`).
+3. Pass it no result of `provision`: when `provision` fails before writing `name`, the result never exists and a finally Task that references it never starts, so the run hangs in Running. Delete `scratch-$(context.pipelineRun.name)` instead, the name `provision` derives from the same run name.
+4. Delete the 14 old leftovers once: `kubectl delete pod,service -l app=scratch`.
+5. A failing run still ends Failed, and leaves nothing behind.

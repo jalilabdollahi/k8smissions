@@ -1,17 +1,15 @@
 {
-  "name": "Zombie Namespace",
-  "description": "A namespace has been stuck in Terminating state for over an hour. `kubectl delete namespace zombie-ns` completed without error but the namespace never disappeared. A ConfigMap inside holds a finalizer registered by a controller that was deleted — and since no controller will ever clear that finalizer, the namespace is stuck forever.",
-  "objective": "Objects with finalizers inside the namespace are blocking deletion — find and remove the finalizers",
-  "xp": 250,
+  "name": "Terminating Since Tuesday",
+  "description": "The `payments` tenant was offboarded an hour ago: their Argo CD Application `payments-sandbox` was deleted. Namespace `payments-sandbox` and the Application are both still there, in `Terminating`, and finance says the tenant's quota is still being counted against the cluster. Nobody has found a pod, a PVC or a custom resource in the namespace that holds anything up. Deleting the Application again changes nothing. The neighbouring namespace `keep-me` runs a pod that must not be disturbed.",
+  "objective": "Namespace `payments-sandbox` and the Application `payments-sandbox` are gone, no API service registered in the cluster is reporting `Available=False`, and the pod `probe` in namespace `keep-me` is still the same running pod.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "namespace",
-    "Terminating",
-    "finalizers",
-    "kubectl patch",
-    "cleanup"
-  ],
+  "expected_time": "20m",
+  "concepts": ["namespace deletion", "APIService", "namespace conditions", "Argo CD finalizer"],
   "module": "module-7-gitops",
-  "level": "level-15-namespace-stuck"
+  "level": "level-15-namespace-stuck",
+  "requires": ["argocd"],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

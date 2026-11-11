@@ -1,16 +1,21 @@
-# Operator Meltdown
+## What was broken
 
-## What Was Broken
-Three simultaneous failures: (1) webhook with failurePolicy: Fail and no namespaceSelector blocked system pod creation, (2) CRD v1 version was missing while v1 objects were stored in etcd, (3) operator with 2 replicas and no leader election caused split-brain.
+Three independent faults stacked on the same request. The webhook's serving certificate had no subject alternative name, so the API server refused to talk to it and every Queue creation failed. The operator's Role lacked `leases`, and its code treated the 403 as "no election needed", so both replicas reconciled. The CRD schema did not declare `spec.deadLetter`, so the dead-letter setting was pruned from every stored Queue.
 
-## The Fix
-Fix each independently: change webhook to Ignore with namespaceSelector, add v1 back to CRD as non-storage version, enable leader election.
+## The evidence
 
-## Why It Matters
-Production operators: webhooks must have failurePolicy: Ignore or bulletproof service reliability, CRD versions must be migrated carefully before removal, replicated operators must always use leader election.
+The `queue-publisher` log quoted `x509: certificate is not valid for any names, but wanted to match queue-webhook.k8smissions.svc`. The operator log said `lease unavailable (403) ... continuing without election`, `kubectl get lease` was empty, and `status.lastWriter` flipped between the two pod names. Finally `kubectl get queue orders -o yaml` showed a spec without `deadLetter` although the manifest had it, and `kubectl explain queue.spec` did not list it.
 
-## Pro Tip
-Incident command: triage in order of blast radius. Webhook blocking all pod creation is the highest priority (everything is broken). CRD version issues affect only that resource type. Operator split-brain is bad but usually recoverable with operator restart.
+## Why Kubernetes behaved this way
 
-## Concepts
-webhook failurePolicy, CRD versioning, leader election, operator meltdown, incident triage
+Go's TLS client, which the API server uses, matches the Service's DNS name against the certificate's SANs only; a certificate with just a Common Name has no names at all. The third fault only appears after the first, because the object has to be admitted before it can be pruned, and pruning is silent for clients that do not ask for strict field validation: kubectl's default `--validate=strict` would have rejected the field, a Job posting JSON does not. The second fault is a design bug in the controller: failing open on an authorization error turns a missing permission into split brain.
+
+## In production
+
+Issue webhook certificates with cert-manager and a SAN for `<svc>.<ns>.svc`. Fail closed in controllers when election is unavailable, and alert on controllers with no lease holder. Review CRD schemas against what clients send (`kubectl apply --validate=strict` in CI). Fix incidents in the order users hit them, and re-test after each fix.
+
+## Worth remembering
+
+- `kubectl auth can-i <verb> <resource> --as=system:serviceaccount:<ns>:<sa>`
+- `kubectl explain <kind>.spec`, and `kubectl create --dry-run=server -o yaml` to see what the API server keeps.
+- `kubectl get lease -o custom-columns=NAME:.metadata.name,HOLDER:.spec.holderIdentity`

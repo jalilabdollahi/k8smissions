@@ -1,16 +1,15 @@
 {
-  "name": "404 Not Found",
-  "description": "Ingress app-ingress exists and the backend pod is Running. But every request to the Ingress returns 404. Run kubectl describe ingress app-ingress -n k8smissions.",
-  "objective": "The Ingress rules have a typo in the service name — fix the backend service reference",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Ingress",
-    "backend",
-    "service reference",
-    "HTTP routing"
-  ],
+  "name": "Nginx's Own 404",
+  "description": "The internal handbook was moved behind Ingress `docs` (host `docs.k8sm.local`), but every request, whatever the host, gets nginx's bare \"404 Not Found\" page instead of the handbook. The Ingress is admitted without complaint and Service `docs` has two Ready pods. Once it works, the platform team also wants anyone who reaches the controller with an unknown hostname to see the `maintenance` page rather than nginx's default 404. A debug pod `probe` with curl is available; reach the controller at `ingress-nginx-controller.ingress-nginx.svc` with a `Host` header.",
+  "objective": "Through the ingress-nginx controller, `Host: docs.k8sm.local` returns the handbook page, and a request with an unknown host returns the maintenance page. Both `docs` and `maintenance` Services keep ready endpoints.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["IngressClass", "ingressClassName", "defaultBackend", "ingress-nginx"],
   "module": "module-3-networking",
-  "level": "level-14-ingress-defaultbackend"
+  "level": "level-14-ingress-defaultbackend",
+  "requires": ["ingress-nginx"],
+  "settle_seconds": 25,
+  "solve_timeout": 90,
+  "cleanup": []
 }

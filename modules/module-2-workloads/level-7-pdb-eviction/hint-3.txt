@@ -1,3 +1,1 @@
-The PDB `minAvailable: 3` equals the total replica count. You need to lower `minAvailable` to a number that allows at least one pod to be evicted.
-
-Find spec.minAvailable in the PodDisruptionBudget in manifest.yaml.
+Leave room for one voluntary disruption, for example `kubectl -n k8smissions patch pdb ledger-api-pdb --type=merge -p '{"spec":{"minAvailable":<n>}}'` with a number below the replica count (or add a replica with `kubectl scale`). Do not use `--disable-eviction` or delete the PDB.

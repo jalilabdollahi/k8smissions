@@ -1,1 +1,1 @@
-Check the deploy TaskRun to see what value it received for `IMAGE_DIGEST`: `kubectl get taskrun -n k8smissions -o yaml | grep -A5 IMAGE_DIGEST`
+Read why `ship-api-0422` was refused: `kubectl get pipelinerun ship-api-0422 -o jsonpath='{.status.conditions[0].message}'`. Then compare it with the results Task `build-image` declares (`kubectl get task build-image -o yaml`, section `spec.results`).

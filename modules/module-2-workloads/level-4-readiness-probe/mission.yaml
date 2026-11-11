@@ -1,15 +1,15 @@
 {
-  "name": "Too Eager",
-  "description": "Deployment slow-startup-app is running and pods show Ready, but users are hitting intermittent 502 errors immediately after a pod starts. Run kubectl get pods -n k8smissions.",
-  "objective": "There is no readiness probe — pods receive traffic before they are ready, causing errors; add a readiness probe",
-  "xp": 200,
+  "name": "Cold Cache Customers",
+  "description": "Whenever a `catalog` pod starts (deploys, node moves, a crash), shoppers get HTTP 503 for about twenty seconds. `kubectl get pods` says `1/1 Running` the moment the pod appears, and nothing is wrong with the application's logs: it is simply warming its price cache. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "A newly started `catalog` pod receives no traffic until its cache is warm: when a pod is deleted, Service `catalog` keeps answering 200 to every request while the replacement starts, and all 3 replicas end up Ready.",
+  "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "12m",
-  "concepts": [
-    "readinessProbe vs livenessProbe",
-    "pod readiness gates",
-    "service endpoint management"
-  ],
+  "concepts": ["readinessProbe", "Service endpoints", "Ready vs Running"],
   "module": "module-2-workloads",
-  "level": "level-4-readiness-probe"
+  "level": "level-4-readiness-probe",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

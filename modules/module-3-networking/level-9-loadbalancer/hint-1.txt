@@ -1,7 +1,1 @@
-A LoadBalancer Service gets an external IP by asking the cloud provider (AWS, GCP, Azure) to provision a load balancer. In a local kind cluster, there is no cloud provider — so the request sits in pending forever.
-
-Check what controller would normally respond:
-
-  kubectl describe service web-service -n k8smissions
-
-Look at Events — is anything trying to provision the load balancer?
+Look at the Service and at what would normally react to it: `kubectl -n k8smissions describe svc storefront-lb`. Are there any events at all? Then ask what, in this cluster, would ever fill in `status.loadBalancer`.

@@ -1,16 +1,25 @@
-# The Noisy Neighbour
+## What was broken
 
-## What Was Broken
-A LimitRange required all containers to have explicit resource limits. The pod only had `requests` but no `limits` — the LimitRange rejected the pod with a Forbidden error.
+Deployment `invoice-render` asks for `requests.memory: 64Mi` and `limits.memory: 512Mi`, a ratio of 8. A LimitRange called `team-defaults` in the namespace allows a ratio of at most 2 for memory. The LimitRange admission plugin therefore refused every pod the ReplicaSet tried to create, and the Deployment sat at 0/3.
 
-## The Fix
-Add `limits` to the container's `resources` block. Values must be within the LimitRange's `max`. Pods with no resources at all inherit the LimitRange defaults, but pods with partial resources (requests only) are still rejected.
+## The evidence
 
-## Why It Matters
-LimitRanges prevent a single container monopolising node resources. They are a safety net for multi-tenant namespaces. Set them on dev namespaces to catch engineers who forget limits before deploying to production where ResourceQuota may block them entirely.
+`kubectl get pods` was empty, which is the signature of an admission failure: the pods were never created. `kubectl describe rs` listed `FailedCreate` events with `maximum memory limit to request ratio per Container is 2, but provided ratio is 8.000000`, and `kubectl describe limitrange team-defaults` showed the rule.
 
-## Pro Tip
-Check LimitRanges with `kubectl describe limitrange -n <ns>`. If a pod is rejected, the error message tells you exactly which constraint was violated.
+## Why Kubernetes behaved this way
 
-## Concepts
-LimitRange, resource requests, resource limits, namespace policy, multi-tenancy
+A LimitRange is checked when a pod is created, not when the Deployment is. So the Deployment was accepted, and the failure showed up one level down, on the ReplicaSet. The ratio rule is about burstiness: a big gap between request and limit lets a pod use far more than the scheduler accounted for.
+
+## The fix
+
+Size request and limit together. A render peaks at about 360 MiB, so the limit stays at 512Mi and the request goes to 256Mi (ratio 2). Shrinking the limit to meet the ratio would trade an admission error for OOM kills under load; deleting the LimitRange would remove the team's rule.
+
+## In production
+
+Read `describe limitrange` and `describe resourcequota` before writing manifests for a shared namespace. Put such rules in the starter templates, so the manifest passes on the first try. For events, remember they expire after about an hour, so check early.
+
+## Commands worth remembering
+
+- `kubectl describe rs <name>` / `kubectl get events --sort-by=.lastTimestamp`
+- `kubectl describe limitrange`
+- `kubectl set resources deployment <name> --requests=... --limits=...`

@@ -1,17 +1,15 @@
 {
-  "name": "Can't Find the Service",
-  "description": "Pod app-client tries to reach the database but keeps printing 'Connection failed'. Both pods are Running. Run kubectl logs app-client -n k8smissions and read what hostname it is trying to reach.",
-  "objective": "The app uses a short DNS name that doesn't resolve across namespaces — use the fully-qualified service DNS name",
-  "xp": 250,
+  "name": "Lost the Phone Book",
+  "description": "After last week's \"DNS hardening\" pull request, the two `reporter` pods log `bad address 'ledger-db'` on every lookup and report their database as failed. The `ledger-db` Service is healthy, and other pods in the namespace resolve it without trouble. A debug pod `probe` with curl is available.",
+  "objective": "Both `reporter` pods resolve and reach `ledger-db` and answer `db=ok` when asked on port 8080, staying Ready with no restarts.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "DNS FQDN",
-    "CoreDNS",
-    "ndots",
-    "short names vs FQDN",
-    "<svc>.<ns>.svc.cluster.local format"
-  ],
+  "expected_time": "12m",
+  "concepts": ["dnsPolicy", "dnsConfig", "resolv.conf", "pod immutability"],
   "module": "module-3-networking",
-  "level": "level-3-dns"
+  "level": "level-3-dns",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

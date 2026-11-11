@@ -1,1 +1,1 @@
-You should see DESIRED: 10. That's a production-scale replica count running in staging. In a Kustomize overlay setup, a staging overlay would set this to a much lower value. Look at the `replicas` field in the manifest.
+Each overlay prefixes its object names, so applying a second overlay never replaces the first one's objects, it only adds more. Clone the `shop` repository and run `kubectl kustomize overlays/production` to see exactly which objects that overlay creates. `kubectl delete -k` removes exactly what an overlay builds, in the namespace you point it at.

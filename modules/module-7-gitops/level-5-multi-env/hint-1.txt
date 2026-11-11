@@ -1,1 +1,1 @@
-Inspect the running configuration: `kubectl get configmap env-config -n k8smissions -o yaml` and `kubectl get deployment multi-env-app -n k8smissions -o yaml | grep -E 'replicas|limits'`
+Compare the two Applications' sources: `kubectl -n argocd get app shop-prod -o yaml` next to `shop-dev`, and read `spec.source` closely. Then compare with what the production overlay in the repository builds (`kubectl kustomize overlays/prod` in a clone of the `shop` repo).

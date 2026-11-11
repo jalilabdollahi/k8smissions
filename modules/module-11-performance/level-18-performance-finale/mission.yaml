@@ -1,17 +1,15 @@
 {
-  "name": "The Great Slowdown",
-  "description": "Three independent performance problems are active simultaneously: a pod is generating excessive DNS queries using short names without ndots tuning, an API deployment is heavily CPU-throttled because its limit equals its request, and a 50-replica deployment is rolling out at a crawl because maxSurge is zero. Identify and fix all three.",
-  "objective": "Fix all three performance issues: set ndots to reduce DNS queries, remove CPU limits causing throttling, and increase maxSurge for faster deployments",
-  "xp": 425,
-  "difficulty": "advanced",
-  "expected_time": "25m",
-  "concepts": [
-    "DNS ndots",
-    "CPU throttling",
-    "maxSurge",
-    "multi-issue",
-    "performance tuning"
-  ],
+  "name": "The Page That Takes Two Seconds",
+  "description": "The product page (storefront, which calls pricing for every page view) has a 300ms latency goal and a p95 of about 2 seconds with timeouts at peak. pricing has 3 replicas, the nodes are idle and nothing is restarting or failing its probes. Three teams each say it is somebody else's layer: the platform team points at DNS, the app team at pricing's resources, and the network team says Service routing is fine. A launch campaign starts tomorrow.",
+  "objective": "Through Service storefront at 30 requests per second for 30 seconds, p95 is under 300ms with zero errors, storefront asks the DNS server about one query per lookup, pricing is no longer CPU-throttled, and the 3 pricing replicas share the requests (no pod gets more than twice another's share).",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "30m",
+  "concepts": ["end-to-end latency", "ndots", "CFS throttling", "sessionAffinity", "layered diagnosis"],
   "module": "module-11-performance",
-  "level": "level-18-performance-finale"
+  "level": "level-18-performance-finale",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

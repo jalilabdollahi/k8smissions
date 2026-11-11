@@ -1,5 +1,1 @@
-The Ingress backend references a Service named `app-serv`. Check what Services actually exist:
-
-  kubectl get services -n k8smissions
-
-Is there a Service named `app-serv`? Or is the real Service named something slightly different?
+An ingress controller only serves Ingresses whose class it owns, so start with the class. After that works, unknown hosts still hit nginx's built-in default: Ingress has a field for "where to send requests that match nothing", see `kubectl explain ingress.spec.defaultBackend`. Try it on the `docs` Ingress first and test with a made-up Host header; does it do what you expect for hosts that Ingress does not name?

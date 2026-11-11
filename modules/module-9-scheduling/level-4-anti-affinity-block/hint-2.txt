@@ -1,1 +1,1 @@
-The events should say '3 node(s) didn't match pod anti-affinity rules'. Check how many nodes exist: `kubectl get nodes`. Then look at the anti-affinity rule type in the pod spec.
+Look at the Deployment's `affinity` block. A required anti-affinity rule on `kubernetes.io/hostname` allows at most one matching pod per node, and there are only two workers (the control plane is tainted). The scheduler also has softer tools: `kubectl explain pod.spec.affinity.podAntiAffinity` and `kubectl explain pod.spec.topologySpreadConstraints`.

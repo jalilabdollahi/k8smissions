@@ -1,23 +1,75 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: fragile-app
+  name: report-engine-script
+  namespace: k8smissions
+data:
+  engine.py: |
+    import http.server, time
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            body = b"ok" if self.path == "/healthz" else b"report-engine: queue drained"
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    server = http.server.HTTPServer(("0.0.0.0", 8080), Handler)
+    server.timeout = 0.5
+    started = time.time()
+    last_cycle = -1
+    print("report-engine: serving on :8080", flush=True)
+    while True:
+        server.handle_request()
+        elapsed = time.time() - started
+        cycle = int(elapsed // 30)
+        if elapsed % 30 >= 16 and cycle != last_cycle:
+            last_cycle = cycle
+            print("compaction %d: segment merge started, request loop paused" % cycle, flush=True)
+            time.sleep(14)
+            print("compaction %d: finished after 14.0s" % cycle, flush=True)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: report-engine
   namespace: k8smissions
 spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - sleep 3600
-    livenessProbe:
-      exec:
-        command:
-        - ls
-        - /
-      initialDelaySeconds: 5
-      periodSeconds: 5
-      failureThreshold: 1
-                           # Any transient system load or scheduling delay causes the pod to restart.
-                           # The RESTARTS counter will keep climbing every few minutes.
+  replicas: 1
+  selector:
+    matchLabels: {app: report-engine}
+  template:
+    metadata:
+      labels: {app: report-engine}
+    spec:
+      containers:
+      - name: engine
+        image: python:3.12-alpine
+        command: ["python", "/app/engine.py"]
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 1
+          failureThreshold: 2
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap: {name: report-engine-script}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: report-engine
+  namespace: k8smissions
+spec:
+  selector: {app: report-engine}
+  ports:
+  - {port: 80, targetPort: 8080}

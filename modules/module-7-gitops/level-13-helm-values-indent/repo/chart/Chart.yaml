@@ -1,0 +1,5 @@
+apiVersion: v2
+name: search
+description: Product search API
+version: 1.8.0
+appVersion: "1.0"

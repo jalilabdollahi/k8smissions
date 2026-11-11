@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: ledger-api}
+  template:
+    metadata:
+      labels: {app: ledger-api}
+    spec:
+      containers:
+      - name: api
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=ledger-api v2.4"]
+        ports:
+        - containerPort: 5678
+        readinessProbe:
+          httpGet: {path: /, port: 5678}
+          periodSeconds: 2

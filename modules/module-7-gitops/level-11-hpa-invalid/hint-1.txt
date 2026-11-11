@@ -1,1 +1,1 @@
-Inspect the HPA status and conditions: `kubectl describe hpa api-hpa -n k8smissions`
+Ask Argo what failed: `kubectl -n argocd get app reports -o jsonpath='{.status.operationState.message}'` and the per-resource results in `.status.operationState.syncResult`. Then compare what is in the repository (`git log -p` in a clone) with what runs.

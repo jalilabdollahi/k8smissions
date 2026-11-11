@@ -1,17 +1,15 @@
 {
-  "name": "Lost in Transit",
-  "description": "NodePort Service nodeport-svc is running on the cluster. Connecting to one node works. Connecting to a different node returns nothing — the connection hangs and times out. Run kubectl get service nodeport-svc -n k8smissions.",
-  "objective": "externalTrafficPolicy: Local causes traffic to be dropped on nodes with no matching pod — change the policy to Cluster",
-  "xp": 200,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "Service",
-    "NodePort",
-    "externalTrafficPolicy",
-    "Local",
-    "Cluster"
-  ],
+  "name": "One Node Answers",
+  "description": "The audit gateway `audit-gw` is published as a NodePort Service with `externalTrafficPolicy: Local`, because the audit log must record the address of whoever really called. Callers that use the first worker's address just hang, while the second worker's address works. A teammate tried `Cluster` and everything answered, but the caller address in the audit log turned into a node address, which compliance rejected. A debug pod `gw-client` runs on the control-plane node, outside the workers, and calls them the way an external client would.",
+  "objective": "From `gw-client`, both workers' InternalIP on the NodePort of Service `audit-gw` answer 200 and report the caller as `gw-client`'s own node address, so the Service must keep `externalTrafficPolicy: Local`. Deployment `audit-gw` keeps 2 Ready replicas.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["externalTrafficPolicy", "NodePort", "source IP preservation", "topologySpreadConstraints", "pod placement"],
   "module": "module-3-networking",
-  "level": "level-13-externaltraffic-policy"
+  "level": "level-13-externaltraffic-policy",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

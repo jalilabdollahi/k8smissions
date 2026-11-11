@@ -1,1 +1,1 @@
-The PDB's `minAvailable` field is set higher than the Deployment's `replicas` count. Since the budget demands more running pods than exist, zero disruptions are ever permitted.
+Correct the label in the PDB selector: `kubectl -n k8smissions edit pdb consul-pdb`. Keep `minAvailable: 2` (3 members, quorum 2): then `kubectl get pdb` must show 1 allowed disruption. Raising `minAvailable` to 3 would block every drain.

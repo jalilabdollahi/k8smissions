@@ -1,31 +1,68 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settlement-gateway-scripts
+  namespace: k8smissions
+data:
+  tcp_echo.py: |
+    import socketserver
+
+    class Handler(socketserver.StreamRequestHandler):
+        def handle(self):
+            line = self.rfile.readline(200).decode("latin-1").strip()
+            if line == "PING":
+                self.wfile.write(b"PONG\n")
+            else:
+                print("tcp-echo: unknown command %r" % line, flush=True)
+                self.wfile.write(b"ERR unknown command\n")
+
+    class Server(socketserver.ThreadingMixIn, socketserver.TCPServer):
+        allow_reuse_address = True
+
+    print("tcp-echo: line protocol on :7000 (PING -> PONG)", flush=True)
+    Server(("0.0.0.0", 7000), Handler).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: probe-app
+  name: settlement-gateway
   namespace: k8smissions
-  labels:
-    app: probe-app
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: probe-app
+    matchLabels: {app: settlement-gateway}
   template:
     metadata:
-      labels:
-        app: probe-app
+      labels: {app: settlement-gateway}
     spec:
       containers:
-      - name: probe-app
-        image: hashicorp/http-echo:1.0.0
-        args:
-        - -text=ok
-        - -listen=:8080
+      - name: tcp-echo
+        image: python:3.12-alpine
+        command: ["python", "/scripts/tcp_echo.py"]
         ports:
-        - containerPort: 8080
+        - containerPort: 7000
+        volumeMounts:
+        - {name: scripts, mountPath: /scripts}
         livenessProbe:
-          httpGet:
-            path: /api/v1/ready
-            port: 8080
+          httpGet: {path: /healthz, port: 7000}
           initialDelaySeconds: 5
           periodSeconds: 5
+          failureThreshold: 2
+        readinessProbe:
+          httpGet: {path: /ready, port: 7000}
+          periodSeconds: 5
+      - name: ticker
+        image: busybox:1.36
+        command: ["sh", "-c", "echo ticker: started; while true; do date +%s > /tmp/heartbeat; sleep 5; done"]
+        livenessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 2
+        readinessProbe:
+          httpGet: {path: /ready, port: 8080}
+          periodSeconds: 5
+      volumes:
+      - name: scripts
+        configMap:
+          name: settlement-gateway-scripts

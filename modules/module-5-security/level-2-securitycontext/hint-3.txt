@@ -1,1 +1,1 @@
-The `securityContext` block has `runAsNonRoot: true` but is missing the `runAsUser` field. Without an explicit UID, Kubernetes cannot satisfy the constraint and rejects the pod.
+Add `volumes` with `emptyDir: {}` entries and a `volumeMounts` entry per path in the nginx container, for the cache directory from the first error and for the directory that holds the pid file (`/var/run`): `kubectl -n k8smissions edit deployment status-page`. Keep `readOnlyRootFilesystem: true`.

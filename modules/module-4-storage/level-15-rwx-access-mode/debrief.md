@@ -1,16 +1,16 @@
-# The Exclusive Mount
+# Debrief: ingest v2 and the volume nobody could share
 
-## What Was Broken
-The PVC used `ReadWriteOnce` — at most one node can have the volume mounted at a time. Multiple pods on different nodes trying to use the same PVC caused some pods to be blocked with 'Multi-Attach error'.
+**What was broken.** Two faults sat behind one stuck rollout. The new claim `shared-pvc` asked for `ReadWriteMany`, copied from a cloud cluster with a shared filesystem. This cluster's provisioner (local-path) offers only single-writer volumes and refuses the request. Separately, `ingest-data` uses `ReadWriteOncePod`, and a default rolling update starts the v2 pod before stopping v1: v2 cannot be scheduled while v1 holds the volume, and v1 will not stop until v2 is Ready.
 
-## The Fix
-Delete and recreate the PVC with `ReadWriteMany`. Ensure the StorageClass supports RWX — NFS, CephFS, and Azure Files support it; AWS EBS and local storage do not.
+**The evidence.** The pending pod's events complain that its PVC is in use by another pod (ReadWriteOncePod) or that its claim is unbound. `kubectl describe pvc shared-pvc` shows a provisioning failure about the supported access modes once the pod is no longer blocked. `kubectl get pvc -o yaml` shows both claims' `accessModes`.
 
-## Why It Matters
-Access modes: RWO (one node, read-write), ROX (multi-node, read-only), RWX (multi-node, read-write), RWOP (one pod only). Most cloud-provider block storage only supports RWO. For shared writes, use a network file system (NFS, Ceph, GlusterFS).
+**Why Kubernetes behaves this way.** `ReadWriteOnce` limits a volume to one node; `ReadWriteOncePod` to one pod in the cluster. Many writers need a storage system built for it (NFS, CephFS, EFS) and its own class. The access modes of a claim are immutable, so the claim is deleted and recreated. And a rollout that surges a replica always needs the resources of both pods at once, volumes included.
 
-## Pro Tip
-Check if a StorageClass supports RWX with `kubectl describe storageclass <name>` — look for the provisioner and cross-reference its docs. Requesting RWX from a RWO-only provisioner leaves the PVC in Pending.
+**The fix.** `strategy.type: Recreate` stops the old pod first (clear `rollingUpdate`, as the API rejects it with `Recreate`); and `shared-pvc` is recreated as `ReadWriteOncePod`. The spool is single-writer by design anyway. `ingest-data` is left alone: its data is the point.
 
-## Concepts
-PVC, accessModes, ReadWriteOnce, ReadWriteMany, Multi-Attach error, NFS
+**In production.** Pick the strategy at design time: stateful singletons with single-writer volumes use `Recreate` (and accept a short gap) or are StatefulSets with `OrderedReady`; truly shared data needs an RWX class. Test the second version's rollout, not only the first install.
+
+**Commands worth remembering**
+- `kubectl get pvc -o custom-columns=NAME:.metadata.name,MODES:.spec.accessModes,STATUS:.status.phase`
+- `kubectl describe pod <pod>`: scheduling events mention RWOP conflicts.
+- `kubectl explain deployment.spec.strategy`

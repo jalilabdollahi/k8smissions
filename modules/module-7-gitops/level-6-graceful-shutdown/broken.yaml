@@ -1,20 +1,42 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: graceful-app
+  name: catalog
   namespace: k8smissions
-  labels:
-    app: graceful-app
 spec:
-  replicas: 1
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 25%
   selector:
-    matchLabels:
-      app: graceful-app
+    matchLabels: {app: catalog}
   template:
     metadata:
-      labels:
-        app: graceful-app
+      labels: {app: catalog}
     spec:
       containers:
-      - name: graceful-app
-        image: nginx:1.27.4
+      - name: catalog
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=catalog ok"]
+        ports:
+        - containerPort: 5678
+        readinessProbe:
+          httpGet: {path: /, port: 5678}
+          periodSeconds: 1
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sleep", "10"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  namespace: k8smissions
+spec:
+  selector: {app: catalog}
+  ports:
+  - port: 80
+    targetPort: 5678

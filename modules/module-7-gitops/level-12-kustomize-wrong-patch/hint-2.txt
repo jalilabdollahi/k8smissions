@@ -1,1 +1,1 @@
-The replica count is still at the base value (1), not the patched value (5). Compare the resource name in the patch `target.name` against the actual name of the Deployment in the cluster — they must match exactly.
+Kustomize silently ignores a transformer that matches nothing. Two entries in `overlays/prod/kustomization.yaml` match nothing: the patch's `target` selects objects by their name in the base, and `images[].name` is compared with the image reference without its tag. Look at `base/deployment.yaml` for the real values.

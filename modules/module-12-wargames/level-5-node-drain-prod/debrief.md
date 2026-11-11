@@ -1,20 +1,11 @@
-# Surprise Drain
+**What was broken.** Draining the `maintenance=pending` worker ran into four separate things: a PodDisruptionBudget asking for 3 available pods out of 2 replicas, an unmanaged pod (`report-scratch`), a Deployment using `emptyDir` (`search`), and a taint on the only other worker that no pod tolerates.
 
-## What Happened
-The PodDisruptionBudget required minAvailable:3 but the Deployment only has 2 replicas. This means 0 pods can ever be evicted — even disrupting one pod would drop below the minimum of 3 (which is impossible to satisfy with only 2).
+**The evidence.** `kubectl drain` prints one blocker at a time: `Cannot evict pod as it would violate the pod's disruption budget`, then `cannot delete Pods declare no controller`, then `cannot delete Pods with local storage`. The first three are drain refusing to act; the fourth is silent. After a drain that finishes, `get pods` shows `checkout` and `search` pods Pending with `node(s) had untolerated taint {dedicated: batch}`.
 
-## The Fix
-```bash
-kubectl patch pdb critical-pdb -n k8smissions -p '{"spec":{"minAvailable":1}}'
-```
+**Why Kubernetes behaved this way.** Drain cordons the node and then evicts pods through the Eviction API, which respects PodDisruptionBudgets: with `minAvailable` above the replica count the allowed disruption is permanently 0. Pods with no owner would be lost forever and `emptyDir` data dies with the pod, so drain makes you say so explicitly. The scheduler never ignores taints, so a "successful" drain can still leave the workload without a home.
 
-## Key Lessons
-- **PDB math**: minAvailable must be strictly less than the number of replicas, or maxUnavailable must be at least 1
-- **Node maintenance requires working PDBs** — if PDBs are misconfigured, nodes can never be drained
-- **maxUnavailable vs minAvailable** — prefer maxUnavailable for more predictable drain behavior
-- **Production practice**: always test drain in staging before production maintenance windows
+**The fix.** Make the budget satisfiable (`minAvailable: 1`), clear the stale taint before draining so replacements schedule, and drain with `--ignore-daemonsets --delete-emptydir-data --force`.
 
-## Drain Command
-```bash
-kubectl drain <node-name> --ignore-daemonsets --delete-emptydir-data
-```
+**In production.** Check capacity on the remaining nodes and their taints before a window; set PDBs as `maxUnavailable: 1`; put bare pods behind a Job or Deployment; use `--dry-run=server` first. Cordon first and drain with a `--timeout`.
+
+**Commands to remember.** `kubectl drain --dry-run=server`, `kubectl get pdb`, `kubectl describe node <node> | grep -A3 Taints`.

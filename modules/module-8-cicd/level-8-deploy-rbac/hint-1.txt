@@ -1,1 +1,1 @@
-Check the deploy Task logs for the forbidden error: `kubectl logs -n k8smissions -l tekton.dev/task=deploy`
+Read the error the `deploy` step printed (`kubectl get taskrun`, `kubectl logs <pod> -c step-apply` for run `release-1182`): it names the user, the verb, the resource and the namespace that were refused. Then ask the API server directly: `kubectl auth can-i create deployments.apps -n shop-staging --as=system:serviceaccount:k8smissions:deploy-sa`.

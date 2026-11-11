@@ -1,28 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: docs-site-conf-v2
+  namespace: k8smissions
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      default_type text/plain;
+      location = /-/health { return 200 "ok\n"; }
+      location /static/ { return 200 "asset\n"; }
+      location = / { return 200 "docs-site 2.0 - new theme\n"; }
+    }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docs-site
+  namespace: k8smissions
+spec:
+  selector: {app: docs-site}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-app
+  name: docs-site
   namespace: k8smissions
+  annotations:
+    release: "2.0"
 spec:
-  replicas: 2
+  replicas: 3
   selector:
-    matchLabels:
-      app: web-app
+    matchLabels: {app: docs-site}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
   template:
     metadata:
-      labels:
-        app: web-app
+      labels: {app: docs-site}
     spec:
       containers:
-      - name: web
-        image: nginx:1.25
+      - name: nginx
+        image: nginx:1.27-alpine
         ports:
-        - containerPort: 80
+        - containerPort: 8080
         readinessProbe:
-          httpGet:
-            path: /healthz
-                            # The probe keeps failing, so pods are never marked Ready.
-                            # No traffic reaches them via the Service.
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 5
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: conf, mountPath: /etc/nginx/conf.d}
+      volumes:
+      - name: conf
+        configMap: {name: docs-site-conf-v2}

@@ -1,16 +1,15 @@
 {
-  "name": "Forbidden Credentials",
-  "description": "Pod secret-pod shows CreateContainerConfigError and will not start. Run kubectl describe pod secret-pod -n k8smissions.",
-  "objective": "The pod references a Secret that hasn't been created — create the Secret with the required credentials",
-  "xp": 150,
+  "name": "The Missing Key",
+  "description": "Deployment `reports-api` is stuck at `0/2` since the database credentials were moved into a Secret. `kubectl get pods` shows `CreateContainerConfigError` and no logs exist. The platform team confirms Secret `reports-db` is in the namespace and holds the right credentials, and the database itself, behind Service `reports-db-stub`, is healthy.",
+  "objective": "Both pods of Deployment `reports-api` are Ready and Service `reports-api` answers `db: authenticated`, using the credentials stored in Secret `reports-db`.",
+  "xp": 100,
   "difficulty": "beginner",
-  "expected_time": "10m",
-  "concepts": [
-    "Secret",
-    "base64 encoding",
-    "envFrom",
-    "secretKeyRef"
-  ],
+  "expected_time": "8m",
+  "concepts": ["Secret", "secretKeyRef", "CreateContainerConfigError", "base64", "kubectl describe pod"],
   "module": "module-1-foundations",
-  "level": "level-10-secrets-basics"
+  "level": "level-10-secrets-basics",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

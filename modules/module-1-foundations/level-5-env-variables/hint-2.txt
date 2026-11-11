@@ -1,5 +1,1 @@
-The log says 'DATABASE_URL not set, exiting'. The application checks for an environment variable that is not there and exits with code 1.
-
-See what environment variables are currently configured in the pod:
-
-  kubectl get pod env-pod -n k8smissions -o yaml | grep -A10 'env'
+Kubernetes expands `$(NAME)` inside an env `value` only for variables defined earlier in the same `env` list; anything else stays as literal text and raises no error. Check the order with `kubectl get deploy invoice-mailer -o yaml`, and see `kubectl explain pod.spec.containers.env.value`.

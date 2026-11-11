@@ -1,3 +1,6 @@
-Both the PV and PVC need to use `ReadWriteMany` — the access mode that allows multiple nodes to mount the same volume simultaneously.
+There is no ReadWriteMany provisioner here and access modes cannot be changed on an existing claim, so keep the claim. Change the spread rule so the scheduler may put several replicas on the volume's node:
 
-You must change accessModes in BOTH the PV and PVC in manifest.yaml. A PVC cannot request an access mode that the PV does not support.
+  kubectl patch deployment web-servers -n k8smissions --type=json \
+    -p '[{"op":"replace","path":"/spec/template/spec/topologySpreadConstraints/0/whenUnsatisfiable","value":"<value>"}]'
+
+(valid values: DoNotSchedule or ScheduleAnyway)

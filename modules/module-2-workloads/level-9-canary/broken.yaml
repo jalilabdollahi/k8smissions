@@ -4,24 +4,22 @@ metadata:
   name: app-stable
   namespace: k8smissions
 spec:
-  replicas: 5  # PROBLEM! Should be 9 for 90% traffic
+  replicas: 2
   selector:
-    matchLabels:
-      app: myapp
-      track: stable
+    matchLabels: {app: app, track: stable}
   template:
     metadata:
-      labels:
-        app: myapp
-        track: stable
-        version: v1
+      labels: {app: app, track: stable}
     spec:
       containers:
-      - name: app
-        image: hashicorp/http-echo:latest
-        args: ["-text=Stable v1", "-listen=:8080"]
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:8080", "-text=stable build 3.1"]
         ports:
         - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -29,34 +27,43 @@ metadata:
   name: app-canary
   namespace: k8smissions
 spec:
-  replicas: 5  # PROBLEM! Should be 1 for 10% traffic
+  replicas: 2
   selector:
-    matchLabels:
-      app: myapp
-      track: canary
+    matchLabels: {app: app, track: canary}
   template:
     metadata:
-      labels:
-        app: myapp
-        track: canary
-        version: v2
+      labels: {app: app, track: canary}
     spec:
       containers:
-      - name: app
-        image: hashicorp/http-echo:latest
-        args: ["-text=Canary v2", "-listen=:8080"]
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:8080", "-text=canary build 3.2"]
         ports:
         - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-service
+  name: app
   namespace: k8smissions
 spec:
-  selector:
-    app: myapp  # Matches BOTH stable and canary
+  selector: {app: app}
   ports:
   - port: 80
     targetPort: 8080
-  type: ClusterIP
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: probe
+  namespace: k8smissions
+  labels: {app: probe}
+spec:
+  terminationGracePeriodSeconds: 0
+  containers:
+  - name: curl
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "86400"]

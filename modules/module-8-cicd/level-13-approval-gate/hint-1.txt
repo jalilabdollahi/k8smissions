@@ -1,1 +1,1 @@
-Check the TaskRun status to see it's been running too long: `kubectl get taskrun approval-gate -n k8smissions`
+Read what the gate is doing: `kubectl logs` of the `wait-approval` pod of `release-2041` prints its expiry setting on the first line. Compare it with the Pipeline's params (`kubectl get pipeline release -o yaml`).

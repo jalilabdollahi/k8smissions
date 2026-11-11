@@ -1,26 +1,5 @@
-## What went wrong
+The engine's request loop pauses for 14 seconds every 30 seconds (the log says `compaction ... finished after 14.0s`). The liveness probe fails after `periodSeconds 5 x failureThreshold 2`, about 10 seconds, so every pause gets the container killed.
 
-With `failureThreshold: 1`, the liveness probe has zero tolerance for transient delays. Any momentary hiccup — a busy node, a GC pause, a network blip — causes a probe miss, which immediately triggers a pod restart. This creates a cycle of unnecessary restarts that can cascade into service disruption.
-
-## Fix
-
-```yaml
-livenessProbe:
-  exec:
-    command:
-    - ls
-    - /
-  initialDelaySeconds: 10
-  periodSeconds: 10
-  failureThreshold: 3
-```
-
-## Why this matters
-
-The four probe timing fields work together:
-- `initialDelaySeconds`: how long to wait before the first probe
-- `periodSeconds`: how often to probe
-- `failureThreshold`: consecutive failures before action is taken
-- `successThreshold`: consecutive successes needed to mark healthy again (default: 1)
-
-Total time before restart = `failureThreshold × periodSeconds`. With the fix above, the pod tolerates 30 seconds of probe failures before being restarted — enough to survive any transient delay in a healthy cluster. The Kubernetes defaults (3 failures, 10s period) are sensible starting points for most applications.
+1. `kubectl logs --previous` shows the compaction pause; `describe pod` shows `Liveness probe failed` followed by `Killing`.
+2. Raise the failure window above the pause but keep it short enough to catch a real hang, for example `failureThreshold: 6` with the 5 second period (30 seconds).
+3. `kubectl patch deploy report-engine --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/failureThreshold","value":6}]'` and wait for the rollout.

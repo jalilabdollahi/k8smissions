@@ -1,1 +1,1 @@
-Check the probe configuration and look for restart events: `kubectl describe pod -n k8smissions -l app=slow-app | grep -A15 Liveness`
+Read the probe events of one flapping pod (`kubectl -n k8smissions describe pod -l app=search-api`, look for `Unhealthy`) and then time the health endpoint yourself from a pod in the namespace, for example `kubectl -n k8smissions exec deploy/search-load -- sh -c 'time wget -q -O /dev/null http://search-api/healthz'`.

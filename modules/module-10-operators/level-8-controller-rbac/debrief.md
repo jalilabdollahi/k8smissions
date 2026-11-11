@@ -1,16 +1,25 @@
-# Permission Denied in Controller
+## What was broken
 
-## What Was Broken
-The operator's ClusterRole only granted permissions on the CRD's apiGroup (example.com/workloads). To reconcile the CR, the operator needed to create Deployments, Pods, and Services — for which it had no permissions.
+`report-operator` used three API operations its Role did not allow: listing pods, creating ConfigMaps and patching the status of a `Report`. The first 403 had been fixed by someone last week, so the operator got one step further and failed on the next one. Nobody had written down what the controller actually calls.
 
-## The Fix
-Add RBAC rules for all Kubernetes resources the operator creates or manages.
+## The evidence
 
-## Why It Matters
-Operator RBAC checklist: the CRD's apiGroup (create/update CR status), the native resources it manages (Deployments, Services, ConfigMaps, Secrets), Events (for status reporting), plus the operator's own namespace if namespace-scoped.
+Every 403 in the log is a complete sentence: `User "system:serviceaccount:..." cannot list resource "pods" in API group "" in the namespace "k8smissions"`. `kubectl auth can-i <verb> <resource> --as=system:serviceaccount:<ns>:<sa>` reproduces any of them in a second. The operator handles each Report in sequence and moves on after the first failure, so the errors came one at a time.
 
-## Pro Tip
-Use controller-gen RBAC markers in Go code: //+kubebuilder:rbac:groups=apps,resources=deployments,verbs=get;list;watch;create;update;patch;delete. These auto-generate the ClusterRole from code annotations.
+## Why Kubernetes behaved this way
 
-## Concepts
-RBAC, ClusterRole, ServiceAccount, operator permissions, forbidden
+RBAC is purely additive and denies by default. A rule matches API group, resource and verb, and subresources are resources of their own: `reports` and `reports/status` are different entries, which is deliberate, because it lets an operator own the status of an object without being able to change its spec (and the reverse for users). Controllers built with client libraries cache and watch, which is why production operators usually need `list` and `watch` in addition to `get`.
+
+## The fix
+
+Add exactly the three rules, using the most specific verbs. The validator proves both sides: the work gets done, and `get secrets`, `delete nodes` and `*` are still refused.
+
+## In production
+
+Generate the rules from the controller's markers (kubebuilder's `+kubebuilder:rbac`), review them like code, and prefer a namespaced Role over a ClusterRole when the operator works in one namespace.
+
+## Worth remembering
+
+- `kubectl auth can-i --list --as=system:serviceaccount:<ns>:<sa> -n <ns>`
+- `kubectl auth can-i patch <resource> --subresource=status --as=...`
+- `kubectl get role,rolebinding -n <ns> -o yaml`

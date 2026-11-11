@@ -1,20 +1,6 @@
-## What went wrong
+The index is 180Mi of resident memory, loaded about 25 seconds after start. The 128Mi limit kills the process at that moment, which is why `kubectl top` looks harmless right after a restart.
 
-VPA `updateMode: Off` is a read-only mode — the VPA admission controller does not mutate pod requests. This is useful for auditing what VPA *would* recommend without actually changing anything. With `Off`, OOMKills continue even when the VPA clearly shows the pod needs more memory, because no mechanism applies the recommendation.
-
-## Fix
-
-```yaml
-updatePolicy:
-  updateMode: Auto
-```
-
-## Why this matters
-
-VPA has four modes:
-- `Off`: recommendations only, never applied
-- `Initial`: applied only at pod creation, never updated
-- `Recreate`: applied at creation and by evicting live pods
-- `Auto`: same as Recreate today (may support in-place updates in future)
-
-`Auto` is the production-ready mode — VPA evicts pods that are significantly over- or under-resourced and lets the Deployment controller replace them with correctly-sized ones. Pair VPA with a PodDisruptionBudget to control eviction rate and prevent all pods from being evicted simultaneously.
+1. Observe the real working set once the index is loaded (about 190Mi in `kubectl top pod --containers`).
+2. `kubectl set resources deployment/search-indexer --requests=memory=224Mi --limits=memory=320Mi` sets a request near real use and a limit with headroom.
+3. `kubectl scale deployment/search-indexer --replicas=3`: three pods of 224Mi/320Mi fit the 1Gi request and 2Gi limit quota (a generous 1Gi per pod would not).
+4. Wait for the rollout; each pod needs about 25s to load before it is Ready.

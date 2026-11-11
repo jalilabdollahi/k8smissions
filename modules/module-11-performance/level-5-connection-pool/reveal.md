@@ -1,21 +1,6 @@
-## What went wrong
+session-db accepts 20 connections. cart-api opens `DB_POOL_SIZE` (5) per pod: 6 pods need 30, so some pods never fill their pool and never become Ready. A smaller pool such as 3 fixes steady state (18) but a rolling update runs up to 8 pods (`maxSurge: 2`), and 8 x 3 = 24 overflows again.
 
-`DB_POOL_SIZE: 1` per pod means the entire deployment (10 pods) has a maximum of 10 simultaneous database connections. A connection pool of 1 creates a serialization bottleneck — every request that needs the database must wait for the single connection to be free.
-
-## Fix
-
-```yaml
-env:
-- name: DB_POOL_SIZE
-  value: '5'
-- name: DB_POOL_TIMEOUT
-  value: '30'
-- name: DB_POOL_MAX_OVERFLOW
-  value: '10'
-```
-
-Total max connections: 10 pods × (5 pool + 10 overflow) = 150 max connections.
-
-## Why this matters
-
-Connection pool sizing is a balance: too small → request queuing and timeouts. Too large → database connection exhaustion (PostgreSQL default max is 100; RDS allows ~3× memory/12.5MB). Rule of thumb: `pool_size × replicas ≤ database max_connections × 0.8`. The `max_overflow` parameter allows temporary burst above `pool_size`, automatically cleaned up when the burst subsides. `pool_timeout` prevents requests from waiting forever — fail fast with a meaningful error is better than cascading timeouts. For very high replica counts, consider PgBouncer as a connection pooler in front of the database.
+1. `kubectl logs deploy/cart-api` shows `too many connections`; the db's stats show `active: 20` and a growing `rejected`.
+2. `kubectl set env deployment/cart-api DB_POOL_SIZE=2` gives 6 x 2 = 12 steady and 8 x 2 = 16 at the surge peak, both under 20.
+3. Equivalent: keep a larger pool and set `maxSurge: 0` so no extra pods exist during an update (6 x 3 = 18; the update then replaces pods in place).
+4. Do not lower replicas: the objective needs 6.

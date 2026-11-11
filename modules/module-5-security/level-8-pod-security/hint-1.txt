@@ -1,1 +1,1 @@
-Check the events to see the admission error: `kubectl get events -n k8smissions --sort-by=.lastTimestamp | tail -10`
+There are no pods, so ask the ReplicaSet that tries to create them: `kubectl -n pay-restricted describe rs` and read the whole `FailedCreate` event, including every item in the list. Also look at the namespace labels: `kubectl get ns pay-restricted --show-labels`.

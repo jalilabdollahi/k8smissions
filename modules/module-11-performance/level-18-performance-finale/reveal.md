@@ -1,44 +1,13 @@
-## What went wrong
+**Three independent faults.**
 
-Three independent performance issues compounding:
-1. **DNS amplification**: short name `api-svc` generates 5 DNS queries per lookup (ndots:5 default searches all suffixes)
-2. **CPU throttling**: `limits.cpu == requests.cpu` leaves no burst capacity, causing CFS throttle on any load spike
-3. **Serial rollout**: `maxSurge: 0, maxUnavailable: 1` with 50 replicas = 50 sequential replacements
+1. **DNS search expansion.** `storefront` looks up `pricing.catalog.internal` (2 dots) with `ndots: 5` and three search domains, so each page costs 4 queries, 3 of which end in NXDOMAIN. Make the name fully qualified (trailing dot) or lower `ndots`:
 
-## Fix
+       kubectl set env deployment/storefront -n k8smissions PRICING_HOST=pricing.catalog.internal.
 
-```yaml
-# Fix 1: DNS pod
-spec:
-  dnsConfig:
-    options:
-    - name: ndots
-      value: '2'
-  containers:
-  - command:
-    - /bin/sh
-    - -c
-    - while true; do nslookup api-svc.k8smissions.svc.cluster.local; sleep 1; done
----
-# Fix 2: API deployment CPU limit
-resources:
-  requests:
-    cpu: 200m
-  limits:
-    cpu: 2000m
----
-# Fix 3: Rollout strategy
-strategy:
-  rollingUpdate:
-    maxSurge: 10
-    maxUnavailable: 0
-```
+2. **CPU limit on pricing.** A page costs about 20ms of CPU and the container is limited to 100m, so it is throttled most of the time. Raise the limit (or remove it) and keep a request:
 
-## Why this matters
+       kubectl set resources deployment/pricing -n k8smissions --requests=cpu=100m --limits=cpu=1
 
-Performance problems rarely announce themselves clearly. The skill is knowing where to look:
-- **DNS**: check ndots, look at kube-dns CPU, count queries/second
-- **CPU throttling**: `container_cpu_cfs_throttled_seconds_total` in Prometheus; compare limit vs. usage
-- **Rollout velocity**: `kubectl rollout status` shows progress; check `maxSurge`/`maxUnavailable` when it's slow
+3. **sessionAffinity: ClientIP on the pricing Service.** There is one storefront pod, so one client IP, and all requests stick to the same pricing pod; the other two idle. Remove the affinity:
 
-Each fix is independent — order doesn't matter. But in production, fix the highest-impact issue first: CPU throttling causes user-visible latency; slow rollouts create deployment risk windows; DNS overhead adds latency at scale.
+       kubectl patch service pricing -n k8smissions -p '{"spec":{"sessionAffinity":"None"}}'

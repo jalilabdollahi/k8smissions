@@ -1,1 +1,1 @@
-Check the CrashLoopBackOff pods: `kubectl logs -n k8smissions -l app=config-app`. You should see the container exiting immediately with code 1.
+Look at what the crashing pods say (`kubectl -n k8smissions logs deploy/shop-web`) and compare the three versions of the config: `kubectl -n k8smissions get cm -o yaml` or `kubectl -n k8smissions get cm shop-config shop-config-v41 -o jsonpath='{range .items[*]}{.metadata.name}{" "}{.data}{"\n"}{end}'`.

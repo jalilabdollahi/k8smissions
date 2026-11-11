@@ -1,23 +1,11 @@
-# Bad Config Rollout
+**What was broken.** The v42 release put two bad values into `shop-config` and marked it `immutable: true`. Three consumers read it in three different ways: `shop-web` through `envFrom` (validated at start, so it crash-looped), `shop-worker` through `subPath` file mounts (it kept running and quietly served the broken values), and the `shop-report` CronJob through `envFrom` (it would have failed at 03:00).
 
-## What Happened
-A ConfigMap was updated with empty values for APP_MODE and DB_HOST. The application checks for these at startup and exits with code 1 if they're missing, causing a CrashLoopBackOff across all replicas simultaneously.
+**The evidence.** `logs deploy/shop-web` prints `FATAL config: MAX_CONN must be a positive integer, got ''`. `kubectl patch cm shop-config` is refused with `field is immutable`. `get cm` shows `shop-config-v41`, kept by the pipeline, with sane values. And `exec shop-worker -- cat /etc/shop/MAX_CONN` shows an empty value no matter what happens to the ConfigMap afterwards.
 
-## The Fix
-```bash
-kubectl edit configmap app-config -n k8smissions
-# Set APP_MODE: production
-# Set DB_HOST: postgres.k8smissions.svc.cluster.local
-```
-Pods using envFrom will pick up the change on their next restart.
+**Why Kubernetes behaved this way.** An immutable ConfigMap protects consumers from accidental edits and relieves the API server, because kubelets stop watching it; the price is that a change means a new object, and a replaced object with the same name can be served from the kubelet's cache while pods referencing the old one still run on the node. Environment variables are fixed when a container starts, and a `subPath` mount is a bind mount of one file that is never refreshed. A crash-looping container waits in exponential backoff (up to five minutes).
 
-## Key Lessons
-- **ConfigMap changes don't automatically restart pods** — you may need to rollout restart
-- **Validate ConfigMaps before applying** in CI/CD pipelines
-- **envFrom vs env** — envFrom injects all keys; if any required key is missing/empty your app may fail silently
-- **GitOps config management** prevents this by requiring review of config changes
+**The fix.** Create a new, versioned ConfigMap with the v41 values and repoint `shop-web`, `shop-worker` and `shop-report` at it. The template change makes both Deployments roll, which also clears the crash-loop backoff and replaces the `subPath` pods.
 
-## Rollout Restart
-```bash
-kubectl rollout restart deployment/config-app -n k8smissions
-```
+**In production.** Name ConfigMaps per release (Kustomize's `configMapGenerator` hash suffix does exactly this), validate config in CI, and avoid `subPath` for anything that changes.
+
+**Commands to remember.** `kubectl get cm <name> -o yaml`, `kubectl patch deploy <name> --type=json`, `kubectl create job --from=cronjob/<name> <job>`.

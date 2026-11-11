@@ -1,12 +1,66 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: archive
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: data-pvc
+  name: archive
   namespace: k8smissions
 spec:
-  accessModes:
-  - ReadWriteOnce
-  storageClassName: fast-nvme
+  accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: 1Gi
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: archive-reader
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: archive-reader
+  template:
+    metadata:
+      labels:
+        app: archive-reader
+    spec:
+      terminationGracePeriodSeconds: 3
+      containers:
+        - name: reader
+          image: python:3.12-alpine
+          command: ["python", "-m", "http.server", "8080", "--directory", "/archive"]
+          ports:
+            - containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            periodSeconds: 2
+          volumeMounts:
+            - name: archive
+              mountPath: /archive
+              readOnly: true
+      volumes:
+        - name: archive
+          persistentVolumeClaim:
+            claimName: archive
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: archive-reader
+  namespace: k8smissions
+spec:
+  selector:
+    app: archive-reader
+  ports:
+    - port: 80
+      targetPort: 8080

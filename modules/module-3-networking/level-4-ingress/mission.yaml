@@ -1,16 +1,15 @@
 {
-  "name": "Ingress Path Mismatch",
-  "description": "An Ingress and Service both exist, the pod is Running, but every request returns 404. Run kubectl get ingress web-ingress -n k8smissions and look at the HOSTS and PATH columns.",
-  "objective": "The Ingress path doesn't match the path the backend service exposes — align the Ingress rule with the actual backend path",
-  "xp": 250,
+  "name": "Prefix Not Found",
+  "description": "The new Ingress `shop` should publish the storefront under `shop.k8sm.local/shop`, but `/shop/items` (and `/shop` itself) comes back 404 with the body \"backend: no such path\". The Ingress is admitted and the `storefront` Service has endpoints. The backend has always served `/items` and `/`, as it did behind the old gateway. A debug pod `probe` with curl is available; reach the controller at `ingress-nginx-controller.ingress-nginx.svc` with a `Host` header.",
+  "objective": "Through the ingress-nginx controller with `Host: shop.k8sm.local`, `/shop/items` returns the items list and `/shop` still reaches the storefront home page; Ingress `shop` and the `storefront` backend stay in place.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Ingress rules",
-    "pathType (Exact/Prefix/ImplementationSpecific)",
-    "backend service",
-    "nginx-ingress annotations"
-  ],
+  "expected_time": "15m",
+  "concepts": ["Ingress", "rewrite-target", "pathType", "ingress-nginx"],
   "module": "module-3-networking",
-  "level": "level-4-ingress"
+  "level": "level-4-ingress",
+  "requires": ["ingress-nginx"],
+  "settle_seconds": 25,
+  "solve_timeout": 90,
+  "cleanup": []
 }

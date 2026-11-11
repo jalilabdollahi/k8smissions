@@ -1,0 +1,15 @@
+resources:
+- ../../base
+labels:
+- pairs: {env: prod}
+patches:
+- target:
+    kind: Deployment
+    name: payments-gateway
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 4
+images:
+- name: http-echo
+  newTag: "1.0"

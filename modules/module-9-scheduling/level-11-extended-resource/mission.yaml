@@ -1,16 +1,21 @@
 {
-  "name": "Custom Resource Request",
-  "description": "A pod requesting a custom FPGA device resource is stuck in Pending. The device plugin is running and correctly advertising available FPGAs — but the resource name in the pod's request doesn't match what the plugin registered. No node reports the requested resource name.",
-  "objective": "The pod requests 'my.company/fpga' but the device plugin registered 'company.io/fpga' — fix the resource name",
-  "xp": 325,
+  "name": "Three Cards, Two Chassis",
+  "description": "`video-transcode` should run 3 replicas, one FPGA card each, on the transcoding workers. The device plugin reports healthy and the nodes advertise 3 cards in total, but every transcoder pod is Pending with an `Insufficient` message. After a first round of fixes, two pods start and the third still will not, though nobody has scaled anything.",
+  "objective": "Deployment `video-transcode` has 3 replicas Running, each holding one FPGA card from the nodes' advertised inventory (ConfigMap `fpga-inventory` lists it), with no node running more pods than the cards it advertises. The node inventory itself stays as advertised.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
+  "expected_time": "15m",
   "concepts": [
     "extended resources",
     "device plugin",
-    "custom resources",
-    "resource naming"
+    "allocated resources",
+    "FailedScheduling",
+    "node allocatable"
   ],
   "module": "module-9-scheduling",
-  "level": "level-11-extended-resource"
+  "level": "level-11-extended-resource",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

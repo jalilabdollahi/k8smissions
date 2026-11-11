@@ -1,29 +1,155 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cache-tier
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cache-server
+  namespace: cache-tier
+data:
+  server.py: |
+    import socketserver
+
+    PASSWORD = open("/etc/cache-auth/password").read().strip()
+
+    class Handler(socketserver.StreamRequestHandler):
+        def handle(self):
+            authed = False
+            for raw in self.rfile:
+                parts = raw.decode().strip().split(" ", 1)
+                cmd = parts[0].upper()
+                if cmd == "AUTH":
+                    authed = len(parts) == 2 and parts[1] == PASSWORD
+                    self.wfile.write(b"+OK\n" if authed else b"-ERR invalid password\n")
+                elif cmd == "PING":
+                    self.wfile.write(b"PONG ok\n" if authed else b"-NOAUTH authentication required\n")
+                else:
+                    self.wfile.write(b"-ERR unknown command\n")
+
+    class Server(socketserver.ThreadingTCPServer):
+        allow_reuse_address = True
+        daemon_threads = True
+
+    print("inventory-cache: listening on :6379", flush=True)
+    Server(("0.0.0.0", 6379), Handler).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: incident-app
-  namespace: k8smissions
-  labels:
-    app: incident-app
+  name: inventory-cache
+  namespace: cache-tier
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: incident-app
+    matchLabels: {app: inventory-cache}
   template:
     metadata:
-      labels:
-        app: incident-app
+      labels: {app: inventory-cache}
     spec:
       containers:
-      - name: incident-app
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - while true; do echo incident; sleep 5; done
-        resources:
-          requests:
-            memory: 32Mi
-          limits:
-            memory: 64Mi
+      - name: cache
+        image: python:3.12-alpine
+        command: ["python", "/app/server.py"]
+        ports:
+        - containerPort: 6379
+        readinessProbe:
+          tcpSocket: {port: 6379}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: script, mountPath: /app}
+        - {name: auth, mountPath: /etc/cache-auth, readOnly: true}
+      volumes:
+      - name: script
+        configMap: {name: cache-server}
+      - name: auth
+        secret: {secretName: cache-auth}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-cache
+  namespace: cache-tier
+spec:
+  selector: {app: inventory-cache}
+  ports:
+  - {port: 6379, targetPort: 6379}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: inventory-cache-credentials
+  namespace: k8smissions
+type: Opaque
+stringData:
+  CACHE_PASSWORD: inv-7f3a91c2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-sync-script
+  namespace: k8smissions
+data:
+  sync.py: |
+    import os, socket, sys, time
+
+    HOST = "inventory-cache.cache-tier.svc.cluster.local"
+    PASSWORD = os.environ["CACHE_PASSWORD"]
+
+    def ping():
+        with socket.create_connection((HOST, 6379), timeout=2) as s:
+            s.settimeout(2)
+            s.sendall(("AUTH %s\nPING\n" % PASSWORD).encode())
+            data = b""
+            while data.count(b"\n") < 2:
+                chunk = s.recv(256)
+                if not chunk:
+                    break
+                data += chunk
+        lines = data.decode().split("\n")
+        return lines[1] if len(lines) > 1 else lines[0]
+
+    failures = 0
+    while True:
+        try:
+            answer = ping()
+        except OSError as exc:
+            answer = None
+            reason = type(exc).__name__
+        if answer == "PONG ok":
+            failures = 0
+            print("cache: PONG ok", flush=True)
+        else:
+            failures += 1
+            print("cache: connection failed (%s)" % (reason if answer is None else answer), flush=True)
+            if failures >= 4:
+                sys.exit(1)
+        time.sleep(3)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-sync
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: inventory-sync}
+  template:
+    metadata:
+      labels: {app: inventory-sync}
+    spec:
+      containers:
+      - name: sync
+        image: python:3.12-alpine
+        command: ["python", "/app/sync.py"]
+        env:
+        - name: CACHE_PASSWORD
+          valueFrom:
+            secretKeyRef: {name: inventory-cache-credentials, key: CACHE_PASSWORD}
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap: {name: inventory-sync-script}

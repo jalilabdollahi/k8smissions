@@ -1,16 +1,15 @@
 {
-  "name": "Off-Balance Canary",
-  "description": "A canary deployment is running alongside the stable version. But instead of testing with a small percentage of traffic, about 50% of requests are hitting the experimental canary version. Run kubectl get pods -n k8smissions.",
-  "objective": "The canary deployment has too many replicas — adjust replica counts so only ~10% of traffic goes to the canary",
-  "xp": 200,
+  "name": "The 10% That Is Really 50%",
+  "description": "The checkout team promised the experiment would expose the new `app` build to about 10% of users. The dashboards say otherwise: roughly every second visitor is getting the canary build, and its error budget is burning. Service `app` fronts both `app-stable` and `app-canary`. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "Across 200 requests through Service `app`, the canary build answers between 1% and 20% of them. Both Deployments `app-stable` and `app-canary` still exist with every pod Ready, and the canary keeps at least one pod.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "Canary deployments",
-    "traffic splitting via replicas",
-    "gradual rollout",
-    "risk management"
-  ],
+  "expected_time": "10m",
+  "concepts": ["canary", "Service load balancing", "endpoints", "kubectl scale"],
   "module": "module-2-workloads",
-  "level": "level-9-canary"
+  "level": "level-9-canary",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 120,
+  "cleanup": []
 }

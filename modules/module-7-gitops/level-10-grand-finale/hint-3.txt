@@ -1,1 +1,2 @@
-Six things need fixing across two resources: container `image` tag, `spec.replicas`, `resources.limits`, `readinessProbe`, `lifecycle.preStop` + `terminationGracePeriodSeconds` on the Deployment, and `spec.minAvailable` on the PDB.
+kubectl -n argocd patch app grand-finale-app --type merge -p '{"spec":{"source":{"targetRevision":"<branch that exists>","helm":{"valueFiles":["<exact file name>"]}}}}'
+For the rest, edit the production values file in a clone and push, or pass `spec.source.helm.parameters`. A Service's `targetPort` must be a port the container listens on, and with a ResourceQuota on requests every container must declare `resources.requests` that fit.

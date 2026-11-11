@@ -1,1 +1,1 @@
-The events show 'node(s) had untolerated taint' or 'didn't match node selector'. Look at the pod spec — it has both a `nodeSelector: {node-type: spot}` and tolerations only for spot nodes. On-demand nodes have their own taint that isn't tolerated.
+There are two separate blockers, one per node: the pods can only go to nodes with one particular label, and the node that remains carries a taint they do not tolerate. Fixing one leaves the other. `kubectl explain pod.spec.nodeSelector` and `kubectl explain pod.spec.tolerations`.

@@ -1,37 +1,177 @@
----
-# The container startup command checks both env vars and exits 1 if either is empty.
-# This causes all 3 replicas to immediately CrashLoopBackOff simultaneously.
+# Versions kept by the release pipeline (immutable, as the pipeline creates them).
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: app-config
+  name: shop-config-v38
+  namespace: k8smissions
+immutable: true
+data:
+  MAX_CONN: "120"
+  PRICING_URL: "http://pricing.k8smissions.svc:8080/v1"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-config-v41
+  namespace: k8smissions
+immutable: true
+data:
+  MAX_CONN: "200"
+  PRICING_URL: "http://pricing.k8smissions.svc:8080/v2"
+---
+# What the pipeline rolled today (v42).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-config
+  namespace: k8smissions
+  annotations:
+    pipeline/release: "v42"
+immutable: true
+data:
+  MAX_CONN: ""
+  PRICING_URL: "http//pricing.k8smissions.svc:8080/v2"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-src
   namespace: k8smissions
 data:
-  APP_MODE: ""
-  DB_HOST: ""
+  shop.py: |
+    import json, os, sys
+    from urllib.parse import urlparse
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    MODE = os.environ.get("MODE", "web")
+    KEYS = ["MAX_CONN", "PRICING_URL"]
+    def read():
+        if MODE == "worker":   # the worker reads files, on every request
+            return {k: open("/etc/shop/" + k).read().strip() for k in KEYS}
+        return {k: os.environ.get(k, "") for k in KEYS}
+    def validate(c):
+        try:
+            assert int(c["MAX_CONN"]) > 0
+        except Exception:
+            return "MAX_CONN must be a positive integer, got %r" % c["MAX_CONN"]
+        u = urlparse(c["PRICING_URL"])
+        if u.scheme not in ("http", "https") or not u.netloc:
+            return "PRICING_URL is not a valid URL: %r" % c["PRICING_URL"]
+    if MODE in ("web", "job"):
+        err = validate(read())
+        if err:
+            print("FATAL config:", err, flush=True)
+            sys.exit(1)
+    if MODE == "job":
+        print("shop-report ok", json.dumps(read()), flush=True)
+        sys.exit(0)
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            if self.path == "/healthz": return self.reply(200, "ok")
+            if self.path == "/config": return self.reply(200, json.dumps(read(), sort_keys=True))
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: config-app
+  name: shop-web
   namespace: k8smissions
 spec:
   replicas: 3
   selector:
-    matchLabels:
-      app: config-app
+    matchLabels: {app: shop-web}
   template:
     metadata:
-      labels:
-        app: config-app
+      labels: {app: shop-web}
     spec:
       containers:
-      - name: config-app
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - '[ -n "$APP_MODE" ] && [ -n "$DB_HOST" ] && sleep 3600 || exit 1'
+      - name: web
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/shop.py"]
         envFrom:
-        - configMapRef:
-            name: app-config
+        - configMapRef: {name: shop-config}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: shop-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shop-web
+  namespace: k8smissions
+spec:
+  selector: {app: shop-web}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shop-worker
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: shop-worker}
+  template:
+    metadata:
+      labels: {app: shop-worker}
+    spec:
+      containers:
+      - name: worker
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/shop.py"]
+        env:
+        - {name: MODE, value: worker}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+        - {name: cfg, mountPath: /etc/shop/MAX_CONN, subPath: MAX_CONN}
+        - {name: cfg, mountPath: /etc/shop/PRICING_URL, subPath: PRICING_URL}
+      volumes:
+      - name: src
+        configMap: {name: shop-src}
+      - name: cfg
+        configMap: {name: shop-config}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: shop-report
+  namespace: k8smissions
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: report
+            image: python:3.12-alpine
+            command: ["python", "-u", "/src/shop.py"]
+            env:
+            - {name: MODE, value: job}
+            envFrom:
+            - configMapRef: {name: shop-config}
+            volumeMounts:
+            - {name: src, mountPath: /src}
+          volumes:
+          - name: src
+            configMap: {name: shop-src}

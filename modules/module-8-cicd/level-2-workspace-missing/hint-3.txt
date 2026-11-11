@@ -1,1 +1,1 @@
-The PipelineRun has `workspaces: []` but the Pipeline it references declares a workspace named `source`. You need to add a workspace binding that maps the `source` name to actual storage (an `emptyDir` or a PVC).
+Create a new PipelineRun with `pipelineRef: {name: ingest}` and, under `spec.workspaces`, an entry `name: source` with a `volumeClaimTemplate` (`spec.accessModes`, `spec.resources.requests.storage`) or `persistentVolumeClaim.claimName` for a claim you create first. Check progress with `kubectl get pipelinerun,taskrun,pvc`.

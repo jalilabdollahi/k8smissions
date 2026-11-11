@@ -1,17 +1,15 @@
 {
-  "name": "Random Logout",
-  "description": "Users are randomly getting logged out. The app stores sessions in memory — each pod has its own session store. Run kubectl logs client -n k8smissions and watch which pod each request hits.",
-  "objective": "The Service load-balances across pods per request — enable session affinity so clients stick to one pod",
-  "xp": 200,
+  "name": "Logged Out Again",
+  "description": "Customers of `portal` log in successfully and are then told \"no session\" on roughly two requests out of three. Support has confirmed that logging in again works, but only until the next click. The three `portal` pods keep their sessions in memory and are needed for load, so the team cannot drop to one replica. Two debug pods, `probe` and `probe-b`, with curl are available.",
+  "objective": "A client that logs in once to Service `portal` keeps its session on 20 consecutive requests, from each of the two probe pods independently, while `portal` keeps 3 Ready replicas.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Session affinity",
-    "sticky sessions",
-    "ClientIP",
-    "stateful vs stateless apps",
-    "shared session stores"
-  ],
+  "expected_time": "12m",
+  "concepts": ["sessionAffinity", "ClientIP", "kube-proxy", "stateful sessions"],
   "module": "module-3-networking",
-  "level": "level-6-session-affinity"
+  "level": "level-6-session-affinity",
+  "requires": [],
+  "settle_seconds": 12,
+  "solve_timeout": 60,
+  "cleanup": []
 }

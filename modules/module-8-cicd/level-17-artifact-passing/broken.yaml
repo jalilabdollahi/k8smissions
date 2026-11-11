@@ -1,19 +1,90 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  namespace: k8smissions
+  name: build-image
+spec:
+  params:
+  - name: tag
+    type: string
+  results:
+  - name: digest
+    description: sha256 digest of the pushed image
+  steps:
+  - name: layer
+    image: busybox:1.36
+    script: |
+      #!/bin/sh
+      set -e
+      mkdir -p /workspace/app
+      echo "ship-api build $(params.tag)" > /workspace/app/BUILD
+      tar -C /workspace/app -czf /workspace/layer.tar.gz .
+  - name: push
+    image: gcr.io/go-containerregistry/crane:debug@sha256:e78770b31258a3846f878036d9c1f63fbe4c871f9f56990bf77fd95c013e3c1b
+    script: |
+      #!/busybox/sh
+      set -e
+      ref=registry.k8smissions.svc.cluster.local:5000/ship-api:$(params.tag)
+      out=$(crane append --insecure -f /workspace/layer.tar.gz -t "$ref")
+      echo "${out##*@}" > /workspace/digest.txt
+      echo "pushed $ref"
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  namespace: k8smissions
+  name: deploy-image
+spec:
+  params:
+  - name: digest
+    type: string
+  results:
+  - name: deployed-digest
+  steps:
+  - name: roll-out
+    image: curlimages/curl:8.10.1
+    script: |
+      #!/bin/sh
+      set -e
+      d="$(params.digest)"
+      if [ -z "$d" ]; then
+        echo "refusing to deploy: no image digest was passed in"
+        exit 1
+      fi
+      code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json' \
+        http://registry.k8smissions.svc.cluster.local:5000/v2/ship-api/manifests/$d)
+      if [ "$code" != "200" ]; then
+        echo "registry does not know ship-api@$d (HTTP $code)"
+        exit 1
+      fi
+      echo "deploying ship-api@$d"
+      printf '%s' "$d" > $(results.deployed-digest.path)
+---
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
-  name: build-deploy
   namespace: k8smissions
+  name: ship-api
 spec:
   tasks:
   - name: build
-    taskRef:
-      name: build-task
-    params: []
-  - name: deploy
-    taskRef:
-      name: deploy-task
-    runAfter:
-    - build
     params:
-    - name: IMAGE_DIGEST
+    - name: tag
+      value: $(context.pipelineRun.name)
+    taskRef:
+      name: build-image
+  - name: deploy
+    params:
+    - name: digest
       value: $(tasks.build.results.image-digest)
+    taskRef:
+      name: deploy-image
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: ship-api-0422
+spec:
+  pipelineRef:
+    name: ship-api

@@ -45,10 +45,16 @@ fi
 export PYTHONPATH="$(pwd):$PYTHONPATH"
 
 if [ -f "venv/bin/python3" ]; then
-  venv/bin/python3 -m engine.engine
+  PY=venv/bin/python3
 elif [ -f "venv/Scripts/python.exe" ]; then
-  venv/Scripts/python.exe -m engine.engine
+  PY=venv/Scripts/python.exe
 else
   echo "❌ Python interpreter not found inside venv"
   exit 1
 fi
+
+# Rebuild levels.json from the level folders, so a git pull is picked up.
+# If it fails, the engine falls back to scanning the folders itself.
+"$PY" scripts/generate_registry.py >/dev/null || rm -f levels.json
+
+"$PY" -m engine.engine

@@ -1,1 +1,1 @@
-Check all Pending pods at once and read each one's events: `kubectl get pods -n k8smissions` then `kubectl describe pod team-a-pod -n k8smissions | grep -A5 Events` and repeat for team-b and team-c.
+Three workloads, three different Pending reasons. Read the Events of one Pending pod from each Deployment (`kubectl -n k8smissions describe pod <pod>`) and note which node filter rejected each node: `kubectl -n k8smissions get pods -o wide` shows where the Running ones are.

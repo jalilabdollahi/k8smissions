@@ -1,16 +1,25 @@
-# Suspended Schedule
+## What was broken
 
-## What Was Broken
-The CronJob had `spec.suspend: true`. This pauses the schedule without deleting the CronJob — useful during maintenance windows, but easy to forget.
+CronJob `close-report` had two faults. Its `spec.suspend` was `true`, left over from an incident, so the controller created nothing. And its schedule `1 * * * *` means minute 1 of every hour, not every minute, so even an active CronJob would create a Job once an hour.
 
-## The Fix
-Set `spec.suspend: false` (or remove the field — false is the default). The CronJob fires on its next scheduled tick.
+## The evidence
 
-## Why It Matters
-CronJob suspension is a real production tool. The problem is that it is invisible at a glance. `kubectl get cronjob` shows a SUSPEND column but it is easy to miss. Always check `kubectl describe cronjob` when a CronJob produces no Jobs.
+`kubectl get cronjob` printed `SUSPEND True` and `LAST SCHEDULE <none>`: the CronJob had never fired. After flipping suspend, `kubectl describe cronjob` and the manifest showed the cron expression, and reading its five fields (minute, hour, day of month, month, day of week) showed it fired only at minute 1.
 
-## Pro Tip
-You can manually trigger a CronJob without waiting for the schedule: `kubectl create job --from=cronjob/<name> manual-run-1 -n <ns>`. Useful for testing or catch-up runs after a suspension.
+## Why Kubernetes behaved this way
 
-## Concepts
-CronJob, suspend, batch/v1, schedule, manual trigger
+The CronJob controller creates a Job whenever the schedule says one is due and `suspend` is false; a suspended CronJob keeps its history but is silent. The field order of a cron expression starts with the minute, so `1 * * * *` and `* * * * *` look alike but behave very differently. Jobs created by the controller carry an owner reference to the CronJob; a manual `kubectl create job --from=cronjob/...` is just a test.
+
+## The fix
+
+`kubectl patch cronjob close-report -p '{"spec":{"suspend":false,"schedule":"* * * * *"}}'`. The next Job appears at the next minute boundary and runs to Complete.
+
+## In production
+
+Record why something was suspended, and who resumes it, in the ticket (here an annotation did). A minute-long cadence needs a `concurrencyPolicy` (`Forbid` here) and history limits so Jobs do not pile up. Cron times are in UTC unless `timeZone` is set.
+
+## Commands worth remembering
+
+- `kubectl get cronjob` (SUSPEND, LAST SCHEDULE)
+- `kubectl patch cronjob <name> -p '{"spec":{"suspend":false}}'`
+- `kubectl get jobs --watch`

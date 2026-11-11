@@ -1,9 +1,1 @@
-Count how many pods this CronJob has created:
-
-  kubectl get pods -n k8smissions -l job-name
-
-Also check how long each pod has been running:
-
-  kubectl get pods -n k8smissions --sort-by=.metadata.creationTimestamp
-
-What is the relationship between the pod runtime and the CronJob schedule interval?
+Start with `kubectl -n k8smissions get cronjob,jobs,pods`. Each pod belongs to a Job, and each Job was created by the CronJob. Ask yourself why the CronJob starts a new Job while the last one is still busy.

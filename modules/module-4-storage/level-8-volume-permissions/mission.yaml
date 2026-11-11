@@ -1,17 +1,15 @@
 {
-  "name": "Permission Denied",
-  "description": "Pod writer-app crashes immediately after the volume mounts. Run kubectl logs writer-app -n k8smissions to read the error.",
-  "objective": "The volume is owned by root but the container runs as a non-root user — set fsGroup or fix permissions so the container can write",
-  "xp": 300,
+  "name": "Permission Denied on the Signing Key",
+  "description": "The writer-app service signs invoice batches with a key from Secret signing-keys. After the security team moved it to run as a non-root user (uid 10001), it crash-loops at startup and the batch queue is backing up. Its log ends with a Permission denied error on the key file. A teammate suggests going back to root, and security has said that is not an option.",
+  "objective": "Deployment writer-app runs Ready for 30 seconds without restarts as a non-root user, and its /status endpoint reports signed=ok using the key from Secret signing-keys.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "fsGroup",
-    "runAsUser",
-    "runAsGroup",
-    "volume ownership",
-    "securityContext at pod vs container level"
-  ],
+  "expected_time": "15m",
+  "concepts": ["fsGroup", "defaultMode", "file ownership", "non-root containers"],
   "module": "module-4-storage",
-  "level": "level-8-volume-permissions"
+  "level": "level-8-volume-permissions",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

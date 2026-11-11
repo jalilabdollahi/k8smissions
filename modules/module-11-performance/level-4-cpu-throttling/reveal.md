@@ -1,19 +1,7 @@
-## What went wrong
+Each quote costs about 10ms of CPU. The container has a 100m limit, which is 10ms of CPU per 100ms period, so a pod can serve about one request per period and everything else waits for the next period. Average usage looks fine; the time spent frozen only shows in the cgroup's `cpu.stat`.
 
-When `limits.cpu == requests.cpu`, the container gets exactly its reserved CPU share and nothing more. Under load, the Linux CFS (Completely Fair Scheduler) enforces the quota: once the container uses 100ms of CPU in a 100ms window, it's throttled for the rest of the window. This creates bursty latency that looks like slow responses every 100ms.
+1. `kubectl exec deploy/quote-api -- cat /sys/fs/cgroup/cpu.stat` under load: `nr_throttled` climbs almost as fast as `nr_periods`.
+2. `kubectl set resources deployment/quote-api --requests=cpu=100m --limits=cpu=500m` raises the limit well above the burst demand and keeps a request.
+3. Re-read `cpu.stat`: throttling stops and p95 returns to the 10 to 20ms range.
 
-## Fix
-
-```yaml
-resources:
-  requests:
-    cpu: 100m
-    memory: 256Mi
-  limits:
-    cpu: 1000m
-    memory: 512Mi
-```
-
-## Why this matters
-
-CPU requests determine scheduling placement and guaranteed share. CPU limits determine the throttle ceiling. Setting them equal creates a Guaranteed QoS class (good for predictable latency) but removes all burst capacity. Setting limits higher (or omitting limits entirely) allows the container to use spare CPU on the node without throttling. The right ratio depends on your workload: latency-sensitive services often want limits 3–10x the request; batch jobs often want limit = request for predictable throughput. Prometheus metric `container_cpu_cfs_throttled_seconds_total` reveals throttling in production.
+Removing the limit also works as long as the CPU request stays.

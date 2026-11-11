@@ -1,6 +1,6 @@
-Check the PVC's access mode and compare it with what a shared multi-pod scenario requires:
+See where each pod landed and why the others did not:
 
-  kubectl get pvc shared-pvc -n k8smissions
-  kubectl describe pvc shared-pvc -n k8smissions
+  kubectl get pods -n k8smissions -l app=web-servers -o wide
+  kubectl describe pod -n k8smissions <a-pending-pod>
 
-What access mode is it using? What does that access mode allow?
+Then look at where the volume lives: kubectl get pv -o yaml (spec.nodeAffinity).

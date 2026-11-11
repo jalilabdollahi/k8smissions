@@ -1,19 +1,7 @@
-## What went wrong
+The pod has two containers. `resizer` has a CPU request of 100m but `log-shipper` has none. For a `Resource` metric of type `Utilization` the HPA divides the pod's total usage by the pod's total requests, and refuses when any container lacks a request (`missing request for cpu in container log-shipper`). metrics-server was never the problem.
 
-Without `behavior.scaleDown`, the HPA uses the default policy: scale down as quickly as needed with no stabilization window. This causes thrashing — the HPA removes all extra replicas the moment metrics drop, only to scale them back up when load returns seconds later. New pod startup latency during each scale-up causes user-visible errors.
+1. `kubectl describe hpa thumbnailer` shows `FailedGetResourceMetric ... missing request for cpu`.
+2. `kubectl set resources deployment/thumbnailer -c log-shipper --requests=cpu=10m,memory=16Mi` gives the sidecar a request.
+3. Wait for the rollout; after about a minute the HPA reports a percentage and scales out, because `queue-feeder` keeps the load on.
 
-## Fix
-
-```yaml
-behavior:
-  scaleDown:
-    stabilizationWindowSeconds: 300
-    policies:
-    - type: Percent
-      value: 10
-      periodSeconds: 60
-```
-
-## Why this matters
-
-The `stabilizationWindowSeconds` tells the HPA to look at the maximum desired replica count over the past N seconds and use that as the scale-down target — avoiding immediate drops on transient metric dips. The `policies` list adds rate limiting: in this case, maximum 10% of replicas removed per 60-second window. Scale-up should remain aggressive (fast response to load) while scale-down should be conservative (no saw-tooth). You can configure `behavior.scaleUp` separately to control burst behavior.
+(Alternative that is also accepted: change the HPA metric to type `ContainerResource` for container `resizer`.)

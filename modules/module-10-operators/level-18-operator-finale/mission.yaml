@@ -1,17 +1,15 @@
 {
-  "name": "Operator Meltdown",
-  "description": "Three simultaneous operator failures are active: a webhook is blocking all pod creation in system namespaces with a bad failure policy, a CRD is missing the old version needed to read existing stored objects, and the operator has two replicas in split-brain because leader election is off. All three must be fixed independently.",
-  "objective": "Fix all three: restore webhook to safe mode, fix CRD version configuration, and enable leader election on the operator",
-  "xp": 425,
-  "difficulty": "advanced",
-  "expected_time": "25m",
-  "concepts": [
-    "admission webhook",
-    "CRD versioning",
-    "leader election",
-    "operator",
-    "multi-failure"
-  ],
+  "name": "Queue operator upgrade day",
+  "description": "After yesterday's upgrade of the `Queue` platform the `orders` queue still does not exist. The Job `queue-publisher` that registers it keeps retrying with an admission error. The platform team has already put a re-issued webhook certificate into the namespace. They also warn that the operator `queue-operator` (2 replicas) \"felt flaky\" before the upgrade, and that earlier queues were created without their dead-letter queue.",
+  "objective": "The `orders` Queue exists with its dead-letter setting (`spec.deadLetter.enabled: true`) and the operator has reconciled it: `Ready`, `observedGeneration` equal to `generation`, with ConfigMaps `queue-orders` and `queue-orders-dlq`. Exactly one `queue-operator` replica leads (holds a live lease) and the operator is not cluster-admin. The `queue-guard` webhook still fails closed and still rejects `retentionDays` above 14, and the CRD schema still rejects `partitions: 0`.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "30m",
+  "concepts": ["webhook certificate SAN", "Lease RBAC", "CRD pruning", "admission", "leader election", "multi-fault incident"],
   "module": "module-10-operators",
-  "level": "level-18-operator-finale"
+  "level": "level-18-operator-finale",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 180,
+  "cleanup": []
 }

@@ -1,1 +1,1 @@
-Check the container's exit output: `kubectl logs port-binder -n k8smissions`
+Read what nginx says when it dies: `kubectl -n k8smissions logs deploy/edge-nginx` (add `--previous` if the container just restarted) and `kubectl -n k8smissions get deploy edge-nginx -o yaml`, looking at the container's `securityContext`.

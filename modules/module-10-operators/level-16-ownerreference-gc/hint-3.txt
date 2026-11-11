@@ -1,1 +1,5 @@
-The Deployment has no `ownerReferences` field. Add an `ownerReferences` entry pointing to the parent `MyApp` CR with `controller: true` and `blockOwnerDeletion: true` to enable cascading garbage collection.
+In the controller, read the uid from the Site it is reconciling (`site["metadata"]["uid"]`) and give all three children an ownerReference with it; existing children with a wrong reference get collected and recreated correctly. Then restart the operator and clean up what the old code leaked:
+
+kubectl -n k8smissions edit configmap site-operator-code
+kubectl -n k8smissions rollout restart deploy/site-operator
+kubectl -n k8smissions delete svc <ORPHAN>

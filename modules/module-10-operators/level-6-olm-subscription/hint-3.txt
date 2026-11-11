@@ -1,1 +1,6 @@
-The Subscription has `source: non-existent-catalog` but that CatalogSource doesn't exist. Change it to `source: operatorhub` (or whatever CatalogSource is available in the cluster).
+Walk the graph one step at a time, waiting for each release to finish its work:
+
+kubectl -n k8smissions patch deployment widget-operator --type=json -p '[{"op":"replace","path":"/spec/template/spec/volumes/0/configMap/name","value":"bundle-<NEXT VERSION>"}]'
+kubectl -n k8smissions rollout status deployment/widget-operator
+
+Then look at `kubectl get widgets -o yaml` (the `status.schemaVersion` of all three) before taking the next step.

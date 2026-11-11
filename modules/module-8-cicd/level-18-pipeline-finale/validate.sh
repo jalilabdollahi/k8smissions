@@ -1,42 +1,72 @@
 #!/bin/bash
-set -euo pipefail
-NS="k8smissions"
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
+SA="system:serviceaccount:$NS:deploy-sa"
+can() { kubectl auth can-i "$@" --as="$SA" 2>/dev/null; }
 
-PASS=true
-
-# Fix 1: Check image tag is not the broken '999' tag
-IMAGE=$(kubectl get task multi-task -n "$NS" -o jsonpath='{.spec.steps[0].image}' 2>/dev/null || true)
-if echo "$IMAGE" | grep -q '999'; then
-  echo "FAIL [1/3]: Task image is '$IMAGE' — change alpine/git:999 to a valid tag like alpine/git:latest"
-  PASS=false
-else
-  echo "PASS [1/3]: Task image is '$IMAGE' (not :999)"
+if ! k get pipeline ship-payments >/dev/null 2>&1 || ! k get sa deploy-sa >/dev/null 2>&1 \
+   || ! k get deployment registry >/dev/null 2>&1; then
+  echo "❌ Pipeline ship-payments, ServiceAccount deploy-sa or the registry is missing"
+  exit 1
 fi
-
-# Fix 2: Check git-url param has a default value
-GIT_URL_DEFAULT=$(kubectl get task multi-task -n "$NS" \
-  -o jsonpath='{.spec.params[?(@.name=="git-url")].default}' 2>/dev/null || true)
-if [ -z "$GIT_URL_DEFAULT" ]; then
-  echo "FAIL [2/3]: param 'git-url' has no default — TaskRun will fail validation if git-url is not supplied"
-  PASS=false
-else
-  echo "PASS [2/3]: param 'git-url' has default='$GIT_URL_DEFAULT'"
+run=$(k create -o name -f - <<YAML
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: verify-payments-
+  labels: {verify: pipeline-finale}
+spec:
+  pipelineRef:
+    name: ship-payments
+  taskRunTemplate:
+    serviceAccountName: deploy-sa
+YAML
+)
+name=${run#*/}
+trap 'k delete pipelinerun -l verify=pipeline-finale --wait=false >/dev/null 2>&1' EXIT
+for _ in $(seq 1 55); do
+  st=$(k get "$run" -o jsonpath='{.status.conditions[0].status}' 2>/dev/null)
+  [ "$st" = "True" ] || [ "$st" = "False" ] && break
+  sleep 2
+done
+if [ "$st" != "True" ]; then
+  failed=$(k get taskrun -l "tekton.dev/pipelineRun=$name" -o jsonpath='{range .items[?(@.status.conditions[0].status=="False")]}{.metadata.labels.tekton\.dev/pipelineTask}{" "}{end}' 2>/dev/null)
+  echo "❌ the run did not Succeed (status '${st:-running}'; failed Task: ${failed:-none yet})"
+  exit 1
 fi
+echo "✅ ship-payments ran clone, push and deploy to the end"
 
-# Fix 3: Check SA can create taskruns
-RBAC=$(kubectl auth can-i create taskruns.tekton.dev -n "$NS" \
-  --as=system:serviceaccount:${NS}:multi-sa 2>/dev/null || true)
-if [ "$RBAC" != "yes" ]; then
-  echo "FAIL [3/3]: ServiceAccount 'multi-sa' cannot create taskruns — add Role and RoleBinding"
-  PASS=false
-else
-  echo "PASS [3/3]: ServiceAccount 'multi-sa' can create taskruns"
+want=$(kubectl -n "$NS" exec deploy/registry -- wget -qO- \
+  --header 'Accept: application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json' \
+  "http://localhost:5000/v2/payments/api/manifests/$name" 2>/dev/null | sha256sum | awk '{print "sha256:" $1}')
+tags=$(kubectl -n "$NS" exec deploy/registry -- wget -qO- http://localhost:5000/v2/payments/api/tags/list 2>/dev/null)
+if ! echo "$tags" | grep -q "\"$name\""; then
+  echo "❌ the registry does not list the tag $name for payments/api"
+  exit 1
 fi
+echo "✅ the registry holds payments/api:$name ($want)"
 
-if [ "$PASS" = "true" ]; then
-  echo "PASS: All three pipeline issues resolved — pipeline is fully operational"
-  exit 0
+ok=0
+for _ in 1 2 3 4 5 6; do
+  body=$(kubectl get --raw "/api/v1/namespaces/payments-prod/services/payments-api:80/proxy/" 2>/dev/null)
+  [ "$body" = "payments-api $want" ] && ok=$((ok + 1))
+done
+if [ "$ok" != "6" ]; then
+  echo "❌ Service payments-api in payments-prod answered with the pushed digest in $ok of 6 requests"
+  exit 1
 fi
+echo "✅ payments-api in payments-prod serves the pushed digest"
 
-echo "FAIL: One or more pipeline issues remain — fix all three before the pipeline can run"
+for what in "get secrets -n payments-prod" "create pods -n payments-prod" "create deployments.apps -n $NS" "delete namespaces"; do
+  if [ "$(can $what)" != "no" ]; then
+    echo "❌ deploy-sa is allowed to '$what', which the deploy job does not need"
+    exit 1
+  fi
+done
+if [ "$(can patch deployments.apps -n payments-prod)" != "yes" ]; then
+  echo "❌ deploy-sa cannot patch Deployments in payments-prod"
+  exit 1
+fi
+echo "✅ deploy-sa is confined to deploying in payments-prod"
+exit 0
 exit 1

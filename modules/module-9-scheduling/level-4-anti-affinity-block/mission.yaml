@@ -1,17 +1,15 @@
 {
-  "name": "Anti-Affinity Trap",
-  "description": "A Deployment with 3 replicas has 2 pods running but the third is permanently Pending. The anti-affinity rule requires each pod to land on a unique node — but there are only 2 nodes in the cluster. The third pod has no valid node to go to.",
-  "objective": "A required podAntiAffinity rule combined with a single-node cluster prevents 3 pods from scheduling — fix the constraint",
-  "xp": 300,
+  "name": "Three Replicas, Two Nodes",
+  "description": "`ledger-api` was scaled to 3 replicas for the quarter-end close, but only two replicas ever start; the third has been Pending for an hour. The team insists the node pool has plenty of CPU and memory, and the 3-replica commitment to finance is not being met.",
+  "objective": "Deployment `ledger-api` has 3 Ready replicas spread over the two worker nodes (each worker runs at least one, no worker runs all three), and none of its pods runs on the control-plane node.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "podAntiAffinity",
-    "requiredDuringScheduling",
-    "replicas",
-    "scheduling",
-    "node count"
-  ],
+  "expected_time": "10m",
+  "concepts": ["podAntiAffinity", "requiredDuringScheduling", "preferredDuringScheduling", "topologyKey"],
   "module": "module-9-scheduling",
-  "level": "level-4-anti-affinity-block"
+  "level": "level-4-anti-affinity-block",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

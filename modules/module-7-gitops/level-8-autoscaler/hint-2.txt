@@ -1,1 +1,1 @@
-The logs should show the autoscaler searching for node groups tagged with `wrong-group` and finding none. Now look at the autoscaler Deployment's `args` to see the full `--node-group-auto-discovery` value.
+Both controllers believe they own `spec.replicas`: the HPA writes it, Git (through Argo's self-heal) writes it back. One of them must stop caring about that single field. Look at `kubectl explain application.spec.ignoreDifferences` and the sync option `RespectIgnoreDifferences` (without it, a sync that runs for another reason still applies the whole manifest).

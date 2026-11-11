@@ -1,13 +1,6 @@
-# Common Mistakes — The Noisy Neighbour
+## Common mistakes
 
-## Mistake 1: Deleting the LimitRange
-
-**Wrong approach:** Removing the LimitRange to make the pod work — the policy exists for a reason
-
-**Correct approach:** Fix the pod to comply with the policy
-
-## Mistake 2: Setting limits lower than requests
-
-**Wrong approach:** limits.cpu: 50m when requests.cpu: 100m — limits must be >= requests
-
-**Correct approach:** Limits are the ceiling, requests are the reservation. Always limits >= requests
+- **Describing the Deployment or pods.** The Deployment looks fine and there are no pods. The refusal is recorded on the ReplicaSet's events.
+- **Lowering the limit to 128Mi to fit the ratio.** Pods are admitted, then each render is OOMKilled. The check sends real render requests.
+- **Deleting or editing the LimitRange.** It is a shared team rule; the check requires it to still enforce a ratio of 2 or less.
+- **Raising only the request above the limit.** Requests cannot exceed limits, so the pod is rejected for a different reason; choose a request of at least half the limit.

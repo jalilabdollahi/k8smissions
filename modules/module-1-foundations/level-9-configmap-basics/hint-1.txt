@@ -1,7 +1,1 @@
-ContainerCreating that does not progress usually means Kubernetes cannot prepare something the pod needs before starting the container — often a Volume, ConfigMap, or Secret.
-
-Read the Events:
-
-  kubectl describe pod configmap-pod -n k8smissions
-
-Scroll to the bottom and read the Events section.
+Check both sides of the claim. What does the ConfigMap say (`kubectl -n k8smissions get cm pricing-config -o yaml`), and what does a running pod actually have (`kubectl -n k8smissions exec deploy/pricing -- env`)?

@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sandbox-api
+  namespace: payments-sandbox
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: sandbox-api}
+  template:
+    metadata:
+      labels: {app: sandbox-api}
+    spec:
+      containers:
+      - name: api
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=sandbox"]
+        resources:
+          requests: {cpu: 50m, memory: 16Mi}

@@ -1,9 +1,60 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: ingest
+spec:
+  workspaces:
+  - name: source
+    description: where fetched exports are kept between Tasks
+  tasks:
+  - name: fetch
+    workspaces:
+    - name: data
+      workspace: source
+    taskSpec:
+      workspaces:
+      - name: data
+      steps:
+      - name: download
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          set -e
+          cd $(workspaces.data.path)
+          for f in orders customers refunds; do
+            echo "id,amount" > "$f.csv"
+            echo "1,10" >> "$f.csv"
+            echo "downloaded $f.csv"
+          done
+  - name: verify
+    runAfter: ["fetch"]
+    workspaces:
+    - name: data
+      workspace: source
+    taskSpec:
+      workspaces:
+      - name: data
+      results:
+      - name: files
+      steps:
+      - name: count
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          n=$(ls $(workspaces.data.path)/*.csv 2>/dev/null | wc -l)
+          printf '%s' "$n" > $(results.files.path)
+          if [ "$n" -eq 0 ]; then
+            echo "verify: no export files found in $(workspaces.data.path)"
+            exit 1
+          fi
+          echo "verify: $n export files present"
+---
+apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: build-run
   namespace: k8smissions
+  name: ingest-2210
 spec:
   pipelineRef:
-    name: build-pipeline
-  workspaces: []
+    name: ingest

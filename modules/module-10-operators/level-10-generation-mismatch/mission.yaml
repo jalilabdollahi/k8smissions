@@ -1,17 +1,15 @@
 {
-  "name": "Stale Reconciliation",
-  "description": "An operator is making 100+ unnecessary API calls per minute — it reconciles on every watch event without checking whether the resource has actually changed. The CR's `status.observedGeneration` is far behind `metadata.generation`, which means the operator isn't recording which version of the spec it last processed.",
-  "objective": "The controller is missing generation-based reconciliation guard — add a check for ObservedGeneration to skip redundant reconciliations",
-  "xp": 350,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "generation",
-    "observedGeneration",
-    "status",
-    "operator optimization",
-    "reconciliation guard"
-  ],
+  "name": "The chatty inventory operator",
+  "description": "The API server audit shows `inventory-operator` writing to the same two `Inventory` objects (`stock-eu`, `stock-us`) every couple of seconds. Nobody edits them, yet their `resourceVersion` keeps climbing and `status.observedGeneration` is nowhere near `metadata.generation`. The platform team wants the chatter gone, but the operator must keep doing its job: spec changes must reach the child ConfigMap `inventory-<name>`, and a deleted child must come back.",
+  "objective": "An idle `Inventory` keeps the same `resourceVersion` for 15 seconds. After a spec change, `status.observedGeneration` equals `metadata.generation` within 10 seconds and ConfigMap `inventory-<name>` carries the new `reorderLevel`. A deleted child ConfigMap reappears within 20 seconds. `inventory-operator` keeps running.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["metadata.generation", "observedGeneration", "status subresource", "resourceVersion", "idempotent reconcile"],
   "module": "module-10-operators",
-  "level": "level-10-generation-mismatch"
+  "level": "level-10-generation-mismatch",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

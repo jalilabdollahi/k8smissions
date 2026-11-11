@@ -3,31 +3,31 @@ kind: Deployment
 metadata:
   name: web-backend
   namespace: k8smissions
-  labels:
-    app: web-backend
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: web-backend
+    matchLabels: {app: web-backend}
   template:
     metadata:
-      labels:
-        app: web-backend
+      labels: {app: web-backend}
     spec:
       containers:
-      - name: web-backend
-        image: nginx:1.27.4
+      - name: web
+        image: python:3.12-alpine
+        command: ["python", "-u", "-c", "import time\nprint('web-backend: serving', flush=True)\nwhile True:\n    sum(i*i for i in range(20000))\n"]
         resources:
-          requests:
-            cpu: 200m
-          limits:
-            cpu: 500m
+          requests: {cpu: 100m, memory: 32Mi}
+          limits: {cpu: 250m, memory: 128Mi}
+      - name: log-forwarder
+        image: busybox:1.36
+        command: ["sh", "-c", "while true; do echo forwarding logs; sleep 10; done"]
+        resources:
+          limits: {memory: 32Mi}
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: web-backend-hpa
+  name: web-backend
   namespace: k8smissions
 spec:
   scaleTargetRef:
@@ -35,7 +35,7 @@ spec:
     kind: Deployment
     name: web-backend
   minReplicas: 1
-  maxReplicas: 5
+  maxReplicas: 4
   metrics:
   - type: Resource
     resource:
@@ -43,24 +43,3 @@ spec:
       target:
         type: Utilization
         averageUtilization: 50
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: metrics-server
-  namespace: k8smissions
-  labels:
-    app: metrics-server
-spec:
-  replicas: 0
-  selector:
-    matchLabels:
-      app: metrics-server
-  template:
-    metadata:
-      labels:
-        app: metrics-server
-    spec:
-      containers:
-      - name: metrics-server
-        image: nginx:1.27.4

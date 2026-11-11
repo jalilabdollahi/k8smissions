@@ -1,16 +1,15 @@
 {
-  "name": "The Orphan",
-  "description": "After deleting an old Deployment, stale pods are still running in the namespace. The Deployment is gone but the pods refuse to die. Run kubectl get pods -n k8smissions and kubectl get deployments -n k8smissions.",
-  "objective": "An orphaned ReplicaSet is keeping old pods alive — delete it so the pods are cleaned up",
-  "xp": 150,
-  "difficulty": "beginner",
-  "expected_time": "8m",
-  "concepts": [
-    "ReplicaSet",
-    "Deployment",
-    "garbage collection",
-    "owner references"
-  ],
+  "name": "The Ghosts of v1",
+  "description": "After the checkout migration, Deployment `checkout-v1` was deleted during a clean-up, yet three of its pods are still running, and Service `checkout` still sends them traffic next to the new Deployment `checkout`. About half of the answers carry the old `v1` text. Deleting the old pods only makes new ones appear. A debug pod `probe` with curl is available.",
+  "objective": "Every answer from Service `checkout` is `v2`, Deployment `checkout` has 3 of 3 replicas available, and no ReplicaSet without an owning Deployment is left in the namespace.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["ReplicaSet", "ownerReferences", "cascade=orphan", "garbage collection"],
   "module": "module-2-workloads",
-  "level": "level-13-replicaset-orphan"
+  "level": "level-13-replicaset-orphan",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 120,
+  "cleanup": []
 }

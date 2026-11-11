@@ -1,16 +1,25 @@
-# Scheduler Overload
+## What was broken
 
-## What Was Broken
-Three independent scheduling failures: (1) team-a pod had nodeSelector for non-existent label, (2) team-b Deployment had required anti-affinity impossible with 5 replicas on 2 nodes, (3) team-c pod referenced a non-existent PriorityClass.
+Three scheduling faults, each hiding behind a different message. `shop-frontend` spread over a `zone` label that only one worker had, with `minDomains: 2`, so after one pod there was never a legal place for the next. `shop-cart` kept itself apart from every pod labelled `app=shop`, which includes the frontend. And a forgotten `statsd-debug` pod held hostPort 8125 on one worker, leaving only one node for two agents.
 
-## The Fix
-Fix each issue independently: remove/fix nodeSelector, relax anti-affinity to preferred, remove missing PriorityClass reference.
+## The evidence
 
-## Why It Matters
-Production scheduling triaging: for each pending pod, kubectl describe pod, read the Events section for exact reason. The scheduler messages are detailed: 'N nodes didn't match pod affinity rules', 'N nodes had label not found', 'N nodes had insufficient memory'.
+Frontend events named the topology spread constraint and the nodes that did not match it. Cart events said `didn't match pod anti-affinity rules`, on a node that had no cart pod at all: the pod that matched was a frontend. Agent events said `didn't have free ports for the requested pod ports`, and `kubectl get pods -A -o wide` plus the pod's annotations identified the stray holder. Fixing frontend first changes the cart picture, which is why the faults have to be read one at a time.
 
-## Pro Tip
-Automate scheduling issue detection: kubectl get pods --all-namespaces --field-selector=status.phase=Pending -o json | python3 -c 'import json,sys; [print(p["metadata"]["name"]) for p in json.load(sys.stdin)["items"]]'
+## Why Kubernetes behaves this way
 
-## Concepts
-nodeSelector, podAntiAffinity, PriorityClass, multi-issue, systematic debugging
+Every filter reports on its own, and a pod that fails on one reason is never tested for the others. Spread counts are per topology domain, and a node without the key is not a domain. Anti-affinity matches every pod in scope whatever its purpose. hostPort claims a port on the whole node, so two pods asking for it can never meet there.
+
+## The fix
+
+Label the second worker with its zone, narrow the cart selector to `tier=cart`, and delete the stray pod after checking its owner. Each pod is then placed by the scheduler (the cart edit rolls the Deployment).
+
+## In production
+
+Label nodes through the cloud provider so zones always exist, prefer `kubernetes.io/hostname` or `topology.kubernetes.io/zone` over home-made keys, avoid hostPort in favour of a DaemonSet plus a Service, and put an owner and an expiry on debugging pods.
+
+## Commands worth remembering
+
+- `kubectl get nodes -L zone`
+- `kubectl describe pod <pod> | grep -A3 Events`
+- `kubectl get pods -A -o wide --show-labels`

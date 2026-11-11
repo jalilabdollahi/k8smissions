@@ -1,26 +1,5 @@
-## What went wrong
-
-`NoExecute` taints behave differently from `NoSchedule`: they don't just block new pods — they immediately evict *running* pods that lack a matching toleration. No toleration = immediate eviction with no warning.
-
-## Fix
-
-```yaml
-spec:
-  tolerations:
-  - key: maintenance
-    operator: Equal
-    value: draining
-    effect: NoExecute
-    tolerationSeconds: 300
-```
-
-`tolerationSeconds: 300` means the pod can stay on the node for 5 minutes after the taint is applied, giving it time to finish in-flight work before being evicted.
-
-## Why this matters
-
-The three taint effects have very different behaviors:
-- `NoSchedule`: new pods without a toleration won't be placed here, but existing pods stay
-- `PreferNoSchedule`: soft version of NoSchedule
-- `NoExecute`: new pods blocked AND existing pods evicted immediately (unless `tolerationSeconds` is set)
-
-Kubernetes automatically applies `NoExecute` taints for node conditions like `node.kubernetes.io/not-ready` and `node.kubernetes.io/unreachable` — which is why pods disappear when nodes go down. The built-in `tolerationSeconds: 300` default on most pods gives 5 minutes before eviction on node failure.
+1. `kubectl describe node <nvme node>` shows `maintenance=nightly:NoExecute`; `kubectl get events` shows `TaintManagerEviction` for the session-cache pods about 20s after each start.
+2. The Deployment already tolerates the taint, but with `tolerationSeconds: 20`, so the taint manager evicts the pods 20 seconds after they land.
+3. Remove that field so the toleration holds for as long as the taint exists (or set it to 1800 or more):
+   `kubectl -n k8smissions patch deploy session-cache --type=json -p '[{"op":"remove","path":"/spec/template/spec/tolerations/0/tolerationSeconds"}]'`
+4. The rollout creates new pods on the NVMe node that outlast the window. The taint stays on the node.

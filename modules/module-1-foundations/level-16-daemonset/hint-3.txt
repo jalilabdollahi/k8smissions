@@ -1,3 +1,1 @@
-The DaemonSet has no tolerations. It needs to tolerate the control-plane taint to be scheduled on that node.
-
-The `tolerations` field goes under spec.template.spec in manifest.yaml.
+Add a `tolerations` list to the DaemonSet's pod template with the taint's key from `describe node`, `operator: Exists` and the taint's effect: `kubectl -n k8smissions edit daemonset host-audit`. The DaemonSet rolls out and a pod appears on the missing node.

@@ -1,16 +1,15 @@
 {
-  "name": "Suspended Schedule",
-  "description": "CronJob report-generator runs on a schedule of '* * * * *' (every minute) but has never created a single Job. Run kubectl get cronjobs -n k8smissions.",
-  "objective": "The CronJob has suspend: true — set it to false so scheduled jobs start running",
+  "name": "Month-End Silence",
+  "description": "It is month-end, and finance expected CronJob `close-report` to produce a report Job every minute since 08:00. `kubectl get jobs` is empty. Last week someone paused the CronJob during an incident and the ticket says it was resumed. Nobody has seen a single run.",
+  "objective": "CronJob `close-report` creates its own Jobs on its schedule at a frequency that suits month-end (about once a minute), and at least one of them runs to `Complete`.",
   "xp": 150,
-  "difficulty": "beginner",
-  "expected_time": "6m",
-  "concepts": [
-    "CronJob",
-    "suspend",
-    "schedule",
-    "batch"
-  ],
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": ["CronJob", "suspend", "cron schedule", "LAST SCHEDULE", "jobs owned by a CronJob"],
   "module": "module-1-foundations",
-  "level": "level-18-cronjob-suspend"
+  "level": "level-18-cronjob-suspend",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

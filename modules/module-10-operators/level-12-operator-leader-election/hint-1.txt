@@ -1,1 +1,1 @@
-Check the operator Deployment's args: `kubectl get deployment my-operator -n operators -o yaml | grep -A5 args`
+Compare who holds what: `kubectl -n k8smissions get lease -o custom-columns=NAME:.metadata.name,HOLDER:.spec.holderIdentity,RENEWED:.spec.renewTime` (run it twice and see which renewTimes move), and read the operator logs of both pods (`kubectl -n k8smissions logs <pod>`).

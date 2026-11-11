@@ -1,1 +1,4 @@
-The `failureThreshold: 10` allows 100 seconds (10 failures × 10 seconds) of downtime before restart. Reduce it to `3` to trigger a restart after just 30 seconds of failures, significantly reducing per-incident downtime.
+Add a readiness probe on a fast path of the app that also hangs when it is wedged, and shorten the liveness reaction without making it trigger on one slow answer:
+  kubectl patch deployment ledger-api --type=json -p '[
+    {"op":"add","path":"/spec/template/spec/containers/0/readinessProbe","value":{"httpGet":{"path":"/ready","port":8080},"periodSeconds":<1 to 2>,"failureThreshold":<1 to 2>}},
+    {"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe","value":{"httpGet":{"path":"/live","port":8080},"periodSeconds":<about 5>,"timeoutSeconds":1,"failureThreshold":<2 or 3>}}]'

@@ -1,1 +1,7 @@
-The CRD schema uses `x-kubernetes-preserve-unknown-fields: true` which disables all validation. Replace it with explicit property definitions including `required` fields and `minimum`/`maximum` constraints on `replicas`.
+Declare every field the live Workloads use, not only the ones you want to constrain (or preserve the unknown ones explicitly on `spec`):
+
+kubectl apply -f - <<'Y'
+<the whole CRD, with spec.properties for replicas (integer, minimum), tier (string, enum), and the extra fields>
+Y
+
+`kubectl get crd workloads.platform.acme.io -o yaml` gives you the object to start from; remove the status and metadata noise before applying.

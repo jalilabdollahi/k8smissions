@@ -1,1 +1,1 @@
-Build the incident timeline by reading cluster events sorted by time: `kubectl get events -n k8smissions --sort-by=.lastTimestamp`
+The restarts are a symptom in your namespace; the cause may live elsewhere. Read the Warning events of the whole cluster in time order: `kubectl get events -A --field-selector type=Warning --sort-by=.lastTimestamp`, and look at which object and namespace the oldest one belongs to.

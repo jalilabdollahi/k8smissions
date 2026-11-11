@@ -1,17 +1,15 @@
 {
-  "name": "The Mixed Signals",
-  "description": "Service dual-svc exposes two ports and an Ingress routes traffic to it by port name. But the Ingress controller is rejecting the backend configuration. Run kubectl describe ingress dual-ingress -n k8smissions.",
-  "objective": "A multi-port Service requires named ports — add port names so the Ingress can reference them correctly",
-  "xp": 200,
-  "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "Service",
-    "multi-port",
-    "named ports",
-    "Ingress",
-    "port reference"
-  ],
+  "name": "Two Ports, Two Mistakes",
+  "description": "The new `gateway` is meant to serve users through Ingress `gateway` (host `gateway.k8sm.local`) and to be scraped by the monitoring pod on port 9090. Users get a 503 from nginx, and the scraper reports \"connection refused\" on `gateway:9090`, although both `gateway` pods are Ready. A debug pod `probe` with curl is available; reach the controller at `ingress-nginx-controller.ingress-nginx.svc` with a `Host` header.",
+  "objective": "Through the ingress-nginx controller with `Host: gateway.k8sm.local`, `/` returns the gateway page, and `gateway:9090/metrics` from the probe pod returns text starting with `requests_total`. Service `gateway` keeps both of its named ports, `http` and `metrics`.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["multi-port Service", "port names", "Service protocol", "Ingress backend port", "ingress-nginx"],
   "module": "module-3-networking",
-  "level": "level-15-multiport-service"
+  "level": "level-15-multiport-service",
+  "requires": ["ingress-nginx"],
+  "settle_seconds": 25,
+  "solve_timeout": 90,
+  "cleanup": []
 }

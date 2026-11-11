@@ -1,5 +1,1 @@
-There is a ReplicaSet named `legacy-app-7d8f9` with 2 replicas. Check who owns it:
-
-  kubectl get replicaset legacy-app-7d8f9 -n k8smissions -o yaml | grep -A5 'ownerReferences'
-
-If ownerReferences is empty or missing, this ReplicaSet has no parent — it is an orphan.
+A ReplicaSet that lost its Deployment (the delete used `--cascade=orphan`) keeps recreating its pods. Garbage collection only removes dependents when their owner is deleted with a cascading delete. Look at `kubectl delete --help` for what happens to the pods when you delete the ReplicaSet itself.

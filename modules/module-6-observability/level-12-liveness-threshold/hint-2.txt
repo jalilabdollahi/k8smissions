@@ -1,1 +1,1 @@
-Note the `failureThreshold` value. With `failureThreshold: 1`, a single missed probe check — caused by any momentary system load or scheduling delay — immediately triggers a container restart. The Kubernetes default is 3.
+The app is not broken, it pauses for a fixed time on a fixed schedule, and the kubelet restarts it when enough consecutive probes fail. How long that takes is the probe period times its failure threshold, roughly. Check `kubectl explain pod.spec.containers.livenessProbe.failureThreshold` and compare the result with the length of the pause in the log.

@@ -1,1 +1,7 @@
-The CRD's `names` block has no `categories` field. Add `categories: [all]` to make App resources appear when running `kubectl get all`. Optionally add `shortNames: [ap]` for `kubectl get ap`.
+Use a JSON patch so the schema in `spec.versions` is not replaced:
+
+kubectl patch crd invoicebatches.billing.acme.io --type=json -p '[
+  {"op":"add","path":"/spec/names/categories","value":["<CATEGORY>"]},
+  {"op":"add","path":"/spec/names/shortNames","value":["<SHORT>"]},
+  {"op":"add","path":"/spec/versions/0/additionalPrinterColumns","value":[{"name":"<Header>","type":"string","jsonPath":".status.<field>"}]}
+]'

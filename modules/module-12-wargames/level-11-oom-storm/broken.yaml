@@ -1,6 +1,57 @@
-# This creates Guaranteed QoS — any memory spike immediately triggers OOMKilled.
-# During a burst from a shared library update all three were OOMKilled simultaneously,
-# creating a namespace-wide restart storm. limits == requests = zero headroom.
+# Three services built on the same "platform library": a warm-up cache whose size comes from the
+# shared defaults ConfigMap. svc-gamma additionally writes an export spool on start.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lib-defaults
+  namespace: k8smissions
+  annotations: {platform-lib/version: "4.2.0"}
+data:
+  CACHE_MB: "90"
+  LOG_LEVEL: "info"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: svc-src
+  namespace: k8smissions
+data:
+  svc.py: |
+    import json, os, time, threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    NAME = os.environ.get("SVC_NAME", "svc")
+    TARGET = int(os.environ.get("CACHE_MB", "16"))
+    SPOOL_MB = int(os.environ.get("SPOOL_MB", "0"))
+    SPOOL = "/spool/export.bin"
+    cache, state = [], {"warm": False}
+    def warm():
+        if SPOOL_MB:
+            with open(SPOOL, "wb") as f:
+                for _ in range(SPOOL_MB):
+                    f.write(b"\x02" * 1048576)
+            print("spool written: %d MB" % SPOOL_MB, flush=True)
+        while len(cache) < TARGET:               # grow the cache 5 MB at a time while serving
+            for _ in range(min(5, TARGET - len(cache))):
+                cache.append(b"\x01" * 1048576)
+            print("cache at %d MB" % len(cache), flush=True)
+            time.sleep(2)
+        state["warm"] = True
+        print("warm", flush=True)
+    threading.Thread(target=warm, daemon=True).start()
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            if self.path == "/ready":
+                return self.reply(200 if state["warm"] else 503, "ok" if state["warm"] else "warming")
+            if self.path == "/work":
+                spool = os.path.getsize(SPOOL) // 1048576 if os.path.exists(SPOOL) else 0
+                return self.reply(200, json.dumps({"service": NAME, "cache_mb": len(cache), "warm": state["warm"], "spool_mb": spool}))
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -9,25 +60,32 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: svc-alpha
+    matchLabels: {app: svc-alpha}
   template:
     metadata:
-      labels:
-        app: svc-alpha
+      labels: {app: svc-alpha}
     spec:
       containers:
-      - name: svc-alpha
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+      - name: svc
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/svc.py"]
+        env:
+        - {name: SVC_NAME, value: alpha}
+        envFrom:
+        - configMapRef: {name: lib-defaults}
+        ports:
+        - {containerPort: 8080}
         resources:
-          requests:
-            memory: "32Mi"
-          limits:
-            memory: "32Mi"
+          requests: {memory: 48Mi, cpu: 20m}
+          limits: {memory: 64Mi}
+        readinessProbe:
+          httpGet: {path: /ready, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: svc-src}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -37,25 +95,32 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: svc-beta
+    matchLabels: {app: svc-beta}
   template:
     metadata:
-      labels:
-        app: svc-beta
+      labels: {app: svc-beta}
     spec:
       containers:
-      - name: svc-beta
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+      - name: svc
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/svc.py"]
+        env:
+        - {name: SVC_NAME, value: beta}
+        envFrom:
+        - configMapRef: {name: lib-defaults}
+        ports:
+        - {containerPort: 8080}
         resources:
-          requests:
-            memory: "32Mi"
-          limits:
-            memory: "32Mi"
+          requests: {memory: 48Mi, cpu: 20m}
+          limits: {memory: 64Mi}
+        readinessProbe:
+          httpGet: {path: /ready, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: svc-src}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -65,22 +130,63 @@ metadata:
 spec:
   replicas: 1
   selector:
-    matchLabels:
-      app: svc-gamma
+    matchLabels: {app: svc-gamma}
   template:
     metadata:
-      labels:
-        app: svc-gamma
+      labels: {app: svc-gamma}
     spec:
       containers:
-      - name: svc-gamma
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+      - name: svc
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/svc.py"]
+        env:
+        - {name: SVC_NAME, value: gamma}
+        - {name: SPOOL_MB, value: "40"}
+        envFrom:
+        - configMapRef: {name: lib-defaults}
+        ports:
+        - {containerPort: 8080}
         resources:
-          requests:
-            memory: "32Mi"
-          limits:
-            memory: "32Mi"
+          requests: {memory: 48Mi, cpu: 20m}
+          limits: {memory: 64Mi}
+        readinessProbe:
+          httpGet: {path: /ready, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+        - {name: spool, mountPath: /spool}
+      volumes:
+      - name: src
+        configMap: {name: svc-src}
+      - name: spool
+        emptyDir: {medium: Memory}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-alpha
+  namespace: k8smissions
+spec:
+  selector: {app: svc-alpha}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-beta
+  namespace: k8smissions
+spec:
+  selector: {app: svc-beta}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-gamma
+  namespace: k8smissions
+spec:
+  selector: {app: svc-gamma}
+  ports:
+  - {port: 80, targetPort: 8080}

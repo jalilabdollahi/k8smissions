@@ -1,1 +1,1 @@
-The critical pod spec has no `priorityClassName` field, and no PriorityClass resource exists in the cluster. Without a higher numeric priority, the scheduler has no basis for preempting the dev pods.
+Most PriorityClass fields cannot be changed after creation. Create a second class (`kubectl apply -f -` with `value`, `preemptionPolicy: PreemptLowerPriority` and the name `checkout-critical`), then point the Deployment at it: `kubectl -n k8smissions patch deploy checkout --type=merge -p '{"spec":{"template":{"spec":{"priorityClassName":"<new-class>"}}}}'`.

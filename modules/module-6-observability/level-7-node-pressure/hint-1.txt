@@ -1,1 +1,1 @@
-Check the node conditions to confirm the pressure: `kubectl describe node kind-control-plane | grep -A10 Conditions`
+Ask an Evicted pod why it was evicted: `kubectl -n k8smissions get pods` then `kubectl -n k8smissions describe pod <an Evicted pod>` and read Status, Reason and Message. Then compare with the nodes: `kubectl describe node | grep -A8 Conditions`.

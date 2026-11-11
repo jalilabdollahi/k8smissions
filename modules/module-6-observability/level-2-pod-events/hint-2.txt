@@ -1,1 +1,1 @@
-The Events section shows Warning events with reasons like `ErrImagePull` or `ImagePullBackOff`. These include the exact error from the container runtime. Look at what image the pod is trying to pull.
+A Deployment does not create pods itself; it creates a ReplicaSet and the ReplicaSet creates the pods. A failure to create them is reported on the ReplicaSet. Try `kubectl -n k8smissions describe rs -l app=billing-worker` and read the Events at the bottom.

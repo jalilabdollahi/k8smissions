@@ -1,5 +1,1 @@
-The pods may show as Running but temporarily unready at startup. Without a readiness probe, Kubernetes adds the pod to the Service endpoints the moment the container process starts — even if the application inside is still initializing.
-
-Verify whether readiness probes exist:
-
-  kubectl get pod web-app-1 -n k8smissions -o yaml | grep -A8 'readinessProbe'
+A pod is added to Service endpoints only when it is Ready, and `search-api` is Ready only when a file appears on the volume shared with the sidecar. That sidecar exits right after start-up. Its log prints a usage message; compare it with the arguments in the Deployment (`kubectl explain pod.spec.containers.args`).

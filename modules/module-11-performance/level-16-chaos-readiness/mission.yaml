@@ -1,17 +1,15 @@
 {
-  "name": "Chaos Unready",
-  "description": "During chaos engineering testing, simulating the failure of a single node took down the application entirely. The deployment only has 2 replicas and no topology spread constraints — both pods happened to be scheduled on the same node. When that node failed, all capacity was lost simultaneously.",
-  "objective": "Pod replicas and PDBs were not configured for resilience — fix PDB and ensure minimum replica count for chaos tolerance",
-  "xp": 350,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "chaos engineering",
-    "PodDisruptionBudget",
-    "replicas",
-    "resilience",
-    "fault tolerance"
-  ],
+  "name": "Chaos Day, Site Down",
+  "description": "During this morning's chaos drill the team took out the node that hosts checkout-api and the storefront returned errors for 90 seconds. checkout-api runs 2 replicas and the manifest has a pod anti-affinity rule that the author says guarantees the replicas live on different nodes. Someone already restarted the pods once to \"reshuffle them\" and nothing changed. The drill is repeated this afternoon, with a stricter bar: at most 1% failed requests while a node disappears.",
+  "objective": "The 2 checkout-api replicas run on different nodes, and when the node hosting one of them is cordoned and its pods are force-deleted, requests through Service checkout-api (one client retry) still succeed at least 99% of the time.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["podAntiAffinity", "labelSelector", "failure domains", "chaos testing", "rollout restart"],
   "module": "module-11-performance",
-  "level": "level-16-chaos-readiness"
+  "level": "level-16-chaos-readiness",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,16 +1,25 @@
-# Root Rejected
+## What was broken
 
-## What Was Broken
-The pod had no securityContext and the image default was UID 0 (root). A namespace-level PodSecurity policy (or admission webhook) rejected the pod because it ran as root.
+A ValidatingAdmissionPolicy refused every pod in the namespace that did not require `runAsNonRoot`. `invoice-render` did not set it, so its ReplicaSet could not create a single pod. After that was fixed, a second layer showed up: the busybox sidecar's image runs as root, and the kubelet refuses to start a container with `runAsNonRoot: true` when the image does not declare a numeric non-root user.
 
-## The Fix
-Set `securityContext.runAsNonRoot: true` and `runAsUser: <non-zero>` on the pod spec. Also add `allowPrivilegeEscalation: false` at the container level for defense in depth.
+## Evidence
 
-## Why It Matters
-Running as root inside a container is a OWASP-flagged vulnerability. If the container is compromised, root access inside maps to a powerful UID on the host kernel. Always use non-root UIDs in production. Kubernetes 1.25+ enforces Pod Security Standards natively.
+`kubectl get deploy` shows 0/2 and `get pods` shows nothing, because admission rejected the pods before they existed. The reason is in the ReplicaSet's `FailedCreate` events, quoting the policy's message. After the first fix, `describe pod` shows `CreateContainerConfigError: container has runAsNonRoot and image will run as root`.
 
-## Pro Tip
-Pod Security Standards have three levels: Privileged (no restrictions), Baseline (prevent obviously dangerous settings), Restricted (hardened). Label namespaces: `kubectl label namespace <ns> pod-security.kubernetes.io/enforce=restricted`
+## Why Kubernetes behaved this way
 
-## Concepts
-securityContext, runAsNonRoot, runAsUser, Pod Security Standards, least privilege
+Admission and the kubelet check different things. The policy only inspects the manifest: is `runAsNonRoot` true somewhere? The kubelet inspects the real image and refuses to start root containers under that flag, but it can only reason about a numeric UID, never a user name, so `runAsUser` has to be a number. The nginx-unprivileged image declares UID 101, so its container needed nothing.
+
+## The fix
+
+Pod-level `runAsNonRoot: true` plus `runAsUser: 101` (or any non-zero UID) on the sidecar. The policy stays in force.
+
+## In production
+
+Admission policies are cluster-wide guard rails: fix the workload, not the rule. Prefer an image that really runs unprivileged (and check with `kubectl exec ... id -u`), and set `runAsUser` and `fsGroup` explicitly when volumes are shared between containers.
+
+## Commands worth remembering
+
+- `kubectl get validatingadmissionpolicy,validatingadmissionpolicybinding`
+- `kubectl run x --image=busybox:1.36 --dry-run=server -- sleep 1` (see what admission says without creating)
+- `kubectl exec <pod> -c <container> -- id -u`

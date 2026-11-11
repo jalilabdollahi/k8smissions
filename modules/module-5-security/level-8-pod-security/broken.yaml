@@ -1,36 +1,33 @@
-# BROKEN: Pod violates restricted Pod Security Standard
-# Problem: Multiple security violations
-# Result: Pod rejected by admission controller
-
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: k8smissions
+  name: pay-restricted
   labels:
-    pod-security.kubernetes.io/enforce: restricted  # Enforce restricted standard
-    pod-security.kubernetes.io/audit: restricted
-    pod-security.kubernetes.io/warn: restricted
-
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: secure-app
-  namespace: k8smissions
+  name: report-ui
+  namespace: pay-restricted
 spec:
-  containers:
-  - name: app
-    image: nginx:latest
-    securityContext:
-      runAsUser: 0
-      allowPrivilegeEscalation: true
-      
-# Restricted Pod Security Standard requires:
-# 1. runAsNonRoot: true
-# 2. allowPrivilegeEscalation: false
-# 3. Drop ALL capabilities
-# 4. seccompProfile type RuntimeDefault or Localhost
-# 5. runAsUser must NOT be 0
-#
-# Result: Admission webhook blocks pod creation
-# Error: "pods restricted: runAsNonRoot != true, allowPrivilegeEscalation != false"
+  replicas: 2
+  selector:
+    matchLabels: {app: report-ui}
+  template:
+    metadata:
+      labels: {app: report-ui}
+    spec:
+      initContainers:
+      - name: prepare
+        image: busybox:1.36
+        command: ["sh", "-c", "echo preparing report templates; sleep 1"]
+      containers:
+      - name: web
+        image: nginxinc/nginx-unprivileged:1.27-alpine
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3

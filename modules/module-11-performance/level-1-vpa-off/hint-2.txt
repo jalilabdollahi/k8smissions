@@ -1,1 +1,2 @@
-The VPA shows recommendations like 'request 500m CPU and 512Mi memory' but the pod is still running with the original values. Look at the VPA's `updatePolicy` section — it controls whether recommendations are applied.
+Nothing in the pod is wrong except two numbers: the memory limit is below what the process needs once its index is loaded, and the request should say what it really uses. Both live under resources on the container. The quota counts requests and limits of every replica, so sizing too generously for one pod can stop the third from being created (check `kubectl describe rs`).
+See: kubectl explain deployment.spec.template.spec.containers.resources

@@ -1,16 +1,15 @@
 {
-  "name": "The Missing Class",
-  "description": "PVC data-pvc has been in Pending for twenty minutes. No pod depends on it yet — it just will not provision. Run kubectl describe pvc data-pvc -n k8smissions.",
-  "objective": "The PVC requests a StorageClass that does not exist in the cluster — fix the storageClassName to one that exists",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "PVC",
-    "StorageClass",
-    "dynamic provisioning",
-    "Pending PVC"
-  ],
+  "name": "The Archive Is Empty",
+  "description": "Finance needs last year's figures from the archive reader, but archive-reader lists an empty directory. The pod is Running and Ready, the claim it mounts is Bound, and nothing has errored. The archive volume itself was prepared months ago by someone who has left: the files are still on its disk and the PersistentVolume still exists.",
+  "objective": "Deployment archive-reader runs Ready on a claim that is bound to PersistentVolume archive-2023, and Service archive-reader serves 2023-summary.csv from it. The volume's data is not modified or deleted.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["storageClassName", "static PV binding", "default StorageClass", "immutable PVC fields"],
   "module": "module-4-storage",
-  "level": "level-11-storageclass-mismatch"
+  "level": "level-11-storageclass-mismatch",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

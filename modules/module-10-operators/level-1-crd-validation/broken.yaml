@@ -1,11 +1,16 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: apptemplates.example.com
+  name: backuppolicies.dba.acme.io
 spec:
-  group: example.com
+  group: dba.acme.io
+  scope: Namespaced
+  names:
+    kind: BackupPolicy
+    plural: backuppolicies
+    singular: backuppolicy
   versions:
-  - name: v1alpha1
+  - name: v1
     served: true
     storage: true
     schema:
@@ -14,12 +19,101 @@ spec:
         properties:
           spec:
             type: object
+            required: [schedule, retentionDays, tier]
             properties:
-              replicas:
+              schedule:
+                type: string
+                description: five-field cron expression
+                pattern: '^(\*|[0-9]+)( (\*|[0-9]+)){4}$'
+              retentionDays:
                 type: integer
-                minimum: 5
-  scope: Namespaced
-  names:
-    plural: apptemplates
-    singular: apptemplate
-    kind: AppTemplate
+                minimum: 30
+              tier:
+                type: string
+                enum: [hot, warm, cold]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: policy-sync
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: policy-sync
+  namespace: k8smissions
+rules:
+- apiGroups: ["dba.acme.io"]
+  resources: ["backuppolicies"]
+  verbs: ["get", "create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: policy-sync
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: policy-sync}
+subjects:
+- {kind: ServiceAccount, name: policy-sync, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: policy-sync-code
+  namespace: k8smissions
+data:
+  sync.py: |
+    from kapi import api, NS, log
+    import time
+
+    BASE = "/apis/dba.acme.io/v1/namespaces/%s/backuppolicies" % NS
+    POLICIES = [  # owned by the DBA team, do not edit
+        ("nightly-db",     {"schedule": "30 1 * * *",   "retentionDays": 14, "tier": "warm"}),
+        ("hourly-wal",     {"schedule": "*/20 * * * *", "retentionDays": 7,  "tier": "hot"}),
+        ("weekly-archive", {"schedule": "0 4 * * 0",    "retentionDays": 90, "tier": "cold"}),
+    ]
+
+    def doc(name, spec):
+        return {"apiVersion": "dba.acme.io/v1", "kind": "BackupPolicy", "metadata": {"name": name}, "spec": spec}
+
+    # all-or-nothing: every policy must pass a server-side dry run before anything is created
+    for attempt in range(1, 121):
+        failed = None
+        for name, spec in POLICIES:
+            code, body = api("POST", BASE + "?dryRun=All", doc(name, spec))
+            if code not in (200, 201):
+                failed = name
+                log("attempt %d: policy %s rejected (%s): %s" % (attempt, name, code, body.get("message")))
+                break
+        if not failed:
+            for name, spec in POLICIES:
+                code, body = api("POST", BASE, doc(name, spec))
+                log("created %s -> %s" % (name, code))
+            raise SystemExit(0)
+        time.sleep(5)
+    raise SystemExit("giving up: the API server keeps rejecting the policies")
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: policy-sync
+  namespace: k8smissions
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      serviceAccountName: policy-sync
+      restartPolicy: Never
+      containers:
+      - name: sync
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/sync.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: policy-sync-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

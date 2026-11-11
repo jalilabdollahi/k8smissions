@@ -1,3 +1,1 @@
-The init container is waiting for `backend-service` — which does not exist. The init container itself is not the problem. The dependency it is waiting for is the problem.
-
-Rather than removing the init container, look at what you need to add to manifest.yaml.
+The init container is fine and should stay. Bring the dependency back: `kubectl -n k8smissions scale deployment <name> --replicas=<n>`, then watch `kubectl get pods -w`. The waiting pod notices on its next 2-second check and starts the app container without being touched.

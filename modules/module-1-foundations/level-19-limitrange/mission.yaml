@@ -1,17 +1,15 @@
 {
-  "name": "The Noisy Neighbour",
-  "description": "Pod noisy-pod keeps getting OOMKilled, but there is no memory limit defined in its spec. Run kubectl get pod noisy-pod -n k8smissions.",
-  "objective": "Find the namespace LimitRange that injected a small default limit, then give the Pod an explicit memory limit large enough for the workload",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "LimitRange",
-    "resource limits",
-    "resource requests",
-    "namespace policy",
-    "admission defaults"
-  ],
+  "name": "Rejected at Admission",
+  "description": "Deployment `invoice-render` shows `0/3` and has no pods at all, so month-end invoices cannot be rendered. There is nothing to describe: `kubectl get pods` is empty. The manifest has not changed in weeks, but the platform team added some namespace rules last sprint. A render peaks at about 360 MiB of memory.",
+  "objective": "Deployment `invoice-render` has 3 Ready pods that survive real render requests (the memory limit must leave room for a render), while the namespace's LimitRange `team-defaults` stays in force.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": ["LimitRange", "maxLimitRequestRatio", "ReplicaSet events", "requests vs limits", "kubectl set resources"],
   "module": "module-1-foundations",
-  "level": "level-19-limitrange"
+  "level": "level-19-limitrange",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

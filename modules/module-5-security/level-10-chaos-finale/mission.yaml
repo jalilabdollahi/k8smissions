@@ -1,15 +1,15 @@
 {
-  "name": "CHAOS FINALE: The Perfect Storm",
-  "description": "Production is down across the board. Multiple independent failures are active simultaneously: pods are stuck Pending, pods are being rejected at admission, RBAC errors fill the logs, and no traffic can flow. This is a compound incident — you must identify and fix each failure mode before the system stabilizes.",
-  "objective": "Multiple failures are active simultaneously: RBAC, SecurityContext, ResourceQuota, NetworkPolicy, NodeAffinity, Taints, PDB, PodSecurity, PriorityClass — fix each one",
-  "xp": 500,
+  "name": "Settlement Go-Live",
+  "description": "`settlement` (namespace `settle`) is being released tonight and nothing works. The Deployment shows 0/2 and no pods at all. The team has hardened this namespace on purpose: Pod Security, a quota, least-privilege RBAC and a policy around the database. Each time someone fixes what they see, something else appears.",
+  "objective": "`settlement` has 2 Ready pods and its `/ready` endpoint answers 200, which means it loaded its ConfigMap through the API and reached `settle-db`. The namespace's guard rails all stay: `enforce=restricted`, the quota `settle-quota`, no access to Secrets for the app, and the database stays closed to every pod that is not `settlement`.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "10m",
-  "concepts": [
-    "All Module 5 concepts combined",
-    "incident response workflow",
-    "priority triaging in production"
-  ],
+  "expected_time": "30m",
+  "concepts": ["Pod Security Admission", "ResourceQuota", "RBAC", "NetworkPolicy", "incident triage"],
   "module": "module-5-security",
-  "level": "level-10-chaos-finale"
+  "level": "level-10-chaos-finale",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 180,
+  "cleanup": []
 }

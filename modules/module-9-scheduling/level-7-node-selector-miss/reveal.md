@@ -1,23 +1,4 @@
-## What went wrong
-
-`nodeSelector` is a hard constraint: the pod only schedules on nodes that have every key-value pair in the selector. The label `accelerator-type: nvidia-v100` doesn't exist on any node, so no valid placement exists and the pod stays Pending indefinitely.
-
-## Fix
-
-Remove the `nodeSelector` block:
-```yaml
-spec:
-  # nodeSelector removed — schedules on any node
-  containers:
-  - name: trainer
-    ...
-```
-
-Or label the correct node if GPU nodes exist:
-```bash
-kubectl label node <gpu-node-name> accelerator-type=nvidia-v100
-```
-
-## Why this matters
-
-`nodeSelector` is the simplest form of node targeting — it's a map of required labels. For more flexibility, use `nodeAffinity` which supports operators (`In`, `NotIn`, `Exists`, `DoesNotExist`) and preferred vs. required semantics. Both `nodeSelector` and `nodeAffinity` are complementary: if both are specified, a node must satisfy both. Always verify node labels before writing selectors using `kubectl get nodes --show-labels`.
+1. `kubectl get nodes -L disktype,drain-pending` shows the SSD worker still has `drain-pending=true`, left over from last week's maintenance.
+2. The affinity term requires `disktype In [ssd,nvme]` AND `drain-pending DoesNotExist`; the SSD node fails the second expression, the HDD node the first.
+3. Remove the stale label: `kubectl label node <ssd-node> drain-pending-`. The scheduler re-evaluates the Pending pods and both start on the SSD node.
+   (Editing the affinity to drop the `drain-pending` expression is also accepted.)

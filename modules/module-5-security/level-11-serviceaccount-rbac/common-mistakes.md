@@ -1,13 +1,6 @@
-# Common Mistakes — Forbidden Access
+## Mistakes on this level
 
-## Mistake 1: Using ClusterRole instead of Role for namespace-scoped access
-
-**Wrong approach:** Creating a ClusterRole and ClusterRoleBinding when only namespace access is needed
-
-**Correct approach:** Use Role + RoleBinding for namespace-scoped access; ClusterRole for cluster-wide
-
-## Mistake 2: Binding role to the wrong subject kind
-
-**Wrong approach:** Using 'kind: User' with a SA name instead of 'kind: ServiceAccount'
-
-**Correct approach:** ServiceAccounts use kind: ServiceAccount with namespace field
+- **Binding the Role to `default`.** The app starts working, but every pod in the namespace can now read the flags, and the validator checks that `default` still cannot.
+- **Stopping after the first fix.** The 403 disappears and a new crash replaces it. Read the new log line instead of assuming the switch failed: the token is not mounted because automount is disabled on the ServiceAccount.
+- **Granting `flags-reader` a wildcard or `secrets` to "be safe".** The Role was already enough for one ConfigMap. Extra verbs or resources fail the least-privilege checks.
+- **Editing the running pod.** `serviceAccountName` cannot be changed on a live pod; change the Deployment template so the ReplicaSet creates new pods.

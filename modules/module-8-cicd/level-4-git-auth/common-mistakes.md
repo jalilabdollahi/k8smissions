@@ -1,7 +1,5 @@
-# Common Mistakes — Clone Denied
+**Fixing only the annotation.** The Secret now matches the URL, but the next run still uses `default`, so the credentials are never mounted and the clone fails exactly as before. Check which ServiceAccount the new run actually has.
 
-## Mistake 1: Using HTTP credentials for SSH URL
+**Putting the password in the repository URL.** `http://ci-bot:...@gitserver...` makes the clone work, and leaks the password into the Pipeline, the pod spec and logs. The objective keeps the credentials in the `basic-auth` Secret.
 
-**Wrong approach:** Creating an HTTP basic-auth secret for an ssh:// git URL
-
-**Correct approach:** Match secret type to URL scheme: ssh-auth for ssh://, basic-auth for https://
+**Recreating the Secret with another type.** Tekton recognises `kubernetes.io/basic-auth` and `kubernetes.io/ssh-auth` plus annotations; an `Opaque` Secret is ignored. The type was never the problem.

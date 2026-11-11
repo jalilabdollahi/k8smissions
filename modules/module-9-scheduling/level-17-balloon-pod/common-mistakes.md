@@ -1,7 +1,11 @@
-# Common Mistakes — Reserved Space
+## Trusting `kubectl top`
 
-## Mistake 1: Leaving balloon pods with same priority as real workloads
+It shows what processes use, and the scheduler does not read it. A node at 8% CPU can be fully reserved. Compare with Allocated resources on the node.
 
-**Wrong approach:** Balloon pod has same priority as real workloads — real pods can't preempt it
+## Deleting `capacity-reserve`
 
-**Correct approach:** Balloon pods must have LOW priority so real workloads can displace them
+`checkout` schedules, and the headroom that the platform team keeps for the next spike is gone. The validator requires the placeholders to remain.
+
+## Editing the priority on running pods or the class value
+
+A pod's `priorityClassName` cannot be changed on a live pod, and existing pods keep their resolved priority. Change the Deployment's template and let it roll, using a class that sits below the workloads you want to protect.

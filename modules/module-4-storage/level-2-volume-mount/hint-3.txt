@@ -1,3 +1,6 @@
-The init container writes to `/data/app.conf` and the main container reads from `/app/config/app.conf`. Both are wrong paths — both need their mountPath changed to `/app/config`.
+Make the two paths agree. Either move the mount:
 
-Find the volumeMounts section in both containers in manifest.yaml.
+  kubectl patch deployment web-app -n k8smissions --type=json \
+    -p '[{"op":"replace","path":"/spec/template/spec/containers/0/volumeMounts/1/mountPath","value":"<path-the-app-writes-to>"}]'
+
+or point the app at the mount with kubectl set env deployment/web-app DATA_DIR=<mountPath>. Either way the pod rolls out again.

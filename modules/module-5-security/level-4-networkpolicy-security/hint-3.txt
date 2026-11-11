@@ -1,1 +1,1 @@
-The `deny-all` NetworkPolicy applies to every pod in the namespace (empty podSelector) and lists both Ingress and Egress as policy types, but defines no `ingress:` or `egress:` rules — which in Kubernetes means *deny everything*.
+The old policy `allow-ns-ingress` admits every pod of the namespace (`from: - podSelector: {}`). Remove it or narrow it: `kubectl -n k8smissions delete networkpolicy <name>`. Keep `default-deny-ingress` and `payments-db-from-api`, otherwise nothing is isolated.

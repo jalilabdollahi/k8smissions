@@ -1,22 +1,46 @@
-# Combined with imagePullPolicy: Always, Kubernetes must contact the registry on every
-# pod creation — it cannot use a local node cache. All new pods fail with ImagePullBackOff.
-# Existing running pods are unaffected (containers already running don't re-pull images).
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: registry-app
+  name: storefront
   namespace: k8smissions
+  annotations: {release: "3.2"}
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxSurge: 1, maxUnavailable: 0}
   selector:
-    matchLabels:
-      app: registry-app
+    matchLabels: {app: storefront}
   template:
     metadata:
-      labels:
-        app: registry-app
+      labels: {app: storefront}
     spec:
-      containers:
-      - name: registry-app
-        image: internal-registry.company.local/app:v2.1
+      initContainers:
+      - name: schema-check
+        image: registry.corp-mirror.invalid/tools/busybox:1.36   # lint: allow-image
         imagePullPolicy: Always
+        command: ["sh", "-c", "echo schema check passed"]
+      containers:
+      - name: storefront
+        image: registry.corp-mirror.invalid/shop/http-echo:1.0   # lint: allow-image
+        imagePullPolicy: Always
+        args: ["-listen=:8080", "-text=storefront 3.2 - spring catalogue"]
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+      - name: metrics-sidecar
+        image: busybox:1.34.1
+        imagePullPolicy: Never
+        command: ["sh", "-c", "while true; do echo storefront_up 1; sleep 30; done"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storefront
+  namespace: k8smissions
+spec:
+  selector: {app: storefront}
+  ports:
+  - {port: 80, targetPort: 8080}

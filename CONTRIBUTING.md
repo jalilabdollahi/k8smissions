@@ -1,274 +1,67 @@
 # Contributing to K8sMissions
 
-Thank you for improving K8sMissions! This guide explains how the project is structured and how to add new levels, modules, and engine features.
+Thanks for helping. K8sMissions only works if every level is real: a believable
+incident on a real cluster, a fix the player has to find, and a check that proves
+the fix by behaviour. Please read these first:
 
----
+- [`docs/LEVEL_AUTHORING.md`](docs/LEVEL_AUTHORING.md): the level contract (files,
+  `mission.yaml` fields, validator and solution rules, hints, debriefs).
+- [`docs/curriculum/README.md`](docs/curriculum/README.md): module scopes and which
+  module owns which topic.
+- `docs/curriculum/<module>.md`: the design map for each module, one row per level.
 
-## Table of Contents
+## Changing or adding a level
 
-1. [Project Structure](#project-structure)
-2. [Level Format](#level-format)
-3. [MODULE_DESCRIPTION.txt Format](#moduledescriptiontxt-format)
-4. [Adding a New Level](#adding-a-new-level)
-5. [Adding a New Module](#adding-a-new-module)
-6. [Engine Architecture](#engine-architecture)
-7. [Regenerating the Level Registry](#regenerating-the-level-registry)
-8. [Code Style](#code-style)
+1. Update the module's map row first, so overlaps with other levels are caught on
+   paper. Each level needs its own failing mechanism and its own fix.
+2. Write every file of the level by hand. Never generate levels or their texts
+   from a shared template.
+3. Don't rename or delete existing level folders. The folder name is the level id
+   in players' `progress.json`. New levels get the next free number in their module.
+4. Test until all three pass:
 
----
-
-## Project Structure
-
-```
-k8smissions/
-├── play.sh                  # Game launcher
-├── install.sh               # One-time setup script
-├── levels.json              # Auto-generated level registry (do not edit by hand)
-├── progress.json            # Player save file (auto-managed)
-├── engine/
-│   ├── engine.py            # Main game loop
-│   ├── ui.py                # Rich terminal UI helpers
-│   ├── certificate.py       # Module completion certificates
-│   ├── player.py            # Player name prompt
-│   ├── reset.py             # Level reset / broken state setup
-│   └── safety.py            # kubectl safety guards
-├── modules/
-│   ├── module-1-foundations/
-│   │   ├── MODULE_DESCRIPTION.txt
-│   │   ├── level-1-first-pod/
-│   │   │   ├── mission.yaml
-│   │   │   ├── broken.yaml
-│   │   │   ├── solution.yaml
-│   │   │   ├── validate.sh
-│   │   │   ├── hint-1.txt
-│   │   │   ├── hint-2.txt
-│   │   │   ├── hint-3.txt
-│   │   │   ├── debrief.md
-│   │   │   └── common-mistakes.md
-│   │   └── ...
-│   └── ...
-├── scripts/
-│   ├── build_levels.py      # Regenerates level directories from MODULE_DESCRIPTION.txt
-│   └── generate_registry.py # Regenerates levels.json registry
-├── completion/
-│   ├── k8smissions.bash     # Bash tab completion
-│   └── k8smissions.zsh      # Zsh tab completion
-└── certificates/            # Generated module certificates (auto-created)
-```
-
----
-
-## Level Format
-
-Each level lives in its own directory under `modules/<module-name>/level-N-<slug>/` and contains **9 required files**:
-
-### `mission.yaml`
-
-JSON (parsed as YAML) describing the mission metadata:
-
-```json
-{
-  "name": "Short human-readable name",
-  "description": "What the player observes — symptoms only, no root cause spoilers",
-  "objective": "The X is broken because Y — fix Z",
-  "xp": 150,
-  "difficulty": "beginner|intermediate|advanced|expert",
-  "expected_time": "10m",
-  "concepts": ["pod lifecycle", "readiness probes"],
-  "module": "module-1-foundations",
-  "level": "level-3-readiness"
-}
-```
-
-**Rules for `description`:** Describe only what the player can *observe* — error messages, pod states, output in the terminal. **Do not reveal the root cause.**
-
-**Rules for `objective`:** State what is broken and what to fix. A good template: `"The <component> is <broken state> — fix <action>"`.
-
-### `broken.yaml`
-
-Kubernetes manifest(s) that set up the broken scenario. Applied to the `k8smissions` namespace by `reset.py` when the level starts or is reset.
-
-```yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: my-pod
-  namespace: k8smissions
-spec:
-  containers:
-  - name: app
-    image: nginx:doesnotexist99   # intentionally broken
-```
-
-> Multiple documents in one file are supported (separated by `---`).
-
-### `solution.yaml`
-
-The fixed manifest(s). Displayed when the player runs `guide`. Not applied automatically — the player must apply it themselves.
-
-### `validate.sh`
-
-Bash script that tests whether the player's fix is correct. Must exit `0` on success, non-zero on failure. Output is shown to the player.
-
-```bash
-#!/bin/bash
-set -euo pipefail
-NS="k8smissions"
-
-STATUS=$(kubectl get pod my-pod -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null || true)
-if [ "$STATUS" = "Running" ]; then
-  echo "✅ PASS: pod is Running"
-  exit 0
-fi
-echo "❌ FAIL: pod status='$STATUS'"
-exit 1
-```
-
-**Important:** Always use `NS="k8smissions"` and pass `-n "$NS"` to all kubectl commands.
-
-### `hint-1.txt`, `hint-2.txt`, `hint-3.txt`
-
-Progressive hints. `hint-1` should be vague (what to look for), `hint-2` more specific (which command to run), `hint-3` almost a direct answer.
-
-### `debrief.md`
-
-Post-level lesson explaining:
-- What happened (root cause)
-- The fix with exact commands
-- Key Kubernetes concepts
-- Relevant `kubectl` commands
-
-### `common-mistakes.md`
-
-A list of common errors players make on this level. Use `## ❌` headers for each mistake.
-
----
-
-## `MODULE_DESCRIPTION.txt` Format
-
-Each module directory contains a `MODULE_DESCRIPTION.txt` used by `scripts/build_levels.py` to scaffold level directories. Format:
-
-```
-LEVEL 1 — level-slug
-Name:         Human Readable Name
-Difficulty:   beginner
-XP:           100
-Time est.:    5m
-Description:  What the player sees (symptoms)
-Objective:    The X is broken — fix Y
-Broken state: Describe what broken.yaml should set up
-Fix:          What the solution should do
-Validate:     What validate.sh should check
-Concepts:     pod, image, kubectl
-Hint 1:       Broad direction hint
-Hint 2:       More specific hint
-Hint 3:       Near-answer hint
-Debrief:      Learning points for the lesson
-Folder:       level-1-slug-name
-```
-
----
-
-## Adding a New Level
-
-### Option A: Manual (recommended for complex war-game scenarios)
-
-1. Create the directory:
    ```bash
-   mkdir -p modules/module-N-name/level-M-slug
+   venv/bin/python scripts/test_levels.py <module>/<level> --mirror
+   venv/bin/python scripts/lint_levels.py <module>/<level>
+   venv/bin/python scripts/check_duplicates.py <module>/<level>
    ```
 
-2. Create all 9 files (`mission.yaml`, `broken.yaml`, `solution.yaml`, `validate.sh`, `hint-1/2/3.txt`, `debrief.md`, `common-mistakes.md`)
+   `test_levels.py` creates its own kind cluster from `kind-config.yaml` (never the
+   game cluster). It checks that the validator fails on an empty cluster and on the
+   broken state, passes after `solution.sh`, and that cleanup leaves nothing behind.
+5. `play.sh` rebuilds the registry (`levels.json`) on every start. To refresh it
+   without starting the game: `venv/bin/python scripts/generate_registry.py`.
 
-3. Regenerate the registry:
-   ```bash
-   python3 scripts/generate_registry.py
-   ```
-
-4. Test your level:
-   ```bash
-   ./play.sh
-   # Navigate to your level with 'skip', then test it
-   ```
-
-### Option B: Via MODULE_DESCRIPTION.txt (for scaffolding)
-
-1. Add a new `LEVEL N — slug` block to the module's `MODULE_DESCRIPTION.txt`
-2. Run `python3 scripts/build_levels.py` (⚠️ this **clears** existing level directories in that module)
-3. Fill in generated stub files with real content
-
----
-
-## Adding a New Module
-
-1. Create the module directory: `modules/module-N-name/`
-2. Add a `MODULE_DESCRIPTION.txt` describing the theme
-3. Create level directories with all 9 files each
-4. Add the module to `engine/ui.py` `MODULE_TITLES` dict (used as display name fallback):
-   ```python
-   MODULE_TITLES = {
-       ...
-       "module-N-name": "Human Readable Title",
-   }
-   ```
-5. Regenerate the registry: `python3 scripts/generate_registry.py`
-
-> **XP totals** are now computed dynamically from `mission.yaml` files — no need to update `MODULE_TOTAL_XP` manually.
-
----
-
-## Engine Architecture
-
-The engine is fully event-driven with a simple inner/outer loop:
+## Engine architecture
 
 ```
 game_loop()
-  └── outer while: load modules, load progress, show briefing
-        └── inner while: Prompt.ask → dispatch command
-              ├── check      → run_validator() → complete_level() on pass
-              ├── check-dry  → run_validator() (no XP)
-              ├── watch      → watch_mode() (auto-check every 5s)
-              ├── hint       → show_guidance()
-              ├── guide      → show_guide()
-              ├── debrief    → show_post_level_debrief()
-              ├── reset      → prepare_level()
-              ├── status     → show_status()
-              ├── skip       → complete_level(award_xp=False)
-              └── reset-progress → wipe progress.json
+  └── outer loop: load modules and progress, prepare_level(), show briefing
+        └── inner loop: prompt → dispatch command
+              ├── check / check-dry / watch → run_validator()
+              ├── hint / reveal             → hints, then the answer for -50% XP
+              ├── debrief / guide / status / skip / reset-progress
+              └── reset                     → prepare_level()
 ```
 
-**`progress.json` fields:**
+- `engine/reset.py` `prepare_level()` returns the cluster to a clean baseline. It
+  deletes objects labelled `k8smissions/managed=true` (cluster-scoped ones too),
+  level namespaces, and mission `cleanup` entries, and it resets node taints, labels,
+  cordons and extended resources. Then it ensures the level's add-ons, runs
+  `setup.sh` and applies `broken.yaml`, labelling what they create.
+- `engine/addons.py` installs pinned metrics-server, ingress-nginx, Tekton and
+  Argo CD (core) on demand.
+- `scripts/test_levels.py` imports the same functions, so the tests exercise exactly
+  what players get.
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `player_name` | string | Agent callsign |
-| `total_xp` | int | Accumulated XP |
-| `completed_levels` | list[str] | Level IDs (`module/level` format) |
-| `current_module` | string | Active module directory name |
-| `current_level` | string | Active level directory name |
-| `module_certificates` | list[str] | Modules with earned certificates |
-| `time_per_level` | dict[str, int] | Seconds taken per level ID |
-| `level_start_time` | float\|null | Unix timestamp when current level started |
+**`progress.json` fields:** `player_name`, `total_xp`, `completed_levels`
+(`module/level` ids), `current_module`, `current_level`, `module_certificates`,
+`time_per_level`, `level_start_time`.
 
----
+## Code style
 
-## Regenerating the Level Registry
-
-After adding or modifying levels, regenerate `levels.json` so the engine loads quickly without scanning directories:
-
-```bash
-python3 scripts/generate_registry.py
-```
-
-The engine will automatically use `levels.json` if it exists, and fall back to directory scanning otherwise.
-
----
-
-## Code Style
-
-- Python 3.10+ with `from __future__ import annotations`
-- All UI output goes through `engine/ui.py` — never print directly from engine.py
-- `validate.sh` scripts must use `set -euo pipefail` and always set `NS="k8smissions"`
-- All Kubernetes manifests must use `namespace: k8smissions`
-- Difficulties: `beginner` | `intermediate` | `advanced` | `expert`
-- XP ranges: beginner 50–100, intermediate 100–200, advanced 200–300, expert 300–500
+- Python 3.9+ with `from __future__ import annotations`; UI output goes through
+  `engine/ui.py`.
+- Level scripts use `$NS` (set by the engine and the tests) and stay compatible with
+  macOS bash 3.2.
+- Difficulty and XP: beginner 100, intermediate 150, advanced 200, expert 300.

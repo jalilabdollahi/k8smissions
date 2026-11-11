@@ -1,1 +1,1 @@
-The pod's `resources.requests.cpu` field is set to 2500m, but the namespace's `requests.cpu` hard limit is only 2000m. The pod requests more CPU than the entire namespace is allowed.
+Give the container in the Deployment a CPU and a memory limit small enough that three of them fit: `kubectl -n k8smissions set resources deployment invoice-api --limits=cpu=<millicores>,memory=<size>` (the quota divided by 3 is the ceiling per pod). A LimitRange with default limits in the namespace would also work.

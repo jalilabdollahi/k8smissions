@@ -1,5 +1,1 @@
-PostgreSQL is printing an error about a missing required setting and refusing to start. Check what environment variables are currently set in the pod:
-
-  kubectl get pod database-app -n k8smissions -o yaml | grep -A10 'env'
-
-Is there an `env` section at all?
+The configuration is a ConfigMap mounted as a file, so the line number refers to a line of that file: `kubectl -n k8smissions get configmap rates-sync-conf -o yaml`. The program checks the file top to bottom and stops at the first problem, so after one fix the next one may appear. Running pods read the file at start, so they need a restart to see your change.

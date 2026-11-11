@@ -1,28 +1,6 @@
-## What went wrong
+The Envoy route has `timeout: 3s`, but rendering a PDF takes 6 to 9 seconds, so Envoy gives up and answers 504 (`UT`, upstream request timeout) while the app is still working.
 
-The VirtualService timeout of 15 seconds is shorter than the backend's actual processing time. When a request exceeds the timeout, Istio's Envoy sidecar cancels the request and returns a 504 to the caller — even if the backend would have successfully completed the work a few seconds later.
-
-## Fix
-
-```yaml
-http:
-- timeout: 120s
-  retries:
-    attempts: 3
-    perTryTimeout: 30s
-    retryOn: 5xx,reset,connect-failure,retriable-4xx
-  route:
-  - destination:
-      host: backend.k8smissions.svc.cluster.local
-      port:
-        number: 8080
-```
-
-## Why this matters
-
-Timeout and retry configuration in a service mesh are separate concerns:
-- **timeout**: the total budget for the entire request including all retries
-- **perTryTimeout**: the budget for a single attempt before retrying
-- **retryOn**: which error conditions trigger a retry
-
-The key invariant: `perTryTimeout × attempts ≤ timeout` (with some slack). Retrying non-idempotent operations (POST, payments, writes) requires application-level idempotency keys — don't blindly retry all 5xx errors if the backend doesn't handle duplicate requests safely.
+1. `kubectl logs deploy/invoice-render -c envoy` shows `504 UT` lines; the admin stat `cluster.app.upstream_rq_timeout` rises with them.
+2. Edit the ConfigMap: `route.timeout: 15s` (above 9s, still finite).
+3. Envoy loads its static config at start, so `kubectl rollout restart deployment/invoice-render` is needed for the new value to take effect.
+4. Do not use `0s` (no timeout): a hung backend would then hold the client forever, and the validator checks that `/hang` is still cut off with a 504.

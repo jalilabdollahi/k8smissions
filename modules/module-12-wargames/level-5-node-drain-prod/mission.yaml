@@ -1,16 +1,15 @@
 {
-  "name": "Surprise Drain",
-  "description": "A node needs maintenance but `kubectl drain` is permanently blocked. The PodDisruptionBudget requires 3 pods to be available at all times, but the Deployment only has 2 total replicas. The math is impossible: to evict any pod, at least 3 must remain available — but there are only 2 to start with. The cluster is stuck.",
-  "objective": "The PDB minAvailable is too high for the replica count — fix the PDB so node drain can proceed",
-  "xp": 350,
+  "name": "Drain the Node, Keep the Shop",
+  "description": "The maintenance window for the worker labelled `maintenance=pending` has started. It must be empty of workloads and cordoned so the infrastructure team can patch it. `kubectl drain` stops at its first complaint, and every time one problem is cleared another one shows up. The shop must keep serving the whole time.",
+  "objective": "The node labelled `maintenance=pending` is cordoned and has no pods of the `k8smissions` namespace left on it (DaemonSet pods excepted), `checkout` and `search` have all their replicas Ready on the remaining node and answer through their Services, and a PodDisruptionBudget still protects `checkout`.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "PodDisruptionBudget",
-    "node drain",
-    "maintenance windows",
-    "high availability"
-  ],
+  "expected_time": "20m",
+  "concepts": ["kubectl drain", "PodDisruptionBudget", "taints", "emptyDir", "unmanaged pods"],
   "module": "module-12-wargames",
-  "level": "level-5-node-drain-prod"
+  "level": "level-5-node-drain-prod",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 180,
+  "cleanup": []
 }

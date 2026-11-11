@@ -1,13 +1,9 @@
-# Common Mistakes — The Garbled Token
+# Common mistakes: level 14
 
-## Mistake 1: Using stringData and data together incorrectly
+**Restarting the consumer.** `kubectl rollout restart deployment/api-consumer` gives the pod the current token and the first check passes. The rotation after that leaves it stale again, which the validator's second rotation shows.
 
-**Wrong approach:** Setting both stringData.token and data.token — data overrides stringData if both present
+**Recreating or re-editing the Secret.** The Secret is correct; the gateway already accepts it. The pod's copy is what is stale, so a different Secret value changes nothing for it.
 
-**Correct approach:** Use only one field: stringData for plaintext, data for pre-encoded base64
+**Mounting the volume at `/etc/api/token` without `subPath`.** That makes `token` a directory containing a file `token`, so the app finds `/etc/api/token/token` and not the file it reads. Mount at the directory (`/etc/api`) so the key appears as `/etc/api/token`.
 
-## Mistake 2: Forgetting -n flag in echo
-
-**Wrong approach:** echo 'value' | base64 includes a trailing newline — always use echo -n
-
-**Correct approach:** Always echo -n 'value' | base64 to avoid a trailing newline in the decoded secret
+**Expecting an instant change.** Kubelet updates Secret volumes on its sync loop, up to about a minute after the Secret changes. The validator waits for it; give a manual check the same time.

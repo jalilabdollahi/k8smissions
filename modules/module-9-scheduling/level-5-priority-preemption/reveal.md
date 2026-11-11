@@ -1,14 +1,6 @@
-## What went wrong
-
-The pod is labeled `critical-workload` in its name but assigned the `low-priority` PriorityClass. The scheduler only preempts lower-priority pods to make room for *higher*-priority ones. With the wrong class, the critical pod queues behind everything else.
-
-## Fix
-
-```yaml
-spec:
-  priorityClassName: high-priority
-```
-
-## Why this matters
-
-Pod priority determines two things: scheduling queue order and preemption eligibility. A higher-priority pod that can't schedule will cause the scheduler to look for lower-priority pods to evict to make room. The numeric priority value (set in the PriorityClass) determines relative ordering — not the name. Common production tiers: `system-cluster-critical` (built-in, value 2000000000), `high-priority` (~1000), `default` (0), `low-priority` (~-100). Always use named PriorityClasses rather than raw numeric values — names are more auditable and refactorable.
+1. `kubectl get priorityclass payments-high -o yaml` shows `value: 100000` but `preemptionPolicy: Never`: the pods may jump the queue but never evict anyone.
+2. Class fields are immutable, so create a new class that allows preemption:
+   `kubectl apply -f -` with `kind: PriorityClass`, `name: payments-critical`, `value: 100000`, `preemptionPolicy: PreemptLowerPriority`.
+3. Point the Deployment at it (this rolls the pods, and new pods get the new policy):
+   `kubectl -n k8smissions patch deploy pay-gateway -p '{"spec":{"template":{"spec":{"priorityClassName":"payments-critical"}}}}'`
+4. The scheduler now evicts two `dev-sandbox` pods (`kubectl get events --field-selector reason=Preempted`) and the gateway starts.

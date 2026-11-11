@@ -1,88 +1,39 @@
 #!/bin/bash
+PNS=pay-restricted
+k() { kubectl -n "$PNS" "$@"; }
 
-NAMESPACE="k8smissions"
-POD_NAME="secure-app"
-
-echo "🔍 VALIDATION STAGE 1: Checking namespace security labels..."
-PSS_ENFORCE=$(kubectl get namespace $NAMESPACE -o jsonpath='{.metadata.labels.pod-security\.kubernetes\.io/enforce}')
-if [ "$PSS_ENFORCE" != "restricted" ]; then
-    echo "⚠️  Namespace doesn't enforce 'restricted' standard"
-    echo "   This level works best with restricted enforcement"
+enf=$(kubectl get ns "$PNS" -o jsonpath='{.metadata.labels.pod-security\.kubernetes\.io/enforce}' 2>/dev/null)
+if [ "$enf" != "restricted" ]; then
+  echo "❌ namespace $PNS must keep pod-security.kubernetes.io/enforce=restricted (found: ${enf:-none})"
+  exit 1
 fi
-echo "✅ Namespace checked"
+ver=$(kubectl get ns "$PNS" -o jsonpath='{.metadata.labels.pod-security\.kubernetes\.io/enforce-version}')
+case "${ver:-latest}" in latest|v1.*) ;; *) echo "❌ the enforce-version of $PNS must not be pinned back"; exit 1;; esac
+echo "✅ namespace $PNS still enforces restricted"
 
-echo ""
-echo "🔍 VALIDATION STAGE 2: Checking if pod exists..."
-if ! kubectl get pod $POD_NAME -n $NAMESPACE &>/dev/null; then
-    echo "❌ FAILED: Pod '$POD_NAME' not found"
-    echo "💡 Hint: Pod may have been rejected by admission controller"
-    echo "💡 Hint: Check events: kubectl get events -n $NAMESPACE"
-    exit 1
+if [ "$(k get deploy report-ui -o jsonpath='{.spec.replicas}' 2>/dev/null)" != "2" ]; then
+  echo "❌ Deployment report-ui must exist with 2 replicas"
+  exit 1
 fi
-echo "✅ Pod exists"
-
-echo ""
-echo "🔍 VALIDATION STAGE 3: Checking runAsNonRoot..."
-RUN_AS_NON_ROOT=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.containers[0].securityContext.runAsNonRoot}')
-if [ "$RUN_AS_NON_ROOT" != "true" ]; then
-    echo "❌ FAILED: runAsNonRoot not set to true"
-    exit 1
+if ! k rollout status deploy/report-ui --timeout=60s >/dev/null 2>&1; then
+  echo "❌ report-ui: $(k get deploy report-ui -o jsonpath='{.status.readyReplicas}')/2 pods Ready"
+  exit 1
 fi
-echo "✅ runAsNonRoot: true"
+echo "✅ report-ui: 2 of 2 pods Ready"
 
-echo ""
-echo "🔍 VALIDATION STAGE 4: Checking runAsUser (must be non-zero)..."
-RUN_AS_USER=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.containers[0].securityContext.runAsUser}')
-if [ -z "$RUN_AS_USER" ] || [ "$RUN_AS_USER" = "0" ]; then
-    echo "❌ FAILED: runAsUser is 0 (root) or not set"
-    exit 1
+pod=$(k get pods -l app=report-ui -o jsonpath='{.items[0].metadata.name}')
+if ! k exec "$pod" -c web -- wget -q -O /dev/null -T 4 http://127.0.0.1:8080/ 2>/dev/null; then
+  echo "❌ report-ui does not answer HTTP on 8080"
+  exit 1
 fi
-echo "✅ runAsUser: $RUN_AS_USER (non-root)"
+echo "✅ report-ui answers HTTP"
 
-echo ""
-echo "🔍 VALIDATION STAGE 5: Checking allowPrivilegeEscalation..."
-ALLOW_PRIV=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.containers[0].securityContext.allowPrivilegeEscalation}')
-if [ "$ALLOW_PRIV" != "false" ]; then
-    echo "❌ FAILED: allowPrivilegeEscalation not set to false"
-    exit 1
+# admission still rejects a privileged pod
+out=$(k run priv-check --image=busybox:1.36 --privileged --dry-run=server -o name --command -- sleep 1 2>&1)
+if ! echo "$out" | grep -q 'violates PodSecurity'; then
+  echo "❌ a privileged pod is not rejected in $PNS any more"
+  exit 1
 fi
-echo "✅ allowPrivilegeEscalation: false"
-
-echo ""
-echo "🔍 VALIDATION STAGE 6: Checking capabilities dropped..."
-CAPS_DROP=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.containers[0].securityContext.capabilities.drop}')
-if ! echo "$CAPS_DROP" | grep -q "ALL"; then
-    echo "❌ FAILED: capabilities.drop does not include ALL"
-    exit 1
-fi
-echo "✅ capabilities dropped: ALL"
-
-echo ""
-echo "🔍 VALIDATION STAGE 7: Checking seccompProfile..."
-SECCOMP=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.securityContext.seccompProfile.type}')
-if [ "$SECCOMP" != "RuntimeDefault" ] && [ "$SECCOMP" != "Localhost" ]; then
-    echo "⚠️  seccompProfile not set to RuntimeDefault or Localhost"
-    echo "   This is required for restricted standard"
-fi
-echo "✅ seccompProfile: $SECCOMP"
-
-echo ""
-echo "🔍 VALIDATION STAGE 8: Checking pod status..."
-POD_STATUS=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.status.phase}')
-if [ "$POD_STATUS" != "Running" ]; then
-    echo "⚠️  Pod is $POD_STATUS, not Running"
-else
-    echo "✅ Pod is Running"
-fi
-
-echo ""
-echo "🎉 SUCCESS! Pod meets restricted Pod Security Standards!"
-echo ""
-echo "Security configuration:"
-echo "  • runAsNonRoot: true"
-echo "  • runAsUser: $RUN_AS_USER"
-echo "  • allowPrivilegeEscalation: false"
-echo "  • capabilities: drop ALL"
-echo "  • seccompProfile: $SECCOMP"
-echo ""
-echo "This pod follows security best practices! 🔒"
+echo "✅ admission still rejects privileged pods"
+exit 0
+exit 1

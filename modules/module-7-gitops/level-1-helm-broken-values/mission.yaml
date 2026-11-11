@@ -1,15 +1,15 @@
 {
-  "name": "Helm Values Gone Wrong",
-  "description": "A Helm release was deployed but pods are running `nginx:latest` instead of a specific version. In the Helm chart template, the image tag is read from `values.yaml` — but the tag value was left empty, so the template resolved to `latest` as a fallback. Unpinned tags make deployments non-reproducible.",
-  "objective": "The Helm values.yaml has an empty image.tag — set a pinned tag so the chart deploys a specific version",
-  "xp": 300,
-  "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Helm values",
-    "chart templates ({{ .Values.image.tag }})",
-    "helm install/upgrade/status/get-values"
-  ],
+  "name": "The Quiet Upgrade",
+  "description": "CI shipped a new build of `ledger-api` this morning with a one-line `helm upgrade`. Since then the Helm release says `deployed`, but `ledger-api` has one pod where production ran three, a pod is stuck in ImagePullBackOff, and the rollout never finishes. Nobody changed any chart or values file. The chart is in the `charts` repository on the in-cluster Git server (`gitops-git` namespace, see `kubectl -n gitops-git get svc`); a pod `probe` with curl is in the namespace.",
+  "objective": "Helm release `ledger-api` is `deployed` at a revision newer than the CI upgrade, runs 3 Ready replicas of `hashicorp/http-echo:1.0`, and Service `ledger-api` answers every request with the production message `ledger-api: production`.",
+  "xp": 150,
+  "difficulty": "intermediate",
+  "expected_time": "15m",
+  "concepts": ["helm history", "helm get values", "values precedence", "helm upgrade", "--reuse-values"],
   "module": "module-7-gitops",
-  "level": "level-1-helm-broken-values"
+  "level": "level-1-helm-broken-values",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

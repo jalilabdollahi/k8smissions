@@ -1,1 +1,1 @@
-Try applying a custom resource and read the exact validation error: `kubectl apply -f ~/.k8smissions/sandbox/manifest.yaml`
+Read what the Job says before touching anything: `kubectl -n k8smissions logs job/policy-sync`. The API server explains every rejection in words. Fix what it names, then read the log again: the Job stops at the first policy that is refused, so the next complaint may be about a different policy.

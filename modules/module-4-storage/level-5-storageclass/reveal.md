@@ -1,20 +1,21 @@
-## What went wrong
+# Reveal
 
-`storageClassName: premium-ssd` — no StorageClass with this name exists. The dynamic provisioner only watches for PVCs that request a class it manages. Since no provisioner knows about `premium-ssd`, the PVC is permanently Pending.
+`reports-data` asks for StorageClass `gp3`, which exists in the cloud cluster but not here, so the claim has nothing to provision it and the pod stays Pending behind it.
 
-## Fix
+1. `kubectl describe pvc reports-data -n k8smissions` shows `storageclass.storage.k8s.io "gp3" not found`; `kubectl get storageclass` lists only `standard`.
+2. Create the class `gp3` backed by the provisioner that `standard` uses:
 
-In manifest.yaml, change the PVC:
+   ```bash
+   kubectl apply -f - <<'YAML'
+   apiVersion: storage.k8s.io/v1
+   kind: StorageClass
+   metadata:
+     name: gp3
+   provisioner: rancher.io/local-path
+   volumeBindingMode: WaitForFirstConsumer
+   reclaimPolicy: Delete
+   YAML
+   ```
+3. The claim is picked up automatically; the pod schedules and the claim binds.
 
-```yaml
-storageClassName: standard
-```
-
-## How dynamic provisioning works
-
-1. PVC created with a storageClassName
-2. The provisioner for that class detects the new PVC
-3. Provisioner creates a matching PV and binds it
-4. Pod can now mount the volume
-
-If step 2 never happens (wrong class name), the chain stops at step 1.
+Alternative: delete `reports-data` and recreate it with `storageClassName: standard` (the field is immutable on an existing claim).

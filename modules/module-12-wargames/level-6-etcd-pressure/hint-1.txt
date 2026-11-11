@@ -1,1 +1,1 @@
-Check how many stale CI objects exist: `kubectl get configmap -n k8smissions | grep ci-run | wc -l`. Then check etcd's storage: `kubectl exec -n kube-system etcd-<node> -- etcdctl endpoint status --write-out=table`
+Measure before you delete: `time kubectl -n k8smissions get secrets`, `kubectl -n k8smissions get secrets -o json | wc -c`, and group the objects with `kubectl -n k8smissions get secrets --show-labels`. Then read what the two workloads do: `kubectl -n k8smissions logs deploy/config-syncer` and `kubectl -n k8smissions get cronjob release-deployer -o yaml`.

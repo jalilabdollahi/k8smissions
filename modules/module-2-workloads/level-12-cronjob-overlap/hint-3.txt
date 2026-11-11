@@ -1,3 +1,1 @@
-The `concurrencyPolicy: Allow` field lets a new job start even if the previous one is still running. For a job that takes longer than its schedule interval, this creates unbounded accumulation.
-
-Find this field in the CronJob spec in manifest.yaml.
+Two steps: `kubectl -n k8smissions patch cronjob data-processor --type=merge -p '{"spec":{"concurrencyPolicy":"<policy>"}}'`, then remove the stale runs at the Job level, for example `kubectl -n k8smissions delete jobs -l app=data-processor`. Do not suspend the CronJob.

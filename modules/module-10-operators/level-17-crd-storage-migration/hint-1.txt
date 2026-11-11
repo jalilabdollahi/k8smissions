@@ -1,1 +1,1 @@
-Check the CRD's current version configuration: `kubectl get crd configs.example.com -o yaml | grep -A10 versions`
+Read the Job's log (`kubectl -n k8smissions logs job/crd-sync`) and then the part of the CRD it complains about: `kubectl get crd configs.settings.acme.io -o jsonpath='{.status.storedVersions}'` and which version has `storage: true` under `spec.versions`.

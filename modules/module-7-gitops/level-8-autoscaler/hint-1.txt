@@ -1,1 +1,1 @@
-Check the Cluster Autoscaler logs to see what node groups it's discovering: `kubectl logs -n k8smissions -l app=cluster-autoscaler | grep -i 'discovery\|group'`
+Watch the two controllers fight: `kubectl -n k8smissions get deploy storefront -w` in one terminal, `kubectl -n k8smissions describe hpa storefront` (the events) and `kubectl -n argocd get app storefront -o yaml` (the diff Argo sees) in another. Which field is changing?

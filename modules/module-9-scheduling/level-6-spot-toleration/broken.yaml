@@ -1,38 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: batch-job
+  name: render-farm
   namespace: k8smissions
 spec:
-  replicas: 3
+  replicas: 4
   selector:
-    matchLabels:
-      app: batch
+    matchLabels: {app: render-farm}
   template:
     metadata:
-      labels:
-        app: batch
+      labels: {app: render-farm}
     spec:
-      tolerations:
-      - key: spot
-        operator: Equal
-        value: 'true'
-        effect: NoSchedule
-      # are reclaimed by the cloud provider, pods cannot reschedule to on-demand
-      # nodes because (1) nodeSelector blocks it and (2) on-demand taint is not tolerated.
       nodeSelector:
-        node-type: spot
+        lifecycle: spot
       containers:
-      - name: batch
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+      - name: renderer
+        image: registry.k8s.io/pause:3.10
         resources:
-          requests:
-            cpu: 50m
-            memory: 32Mi
-          limits:
-            cpu: 100m
-            memory: 64Mi
+          requests: {cpu: 100m, memory: 64Mi}

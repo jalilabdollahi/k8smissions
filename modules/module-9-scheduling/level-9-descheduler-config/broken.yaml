@@ -1,17 +1,104 @@
-apiVersion: policy/v1alpha1
-kind: DeschedulerPolicy
-strategies:
-  LowNodeUtilization:
-    # The descheduler never evicts pods from overloaded nodes, so cluster
-    # imbalance persists indefinitely.
-    enabled: false
-    params:
-      nodeResourceUtilizationThresholds:
-        thresholds:
-          cpu: 20
-          memory: 20
-          pods: 20
-        targetThresholds:
-          cpu: 50
-          memory: 50
-          pods: 50
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: descheduler
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: k8smissions-descheduler
+rules:
+- apiGroups: ["events.k8s.io"]
+  resources: ["events"]
+  verbs: ["create", "update"]
+- apiGroups: [""]
+  resources: ["nodes", "namespaces"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list", "delete"]
+- apiGroups: [""]
+  resources: ["pods/eviction"]
+  verbs: ["create"]
+- apiGroups: ["scheduling.k8s.io"]
+  resources: ["priorityclasses"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["policy"]
+  resources: ["poddisruptionbudgets"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims", "persistentvolumes"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: k8smissions-descheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: k8smissions-descheduler
+subjects:
+- kind: ServiceAccount
+  name: descheduler
+  namespace: k8smissions
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: descheduler-policy
+  namespace: k8smissions
+data:
+  policy.yaml: |
+    apiVersion: descheduler/v1alpha2
+    kind: DeschedulerPolicy
+    profiles:
+    - name: rebalance
+      pluginConfig:
+      - name: LowNodeUtilization
+        args:
+          thresholds:
+            cpu: 1
+            memory: 1
+            pods: 1
+          targetThresholds:
+            cpu: 50
+            memory: 50
+            pods: 50
+          evictableNamespaces:
+            exclude: ["kube-system", "local-path-storage"]
+      plugins:
+        deschedule:
+          enabled:
+          - LowNodeUtilization
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: descheduler
+  namespace: k8smissions
+spec:
+  schedule: "*/1 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          labels: {app: descheduler}
+        spec:
+          serviceAccountName: descheduler
+          restartPolicy: Never
+          containers:
+          - name: descheduler
+            image: registry.k8s.io/descheduler/descheduler:v0.36.0
+            command: ["/bin/descheduler"]
+            args: ["--policy-config-file=/policy/policy.yaml", "--v=4"]
+            volumeMounts:
+            - {name: policy, mountPath: /policy}
+          volumes:
+          - name: policy
+            configMap: {name: descheduler-policy}

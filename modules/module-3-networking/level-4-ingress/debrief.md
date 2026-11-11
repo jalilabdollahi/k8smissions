@@ -1,16 +1,25 @@
-# Ingress Path Mismatch
+## What was broken
 
-## Situation
-Ingress created for path /api but the backend service is exposed at /v1/api. All requests return 404.
+Ingress `shop` mapped the public path `/shop` to the `storefront` Service and passed the path through untouched. The backend only knows `/` and `/items`, so `/shop/items` reached it unchanged and hit its own 404.
 
-## Successful Fix
-Update Ingress path to /v1/api  OR add path rewriting annotation
+## The evidence
 
-## What To Validate
-Use the validator to confirm the repaired state.
+The 404 body ("backend: no such path") came from the application, not from nginx's own error page, so routing worked. The controller log showed the request being proxied to the backend as `/shop/items`. Even `/shop` alone failed, because the backend received `/shop`, not `/`.
 
-## Why It Matters
-Review how the fix changed the cluster behavior for Ingress Path Mismatch.
+## Why Kubernetes behaves this way
 
-## Concepts
-Ingress rules, pathType (Exact/Prefix/ImplementationSpecific), backend service, nginx-ingress annotations
+An Ingress only decides which Service receives a request; it says nothing about rewriting. A `Prefix` path matches but doesn't remove the prefix. ingress-nginx implements rewriting through an annotation, and the new path is built from regular-expression capture groups in the Ingress path. Capture groups need `pathType: ImplementationSpecific`.
+
+## The fix
+
+`rewrite-target: /$2` together with path `/shop(/|$)(.*)`. Changing the path to `/` would make `/shop/items` work only by taking over every route on the host and breaking the other prefixes.
+
+## In production
+
+The controller's rewrite behaviour is not portable to other Ingress controllers, so keep backends able to serve under a configurable base path where you can. Test both the bare prefix and a nested path after every change.
+
+## Commands worth remembering
+
+- `kubectl -n ingress-nginx logs deploy/ingress-nginx-controller`
+- `kubectl describe ingress <name>`
+- `kubectl exec probe -- curl -H 'Host: <host>' http://ingress-nginx-controller.ingress-nginx.svc/<path>`

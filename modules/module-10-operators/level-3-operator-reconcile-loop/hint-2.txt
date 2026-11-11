@@ -1,1 +1,1 @@
-You should see `WATCH_NAMESPACE: operators`. The operator uses this value to scope its informers. Any CR in a different namespace (like `k8smissions`) is outside the watch scope and never triggers a reconciliation.
+The operator's settings reach it as environment variables: look at `kubectl -n k8smissions get deploy webapp-operator -o yaml` (the `env` section) and at the ConfigMap it points to. Remember when a container reads its environment: once, when the process starts. A change to a ConfigMap does not reach a process that is already running.

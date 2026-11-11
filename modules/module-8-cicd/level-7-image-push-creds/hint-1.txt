@@ -1,1 +1,1 @@
-Check the push step's logs for the exact error: `kubectl logs -n k8smissions -l tekton.dev/task=image-push`
+Read the failing push: `kubectl get taskrun` for run `push-0301`, then `kubectl logs <pod> -c step-push`; note exactly which registry host the step talks to. Then look at what is inside the credentials Secret, not just that it exists: `kubectl get secret registry-creds -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d`, and decode its `auth` value as well.

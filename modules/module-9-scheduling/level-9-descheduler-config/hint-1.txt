@@ -1,1 +1,1 @@
-Check the Descheduler policy configuration in the manifest and look for the `enabled` field: `kubectl get configmap -n k8smissions -o yaml | grep -A10 LowNodeUtilization`
+Read what the Descheduler Jobs say: `kubectl -n k8smissions get jobs` and `kubectl -n k8smissions logs job/<name>`. The first message you find is not necessarily the last problem.

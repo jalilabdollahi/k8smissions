@@ -1,3 +1,6 @@
-The container runs as `runAsUser: 1000`. Mounted PVC volumes default to being owned by root (UID 0). User 1000 has no write permission on a root-owned directory.
+The key file is root-owned and its mode is 0400 (owner read only), so uid 10001 is neither the owner nor, by default, in the file's group. Kubernetes can give the volume's files to a group of your choosing for the pod.
 
-There is no `fsGroup` set at the pod level. `fsGroup` is what tells Kubernetes to change the volume's group ownership before mounting it into any container.
+  kubectl explain pod.spec.securityContext.fsGroup
+  kubectl explain pod.spec.volumes.secret.defaultMode
+
+Be careful with widening the mode for everyone: this app refuses a key that others can read.

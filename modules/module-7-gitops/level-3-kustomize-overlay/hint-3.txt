@@ -1,1 +1,1 @@
-The Deployment's `spec.replicas` is set to 10 — this is the production overlay value. In the staging overlay, this field should be patched to 2.
+kubectl delete -k <clone>/overlays/production -n <the namespace that should not have them>

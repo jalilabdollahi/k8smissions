@@ -1,226 +1,96 @@
-# This is the Grand Master challenge. Fix all 12 in dependency order.
-# W1=bad image, W2=0 replicas, W3=wrong selector, W4=impossible PVC,
-# W5=missing RoleBinding, W6=no readiness probe, W7=empty ConfigMap,
-# W8=missing Secret, W9=1Mi memory limit, W10=CrashLoop command,
-# W11=zero replicas PDB deadlock, W12=ConfigMap blocks failover
----
-# W1 (Module 1 - Foundations): Pod with non-existent image tag
 apiVersion: v1
-kind: Pod
+kind: Namespace
 metadata:
-  name: w1-pod
-  namespace: k8smissions
-spec:
-  containers:
-  - name: w1
-    image: nginx:doesnotexist99
+  name: checkout
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
 ---
-# W2 (Module 2 - Workloads): Deployment scaled to zero
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: checkout-src
+  namespace: checkout
+data:
+  checkout.py: |
+    import os, time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    time.sleep(int(os.environ.get("WARMUP_SECONDS", "25")))   # loads the price catalogue before listening
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def do_GET(self):
+            if self.path != "/healthz":
+                t = time.time()
+                while time.time() - t < 0.015:      # pricing and tax: about 15 ms of CPU per order
+                    pass
+            body = ("checkout ok uid=%d\n" % os.getuid()).encode()
+            self.send_response(200); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: w2-deploy
-  namespace: k8smissions
+  name: checkout
+  namespace: checkout
 spec:
-  replicas: 0
+  replicas: 2
   selector:
-    matchLabels:
-      app: w2
+    matchLabels: {app: checkout}
   template:
     metadata:
-      labels:
-        app: w2
+      labels: {app: checkout}
     spec:
+      nodeSelector:
+        pool: genral
       containers:
-      - name: w2
-        image: nginx:1.27.4
+      - name: app
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/checkout.py"]
+        ports:
+        - {containerPort: 8080}
+        resources:
+          requests: {cpu: 50m, memory: 48Mi}
+          limits: {cpu: 200m, memory: 128Mi}
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        livenessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          failureThreshold: 2
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      - name: log-shipper
+        image: busybox:1.36
+        command: ["sh", "-c", "while true; do sleep 30; done"]
+        resources:
+          requests: {memory: 16Mi}
+      volumes:
+      - name: src
+        configMap: {name: checkout-src}
 ---
-# W3 (Module 3 - Networking): Service selector points to wrong label
 apiVersion: v1
 kind: Service
 metadata:
-  name: w3-svc
-  namespace: k8smissions
+  name: checkout
+  namespace: checkout
 spec:
-  selector:
-    app: wrong-label
+  selector: {app: checkout}
   ports:
-  - port: 80
-    targetPort: 80
+  - {port: 80, targetPort: 8080}
 ---
-# W4 (Module 4 - Storage): PVC requests impossible storage size
-apiVersion: v1
-kind: PersistentVolumeClaim
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
 metadata:
-  name: w4-pvc
-  namespace: k8smissions
+  name: checkout
+  namespace: checkout
 spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 500Ti
-  storageClassName: standard
----
-# W5 (Module 5 - Security): ServiceAccount and Role exist but RoleBinding is missing
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: w5-sa
-  namespace: k8smissions
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: w5-role
-  namespace: k8smissions
-rules:
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list"]
----
-# W6 (Module 6 - Observability): Deployment without readiness probe
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: w6-monitored
-  namespace: k8smissions
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: w6
-  template:
-    metadata:
-      labels:
-        app: w6
-    spec:
-      containers:
-      - name: w6
-        image: nginx:1.27.4
-        ports:
-        - containerPort: 80
----
-# W7 (Module 7 - GitOps): ConfigMap with empty required values
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: w7-config
-  namespace: k8smissions
-data:
-  ENV: ""
-  REGION: ""
----
-# W8 (Module 8 - CI/CD): Deployment references a non-existent Secret
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: w8-pipeline
-  namespace: k8smissions
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: w8
-  template:
-    metadata:
-      labels:
-        app: w8
-    spec:
-      containers:
-      - name: w8
-        image: busybox:1.36
-        command: ["/bin/sh", "-c", "sleep 3600"]
-        env:
-        - name: TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: w8-secret
-              key: token
----
-# W9 (Module 9 - Scheduling): Deployment with dangerously low memory limit
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: w9-scheduled
-  namespace: k8smissions
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: w9
-  template:
-    metadata:
-      labels:
-        app: w9
-    spec:
-      containers:
-      - name: w9
-        image: busybox:1.36
-        command: ["/bin/sh", "-c", "sleep 3600"]
-        resources:
-          limits:
-            memory: "1Mi"
----
-# W10 (Module 10 - Operators): Deployment with a command that always crashes
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: w10-operator
-  namespace: k8smissions
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: w10
-  template:
-    metadata:
-      labels:
-        app: w10
-    spec:
-      containers:
-      - name: w10
-        image: busybox:1.36
-        command: ["/bin/sh", "-c", "exit 1"]
----
-# W11 (Module 11 - Performance): PDB that prevents all eviction (drain blocker)
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: w11-perf
-  namespace: k8smissions
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: w11
-  template:
-    metadata:
-      labels:
-        app: w11
-    spec:
-      containers:
-      - name: w11
-        image: busybox:1.36
-        command: ["/bin/sh", "-c", "sleep 3600"]
----
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: w11-pdb
-  namespace: k8smissions
-spec:
-  minAvailable: 5
-  selector:
-    matchLabels:
-      app: w11
----
-# W12 (Module 12 - Wargames): ConfigMap showing failover is disabled and sync is stale
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: w12-failover
-  namespace: k8smissions
-data:
-  failover-enabled: "false"
-  sync-status: "stale"
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: checkout}
+  minReplicas: 2
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      target: {type: Utilization, averageUtilization: 80}

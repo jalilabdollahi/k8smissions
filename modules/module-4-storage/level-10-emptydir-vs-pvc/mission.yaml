@@ -1,16 +1,15 @@
 {
-  "name": "Data Lost on Restart",
-  "description": "Users report that uploaded files disappear every time the pod restarts. Run kubectl logs data-app -n k8smissions and look for the warning message about storage type.",
-  "objective": "The app uses an emptyDir volume — data is lost on every pod restart; replace it with a PersistentVolumeClaim",
-  "xp": 200,
+  "name": "Uploads That Die With the Pod",
+  "description": "Customer uploads accepted by data-app survive when the app process restarts, so the team signed it off as durable. Then a node drain moved the pod, and every file uploaded that week was gone. Support has no explanation: the Deployment never reported an error and the pod has no claims attached.",
+  "objective": "Files uploaded through Service data-app are still downloadable after the data-app pod is deleted and replaced, and they are stored on a Bound PersistentVolumeClaim mounted at /data. The temporary working area at /scratch must stay disposable.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "emptyDir lifecycle (tied to pod)",
-    "PVC lifecycle (independent)",
-    "ephemeral vs persistent storage",
-    "when to use each"
-  ],
+  "expected_time": "12m",
+  "concepts": ["emptyDir", "PersistentVolumeClaim", "volume lifecycle", "kubectl patch"],
   "module": "module-4-storage",
-  "level": "level-10-emptydir-vs-pvc"
+  "level": "level-10-emptydir-vs-pvc",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

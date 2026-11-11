@@ -1,3 +1,6 @@
-The PV offers 1Gi with storageClassName: standard. The PVC requests 5Gi with storageClassName: fast. There are two mismatches — both the size and the storage class.
+Either point the Deployment at a claim that exists, or create the claim it asks for:
 
-Fix both the PV's capacity and storageClassName in manifest.yaml to match what the PVC requires.
+  kubectl patch deployment orders-db -n k8smissions --type=json \
+    -p '[{"op":"replace","path":"/spec/template/spec/volumes/0/persistentVolumeClaim/claimName","value":"<existing-claim>"}]'
+
+or apply a PersistentVolumeClaim with that exact name (ReadWriteOnce, 1Gi) in the k8smissions namespace.

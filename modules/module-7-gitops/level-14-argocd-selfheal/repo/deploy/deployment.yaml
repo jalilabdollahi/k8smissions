@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: payments-api}
+  template:
+    metadata:
+      labels: {app: payments-api}
+    spec:
+      serviceAccountName: payments-api
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "/code/app.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 2
+        volumeMounts:
+        - {name: code, mountPath: /code}
+      volumes:
+      - name: code
+        configMap: {name: payments-api-code}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-api
+spec:
+  selector: {app: payments-api}
+  ports:
+  - port: 80
+    targetPort: 8080

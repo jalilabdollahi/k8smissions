@@ -1,1 +1,1 @@
-Check what version existing resources are stored as: `kubectl get databases.example.com -o yaml | grep apiVersion`
+Compare the same object through both doors: `kubectl get cache.v1alpha1.cache.acme.io sessions -o yaml` and `kubectl get cache.v1.cache.acme.io sessions -o yaml`. Then look at what the CRD says about moving objects between versions: `kubectl get crd caches.cache.acme.io -o yaml` and search for `conversion`.

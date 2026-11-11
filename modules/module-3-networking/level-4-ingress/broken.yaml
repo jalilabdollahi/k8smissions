@@ -1,44 +1,69 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: web-app
+  name: storefront-nginx
   namespace: k8smissions
-  labels:
-    app: web
+data:
+  default.conf: |
+    server {
+      listen 80;
+      default_type text/plain;
+      location = / { return 200 "storefront home\n"; }
+      location = /items { return 200 "items: mug, poster, sticker\n"; }
+      location / { return 404 "backend: no such path\n"; }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storefront
+  namespace: k8smissions
 spec:
-  containers:
-  - name: nginx
-    image: nginx:1.21
-    ports:
-    - containerPort: 80
+  replicas: 2
+  selector:
+    matchLabels: {app: storefront}
+  template:
+    metadata:
+      labels: {app: storefront}
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - {name: conf, mountPath: /etc/nginx/conf.d}
+      volumes:
+      - name: conf
+        configMap: {name: storefront-nginx}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-service
+  name: storefront
   namespace: k8smissions
 spec:
   selector:
-    app: web
+    app: storefront
   ports:
-  - protocol: TCP
-    port: 80
+  - port: 80
     targetPort: 80
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: web-ingress
+  name: shop
   namespace: k8smissions
 spec:
+  ingressClassName: nginx
   rules:
-  - host: myapp.local
+  - host: shop.k8sm.local
     http:
       paths:
-      - path: /api
+      - path: /shop
         pathType: Prefix
         backend:
           service:
-            name: web-service
+            name: storefront
             port:
               number: 80

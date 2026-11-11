@@ -1,15 +1,341 @@
-# The leader hasn't renewed its lease — the failover controller detects this as a
-# dead leader and should trigger failover, but failover-enabled is 'false'.
-# Result: the cluster is stuck in a broken state — no active leader, no failover.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: eu
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: us
+  labels: {region: us}
+---
+# ---- eu: primary store, replicator, leader lease ----
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: leader-election
-  namespace: k8smissions
-  annotations:
-    control-plane.alpha.kubernetes.io/leader: '{"holderIdentity":"primary-cluster","acquireTime":"2024-01-01","renewTime":"2024-01-01","leaderTransitions":0}'
+  name: eu-src
+  namespace: eu
 data:
-  failover-enabled: 'false'
-  active-cluster: primary
-  passive-cluster: secondary
-  sync-status: stale
+  store.py: |
+    import json, os, time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import urlparse, parse_qs
+    data = {}
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            u = urlparse(self.path); q = parse_qs(u.query)
+            if u.path == "/put":
+                data[q["k"][0]] = q["v"][0]
+                return self.reply(200, "stored")
+            if u.path == "/get":
+                v = data.get(q["k"][0])
+                return self.reply(200 if v is not None else 404, v or "not found")
+            if u.path == "/dump": return self.reply(200, json.dumps(data))
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+  replicator.py: |
+    import json, os, ssl, threading, time, urllib.request, urllib.error
+    from datetime import datetime, timezone
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    ME = os.environ["POD_NAME"]
+    TOKEN = os.environ["REPLICATION_TOKEN"]
+    LEASE = "/apis/coordination.k8s.io/v1/namespaces/eu/leases/eu-leader"
+    DURATION = 15
+    state = {"pod": ME, "leader": False, "holder": None, "last_replicated": None, "last_error": None}
+    def now(): return datetime.now(timezone.utc)
+    def micro(t): return t.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    def parse(s): return datetime.strptime(s.split(".")[0].rstrip("Z"), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)
+    def kube(method, path, body=None):
+        ctx = ssl.create_default_context(cafile=SA + "/ca.crt")
+        req = urllib.request.Request("https://kubernetes.default.svc" + path, method=method,
+                                     data=json.dumps(body).encode() if body else None,
+                                     headers={"Authorization": "Bearer " + open(SA + "/token").read().strip(), "Content-Type": "application/json"})
+        return json.load(urllib.request.urlopen(req, context=ctx, timeout=4))
+    def elect():
+        try:
+            lease = kube("GET", LEASE)
+        except urllib.error.HTTPError as e:
+            if e.code != 404: raise
+            kube("POST", LEASE.rsplit("/", 1)[0], {"apiVersion": "coordination.k8s.io/v1", "kind": "Lease", "metadata": {"name": "eu-leader"},
+                 "spec": {"holderIdentity": ME, "leaseDurationSeconds": DURATION, "renewTime": micro(now()), "acquireTime": micro(now())}})
+            return True
+        spec = lease["spec"]
+        holder = spec.get("holderIdentity") or ""
+        dur = spec.get("leaseDurationSeconds") or DURATION
+        expired = not holder or (now() - parse(spec["renewTime"])).total_seconds() > dur
+        state["holder"] = holder
+        if holder == ME or expired:
+            if holder != ME:
+                spec["acquireTime"] = micro(now())
+                spec["leaseTransitions"] = (spec.get("leaseTransitions") or 0) + 1
+            spec.update({"holderIdentity": ME, "leaseDurationSeconds": DURATION, "renewTime": micro(now())})
+            kube("PUT", LEASE, lease)
+            return True
+        left = int(dur - (now() - parse(spec["renewTime"])).total_seconds())
+        print("standby: lease eu-leader held by %s for another %ds" % (holder, left), flush=True)
+        return False
+    def push():
+        data = urllib.request.urlopen("http://store.eu.svc.cluster.local/dump", timeout=3).read()
+        req = urllib.request.Request("http://store.us.svc.cluster.local/replicate", data=data, method="POST", headers={"X-Replication-Token": TOKEN})
+        urllib.request.urlopen(req, timeout=3).read()
+    def loop():
+        while True:
+            try:
+                state["leader"] = elect()
+                if state["leader"]:
+                    state["holder"] = ME
+                    try:
+                        push(); state["last_replicated"] = micro(now()); state["last_error"] = None
+                    except urllib.error.HTTPError as e:
+                        state["last_error"] = "us store answered HTTP %d" % e.code
+                        print("replication refused:", state["last_error"], flush=True)
+                    except Exception as e:
+                        state["last_error"] = "cannot reach us store: %s" % getattr(e, "reason", e)
+                        print("replication failed:", state["last_error"], flush=True)
+            except Exception as e:
+                print("lease error:", e, flush=True)
+            time.sleep(2)
+    threading.Thread(target=loop, daemon=True).start()
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def do_GET(self):
+            b = json.dumps(state).encode()
+            self.send_response(200); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: replication-token
+  namespace: eu
+data:
+  token: czdxLWV1LXVzLTQ0NzE=
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: replicator
+  namespace: eu
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: lease-holder
+  namespace: eu
+rules:
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "create", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: replicator-lease
+  namespace: eu
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: lease-holder}
+subjects:
+- {kind: ServiceAccount, name: replicator, namespace: eu}
+---
+# Left behind by a replicator pod that was removed last week: renewed once, with a ten year duration.
+apiVersion: coordination.k8s.io/v1
+kind: Lease
+metadata:
+  name: eu-leader
+  namespace: eu
+spec:
+  holderIdentity: replicator-7c9
+  leaseDurationSeconds: 315360000
+  acquireTime: "2025-01-01T00:00:00.000000Z"
+  renewTime: "2025-01-01T00:00:00.000000Z"
+  leaseTransitions: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store
+  namespace: eu
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: store}
+  template:
+    metadata:
+      labels: {app: store}
+    spec:
+      containers:
+      - name: store
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/store.py"]
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /dump, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: eu-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store
+  namespace: eu
+spec:
+  selector: {app: store}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: replicator
+  namespace: eu
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: replicator}
+  template:
+    metadata:
+      labels: {app: replicator}
+    spec:
+      serviceAccountName: replicator
+      containers:
+      - name: replicator
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/replicator.py"]
+        env:
+        - name: POD_NAME
+          valueFrom: {fieldRef: {fieldPath: metadata.name}}
+        - name: REPLICATION_TOKEN
+          valueFrom: {secretKeyRef: {name: replication-token, key: token}}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: eu-src}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: eu-probe
+  namespace: eu
+  labels: {app: eu-probe}
+spec:
+  containers:
+  - name: curl
+    image: curlimages/curl:8.10.1
+    command: ["sleep", "3600"]
+---
+# ---- us: read-only replica behind a policy that admits regional peers only ----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: us-src
+  namespace: us
+data:
+  replica.py: |
+    import hmac, json, os, time
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    from urllib.parse import urlparse, parse_qs
+    TOKEN = os.environ["REPLICATION_TOKEN"]
+    data, last = {}, {"at": None}
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            u = urlparse(self.path); q = parse_qs(u.query)
+            if u.path == "/get":
+                v = data.get(q["k"][0])
+                return self.reply(200 if v is not None else 404, v or "not found")
+            if u.path == "/stats":
+                age = None if last["at"] is None else int(time.time() - last["at"])
+                return self.reply(200, json.dumps({"keys": len(data), "seconds_since_replication": age}))
+            self.reply(404, "not found")
+        def do_POST(self):
+            if self.path != "/replicate": return self.reply(404, "not found")
+            n = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(n)
+            if not hmac.compare_digest(self.headers.get("X-Replication-Token", ""), TOKEN):
+                print("rejected write: bad or missing token", flush=True)
+                return self.reply(401, "unauthorized")
+            data.update(json.loads(body)); last["at"] = time.time()
+            self.reply(200, "replicated %d keys" % len(data))
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: replication-token
+  namespace: us
+data:
+  token: czdxLWV1LXVzLTQ0NzEK
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: store
+  namespace: us
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: store}
+  template:
+    metadata:
+      labels: {app: store}
+    spec:
+      containers:
+      - name: store
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/replica.py"]
+        env:
+        - name: REPLICATION_TOKEN
+          valueFrom: {secretKeyRef: {name: replication-token, key: token}}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /stats, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: us-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: store
+  namespace: us
+spec:
+  selector: {app: store}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: regional-peers-only
+  namespace: us
+  annotations: {owner: security-platform}
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - namespaceSelector: {matchLabels: {region: eu}}
+    ports:
+    - {port: 8080, protocol: TCP}

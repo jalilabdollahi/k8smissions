@@ -1,15 +1,15 @@
 {
-  "name": "Lost in Space",
-  "description": "Resources were created but the validator cannot find them in the k8smissions namespace. Start with kubectl get pods -n k8smissions — is anything there?",
-  "objective": "The pod and service are in the wrong namespace — move both to the k8smissions namespace where the app expects to run",
-  "xp": 150,
+  "name": "Wrong Context",
+  "description": "The orders page (`orders-web`) has returned 502 since a teammate's deploy this morning, with the message `upstream error`. Its backend `orders-api` is supposed to be reachable as `http://orders-api`. A teammate swears they applied the orders manifest, and `kubectl get pods` in this namespace shows only `orders-web` and the `probe` debug pod.",
+  "objective": "Service `orders-web` answers 200 with the orders-api payload, and a ready `orders-api` Deployment backs it.",
+  "xp": 100,
   "difficulty": "beginner",
   "expected_time": "10m",
-  "concepts": [
-    "namespaces",
-    "resource isolation",
-    "cross-namespace DNS"
-  ],
+  "concepts": ["namespaces", "kubectl get -A", "service DNS names", "kubectl -n", "cross-namespace access"],
   "module": "module-1-foundations",
-  "level": "level-6-namespace-mismatch"
+  "level": "level-6-namespace-mismatch",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

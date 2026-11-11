@@ -1,17 +1,15 @@
 {
-  "name": "Lost Artifact",
-  "description": "A build Task produces an image digest and stores it as a Tekton result. A downstream deploy Task should receive that digest as a parameter — but the deploy Task receives an empty string every time. The result name in the pipeline's variable reference doesn't match what the producer Task declared.",
-  "objective": "The Task result name in the producer doesn't match what the consumer expects — fix the result reference",
-  "xp": 325,
+  "name": "The Digest That Vanished",
+  "description": "Pipeline `ship-api` builds an image, pushes it to the in-cluster registry, and hands the image digest to a `deploy` Task so that production runs exactly what was built, not whatever a tag points at. Run `ship-api-0422` was rejected by Tekton before anything ran. Release engineering fixed what the error message pointed at in an earlier attempt and the next run started, only for `deploy` to complain about the digest it received. The registry is healthy and the pushed images are there.",
+  "objective": "A new PipelineRun of Pipeline `ship-api` (not `ship-api-0422`) ends Succeeded, and the `deployed-digest` result of its `deploy` Task equals the digest the registry reports for the tag that `build` pushed (the run's own name).",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "Tekton",
-    "results",
-    "inter-task data",
-    "param",
-    "Pipeline variables"
-  ],
+  "expected_time": "15m",
+  "concepts": ["Task results", "$(tasks.NAME.results.RESULT)", "$(results.NAME.path)", "pod-local files", "image digests"],
   "module": "module-8-cicd",
-  "level": "level-17-artifact-passing"
+  "level": "level-17-artifact-passing",
+  "requires": ["tekton"],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

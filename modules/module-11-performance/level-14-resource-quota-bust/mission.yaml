@@ -1,17 +1,15 @@
 {
-  "name": "Namespace Full",
-  "description": "New pods are stuck in `Pending` with 'exceeded quota: compute-resources'. The namespace has a ResourceQuota and the total CPU/memory requested by all pods has hit the ceiling. Scaling up deployments or deploying new workloads is blocked until quota is increased or existing workloads are scaled down.",
-  "objective": "The namespace ResourceQuota is exhausted — optimize existing resource requests to free quota headroom",
-  "xp": 325,
+  "name": "Releases Stall at Quota",
+  "description": "payments-web runs 4 healthy replicas, but every release now hangs: the new ReplicaSet never gets its pods and the rollout sits there until someone cancels it, while the on-call engineer is asked to ship a fix today. Nodes have plenty of room and the namespace quota is not shown as exceeded in the dashboard. The finance team owns the quota and has said it will not be raised.",
+  "objective": "A rollout restart of Deployment payments-web completes with 4 Ready replicas and no failed requests through Service payments-web, while the namespace ResourceQuota stays exactly as the finance team set it.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "ResourceQuota",
-    "namespace quota",
-    "cpu requests",
-    "memory requests",
-    "quota management"
-  ],
+  "expected_time": "15m",
+  "concepts": ["ResourceQuota", "rolling update surge", "requests vs usage", "kubectl top", "capacity planning"],
   "module": "module-11-performance",
-  "level": "level-14-resource-quota-bust"
+  "level": "level-14-resource-quota-bust",
+  "requires": ["metrics-server"],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

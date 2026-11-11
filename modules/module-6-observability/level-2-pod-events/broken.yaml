@@ -1,11 +1,18 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: events-pod
+  name: billing-worker
   namespace: k8smissions
-  labels:
-    app: events-pod
 spec:
-  containers:
-  - name: events-pod
-    image: nginx:broken-tag
+  replicas: 2
+  selector:
+    matchLabels: {app: billing-worker}
+  template:
+    metadata:
+      labels: {app: billing-worker}
+    spec:
+      serviceAccountName: billing-sa
+      containers:
+      - name: worker
+        image: busybox:1.36
+        command: ["sh", "-c", "while true; do echo \"invoice batch settled\"; sleep 10; done"]

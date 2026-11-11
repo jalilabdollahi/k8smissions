@@ -1,7 +1,1 @@
-Init:0/1 means the init container has started but not completed yet. The main container will not start until every init container exits successfully.
-
-Read the init container's output:
-
-  kubectl logs web-with-init -n k8smissions -c wait-for-service
-
-What is it waiting for?
+`kubectl -n k8smissions get pods` shows `Init:0/1`: the init container has not finished, so `web` has not started. Ask the init container what it is doing: `kubectl logs <pod> -c <init-container-name>`.

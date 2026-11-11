@@ -1,13 +1,11 @@
-# Common Mistakes — The Slow Starter
+## A startupProbe with the default numbers
 
-## Mistake 1: Setting initialDelaySeconds: 120 on liveness probe
+`periodSeconds: 10` and `failureThreshold: 3` give 30 seconds, the same as the liveness probe that is already failing. The startup probe then kills the container at exactly the same time.
 
-**Wrong approach:** Large initialDelay delays liveness checking after every restart — if app deadlocks at 130s it takes 250s to detect
+## Stretching the liveness period
 
-**Correct approach:** Use startupProbe for boot time; keep liveness probe with a small delay
+Setting `periodSeconds: 300` stops the kills but a hung indexer would then be restarted only after many minutes. The validator caps period times threshold at 60 seconds.
 
-## Mistake 2: Setting startupProbe failureThreshold too low
+## Removing the liveness probe
 
-**Wrong approach:** failureThreshold: 5, periodSeconds: 5 gives 25s window — still not enough for 120s boot
-
-**Correct approach:** Calculate: max_startup_seconds / periodSeconds = minimum failureThreshold
+The pods would boot and become Ready, but nothing would ever restart a hung indexer. The probe has to stay.

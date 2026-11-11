@@ -1,16 +1,15 @@
 {
-  "name": "Config Not Found",
-  "description": "Pod configmap-pod is stuck in ContainerCreating and never reaches Running. Run kubectl describe pod configmap-pod -n k8smissions to find out why.",
-  "objective": "The pod mounts a ConfigMap that doesn't exist yet — create the missing ConfigMap so the pod can start",
+  "name": "The 19 Percent Problem",
+  "description": "Finance reports that invoices from `pricing` still apply 19% tax. The platform team changed `TAX_RATE` to `0.20` in ConfigMap `pricing-config` two hours ago and confirmed it with `kubectl get cm`. Service `pricing` still answers `{\"tax_rate\": \"0.19\"}`. Both pods are Running and Ready and have not restarted.",
+  "objective": "Service `pricing` answers with tax_rate 0.20 on every request, backed by 2 Ready pods that keep reading their rate from ConfigMap `pricing-config`.",
   "xp": 150,
-  "difficulty": "beginner",
-  "expected_time": "10m",
-  "concepts": [
-    "ConfigMap",
-    "volumes",
-    "volumeMounts",
-    "envFrom"
-  ],
+  "difficulty": "intermediate",
+  "expected_time": "8m",
+  "concepts": ["ConfigMap", "envFrom / configMapKeyRef", "environment read at start", "rollout restart"],
   "module": "module-1-foundations",
-  "level": "level-9-configmap-basics"
+  "level": "level-9-configmap-basics",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 90,
+  "cleanup": []
 }

@@ -1,1 +1,1 @@
-Check if kube-dns pods are failing: `kubectl get pods -n kube-system | grep dns`
+Look at why the ReplicaSet cannot create its pod: `kubectl -n labeler-system describe rs` (or `kubectl -n labeler-system get events`). Then read the webhook that is named in the message with `kubectl get mutatingwebhookconfiguration pod-labeler -o yaml`: which namespaces does it apply to, and which of them hosts its own server?

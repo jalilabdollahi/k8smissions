@@ -1,1 +1,1 @@
-The pod's `resources.requests.memory` is set too high relative to the node's *allocatable* memory (not its total capacity). Reduce the request to a value comfortably within the allocatable amount — like `1Gi`.
+The effective request is container request plus overhead, and it has to fit in a worker's free memory. Leave the RuntimeClass alone and change the pod's own request with something like `kubectl -n k8smissions set resources deploy/ledger-batch --requests=memory=<Mi value>`, picking a value between the measured working set and what fits.

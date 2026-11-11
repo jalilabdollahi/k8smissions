@@ -1,14 +1,8 @@
-## What went wrong
+Git pins `spec.replicas: 1` and Argo's self-heal enforces it, while the HPA (min 3) sets it back to 3 every time metrics-server reports a sample. Each side reverts the other.
 
-The Cluster Autoscaler uses the `--node-group-auto-discovery` flag to find node groups by cloud provider tag. The flag is set to `asg:tag=wrong-group` — a tag that doesn't match any existing node group. With no discovered groups, the autoscaler has nothing to scale and pending pods stay pending indefinitely.
+1. `kubectl -n k8smissions get rs -l app=storefront -w` and `kubectl describe hpa storefront` show the scale events; the Application's diff is only on `/spec/replicas`.
+2. Make Argo ignore that one field and also skip it when a sync does run:
+   `kubectl -n argocd patch app storefront --type merge -p '{"spec":{"ignoreDifferences":[{"group":"apps","kind":"Deployment","jsonPointers":["/spec/replicas"]}],"syncPolicy":{"syncOptions":["RespectIgnoreDifferences=true"]}}}'`
+3. The HPA now owns the count; the Deployment settles at 3 and the Application stays `Synced`.
 
-## Fix
-
-```yaml
-args:
-- --node-group-auto-discovery=asg:tag=kind-worker
-```
-
-## Why this matters
-
-The Cluster Autoscaler monitors for pods in `Pending` state due to `Insufficient cpu/memory` and tries to add nodes to accommodate them. For this to work, it needs to know which node groups it can scale — discovered via cloud provider tags (AWS ASG tags, GCP MIG labels, etc.). The tag must exactly match what the cloud provider has on the node group. On kind (local), there are no real node groups — this level teaches the configuration pattern even though kind can't actually provision new nodes. In production on EKS/GKE/AKS, a misconfigured discovery tag is the #1 cause of 'autoscaler not scaling' incidents.
+Alternative: delete `replicas` from `manifests/deployment.yaml` in Git (commit and push). Deleting the HPA or turning off automated sync only hides the symptom.

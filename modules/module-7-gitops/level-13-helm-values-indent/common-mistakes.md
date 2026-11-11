@@ -1,13 +1,7 @@
-# Common Mistakes — The Value Ignored
+**Using `helm rollback`.** The release returns to the old image and the pods are healthy, but the objective is the new build. Rolling back is right when the new version is bad, not when the values are mistyped.
 
-## Mistake 1: Assuming helm upgrade shows errors for bad values structure
+**Retrying with `--set image.tag=1.0`.** `--set` parses the value like YAML, so it is again the number one. Use `--set-string`, or quote it in the file.
 
-**Wrong approach:** helm upgrade succeeds even if your values structure is wrong — chart defaults are used instead
+**Trusting `helm get values`.** It prints `tag: 1`, which reads like a plausible value. Compare with `values-prod.yaml` and the rendered manifest.
 
-**Correct approach:** Always use helm template to verify rendering before helm upgrade
-
-## Mistake 2: Mixing tabs and spaces
-
-**Wrong approach:** YAML requires consistent spaces; tabs cause parse errors or unexpected structure
-
-**Correct approach:** Use a YAML linter (yamllint) and ensure editor uses spaces, not tabs
+**Reusing the old values with `--reuse-values`.** That keeps the stale values of the previous revision, including the old message, so the service would answer with the previous ranking.

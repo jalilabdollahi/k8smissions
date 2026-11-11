@@ -1,28 +1,158 @@
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: myapps.example.com
+  name: backup-operator
+  namespace: k8smissions
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sla-reporter
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: backup-operator
+  namespace: k8smissions
+rules:
+- apiGroups: ["backup.acme.io"]
+  resources: ["backups"]
+  verbs: ["get", "list"]
+- apiGroups: ["backup.acme.io"]
+  resources: ["backups/status"]
+  verbs: ["get", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: sla-reporter
+  namespace: k8smissions
+rules:
+- apiGroups: ["backup.acme.io"]
+  resources: ["backups"]
+  verbs: ["get", "list", "patch"]
+- apiGroups: ["backup.acme.io"]
+  resources: ["backups/status"]
+  verbs: ["get", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: backup-operator
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: backup-operator}
+subjects:
+- {kind: ServiceAccount, name: backup-operator, namespace: k8smissions}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: sla-reporter
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: sla-reporter}
+subjects:
+- {kind: ServiceAccount, name: sla-reporter, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-operator-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    from kapi import api, patch, forever, log, NS
+
+    BASE = "/apis/backup.acme.io/v1/namespaces/%s/backups" % NS
+
+    def reconcile():
+        code, body = api("GET", BASE)
+        if code != 200:
+            log("cannot list backups: %s" % code)
+            return
+        for b in body["items"]:
+            name = b["metadata"]["name"]
+            if b.get("status", {}).get("phase") == "Healthy":
+                continue
+            code, res = patch(BASE + "/%s/status" % name, {"status": {"phase": "Healthy"}})
+            if code == 200:
+                log("backup %s: phase Healthy" % name)
+            else:
+                log("backup %s: status update failed: %s %s" % (name, code, res.get("message", "")[:80]))
+
+    forever(reconcile, 3)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-operator
+  namespace: k8smissions
 spec:
-  group: example.com
-  versions:
-  - name: v1
-    served: true
-    storage: true
-    schema:
-      openAPIV3Schema:
-        type: object
-        properties:
-          spec:
-            type: object
-          status:
-            type: object
-            properties:
-              phase:
-                type: string
-              message:
-                type: string
-  scope: Namespaced
-  names:
-    plural: myapps
-    singular: myapp
-    kind: MyApp
+  replicas: 1
+  selector:
+    matchLabels: {app: backup-operator}
+  template:
+    metadata:
+      labels: {app: backup-operator}
+    spec:
+      serviceAccountName: backup-operator
+      containers:
+      - name: operator
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: backup-operator-code}}
+      - {name: lib, configMap: {name: kapi-lib}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sla-reporter-code
+  namespace: k8smissions
+data:
+  sla.py: |
+    import time
+    from kapi import api, patch, log, NS
+
+    BASE = "/apis/backup.acme.io/v1/namespaces/%s/backups" % NS
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    code, body = api("GET", BASE)
+    stamped = 0
+    for b in body.get("items", []):
+        code, _ = patch(BASE + "/" + b["metadata"]["name"], {"status": {"lastSlaCheck": now}})
+        if code == 200:
+            stamped += 1
+    log("sla check %s: stamped %d of %d backups" % (now, stamped, len(body.get("items", []))))
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sla-reporter
+  namespace: k8smissions
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          serviceAccountName: sla-reporter
+          restartPolicy: Never
+          containers:
+          - name: report
+            image: python:3.12-alpine
+            command: ["python", "-u", "/app/sla.py"]
+            env:
+            - {name: PYTHONPATH, value: /kapi}
+            volumeMounts:
+            - {name: app, mountPath: /app}
+            - {name: lib, mountPath: /kapi}
+          volumes:
+          - {name: app, configMap: {name: sla-reporter-code}}
+          - {name: lib, configMap: {name: kapi-lib}}

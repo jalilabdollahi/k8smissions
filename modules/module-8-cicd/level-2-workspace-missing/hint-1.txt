@@ -1,1 +1,1 @@
-Check the PipelineRun status to see the admission error: `kubectl describe pipelinerun build-run -n k8smissions`
+`kubectl describe pipelinerun ingest-2210` shows why it ended immediately: read the condition message. Then read `kubectl get pipeline ingest -o yaml` for what it declares. A PipelineRun's spec cannot be edited once it exists, so the way forward is a new run.

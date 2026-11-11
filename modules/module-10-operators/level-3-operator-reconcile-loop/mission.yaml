@@ -1,17 +1,15 @@
 {
-  "name": "Stuck Reconciliation",
-  "description": "An operator is running and its logs show no errors — but custom resources deployed in the `k8smissions` namespace stay in `Pending` phase forever. The operator is alive but blind to these resources because it's configured to watch only its own namespace.",
-  "objective": "The operator controller is watching the wrong namespace — it's scoped to 'operators' but the CR is in 'k8smissions'",
-  "xp": 350,
+  "name": "The operator that watches nothing",
+  "description": "`webapp-operator` shows Running and its logs are quiet, no errors at all. But the `WebApp` objects `site-a` and `site-b` in `k8smissions` have sat in `status.phase: Pending` for an hour and no Deployment or Service exists for either of them. The marketing team is asking when the two sites will be live.",
+  "objective": "WebApps `site-a` and `site-b` reach `status.phase: Ready`, each with a Deployment and a Service of its own name that the WebApp owns; a brand-new WebApp is reconciled within seconds; `webapp-operator` stays Running.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "operator",
-    "controller",
-    "reconciliation loop",
-    "namespace scope",
-    "controller-runtime"
-  ],
+  "expected_time": "12m",
+  "concepts": ["controller", "reconcile loop", "env from ConfigMap", "rollout restart", "ownerReferences"],
   "module": "module-10-operators",
-  "level": "level-3-operator-reconcile-loop"
+  "level": "level-3-operator-reconcile-loop",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

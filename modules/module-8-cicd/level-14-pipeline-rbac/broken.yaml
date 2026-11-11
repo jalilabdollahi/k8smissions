@@ -1,6 +1,62 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: trigger-sa
   namespace: k8smissions
-# The Tekton EventListener uses this SA to create PipelineRuns — gets 403 Forbidden because tekton.dev API group access is not granted
+  name: dispatcher
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: reindex
+spec:
+  tasks:
+  - name: rebuild
+    taskSpec:
+      steps:
+      - name: index
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          echo "search index rebuilt"
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: orchestrate
+spec:
+  tasks:
+  - name: dispatch
+    taskSpec:
+      steps:
+      - name: start-and-wait
+        image: alpine/kubectl:1.36.0
+        script: |
+          #!/bin/sh
+          set -e
+          id=$(context.pipelineRun.name)
+          kubectl create -f - <<MANIFEST
+          apiVersion: tekton.dev/v1
+          kind: PipelineRun
+          metadata:
+            name: reindex-$id
+            labels: {parent: $id}
+          spec:
+            pipelineRef:
+              name: reindex
+          MANIFEST
+          echo "started reindex-$id, waiting for it"
+          kubectl wait --for=condition=Succeeded pipelinerun/reindex-$id --timeout=90s
+          echo "reindex-$id finished"
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: orchestrate-nightly-3
+spec:
+  pipelineRef:
+    name: orchestrate
+  taskRunTemplate:
+    serviceAccountName: dispatcher

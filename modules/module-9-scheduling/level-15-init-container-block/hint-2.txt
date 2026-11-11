@@ -1,1 +1,1 @@
-The logs show repeated `nc` connection attempts to `non-existent-db-host:5432` with no success. The init container is designed to wait until the database is reachable — but the hostname doesn't resolve to anything.
+The scheduler does not just sum all containers. Init containers run one at a time before the app starts, so the pod's effective request is the larger of (the biggest init container) and (the sum of the app containers). Look at `spec.initContainers[*].resources`. `kubectl explain pod.spec.initContainers.resources`.

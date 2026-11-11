@@ -1,17 +1,15 @@
 {
-  "name": "Why Does It Keep Restarting?",
-  "description": "A pod shows 8 restarts in the past hour but the current logs show nothing — no crash message, no application error. The restarts happen silently. You need to read the pod's history to determine what actually killed it each time.",
-  "objective": "The pod shows 8 restarts but no obvious error — use events, describe, and logs to determine the actual restart cause",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Exit codes (137=SIGKILL/OOM",
-    "1=crash",
-    "0=clean)",
-    "kubectl describe lastState",
-    "memory profiling"
-  ],
+  "name": "Three Kinds of Restart",
+  "description": "In namespace `cart`, three Deployments show restarts: `cart-cache` (4), `cart-worker` (9) and `cart-reporter` (6). The on-call has to say, for each one, whether the container was out of memory, exited by itself, or was killed by the kubelet's health check, and then make all three stable. The namespace has a LimitRange, and nobody is allowed to raise its memory ceiling.",
+  "objective": "In namespace `cart`, Deployments `cart-cache`, `cart-worker` and `cart-reporter` each have a Ready pod that has not restarted for 40 seconds, `cart-worker` is processing jobs from `cart-queue`, `cart-cache` is holding its cache within the namespace's memory ceiling, `cart-reporter` keeps a liveness probe, and the LimitRange `cart-limits` is unchanged.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "20m",
+  "concepts": ["lastState", "OOMKilled", "exit codes", "liveness failures", "LimitRange"],
   "module": "module-6-observability",
-  "level": "level-6-restart-cause"
+  "level": "level-6-restart-cause",
+  "requires": [],
+  "settle_seconds": 45,
+  "solve_timeout": 180,
+  "cleanup": []
 }

@@ -1,15 +1,4 @@
-## What went wrong
-
-The sidecar container runs `tail -f /var/log/nonexistent.log`. The `logs` directory is an emptyDir volume — it starts empty. There is no `nonexistent.log` file, so `tail` exits immediately with an error. The container crashes, Kubernetes restarts it, and the cycle repeats.
-
-## Fix
-
-Change the sidecar command to something that actually writes to the log directory:
-
-```yaml
-command: ["sh", "-c", "while true; do echo 'Logging...' >> /var/log/app.log; sleep 5; done"]
-```
-
-## Why this matters
-
-In a multi-container pod, all containers must stay running — if one crashes, Kubernetes restarts the entire pod. A sidecar that crashes takes down the healthy main container with it.
+1. `kubectl logs <pod> -c log-shipper` says `/logs is not there`: the sidecar exits with code 1 and restarts, so READY stays `1/2`.
+2. The pod already declares the `logs` emptyDir and `nginx` writes its access log into it, but `log-shipper` never mounts it.
+3. Add `volumeMounts: [{name: logs, mountPath: /logs}]` to the `log-shipper` container, for example with `kubectl patch deployment checkout` (a strategic merge patch finds the container by name).
+4. The rollout starts new pods; requests through Service `checkout` now appear in `kubectl logs <pod> -c log-shipper`.

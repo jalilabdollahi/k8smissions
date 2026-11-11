@@ -1,16 +1,15 @@
 {
-  "name": "The Everywhere Pod",
-  "description": "DaemonSet log-collector should run one pod on every node, but its pods are stuck in Pending. Run kubectl get pods -n k8smissions -o wide to see which nodes they were assigned to.",
-  "objective": "The DaemonSet has a missing toleration — add the correct toleration so pods schedule on all nodes including control-plane",
+  "name": "One Node Short",
+  "description": "The quarterly audit needs the `host-audit` agent on every node of the cluster, control plane included. `kubectl get ds host-audit` reports DESIRED 2, READY 2 and everything green, but the auditors point out that one of the three nodes has no agent. There is no Pending pod to investigate either.",
+  "objective": "DaemonSet `host-audit` has a Ready pod on every node of the cluster, the control plane included, and the pods do not restart.",
   "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "DaemonSet",
-    "tolerations",
-    "taints",
-    "control-plane"
-  ],
+  "concepts": ["DaemonSet", "taints", "tolerations", "get pods -o wide", "describe node"],
   "module": "module-1-foundations",
-  "level": "level-16-daemonset"
+  "level": "level-16-daemonset",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

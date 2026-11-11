@@ -1,7 +1,1 @@
-The rollout status command hangs or says 'Waiting for rollout to finish'. No pods are being replaced. This is different from a failing rollout — nothing is happening at all.
-
-Read the Deployment update strategy:
-
-  kubectl describe deployment api-server -n k8smissions
-
-Look at the RollingUpdateStrategy section carefully.
+Look at the Pending pod: `kubectl -n k8smissions describe pod <pending pod>` has a scheduler event. Then read `kubectl -n k8smissions get deploy api-server -o jsonpath='{.spec.strategy}'` and think about how many pods exist at the peak of a rolling update.

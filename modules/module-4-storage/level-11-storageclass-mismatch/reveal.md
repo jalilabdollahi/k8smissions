@@ -1,24 +1,21 @@
-## What went wrong
+# Reveal
 
-`storageClassName: fast-nvme` — this StorageClass does not exist. No provisioner is registered for it. The PVC waits indefinitely for a PV that will never come.
+PV `archive-2023` has class `archive`. PVC `archive` named no class, so the default class `standard` dynamically provisioned a new empty PV for it and the pod ran happily on that. `storageClassName` cannot be changed on a claim, so recreate it.
 
-## Fix
+1. Compare: `kubectl get pv,pvc -n k8smissions` shows the claim bound to a generated `pvc-...` volume, not `archive-2023`.
+2. Free the claim, recreate it with the right class and bring the pod back:
 
-In manifest.yaml:
-
-```yaml
-spec:
-  storageClassName: standard
-```
-
-## How to find available StorageClasses
-
-```bash
-kubectl get storageclass
-```
-
-Look for `(default)` — that class is used when no storageClassName is specified. You can also omit `storageClassName` entirely to use the default, but being explicit is better for clarity.
-
-## Difference from level-5
-
-Level 5 had a pod blocked by the pending PVC. This level isolates the PVC problem alone — same root cause, but here you see that a PVC can be stuck even before any pod tries to use it.
+   ```bash
+   kubectl scale deployment archive-reader -n k8smissions --replicas=0
+   kubectl delete pvc archive -n k8smissions        # the stray dynamic volume is removed with it
+   kubectl apply -f - <<'YAML'
+   apiVersion: v1
+   kind: PersistentVolumeClaim
+   metadata: {name: archive, namespace: k8smissions}
+   spec:
+     accessModes: ["ReadWriteOnce"]
+     storageClassName: archive
+     resources: {requests: {storage: 10Gi}}
+   YAML
+   kubectl scale deployment archive-reader -n k8smissions --replicas=1
+   ```

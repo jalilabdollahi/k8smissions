@@ -1,17 +1,15 @@
 {
-  "name": "Not in List",
-  "description": "`kubectl get all` does not show custom `App` resources even though the CRD is installed and resources exist. The CRD is not included in the `all` aggregated category — which is how `kubectl get all` discovers which resource types to include in its output.",
-  "objective": "The CRD lacks a 'categories' field that includes 'all' — add it to make CRs appear in kubectl get all",
-  "xp": 275,
-  "difficulty": "intermediate",
-  "expected_time": "8m",
-  "concepts": [
-    "CRD",
-    "categories",
-    "kubectl get all",
-    "shortNames",
-    "API discovery"
-  ],
+  "name": "Invisible invoice batches",
+  "description": "During an `invoice-engine` incident the on-call runs `kubectl get all` and sees the Deployment, its pods and the Service, but none of the `InvoiceBatch` objects, four of which are failing. Typing the full resource name works, but `kubectl get invoicebatch` only prints NAME and AGE, so nobody can tell which batches are broken without opening each one. The batches themselves are fine and must not be touched.",
+  "objective": "`kubectl get all -n k8smissions` lists the `InvoiceBatch` objects, `kubectl get ib` works as a short name, and the default `kubectl get invoicebatches` output shows STATE and PROGRESS columns with the real values. The 8 existing batches stay exactly as they are.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": ["CRD names", "categories", "shortNames", "additionalPrinterColumns", "kubectl discovery cache"],
   "module": "module-10-operators",
-  "level": "level-14-crd-categories"
+  "level": "level-14-crd-categories",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 90,
+  "cleanup": []
 }

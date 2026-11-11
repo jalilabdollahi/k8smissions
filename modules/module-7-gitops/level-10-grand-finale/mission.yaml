@@ -1,16 +1,15 @@
 {
-  "name": "THE GRAND FINALE: Zero to Production",
-  "description": "Critical production outage. The grand-finale-app Deployment has multiple simultaneous problems: unpinned image tag, only 1 replica, no resource limits, no readiness probe, no graceful shutdown, and a PDB that is mathematically impossible to satisfy. This is a production readiness checklist failure — identify every issue before making any changes.",
-  "objective": "Multiple deployment layers are broken simultaneously — fix the Helm values, ArgoCD sync, RBAC, NetworkPolicy, ResourceQuota, readiness probe, PDB, and preStop hook",
-  "xp": 500,
+  "name": "The Grand Finale",
+  "description": "`grand-finale-app` has not shipped for a week and the customer-facing greeting page is down. The Argo CD Application `grand-finale-app` (namespace `argocd`) deploys the Helm chart in the `finale` repository on the in-cluster Git server into the `k8smissions` namespace, and it has been red since the release branch was cut. Every time someone pushes a fix the Application turns red in a new way, and the last person to try said that it finally went green while the page still did not load. The tenant namespace has a compute quota. A pod `probe` with curl is available.",
+  "objective": "Application `grand-finale-app` is `Synced` and `Healthy`, Deployment `grand-finale-app` has 2 Ready pods running the production values (image tag `1.0`), and Service `grand-finale-app` answers `grand-finale v2.3` on every request from the `probe` pod.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "10m",
-  "concepts": [
-    "Full stack Kubernetes delivery pipeline",
-    "incident response",
-    "production readiness checklist",
-    "SRE principles"
-  ],
+  "expected_time": "35m",
+  "concepts": ["Argo CD source", "targetRevision", "Helm valueFiles", "ResourceQuota", "Service targetPort", "health vs serving"],
   "module": "module-7-gitops",
-  "level": "level-10-grand-finale"
+  "level": "level-10-grand-finale",
+  "requires": ["argocd"],
+  "settle_seconds": 30,
+  "solve_timeout": 240,
+  "cleanup": []
 }

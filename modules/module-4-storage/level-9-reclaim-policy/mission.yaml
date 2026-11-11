@@ -1,18 +1,15 @@
 {
-  "name": "Data Deleted!",
-  "description": "A PVC was accidentally deleted and all the data it held is now gone. Run kubectl get pv -n k8smissions and look at the STATUS column of PV important-data.",
-  "objective": "The PV's reclaimPolicy is Delete, so data is lost when the PVC is removed — change it to Retain to preserve data",
-  "xp": 250,
+  "name": "The Ledger Must Outlive Its Claim",
+  "description": "The finance team keeps the month-end close of the ledger service on PVC ledger-data. Tomorrow the platform team will delete and recreate that claim to rename it, and the postmortem from last quarter says the same maintenance silently wiped a database volume. The ledger pod is healthy today and nobody remembers how its storage was set up. The cache claim ledger-scratch next to it is disposable.",
+  "objective": "After the claim ledger-data is deleted, the volume that backs it (and the October close file on it) must still exist. Only that volume is protected: the one behind ledger-scratch keeps reclaiming its space. The ledger Deployment stays Ready with the close file intact. Nothing may be deleted to prove it.",
+  "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "Reclaim policies (Delete",
-    "Retain",
-    "Recycle)",
-    "data safety",
-    "PV release lifecycle",
-    "production data protection"
-  ],
+  "concepts": ["persistentVolumeReclaimPolicy", "PV vs PVC", "dynamic provisioning", "kubectl patch"],
   "module": "module-4-storage",
-  "level": "level-9-reclaim-policy"
+  "level": "level-9-reclaim-policy",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 60,
+  "cleanup": []
 }

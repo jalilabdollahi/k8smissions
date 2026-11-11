@@ -1,26 +1,11 @@
-## What went wrong
+Two bugs in the same status patch:
 
-`metadata.generation` is incremented by Kubernetes every time the resource spec changes. An operator should read `generation`, reconcile the spec, then write `status.observedGeneration = generation`. On the next reconcile loop, if `observedGeneration == generation`, the operator can skip — nothing changed in the spec since the last reconcile.
+1. `observedGeneration` is computed as `old + 1`, so it is a counter that never settles on `metadata.generation`.
+2. `lastSync` is stamped with the current time on every pass, so the patch always changes the object and the API server writes it (new `resourceVersion`) every two seconds.
 
-## Fix
+Fix the code in ConfigMap `inventory-operator-code`: set `observedGeneration` to `item["metadata"]["generation"]` and only patch status when `observedGeneration` (or `phase`) differs from what is stored. Keep `ensure_child(...)` outside that condition so drift in the children is still healed on every pass. Then restart the operator:
 
-```yaml
-status:
-  phase: Ready
-  observedGeneration: 5
+```bash
+kubectl -n k8smissions edit configmap inventory-operator-code
+kubectl -n k8smissions rollout restart deploy/inventory-operator
 ```
-
-In operator code (controller-runtime):
-```go
-if myApp.Generation == myApp.Status.ObservedGeneration {
-    // already reconciled this generation, skip
-    return ctrl.Result{}, nil
-}
-// ... do reconciliation ...
-myApp.Status.ObservedGeneration = myApp.Generation
-return ctrl.Result{}, r.Status().Update(ctx, &myApp)
-```
-
-## Why this matters
-
-Without generation-based guards, every status change (which is a watch event) triggers a reconcile loop, which may update status again, which triggers another reconcile — a tight feedback loop burning API server quota. `generation` only increments on spec changes (not status changes), making it the correct signal for 'does the operator need to act'. Status-only changes don't increment `generation`, so the guard correctly skips them.

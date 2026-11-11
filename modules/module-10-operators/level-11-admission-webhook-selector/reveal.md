@@ -1,22 +1,14 @@
-## What went wrong
+The mutating webhook `pod-labeler` matches pods in every lab namespace, `labeler-system` included. Its own server pod is in that namespace, so creating it calls the webhook, which has no endpoints because the server is not running: `failed calling webhook ... no endpoints available`. `failurePolicy: Fail` turns that into a refusal, so the server can never start. The same refusal blocks `shop`.
 
-The webhook intercepts all pod CREATE events cluster-wide. This creates a circular dependency: kube-dns needs to start → needs the webhook → webhook needs DNS to resolve its service name → kube-dns needs to start. When the webhook is unavailable (restart, slow response) and `failurePolicy: Fail` is set, DNS pods can't be created and the entire cluster's DNS breaks.
+Exclude the server's namespace from the webhook, keeping the lab label match:
 
-## Fix
-
-```yaml
-webhooks:
-- name: mutate.example.com
-  namespaceSelector:
-    matchExpressions:
-    - key: kubernetes.io/metadata.name
-      operator: NotIn
-      values:
-      - kube-system
-      - kube-public
-      - kube-node-lease
+```bash
+kubectl patch mutatingwebhookconfiguration pod-labeler --type=json -p '[{"op":"add","path":"/webhooks/0/namespaceSelector/matchExpressions","value":[{"key":"kubernetes.io/metadata.name","operator":"NotIn","values":["labeler-system"]}]}]'
 ```
 
-## Why this matters
+Then restart the Deployments whose rollouts were stuck so they do not wait for their retry backoff:
 
-Never apply admission webhooks to `kube-system` without extreme care. System components (DNS, CNI, CSI, metrics-server) must be able to create pods without passing through application-level webhooks — otherwise a webhook outage can cascade into a full cluster failure. Best practice: use `namespaceSelector` to exclude system namespaces, and use `objectSelector` to further narrow scope. The webhook should only intercept objects it actually needs to process.
+```bash
+kubectl -n labeler-system rollout restart deploy/pod-labeler
+kubectl -n shop rollout restart deploy/storefront
+```

@@ -1,3 +1,1 @@
-The Service selector has `app: backend-app`. The pod has `app: backend`. One extra word — the selector matches nothing.
-
-Find the selector field inside the Service spec in manifest.yaml.
+Make the selector specific enough that only the storefront pods match: `kubectl -n k8smissions patch service cart -p '{"spec":{"selector":{"app":"cart","tier":<value>}}}'`.

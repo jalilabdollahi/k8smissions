@@ -1,0 +1,6 @@
+replicaCount: 2
+image:
+  tag: "1.0"
+message: "grand-finale v2.3"
+service:
+  targetPort: 8080

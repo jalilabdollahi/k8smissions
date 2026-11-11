@@ -1,18 +1,4 @@
-## What went wrong
-
-The PDB sets `minAvailable: 3`, which equals the Deployment's replica count. This means zero pods can ever be voluntarily removed — any eviction attempt (node drain, cluster upgrade, node maintenance) is permanently blocked.
-
-## Fix
-
-In manifest.yaml, change the PDB:
-
-```yaml
-spec:
-  minAvailable: 2
-```
-
-This allows 1 pod to be evicted while keeping 2 running — enough for the node drain to proceed.
-
-## Why this matters
-
-PodDisruptionBudgets are a safety mechanism for cluster maintenance. Set `minAvailable` to the minimum number of pods your service can tolerate. A value equal to the replica count means your cluster can never be safely upgraded or maintained — a common mistake when ops and dev teams configure PDBs independently.
+1. `kubectl -n k8smissions get pdb` shows `ledger-api-pdb` with `MIN AVAILABLE 2` and `ALLOWED DISRUPTIONS 0`; the Deployment only has 2 replicas.
+2. A drain evicts pods through the eviction API, which honours the PDB, so the drain retries forever.
+3. Make room for one pod: `kubectl -n k8smissions patch pdb ledger-api-pdb --type=merge -p '{"spec":{"minAvailable":1}}'`. Scaling `ledger-api` to 3 replicas while keeping `minAvailable: 2` is equally valid.
+4. Drain again; pods are evicted one at a time and rescheduled on the other worker, and the Service keeps answering.

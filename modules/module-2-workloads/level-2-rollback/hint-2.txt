@@ -1,7 +1,1 @@
-There are two revisions. Revision 1 was the working deployment; revision 2 is the broken one currently running.
-
-See what revision 1 looked like:
-
-  kubectl rollout history deployment/web-app -n k8smissions --revision=1
-
-Note the image and change-cause annotation.
+The image reference in the newest revision cannot be pulled. The Deployment keeps old pods alive while the new ones are not Ready; that is the rollout safety net. Kubernetes remembers earlier pod templates: `kubectl -n k8smissions rollout history deployment/web-app`, and `kubectl rollout undo --help` shows how to go back.

@@ -1,7 +1,5 @@
-# Common Mistakes — No Cache Hit
+**Only mapping the workspace.** After the Pipeline fix the log shows `cache workspace bound: true`, but the dependencies are still written under `$HOME`, so every run is a miss. The files have to land under the workspace path.
 
-## Mistake 1: Using emptyDir for cache
+**Making the workspace required in the Task.** Removing `optional: true` makes a missing mapping an error, which is a good guard, but it does not connect anything by itself.
 
-**Wrong approach:** Using emptyDir for the cache workspace — emptyDir is deleted after the TaskRun
-
-**Correct approach:** Use a PVC for cache workspaces so data persists between runs
+**Judging by the PVC.** `build-cache` is Bound and was passed to the seeded run, so it looks used. Whether it is mounted into the Task pod and written to is only visible in the step log and the TaskRun's `spec.workspaces`.

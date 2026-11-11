@@ -1,20 +1,5 @@
-## What went wrong
+The `reporter` pod template sets `dnsPolicy: None` with a single nameserver, 8.8.8.8, so the pods never talk to cluster DNS and can't resolve Service names.
 
-The app tries to connect to the hostname `database`, which is the pod's name. CoreDNS does not create DNS entries for pod names (unless configured separately). It only creates entries for Services. The Service is named `database-service`, so that is the correct hostname to use.
-
-## Fix
-
-In manifest.yaml, change the app-client command:
-
-```yaml
-args:
-- |
-  while true; do
-    pg_isready -h database-service -p 5432 || echo "Connection failed"
-    sleep 10
-  done
-```
-
-## How Kubernetes DNS works
-
-When you create a Service, CoreDNS registers: `<service-name>.<namespace>.svc.cluster.local`. Within the same namespace, the short name `<service-name>` also resolves. Pod names are never registered in DNS unless you use a headless Service.
+1. `kubectl -n k8smissions exec deploy/reporter -- cat /etc/resolv.conf` shows only `nameserver 8.8.8.8` and no `svc.cluster.local` search domains.
+2. Patch the Deployment: `kubectl -n k8smissions patch deployment reporter --type=json -p '[{"op":"remove","path":"/spec/template/spec/dnsConfig"},{"op":"replace","path":"/spec/template/spec/dnsPolicy","value":"ClusterFirst"}]'`.
+3. Wait for the rollout; the new pods get the cluster resolver and search list.

@@ -1,5 +1,1 @@
-The replacement pod got a random suffix (like `database-7b9c4-xkz91`). Deployments generate random names for each pod — that is by design. But databases need stable hostnames so replicas can find each other by name.
-
-Check the current resource type:
-
-  kubectl get deployment database -n k8smissions -o yaml | grep 'kind'
+Stable pod names (ordinals) and per-pod DNS are what a StatefulSet provides. Its `spec.serviceName` must name the headless Service that governs those DNS records. See `kubectl explain statefulset.spec`. The old Deployment's pods carry the same label, so decide what happens to them.

@@ -1,3 +1,1 @@
-There is no `sessionAffinity` field set — or it defaults to `None`. Without it, Kubernetes distributes requests round-robin across all endpoints.
-
-You need to add `sessionAffinity: ClientIP` to the Service spec in manifest.yaml.
+One field on the Service: `kubectl -n k8smissions patch service portal -p '{"spec":{"sessionAffinity":"<mode>"}}'`. The default stickiness window of 3 hours is fine; the app's own sessions last 2 minutes.

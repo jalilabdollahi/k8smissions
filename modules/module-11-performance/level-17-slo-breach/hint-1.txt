@@ -1,1 +1,6 @@
-Check the current liveness probe configuration: `kubectl get deployment slo-app -n k8smissions -o yaml | grep -A10 livenessProbe`
+Read the standing client's view of the incident and compare it with what Kubernetes thinks of each pod:
+  kubectl logs ledger-client --tail=6
+  kubectl get pods -l app=ledger-api -o wide
+  kubectl get endpoints ledger-api
+  kubectl get deployment ledger-api -o yaml | grep -A8 -i probe
+While one pod is wedged, which of these still lists it as healthy, and for how long?

@@ -1,12 +1,102 @@
-apiVersion: example.com/v1
-kind: MyApp
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: my-app
+  name: inventory-operator
   namespace: k8smissions
-  generation: 5
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: inventory-operator
+  namespace: k8smissions
+rules:
+- apiGroups: ["stock.acme.io"]
+  resources: ["inventories"]
+  verbs: ["get", "list"]
+- apiGroups: ["stock.acme.io"]
+  resources: ["inventories/status"]
+  verbs: ["get", "patch", "update"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: inventory-operator
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: inventory-operator}
+subjects:
+- {kind: ServiceAccount, name: inventory-operator, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-operator-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    import time
+    from kapi import api, patch, forever, log, NS
+
+    BASE = "/apis/stock.acme.io/v1/namespaces/%s/inventories" % NS
+    CMS = "/api/v1/namespaces/%s/configmaps" % NS
+
+
+    def ensure_child(name, spec):
+        want = {"sku": spec["sku"], "reorderLevel": str(spec["reorderLevel"])}
+        path = "%s/inventory-%s" % (CMS, name)
+        code, cm = api("GET", path)
+        if code == 404:
+            api("POST", CMS, {"metadata": {"name": "inventory-" + name}, "data": want})
+            log("created child ConfigMap for", name)
+        elif code == 200 and cm.get("data") != want:
+            patch(path, {"data": want})
+            log("updated child ConfigMap for", name)
+
+
+    def reconcile():
+        code, body = api("GET", BASE)
+        if code != 200:
+            log("cannot list inventories:", code, body.get("message"))
+            return
+        for item in body["items"]:
+            name = item["metadata"]["name"]
+            ensure_child(name, item["spec"])
+            status = item.get("status") or {}
+            patch("%s/%s/status" % (BASE, name), {"status": {
+                "phase": "Synced",
+                "observedGeneration": status.get("observedGeneration", 0) + 1,
+                "lastSync": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            }})
+            log("reconciled %s" % name)
+
+
+    forever(reconcile)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-operator
+  namespace: k8smissions
 spec:
-  replicas: 3
-  image: nginx:1.25
-status:
-  phase: Ready
-  observedGeneration: 1
+  replicas: 1
+  selector:
+    matchLabels: {app: inventory-operator}
+  template:
+    metadata:
+      labels: {app: inventory-operator}
+    spec:
+      serviceAccountName: inventory-operator
+      containers:
+      - name: operator
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: inventory-operator-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

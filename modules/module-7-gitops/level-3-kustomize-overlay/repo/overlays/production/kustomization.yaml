@@ -1,0 +1,17 @@
+namePrefix: prod-
+resources:
+- ../../base
+- hpa.yaml
+- pdb.yaml
+labels:
+- pairs: {env: production}
+  includeSelectors: true
+replicas:
+- name: checkout
+  count: 4
+patches:
+- target: {kind: Deployment, name: checkout}
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/args/1
+      value: -text=checkout production

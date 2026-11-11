@@ -1,1 +1,1 @@
-Check how many replicas are currently running in staging: `kubectl get deployment kustomize-app -n k8smissions`
+Look at everything in the staging namespace and at what the events say about `stg-checkout`: `kubectl -n shop-staging get all,hpa,pdb,resourcequota` and `kubectl -n shop-staging get events`. Which objects do not belong?

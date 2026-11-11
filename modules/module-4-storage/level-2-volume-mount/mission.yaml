@@ -1,17 +1,15 @@
 {
-  "name": "Wrong Mount Path",
-  "description": "Pod web-app crashes on startup even though a volume is mounted. Run kubectl logs web-app -n k8smissions and read the error message.",
-  "objective": "The volumeMount path doesn't match the path the application reads config from — correct the mountPath",
-  "xp": 200,
-  "difficulty": "intermediate",
+  "name": "Uploads That Vanish",
+  "description": "The web-app uploader accepts files and serves them back fine, and nothing in its logs looks wrong. But every time the pod is restarted (a node drain, a deploy) all customer uploads are gone. A PersistentVolumeClaim called uploads exists and is Bound, and the Deployment mounts it, so support is confused about where the files go.",
+  "objective": "Files uploaded through Service web-app are still downloadable after the web-app pod is deleted and replaced, and they are stored on the PersistentVolumeClaim uploads.",
+  "xp": 100,
+  "difficulty": "beginner",
   "expected_time": "10m",
-  "concepts": [
-    "volumeMounts",
-    "mountPath",
-    "subPath",
-    "volume definitions",
-    "container filesystem"
-  ],
+  "concepts": ["volumeMounts", "mountPath", "kubectl exec", "persistence"],
   "module": "module-4-storage",
-  "level": "level-2-volume-mount"
+  "level": "level-2-volume-mount",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

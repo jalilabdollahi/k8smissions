@@ -1,6 +1,6 @@
-In a healthy StatefulSet, each pod should have its OWN dedicated PVC. Check how many PVCs exist compared to the number of pods:
+Look at the members one by one and at the claims they use:
 
-  kubectl get pvc -n k8smissions
-  kubectl get pods -n k8smissions -l app=postgres
+  kubectl get pods,pvc -n k8smissions
+  kubectl logs postgres-cluster-1 -n k8smissions
 
-Are there 3 PVCs (one per pod) or just 1?
+How many PVCs exist, and how many members are supposed to have their own data?

@@ -1,68 +1,70 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-NAMESPACE="k8smissions"
-POD_NAME="web-app"
-
-echo "🔍 VALIDATION STAGE 1: Checking if pod exists..."
-if ! kubectl get pod $POD_NAME -n $NAMESPACE &>/dev/null; then
-    echo "❌ FAILED: Pod '$POD_NAME' not found in namespace '$NAMESPACE'"
-    exit 1
+if ! k get svc status-page >/dev/null 2>&1; then
+  echo "❌ Service status-page is missing"
+  exit 1
 fi
-echo "✅ Pod exists"
 
-echo ""
-echo "🔍 VALIDATION STAGE 2: Checking if pod is running..."
-POD_STATUS=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.status.phase}')
-if [ "$POD_STATUS" != "Running" ]; then
-    echo "❌ FAILED: Pod is in '$POD_STATUS' state, not Running"
-    echo "💡 Hint: Check pod events with: kubectl describe pod $POD_NAME -n $NAMESPACE"
-    exit 1
+# policy: every container keeps readOnlyRootFilesystem, privileged is not used
+ro=$(k get deploy status-page -o jsonpath='{range .spec.template.spec.containers[*]}{.securityContext.readOnlyRootFilesystem}{" "}{end}' 2>/dev/null)
+priv=$(k get deploy status-page -o jsonpath='{range .spec.template.spec.containers[*]}{.securityContext.privileged}{" "}{end}' 2>/dev/null)
+ro=$(echo $ro)
+n=$(k get deploy status-page -o jsonpath='{.spec.template.spec.containers[*].name}' | wc -w)
+trues=$(echo "$ro" | grep -o true | wc -l)
+if [ "$n" -eq 0 ] || [ "$trues" -ne "$n" ]; then
+  echo "❌ every container must keep readOnlyRootFilesystem: true"
+  exit 1
 fi
-echo "✅ Pod is running"
-
-echo ""
-echo "🔍 VALIDATION STAGE 3: Verifying runAsNonRoot is enabled..."
-RUN_AS_NON_ROOT=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.containers[0].securityContext.runAsNonRoot}')
-if [ "$RUN_AS_NON_ROOT" != "true" ]; then
-    echo "❌ FAILED: runAsNonRoot is not set to true"
-    echo "💡 Hint: Add 'runAsNonRoot: true' in securityContext"
-    exit 1
+if echo "$priv" | grep -q true; then
+  echo "❌ privileged containers are not allowed"
+  exit 1
 fi
-echo "✅ runAsNonRoot enabled"
+echo "✅ readOnlyRootFilesystem is still enforced in the spec"
 
-echo ""
-echo "🔍 VALIDATION STAGE 4: Verifying runAsUser is set to non-root..."
-RUN_AS_USER=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.containers[0].securityContext.runAsUser}')
-if [ -z "$RUN_AS_USER" ] || [ "$RUN_AS_USER" = "0" ]; then
-    echo "❌ FAILED: runAsUser not set or set to root (0)"
-    echo "💡 Hint: Add 'runAsUser: 1000' (or any non-zero UID) in securityContext"
-    exit 1
+if [ "$(k get deploy status-page -o jsonpath='{.spec.replicas}' 2>/dev/null)" != "2" ]; then
+  echo "❌ status-page must keep 2 replicas"
+  exit 1
 fi
-echo "✅ runAsUser set to $RUN_AS_USER (non-root)"
-
-echo ""
-echo "🔍 VALIDATION STAGE 5: Verifying privilege escalation is disabled..."
-ALLOW_PRIV_ESC=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.containers[0].securityContext.allowPrivilegeEscalation}')
-if [ "$ALLOW_PRIV_ESC" != "false" ]; then
-    echo "❌ FAILED: allowPrivilegeEscalation is not set to false"
-    echo "💡 Hint: Add 'allowPrivilegeEscalation: false' in securityContext"
-    exit 1
+if ! k rollout status deploy/status-page --timeout=45s >/dev/null 2>&1; then
+  echo "❌ status-page: $(k get deploy status-page -o jsonpath='{.status.readyReplicas}')/2 pods Ready"
+  exit 1
 fi
-echo "✅ Privilege escalation disabled"
+echo "✅ 2 of 2 status-page pods Ready"
 
-echo ""
-echo "🔍 VALIDATION STAGE 6: Verifying container is actually running as non-root..."
-ACTUAL_USER=$(kubectl exec $POD_NAME -n $NAMESPACE -- id -u 2>/dev/null || echo "0")
-if [ "$ACTUAL_USER" = "0" ]; then
-    echo "❌ FAILED: Container is running as root (UID 0)"
-    echo "💡 Hint: Container user doesn't match runAsUser setting"
-    exit 1
+r1=$(k get pods -l app=status-page -o jsonpath='{range .items[*]}{.status.containerStatuses[0].restartCount}{" "}{end}')
+sleep 12
+r2=$(k get pods -l app=status-page -o jsonpath='{range .items[*]}{.status.containerStatuses[0].restartCount}{" "}{end}')
+if [ "$r1" != "$r2" ]; then
+  echo "❌ status-page pods are still restarting"
+  exit 1
 fi
-echo "✅ Container running as UID $ACTUAL_USER (non-root)"
 
-echo ""
-echo "🎉 SUCCESS! All security validations passed!"
-echo "Your container is now running securely:"
-echo "  - As non-root user (UID $RUN_AS_USER)"
-echo "  - With privilege escalation disabled"
-echo "  - Meeting security best practices"
+bad=0
+for i in 1 2 3 4 5 6; do
+  code=$(k exec probe -- curl -s -o /dev/null -w '%{http_code}' --max-time 3 http://status-page 2>/dev/null)
+  [ "$code" = 200 ] || bad=$((bad+1))
+done
+if [ "$bad" -ne 0 ]; then
+  echo "❌ Service status-page: $bad of 6 requests did not return 200"
+  exit 1
+fi
+echo "✅ Service status-page answers 200 on 6 of 6 requests"
+
+# behaviour: the root filesystem is really read-only, the dedicated mounts are writable
+pod=$(k get pods -l app=status-page -o jsonpath='{.items[0].metadata.name}')
+if k exec "$pod" -c nginx -- touch /probe-root >/dev/null 2>&1; then
+  k exec "$pod" -c nginx -- rm -f /probe-root >/dev/null 2>&1
+  echo "❌ the root filesystem is writable in $pod"
+  exit 1
+fi
+for d in /var/cache/nginx /var/run; do
+  if ! k exec "$pod" -c nginx -- sh -c "touch $d/.w && rm $d/.w" >/dev/null 2>&1; then
+    echo "❌ nginx cannot write to $d"
+    exit 1
+  fi
+done
+echo "✅ root filesystem is read-only; nginx writes only to its own mounts"
+exit 0
+exit 1

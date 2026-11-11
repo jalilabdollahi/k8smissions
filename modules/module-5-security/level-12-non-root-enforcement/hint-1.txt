@@ -1,1 +1,1 @@
-Apply the manifest and read the admission error directly: `kubectl apply -f ~/.k8smissions/sandbox/manifest.yaml`. If already applied, check events: `kubectl get events -n k8smissions --sort-by=.lastTimestamp | tail -5`
+The denial is reported where the pods would be created: `kubectl -n k8smissions describe rs -l app=invoice-render` (Events) or `kubectl -n k8smissions get events --sort-by=.lastTimestamp`. Then read the rule itself: `kubectl get validatingadmissionpolicy require-run-as-non-root -o yaml`.

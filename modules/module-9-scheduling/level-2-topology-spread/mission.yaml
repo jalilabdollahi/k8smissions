@@ -1,17 +1,15 @@
 {
-  "name": "Uneven Spread",
-  "description": "All pods from a 4-replica Deployment are landing on the same node. If that node fails, the entire service goes down simultaneously. There is no constraint telling the scheduler to spread pods across nodes — so it packs them wherever there is space.",
-  "objective": "Add a TopologySpreadConstraint to evenly distribute pods across nodes with maxSkew: 1",
-  "xp": 300,
+  "name": "Spread Thin, Stacked High",
+  "description": "Last night one worker was cordoned for a kernel patch and has since been uncordoned. This morning the on-call noticed that all six `catalog-api` replicas are running on a single worker, so losing that node would take the whole API down. The Deployment has a `topologySpreadConstraints` block and the team swears it spreads pods across nodes.",
+  "objective": "The six `catalog-api` replicas are Ready and divided between the two worker nodes with at most one pod of difference between them, none on the control plane, and the Deployment's spread constraint still exists and applies to its own pods.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "TopologySpreadConstraint",
-    "maxSkew",
-    "topologyKey",
-    "topology spread",
-    "HA"
-  ],
+  "expected_time": "10m",
+  "concepts": ["topologySpreadConstraints", "labelSelector", "maxSkew", "pod placement"],
   "module": "module-9-scheduling",
-  "level": "level-2-topology-spread"
+  "level": "level-2-topology-spread",
+  "requires": [],
+  "settle_seconds": 5,
+  "solve_timeout": 150,
+  "cleanup": []
 }

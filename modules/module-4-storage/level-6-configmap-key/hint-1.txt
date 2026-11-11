@@ -1,7 +1,5 @@
-CreateContainerConfigError means Kubernetes cannot build the container's environment before starting it. This happens when a referenced ConfigMap key does not exist.
+The container never started, so there are no logs. The kubelet explains why in the pod's events:
 
-Read the Events:
+  kubectl describe pod -l app=web-app -n k8smissions
 
-  kubectl describe pod web-app -n k8smissions
-
-Which key is missing?
+Look for a MountVolume.SetUp message.

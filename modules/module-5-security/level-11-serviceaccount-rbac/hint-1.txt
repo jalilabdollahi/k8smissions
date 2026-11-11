@@ -1,1 +1,1 @@
-Check the container's output to see the exact API response: `kubectl logs config-lister -n k8smissions`
+Read the log of the crashing pod and note which identity the 403 names, then check what the Deployment is configured to run as: `kubectl -n k8smissions logs deploy/feature-flags` and `kubectl -n k8smissions get deploy feature-flags -o yaml`.

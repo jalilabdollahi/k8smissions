@@ -1,21 +1,4 @@
-## What went wrong
-
-The control-plane node carries the taint `node-role.kubernetes.io/control-plane:NoSchedule`. This tells the scheduler: 'do not place pods here unless they explicitly tolerate this taint'. The DaemonSet has no tolerations, so its pod is rejected from the only available node.
-
-## Fix
-
-Add tolerations under spec.template.spec in manifest.yaml:
-
-```yaml
-tolerations:
-- key: node-role.kubernetes.io/control-plane
-  operator: Exists
-  effect: NoSchedule
-- key: node-role.kubernetes.io/master
-  operator: Exists
-  effect: NoSchedule
-```
-
-## Why this matters
-
-DaemonSets are typically used for cluster-wide components like log collectors, monitoring agents, and network plugins. These must run on every node — including control-plane nodes. Without the right tolerations, they silently miss one or more nodes.
+1. `kubectl get pods -o wide` shows agents on the two workers only; `kubectl describe node` on the control plane shows `Taints: node-role.kubernetes.io/control-plane:NoSchedule`.
+2. The DaemonSet pod template has no toleration, so the controller does not create a pod for that node at all (hence no Pending pod and DESIRED 2).
+3. Add a toleration for `node-role.kubernetes.io/control-plane` with `operator: Exists` and `effect: NoSchedule` to `spec.template.spec.tolerations`.
+4. Do not remove the taint; the node reset would put it back and it protects other workloads.

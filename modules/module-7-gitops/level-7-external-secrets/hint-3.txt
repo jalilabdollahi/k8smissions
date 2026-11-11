@@ -1,1 +1,4 @@
-The Secret has `stringData` with plain credential values and no annotation indicating external management. Add the `managed-by: external-secrets` annotation and update the credentials to reflect they are now managed externally.
+git rm deploy/secret.yaml && git commit -m "..." && git push origin main      # in a clone, through a port-forward to the Git server
+# once Argo has pruned the old Secret:
+kubectl -n k8smissions create secret generic ledger-db --from-literal=password=<rotated password>
+kubectl -n k8smissions rollout restart deploy/ledger-api

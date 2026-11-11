@@ -1,17 +1,15 @@
 {
-  "name": "Hot Node",
-  "description": "One node is running 80% of all pods while other nodes sit mostly empty. The Descheduler is deployed to handle this kind of imbalance by evicting pods from overloaded nodes so they can reschedule to underutilized ones — but it's been configured with the rebalancing strategy disabled.",
-  "objective": "Configure the Descheduler policy to evict pods from overloaded nodes and allow rebalancing",
-  "xp": 350,
+  "name": "The Descheduler That Never Moves Anything",
+  "description": "After last week's node drain, all 8 `search-indexer` pods run on one worker while the other worker is nearly empty. The team installed the Kubernetes Descheduler as a CronJob to rebalance, but nothing ever moves. The CronJob fires every minute and the Jobs it creates either fail or finish without a single eviction.",
+  "objective": "A Descheduler Job completes and its log shows pods being evicted, and afterwards the 8 `search-indexer` pods are Ready with at least 3 on each worker. CronJob `descheduler` and ConfigMap `descheduler-policy` still exist.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "Descheduler",
-    "LowNodeUtilization",
-    "pod eviction",
-    "rebalancing",
-    "cluster efficiency"
-  ],
+  "expected_time": "20m",
+  "concepts": ["Descheduler", "LowNodeUtilization", "policy profiles", "thresholds", "kubectl create job --from"],
   "module": "module-9-scheduling",
-  "level": "level-9-descheduler-config"
+  "level": "level-9-descheduler-config",
+  "requires": [],
+  "settle_seconds": 75,
+  "solve_timeout": 240,
+  "cleanup": []
 }

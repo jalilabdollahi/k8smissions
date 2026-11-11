@@ -1,1 +1,1 @@
-Test connectivity: `kubectl exec -n k8smissions <frontend-pod> -- wget -qO- http://backend:8080`. Then check what NetworkPolicies are active: `kubectl get networkpolicy -n k8smissions`
+Read what the members say about each other: `kubectl -n k8smissions logs kv-0` prints every peer's state and the reason. Then look at what Ready means here (`kubectl -n k8smissions get sts kv -o yaml`, the readinessProbe) and at the policy the security team added (`kubectl -n k8smissions describe networkpolicy`).

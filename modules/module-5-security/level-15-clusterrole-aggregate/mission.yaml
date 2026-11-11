@@ -1,16 +1,15 @@
 {
-  "name": "The Aggregation Gap",
-  "description": "An operator's ClusterRole is supposed to automatically accumulate permissions from other ClusterRoles using Kubernetes' label-based aggregation mechanism. The source ClusterRole exists and has the correct rules, but the permissions never appear in the operator's role. The aggregation selector and the label on the source role don't match.",
-  "objective": "The aggregation label on the source ClusterRole doesn't match the aggregationRule selector — fix the label",
-  "xp": 250,
-  "difficulty": "advanced",
+  "name": "Edits That Keep Vanishing",
+  "description": "The support team (group `support`) says the ticket dashboards still get `forbidden` on jobs, cronjobs and events, although the ClusterRole `ticket-viewer` is bound to them cluster-wide. An engineer added the missing rules to `ticket-viewer` by hand yesterday, and they were gone again by lunch. The same thing happened after a second attempt this morning.",
+  "objective": "Members of group `support` can list jobs and cronjobs and read events, and still cannot delete or create anything, read Secrets, or act as cluster admin. `ticket-viewer` must keep being an aggregated role: its rules come from the ClusterRoles that feed it, not from edits on the role itself.",
+  "xp": 300,
+  "difficulty": "expert",
   "expected_time": "15m",
-  "concepts": [
-    "ClusterRole",
-    "aggregationRule",
-    "RBAC aggregation",
-    "label selectors"
-  ],
+  "concepts": ["aggregated ClusterRole", "aggregationRule", "label selectors", "ClusterRoleBinding", "kubectl auth can-i --as-group"],
   "module": "module-5-security",
-  "level": "level-15-clusterrole-aggregate"
+  "level": "level-15-clusterrole-aggregate",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 90,
+  "cleanup": []
 }

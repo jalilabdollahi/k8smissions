@@ -1,1 +1,1 @@
-Verify the cert expiry: `kubectl get secret cluster-cert-status -n k8smissions -o yaml | grep -E 'cert-status|expiry'`
+The error text already says which certificate. Look at the Secrets and check their dates from your own terminal: `kubectl -n k8smissions get secret ledger-tls -o jsonpath='{.data.tls\.crt}' | base64 -d | openssl x509 -noout -subject -issuer -dates` (and the same for `gateway-client-tls`). Read the logs of both sides: `kubectl -n k8smissions logs deploy/gateway` and `deploy/ledger`.

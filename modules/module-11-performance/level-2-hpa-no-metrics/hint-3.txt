@@ -1,1 +1,3 @@
-The HPA is missing a `behavior.scaleDown` configuration. Add `stabilizationWindowSeconds: 300` to wait 5 minutes before scaling down, and a policy capping scale-down at 10% of replicas per minute.
+Give the container that has no CPU request one (a small value is enough), or point the HPA at one container only:
+  kubectl set resources deployment/thumbnailer -c <container> --requests=cpu=<small>
+After the pods restart, give the HPA a minute and watch: kubectl get hpa thumbnailer -w

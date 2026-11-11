@@ -1,27 +1,5 @@
-## What went wrong
+1. **The Secret is gone.** New `billing-api` pods stop at `CreateContainerConfigError: secret "db-credentials" not found`, while the old pods keep their environment from the time they started.
+2. **The value must be the original one.** The database was not rotated and rejects anything else (`401`, visible in `billing-db` logs). Recover it from a running pod: `kubectl exec <pod> -- printenv DB_PASSWORD`. (`billing-db-engine` holds the database's own copy, too.)
+3. **Two key names.** `billing-api` reads key `password`; `invoice-export` reads `DB_PASS` (and the Secret also had `username`). Create `db-credentials` with all of them: the CronJob only fails at night if you forget `DB_PASS`.
 
-The Secret `db-credentials` was deleted while the Deployment was still running. The pods were in `Running` state before deletion because they had already injected the secret values at start time. But when kubelet attempted to restart any pod (for any reason), it could no longer find the secret — resulting in `CreateContainerConfigError` on all pods.
-
-## Fix
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: db-credentials
-  namespace: k8smissions
-type: Opaque
-stringData:
-  username: appuser
-  password: securepass123
-```
-
-## Why this matters
-
-Secret deletion is immediately visible to pods on their next restart, but running pods may continue with their already-injected values until they restart. The safe credential rotation procedure:
-1. Create the new Secret with a new name (e.g., `db-credentials-v2`)
-2. Update the Deployment to reference the new Secret → triggers a rolling update
-3. Verify all pods are Running with the new Secret
-4. Delete the old Secret
-
-Never delete the old Secret until all pods have successfully restarted with the new one. Use `kubectl annotate deployment ... secret-rotation-date=$(date)` to track rotation history.
+`kubectl create secret generic db-credentials --from-literal=username=billing --from-literal=password=$PW --from-literal=DB_PASS=$PW`. The stuck pods retry and the rollout completes; the CronJob can be tested with `kubectl create job --from=cronjob/invoice-export`.

@@ -1,1 +1,1 @@
-Check the pod's scheduling events: `kubectl describe pod fpga-pod -n k8smissions | grep -A5 Events`
+Start with `kubectl -n k8smissions describe pod -l app=video-transcode` and read the Events. Later, when only some pods start, compare what each node advertises with what is already allocated: `kubectl describe node <node>` (Capacity, Allocatable and "Allocated resources").

@@ -1,1 +1,1 @@
-Inspect the PodDisruptionBudget for this workload: `kubectl describe pdb web-pdb -n k8smissions`
+Compare what the budget selects with what the pods are: `kubectl -n k8smissions get pdb` (look at the ALLOWED DISRUPTIONS column), `kubectl -n k8smissions describe pdb consul-pdb` and `kubectl -n k8smissions get pods --show-labels`.

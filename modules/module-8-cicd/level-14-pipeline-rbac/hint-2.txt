@@ -1,1 +1,1 @@
-The logs show 403 Forbidden when trying to create PipelineRuns. Check what RBAC is bound to `trigger-sa`: `kubectl get role,rolebinding -n k8smissions | grep trigger`
+Permissions come from a Role (what) and a RoleBinding (who) in the same namespace; the apiGroup for Tekton objects is `tekton.dev`. The Task does two different things, and each needs its own verbs: creating the child run is not the same as waiting for it. `kubectl wait` reads the object and then watches it, so think about `get`, `list` and `watch`. `kubectl create role --help` shows the shortcut.

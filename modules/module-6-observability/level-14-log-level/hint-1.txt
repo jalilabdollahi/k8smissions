@@ -1,1 +1,1 @@
-Check the current log output: `kubectl logs logger-app -n k8smissions | head -20`. Then look at the pod's environment variables: `kubectl get pod logger-app -n k8smissions -o yaml | grep -A5 env`
+Count before you guess: `kubectl -n k8smissions logs -l tier=ledger --prefix --since=1m` prints every pod's last minute with the pod name in front, and piping it through `awk '{print $1}' | sort | uniq -c` gives lines per pod. Then read the first lines of a noisy pod's log.

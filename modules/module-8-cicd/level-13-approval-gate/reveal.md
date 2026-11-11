@@ -1,25 +1,4 @@
-## What went wrong
-
-The Task implements a manual approval gate by polling for a file that a human approver would create via `kubectl exec`. With the approver gone, no one will ever create the file and the loop runs forever — the pipeline run and all its resources are stuck indefinitely.
-
-## Fix
-
-```yaml
-metadata:
-  annotations:
-    awaiting-approval: "false"
-    override-reason: approver-unavailable
-spec:
-  taskSpec:
-    steps:
-    - name: wait
-      image: busybox:1.36
-      script: |
-        #!/bin/sh
-        echo "Auto-approved: original approver unavailable"
-        exit 0
-```
-
-## Why this matters
-
-Manual approval gates in CI/CD are a governance mechanism, but they need an escape hatch. Infinite loops with no timeout create pipeline runs that consume resources forever. Better patterns: use a Tekton `pause` equivalent with a timeout, or implement approval via a webhook that the pipeline polls with a deadline. Always document overrides (the `override-reason` annotation) for the audit trail — in regulated environments, bypassing an approval gate without documentation can be a compliance violation.
+1. `kubectl patch pipelinerun release-2041 --type=merge -p '{"spec":{"status":"Cancelled"}}'` stops the run and its pod; the run stays as history.
+2. In Pipeline `release`, task `wait-approval` passes the literal `"0"` as `expiry` ("never") instead of the Pipeline param. Change it to `$(params.approval-timeout)`:
+   `kubectl patch pipeline release --type=json -p '[{"op":"replace","path":"/spec/tasks/0/params/1/value","value":"$(params.approval-timeout)"}]'`.
+3. Leave `release-approvers` alone: adding a name there would be approving the release yourself. A run created with a short `approval-timeout` now fails by itself, and approvals still need a listed approver.

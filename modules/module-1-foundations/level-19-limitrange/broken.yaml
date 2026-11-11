@@ -1,31 +1,70 @@
 apiVersion: v1
 kind: LimitRange
 metadata:
-  name: default-limits
+  name: team-defaults
   namespace: k8smissions
 spec:
   limits:
   - type: Container
-    max:
-      cpu: '1'
-      memory: 512Mi
-    default:
-      cpu: 100m
-      memory: 32Mi
-    defaultRequest:
-      cpu: 50m
-      memory: 16Mi
+    maxLimitRequestRatio:
+      memory: "2"
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: noisy-pod
+  name: invoice-render
   namespace: k8smissions
 spec:
-  containers:
-  - name: noisy
-    image: python:3.11-alpine
-    command:
-    - python
-    - -c
-    - "data = bytearray(64 * 1024 * 1024); import time; time.sleep(3600)"
+  replicas: 3
+  selector:
+    matchLabels: {app: invoice-render}
+  template:
+    metadata:
+      labels: {app: invoice-render}
+    spec:
+      containers:
+      - name: render
+        image: python:3.12-alpine
+        command:
+        - python
+        - -u
+        - -c
+        - |
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  if self.path.startswith("/render"):
+                      page = bytearray(b"i") * (360 * 1024 * 1024)
+                      body = b"invoice rendered, %d MiB\n" % (len(page) >> 20)
+                      del page
+                  else:
+                      body = b"invoice-render up\n"
+                  self.send_response(200)
+                  self.end_headers()
+                  self.wfile.write(body)
+              def log_message(self, *a):
+                  pass
+          HTTPServer(("", 8080), H).serve_forever()
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        resources:
+          requests:
+            memory: 64Mi
+            cpu: 50m
+          limits:
+            memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoice-render
+  namespace: k8smissions
+spec:
+  selector:
+    app: invoice-render
+  ports:
+  - port: 80
+    targetPort: 8080

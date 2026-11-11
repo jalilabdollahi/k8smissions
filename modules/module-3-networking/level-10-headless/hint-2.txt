@@ -1,5 +1,1 @@
-The Service has a real `clusterIP` value (like `10.96.100.50`) — it is not headless. A regular ClusterIP Service gives you one virtual IP that load-balances across all pods. It does NOT create per-pod DNS records like `web-0.web-cluster`.
-
-For per-pod DNS records, the Service needs `clusterIP: None`.
-
-Note: you cannot patch a Service's clusterIP — you must delete and recreate it.
+Each pod's readiness depends on resolving its peers through the `quorum` name, but the Service only publishes DNS records for pods that are Ready. Neither side can go first. Check `kubectl explain svc.spec.publishNotReadyAddresses` and `kubectl explain endpointslice.endpoints.conditions`.

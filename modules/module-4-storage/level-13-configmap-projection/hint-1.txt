@@ -1,5 +1,6 @@
-The logs show `cat: /config/logging.properties: No such file or directory`. The ConfigMap has this file — so why is it not in the container?
+The pod is up, so look at what the app actually sees in the mounted directory and what it logged:
 
-Check what files are actually present at the mount path:
+  kubectl logs deploy/config-reader -n k8smissions
+  kubectl exec -n k8smissions deploy/config-reader -- sh -c 'ls -l /etc/db; wc -c /etc/db/*'
 
-  kubectl exec config-reader -n k8smissions -- ls /config/
+Compare each file with the object it should come from.

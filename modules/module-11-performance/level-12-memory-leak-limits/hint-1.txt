@@ -1,1 +1,5 @@
-Watch the memory usage of the leaky pod over time: `kubectl top pod -n k8smissions -l app=leaky`. Compare the memory shown against any limits: `kubectl get deployment leaky-app -n k8smissions -o yaml | grep -A8 resources`
+Both pods are killed for memory, but the memory curves differ. Watch each one over time rather than once, and read how each container last died:
+  kubectl top pod --containers          (repeat it a few times, or watch -n 5)
+  kubectl describe pod -l app=profile-api | grep -A6 "Last State"
+  kubectl logs deploy/profile-api --previous
+Does the number rise steadily and forever, or jump to a value and stay there?

@@ -1,1 +1,1 @@
-The pod's `resources.requests.memory` is set to `100Gi` which exceeds every node's allocatable memory. Reduce it to something that actually fits within the available node capacity — like `256Mi`.
+Shrink the per-replica CPU request so that at least two replicas fit on one worker, while staying a sensible fraction of what it was: `kubectl -n k8smissions set resources deploy/video-encoder --requests=cpu=<smaller-value>`. A rollout follows by itself.

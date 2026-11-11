@@ -1,20 +1,26 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: report-generator
+  name: close-report
   namespace: k8smissions
+  annotations:
+    ops/note: "paused during incident INC-2291"
 spec:
-  schedule: '* * * * *'
+  schedule: "1 * * * *"
   suspend: true
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
   jobTemplate:
     spec:
+      backoffLimit: 1
       template:
+        metadata:
+          labels:
+            app: close-report
         spec:
           restartPolicy: Never
           containers:
           - name: report
             image: busybox:1.36
-            command:
-            - /bin/sh
-            - -c
-            - echo report generated
+            command: ["sh", "-c", "echo month-end close report generated at $(date -u +%H:%M:%S)"]

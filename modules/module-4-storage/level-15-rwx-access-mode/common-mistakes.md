@@ -1,13 +1,11 @@
-# Common Mistakes — The Exclusive Mount
+# Common mistakes: level 15
 
-## Mistake 1: Patching accessModes on existing PVC
+**Editing `accessModes` on `shared-pvc`.** The API refuses: access modes are immutable on an existing claim. Delete it and create a new one (nothing is stored on it yet).
 
-**Wrong approach:** kubectl patch pvc to change accessModes — this field is immutable
+**Deleting `ingest-data` to free the volume.** It is the volume the old pod holds, and it contains v1's first sealed batch. The check requires `data=ok`, which a fresh empty volume can never give.
 
-**Correct approach:** Delete the PVC and recreate; be sure no pods are using it and data is backed up
+**Fixing the claim but not the rollout.** Once `shared-pvc` is single-writer the new pod still cannot start while the old one holds the `ReadWriteOncePod` volume. `kubectl rollout status` keeps waiting. The Deployment must stop the old pod first.
 
-## Mistake 2: Assuming all storage supports RWX
+**Setting `strategy.type: Recreate` with a merge patch that leaves `rollingUpdate`.** The API rejects `rollingUpdate` parameters with `Recreate`. Send `"rollingUpdate": null` in the same patch (or edit the object).
 
-**Wrong approach:** Requesting RWX from a cloud block volume (EBS, GCEPersistentDisk) — PVC stays Pending
-
-**Correct approach:** Verify StorageClass provisioner supports RWX before requesting it
+**Scaling to 0 and back and calling it done.** It works once, but the next release deadlocks the same way. Fix the strategy.

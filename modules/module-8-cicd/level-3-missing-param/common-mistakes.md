@@ -1,7 +1,5 @@
-# Common Mistakes — Missing Parameter
+**Fixing only the first error.** Adding `env` to a copy of the old run just moves the failure: `targets` is still a string and the run is rejected again, with a different message. Read the message after every attempt.
 
-## Mistake 1: Setting empty string value
+**Quoting the list as one string.** `value: "slack-payments,pager-oncall,email-finance"` is a string whatever the commas say, and the loop in the step would see one argument. An array value is a YAML list, one item per entry, and the log must show three `notified` lines.
 
-**Wrong approach:** params: [{name: IMAGE, value: ""}] — empty string is accepted but will cause runtime failure
-
-**Correct approach:** Provide a valid non-empty value
+**Trying to `kubectl edit` the old PipelineRun.** Its params are part of the immutable spec. Create a new run; the old failed one can stay as history.

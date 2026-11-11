@@ -1,0 +1,5 @@
+replicaCount: 1
+image:
+  repository: hashicorp/http-echo
+  tag: "0.2.3"
+message: "search dev"

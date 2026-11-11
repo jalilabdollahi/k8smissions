@@ -1,5 +1,6 @@
-You need to replace the emptyDir volume with a PersistentVolumeClaim. The PVC has its own lifecycle — independent of any pod — so data survives pod restarts, rescheduling, and even node changes.
+Create a PersistentVolumeClaim (ReadWriteOnce, 1Gi is plenty), then swap the source of the volume mounted at /data. A merge patch would leave the emptyDir in place next to the claim, which the API rejects, so replace the whole entry:
 
-In manifest.yaml:
-1. Add a PVC definition above the Pod
-2. Replace the emptyDir volume with a persistentVolumeClaim reference
+  kubectl patch deployment data-app -n k8smissions --type=json \
+    -p '[{"op":"replace","path":"/spec/template/spec/volumes/<index>","value":{"name":"uploads","persistentVolumeClaim":{"claimName":"<your-claim>"}}}]'
+
+or use kubectl edit deployment data-app.

@@ -1,5 +1,6 @@
-There is only one PVC — `database-storage` — shared by all 3 postgres pods. All pods are writing to the same location, which means each pod overwrites the other's data. This is never correct for a database cluster.
+A StatefulSet normally gets one PVC per pod from volumeClaimTemplates (named <template>-<statefulset>-<ordinal>). This one lists a single, fixed claim under volumes, so every pod mounts the same directory.
 
-Check the StatefulSet spec to see how the volume is defined:
+  kubectl get statefulset postgres-cluster -n k8smissions -o yaml
+  kubectl explain statefulset.spec.volumeClaimTemplates
 
-  kubectl get statefulset postgres-cluster -n k8smissions -o yaml | grep -A10 'volumes'
+Remember which StatefulSet fields can be changed after creation.

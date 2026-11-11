@@ -1,18 +1,15 @@
 {
-  "name": "Node Under Pressure",
-  "description": "Pods from multiple workloads are being unexpectedly evicted from the node. One Deployment is running several replicas of a memory-intensive command with no resource cap, pushing the node into MemoryPressure. Until the pressure is relieved, the kubelet will keep evicting pods.",
-  "objective": "Pods are being evicted — check node conditions for MemoryPressure and reduce or limit the workload causing it",
-  "xp": 350,
+  "name": "Evicted Every Minute",
+  "description": "The `audit-spooler` pods keep showing up as `Evicted`, and the Deployment spawns a replacement that gets evicted a minute later. The graveyard of Evicted pods grows every hour. Everyone suspects the node is running out of resources, yet all three nodes report Ready.",
+  "objective": "Deployment `audit-spooler` has 2 Running pods that stay up and are not evicted again, their spool directory stays below the volume's size limit, the volume keeps a size limit of at most 100Mi, and all node pressure conditions stay False.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Node conditions (MemoryPressure",
-    "DiskPressure",
-    "PIDPressure)",
-    "eviction threshold",
-    "cordon/drain",
-    "node lifecycle"
-  ],
+  "expected_time": "15m",
+  "concepts": ["eviction", "Evicted pods", "emptyDir sizeLimit", "node conditions"],
   "module": "module-6-observability",
-  "level": "level-7-node-pressure"
+  "level": "level-7-node-pressure",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,16 +1,25 @@
-# Pipeline Locked Out
+## What was broken
 
-## What Was Broken
-The trigger-sa ServiceAccount had no permissions to create PipelineRuns. The EventListener received webhook events but couldn't trigger pipeline execution due to RBAC denials.
+Task `dispatch` runs `kubectl` as ServiceAccount `dispatcher` to start a child PipelineRun and wait for it. The ServiceAccount had no Role bound to it, so the first call was refused with a 403. Granting only the obvious verb moves the failure one line down: `kubectl wait` also needs to read the run.
 
-## The Fix
-Create a Role that grants access to Tekton CRD resources in the tekton.dev API group, then bind to the SA.
+## The evidence
 
-## Why It Matters
-Tekton resources are in the tekton.dev API group. Regular Kubernetes RBAC roles targeted at '' (core) or 'apps' groups won't help. Specify apiGroups: ['tekton.dev'] in the role rules.
+The step log read `pipelineruns.tekton.dev is forbidden: User "system:serviceaccount:k8smissions:dispatcher" cannot create resource ...`, and after the first fix a second error for `get` (or `list`/`watch`) on the same resource. `kubectl auth can-i ... --as=system:serviceaccount:...` reproduces each answer without running the pipeline.
 
-## Pro Tip
-Use 'kubectl api-resources | grep tekton' to see all Tekton resource types and their API groups.
+## Why Kubernetes behaved this way
 
-## Concepts
-Tekton, RBAC, PipelineRun, tekton.dev API group, EventListener
+RBAC is additive and starts from nothing. Tekton objects are custom resources in the `tekton.dev` API group, so rules must name that group (the empty core group does not cover them) and the plural resource name. `kubectl wait` is a client-side loop: it GETs the object and then watches it with a list-and-watch request, so `create` alone is not enough.
+
+## The fix
+
+A Role in `k8smissions` with `create`, `get`, `list`, `watch` on `pipelineruns.tekton.dev`, bound to the ServiceAccount. That is the whole job. Wildcards on `tekton.dev`, a ClusterRole or `cluster-admin` would pass the run but let the nightly job delete pipelines or run arbitrary TaskRuns.
+
+## In production
+
+Scope orchestration accounts to the namespace and the resource they need; if the child runs belong to another namespace, bind there instead. Review `can-i --list` for the account after changes.
+
+## Commands worth remembering
+
+- `kubectl auth can-i --list --as=system:serviceaccount:NS:SA -n NS`
+- `kubectl create role NAME --verb=... --resource=...`
+- `kubectl api-resources --api-group=tekton.dev`

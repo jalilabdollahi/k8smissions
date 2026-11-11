@@ -1,20 +1,32 @@
 #!/bin/bash
-set -euo pipefail
-NS="k8smissions"
+NS=${NS:-k8smissions}
 
-# This level teaches Helm values indentation. The fix is applied via helm upgrade.
-# We check that the deployed pod is running the correct image tag (v2.0.0).
-IMAGE=$(kubectl get deployment helm-app -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null || true)
-
-if [ -z "$IMAGE" ]; then
-  echo "FAIL: Deployment 'helm-app' not found in namespace $NS"
+if ! helm -n "$NS" status search 2>/dev/null | grep -q '^STATUS: deployed'; then
+  echo "❌ Helm release search is not in status deployed"
   exit 1
 fi
-
-if echo "$IMAGE" | grep -q "v2.0.0"; then
-  echo "PASS: Deployment image is $IMAGE — Helm values.yaml indentation is correct"
-  exit 0
+img=$(kubectl -n "$NS" get deploy search -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null)
+if [ "$img" != "hashicorp/http-echo:1.0" ]; then
+  echo "❌ Deployment search runs image '${img:-none}', not the 1.0 build"
+  exit 1
 fi
+echo "✅ release search is deployed and Deployment search runs $img"
 
-echo "FAIL: Deployment image is '$IMAGE' (expected tag v2.0.0) — check image.tag indentation in values.yaml"
+kubectl -n "$NS" rollout status deploy/search --timeout=40s >/dev/null 2>&1
+ready=$(kubectl -n "$NS" get deploy search -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+total=$(kubectl -n "$NS" get pods -l app=search --no-headers 2>/dev/null | grep -c .)
+if [ "${ready:-0}" -ne 2 ] || [ "$total" -ne 2 ]; then
+  echo "❌ Deployment search: ${ready:-0} Ready, $total pods in total (expected 2 and 2)"
+  exit 1
+fi
+echo "✅ 2 search pods Ready"
+
+out=$(kubectl -n "$NS" exec probe -- sh -c 'for i in $(seq 20); do curl -s --max-time 2 http://search; echo; done' 2>/dev/null)
+good=$(echo "$out" | grep -c '^search prod: ranking v1.0$')
+if [ "$good" -ne 20 ]; then
+  echo "❌ Service search: only $good of 20 requests returned the new ranking"
+  exit 1
+fi
+echo "✅ Service search answers 20 of 20 requests"
+exit 0
 exit 1

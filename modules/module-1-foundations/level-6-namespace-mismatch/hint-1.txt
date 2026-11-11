@@ -1,6 +1,1 @@
-If k8smissions is empty, the resources were probably created somewhere else. Check all namespaces at once:
-
-  kubectl get pods --all-namespaces
-  kubectl get services --all-namespaces
-
-Note which namespace client-app and backend-service actually ended up in.
+`orders-api` is missing from this namespace, but someone applied it somewhere. Look across the whole cluster: `kubectl get deploy,svc -A | grep orders` and `kubectl get namespaces`.

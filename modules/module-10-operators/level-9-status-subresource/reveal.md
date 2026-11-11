@@ -1,20 +1,16 @@
-## What went wrong
+Two linked faults:
 
-In Kubernetes, the `status` subresource is separate from the main resource endpoint. Without `subresources: {status: {}}` in the CRD, the `/status` endpoint doesn't exist. Patches that include `status` are accepted by the main endpoint but the status field is stripped out (Kubernetes ignores status updates on the main resource endpoint by design).
+1. The `Backup` CRD has no `status` subresource, so `PATCH .../backups/<name>/status`, which `backup-operator` uses, does not exist and returns 404. Enable it:
 
-## Fix
-
-```yaml
-versions:
-- name: v1
-  served: true
-  storage: true
-  schema:
-    openAPIV3Schema: ...
-  subresources:
-    status: {}
+```bash
+kubectl patch crd backups.backup.acme.io --type=json -p '[{"op":"add","path":"/spec/versions/0/subresources","value":{"status":{}}}]'
 ```
 
-## Why this matters
+2. The moment the subresource is on, a patch to the main resource silently ignores `status` (the call still returns 200). `sla-reporter` writes `lastSlaCheck` through the main endpoint, so it stops working without an error. Change its script to patch `.../backups/<name>/status`:
 
-The status subresource separation exists for good reason: it prevents users from manually overwriting operator-managed status, and it allows different RBAC permissions for spec updates (user-facing) vs. status updates (operator-facing). In operator code, use `client.Status().Update()` or `client.Status().Patch()` — not `client.Update()` — to write to status. Without the subresource enabled, `client.Status().Update()` calls will fail silently or error, and status will appear frozen.
+```bash
+kubectl -n k8smissions edit configmap sla-reporter-code      # patch(BASE + "/" + name + "/status", ...)
+kubectl -n k8smissions create job sla-test --from=cronjob/sla-reporter
+```
+
+New Jobs read the ConfigMap when their pod starts, so no restart is needed. With the subresource in place, status writes no longer bump `metadata.generation`.

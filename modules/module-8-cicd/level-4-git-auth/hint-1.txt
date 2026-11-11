@@ -1,1 +1,1 @@
-Check the TaskRun pod logs to see the authentication error: `kubectl logs -n k8smissions -l tekton.dev/task=git-clone`
+Read the failing clone: `kubectl get taskrun` for run `build-payments-31`, then `kubectl logs <pod> -c step-git-clone`. Then check what the run was started with (`kubectl get pipelinerun build-payments-31 -o yaml`, look for a ServiceAccount) and compare the Secret's annotation with the exact URL the Task clones from (`kubectl get secret ci-git -o yaml`).

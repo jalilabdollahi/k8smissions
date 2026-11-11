@@ -1,16 +1,25 @@
-# Reverted Release
+## What was broken
 
-## What Was Broken
-The Rollout used nginx:bad-tag (a non-existent image), causing the analysis run to fail. Argo Rollouts aborted and set status to Degraded. The rollback restored the previous stable revision.
+Pipeline `release-ledger` sets the image, waits 30 seconds for the rollout, and has a `finally` Task `rollback` that runs `kubectl rollout undo`. Last week's bad tag made the rollout time out and the run ended Failed, yet `rollback` never started. Even if it had, the Deployment kept no previous ReplicaSet to return to.
 
-## The Fix
-Fix the root cause (bad image), update the rollout spec, then retry the rollout.
+## The evidence
 
-## Why It Matters
-Degraded state means the rollout is stuck — it can't proceed forward (bad new version) and won't auto-retry. Human intervention required. This is the safety net working as intended.
+`status.skippedTasks` of `release-ledger-0907` listed `rollback` with the reason that its `when` expression evaluated to false. Its guard compared `$(tasks.status)` with `Error`, a string Tekton never produces. `kubectl rollout history deployment/ledger-api` showed no revisions at all, and `revisionHistoryLimit: 0` explained why.
 
-## Pro Tip
-Check rollout history: kubectl argo rollouts history rollout web-rollout -n k8smissions. Shows all revisions and which is stable/canary.
+## Why Kubernetes and Tekton behaved this way
 
-## Concepts
-Argo Rollouts, Degraded, abort, retry, rollback
+`finally` Tasks start regardless of failures, but a `when` guard is still evaluated, and it is a plain string comparison against the aggregate status (`Succeeded`, `Failed`, `Completed` or `None`). A typo there is not an error; the Task is simply skipped. A Deployment's rollback is not a stored copy of the old spec: it re-activates an older ReplicaSet, and the controller garbage-collects those down to `revisionHistoryLimit`. At zero there is nothing left.
+
+## The fix
+
+Guard `rollback` with `Failed` and keep at least a few revisions on the Deployment. Both defects had to be fixed: either one alone leaves the bad image in production.
+
+## In production
+
+Rollbacks that depend on cluster history are fine for stateless services; for anything with a schema change, an automatic undo can make things worse, so many teams page a human instead. Keep the default revision history (10) rather than trimming it.
+
+## Commands worth remembering
+
+- `kubectl get pipelinerun NAME -o jsonpath='{.status.skippedTasks}'`
+- `kubectl rollout history deployment/ledger-api`
+- `kubectl explain pipeline.spec.finally.when`

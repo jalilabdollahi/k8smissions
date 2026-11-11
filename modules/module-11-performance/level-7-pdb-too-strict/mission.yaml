@@ -1,17 +1,15 @@
 {
-  "name": "Deployment Stuck",
-  "description": "Node maintenance is blocked — `kubectl drain` fails with 'Cannot evict pod as it would violate the pod's disruption budget'. The PodDisruptionBudget requires a minimum of 3 pods available, but the deployment only has 3 replicas total. This means zero pods can ever be evicted, making node maintenance impossible.",
-  "objective": "The PodDisruptionBudget requires all 3 pods available at all times — relax it to allow one disruption",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "PodDisruptionBudget",
-    "PDB",
-    "minAvailable",
-    "maxUnavailable",
-    "rolling update"
-  ],
+  "name": "The Drain That Never Finishes",
+  "description": "Tonight's node upgrade is stuck. The runbook cordons and drains the two workers one at a time, and the first drain has been printing \"Cannot evict pod as it would violate the pod's disruption budget\" and retrying for 40 minutes. Two services live in the orders namespace: orders-api (3 replicas) and orders-cache (1 replica). The change window closes soon, and the budgets exist for a reason: nobody wants a cache or API outage during upgrades.",
+  "objective": "Each worker can be cordoned and drained in turn (and uncordoned afterwards) while Service orders-api keeps answering every request, and both PodDisruptionBudgets still exist and still protect their pods.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["PodDisruptionBudget", "eviction", "drain", "maxUnavailable", "minAvailable"],
   "module": "module-11-performance",
-  "level": "level-7-pdb-too-strict"
+  "level": "level-7-pdb-too-strict",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

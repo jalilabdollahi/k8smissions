@@ -1,1 +1,2 @@
-Add Cilium-specific annotations to the NetworkPolicy: `policy-engine: cilium-ebpf` and `optimization: O(1)-lookup-enabled`. These annotations signal to Cilium to use its eBPF-based policy enforcement, which uses hash-map lookups instead of linear iptables chain traversal.
+Extend the existing rule instead of opening everything, then retest the big name from a price-feed pod:
+  kubectl patch networkpolicy price-feed-egress --type=json -p '[{"op":"add","path":"/spec/egress/0/ports/-","value":{"protocol":"<protocol>","port":<dns port>}}]'

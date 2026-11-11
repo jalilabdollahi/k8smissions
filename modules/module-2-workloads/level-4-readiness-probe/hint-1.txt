@@ -1,7 +1,1 @@
-502 errors on startup suggest traffic is being sent to pods that have not finished initializing. Check whether a fresh pod is immediately added to the Service endpoints:
-
-  kubectl get endpoints slow-app-service -n k8smissions
-
-Then delete one pod and watch what happens to Endpoints in real time:
-
-  kubectl get endpoints slow-app-service -n k8smissions -w
+Watch what the Service sends traffic to while a pod starts: `kubectl -n k8smissions get endpoints catalog -w` in one terminal, `kubectl -n k8smissions delete pod <one catalog pod>` in another. Then read the app's own log with `kubectl -n k8smissions logs <pod>`.

@@ -1,16 +1,15 @@
 {
-  "name": "etcd Pressure",
-  "description": "The API server is becoming increasingly slow. Investigation reveals that a CI/CD pipeline has been leaking 20+ ConfigMaps per run — every run creates `ci-run-XXXX` objects and never deletes them. In production this scales to thousands of objects, eating into etcd's storage quota and slowing down list operations cluster-wide.",
-  "objective": "Hundreds of stale ci-run-* ConfigMaps are filling etcd — delete them all to reduce storage pressure",
-  "xp": 350,
+  "name": "The Secrets Pile",
+  "description": "`kubectl get secrets` in this namespace takes several seconds, the `config-syncer` controller logs list calls well over its budget, and the API server feels heavy whenever the syncer runs. The deploy tool keeps every release it ever made as a Secret (`sh.release.v1.shop.v<N>`); the oldest are months old. Nobody has pruned anything since the tool was installed.",
+  "objective": "The `shop` release history is short again (at most 10 release Secrets) but still contains the deployed release and the one before it; the deploy tool prunes its own history on every new release (a deploy Job from CronJob `release-deployer` leaves no more than its configured limit); and `config-syncer` keeps running with a sensible poll interval (at least 3 seconds between lists) and reports list calls under 500 ms.",
+  "xp": 300,
   "difficulty": "expert",
   "expected_time": "20m",
-  "concepts": [
-    "etcd size limits",
-    "object cleanup",
-    "kubectl bulk delete",
-    "CI/CD hygiene"
-  ],
+  "concepts": ["object count and size", "label selectors", "release history", "controller polling", "kubectl set env"],
   "module": "module-12-wargames",
-  "level": "level-6-etcd-pressure"
+  "level": "level-6-etcd-pressure",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

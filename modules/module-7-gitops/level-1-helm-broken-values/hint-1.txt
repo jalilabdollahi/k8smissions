@@ -1,1 +1,1 @@
-Check what image the running pod is actually using: `kubectl get pod -n k8smissions -l app=helm-app -o yaml | grep image`
+The release has a history: `helm -n k8smissions history ledger-api`. Compare what the two revisions were given with `helm get values ledger-api -n k8smissions --revision 1` and `--revision 2`. Which settings made it into the second one?

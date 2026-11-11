@@ -1,27 +1,130 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: orders-operator
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: orders-operator
+  namespace: k8smissions
+rules:
+- apiGroups: ["shop.acme.io"]
+  resources: ["orders"]
+  verbs: ["get", "list"]
+- apiGroups: ["shop.acme.io"]
+  resources: ["orders/status"]
+  verbs: ["get", "patch"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["get", "list", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: orders-operator
+  namespace: k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: orders-operator}
+subjects:
+- {kind: ServiceAccount, name: orders-operator, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orders-operator-code
+  namespace: k8smissions
+data:
+  controller.py: |
+    import datetime, os
+    from kapi import api, patch, forever, log, NS
+
+    ME = os.environ["POD_NAME"]
+    LEASE = os.environ["LEASE_NAME"]
+    DURATION = int(os.environ.get("LEASE_SECONDS", "10"))
+    LEASES = "/apis/coordination.k8s.io/v1/namespaces/%s/leases" % NS
+    ORDERS = "/apis/shop.acme.io/v1/namespaces/%s/orders" % NS
+    FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
+    UTC = datetime.timezone.utc
+    leading = False
+
+
+    def stamp():
+        return datetime.datetime.now(UTC).strftime(FMT)
+
+
+    def hold_lease():
+        """True when this pod holds the lease after this call (acquire, renew or take over)."""
+        path = "%s/%s" % (LEASES, LEASE)
+        code, lease = api("GET", path)
+        if code == 404:
+            code, _ = api("POST", LEASES, {"metadata": {"name": LEASE}, "spec": {
+                "holderIdentity": ME, "leaseDurationSeconds": DURATION,
+                "acquireTime": stamp(), "renewTime": stamp(), "leaseTransitions": 0}})
+            return code == 201
+        if code != 200:
+            return False
+        spec = lease["spec"]
+        if spec.get("holderIdentity") == ME:
+            return patch(path, {"spec": {"renewTime": stamp()}})[0] == 200
+        renewed = datetime.datetime.strptime(spec["renewTime"], FMT).replace(tzinfo=UTC)
+        age = (datetime.datetime.now(UTC) - renewed).total_seconds()
+        if age < spec.get("leaseDurationSeconds", DURATION):
+            return False
+        code, _ = patch(path, {"metadata": {"resourceVersion": lease["metadata"]["resourceVersion"]},
+                               "spec": {"holderIdentity": ME, "acquireTime": stamp(), "renewTime": stamp(),
+                                        "leaseTransitions": spec.get("leaseTransitions", 0) + 1}})
+        return code == 200
+
+
+    def reconcile():
+        global leading
+        now = hold_lease()
+        if now != leading:
+            log("acquired lease %s" % LEASE if now else "lost lease %s" % LEASE)
+            leading = now
+        if not now:
+            return
+        code, body = api("GET", ORDERS)
+        for order in body.get("items", []):
+            name = order["metadata"]["name"]
+            status = order.get("status") or {}
+            if status.get("lastWriter") != ME or status.get("phase") != "Accepted":
+                patch("%s/%s/status" % (ORDERS, name), {"status": {
+                    "phase": "Accepted", "lastWriter": ME, "claims": status.get("claims", 0) + 1}})
+                log("took over order %s" % name)
+
+
+    forever(reconcile)
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-operator
-  namespace: operators
+  name: orders-operator
+  namespace: k8smissions
 spec:
   replicas: 2
   selector:
-    matchLabels:
-      app: my-operator
+    matchLabels: {app: orders-operator}
   template:
     metadata:
-      labels:
-        app: my-operator
+      labels: {app: orders-operator}
     spec:
+      serviceAccountName: orders-operator
       containers:
       - name: operator
-        image: my-operator:v1.0
-        args:
-        - --leader-elect=false
-        resources:
-          requests:
-            cpu: 50m
-            memory: 64Mi
-          limits:
-            cpu: 200m
-            memory: 128Mi
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/controller.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        - {name: LEASE_SECONDS, value: "10"}
+        - name: POD_NAME
+          valueFrom: {fieldRef: {fieldPath: metadata.name}}
+        - name: LEASE_NAME
+          valueFrom: {fieldRef: {fieldPath: metadata.name}}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: orders-operator-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

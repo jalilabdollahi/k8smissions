@@ -1,26 +1,12 @@
-## What went wrong
+Two stacked faults:
 
-The webhook's `caBundle` is a base64-encoded CA certificate that the API server uses to verify the webhook service's TLS certificate. If the cert was rotated (manually or by cert-manager) without updating the `caBundle`, the API server rejects the TLS handshake and all covered admission requests fail.
+1. The webhook's `caBundle` holds a stale CA, so the API server cannot verify the server (`x509: certificate signed by unknown authority`). The right CA is in `policy-guard-tls-reissued` under `ca.crt`.
+2. Once the CA is right, the certificate in the pod is expired (`certificate has expired or is not yet valid`). The reissued Secret holds a valid certificate and key. The server loads them only at start, so the pod must be replaced.
 
-## Fix
-
-```yaml
-apiVersion: admissionregistration.k8s.io/v1
-kind: MutatingWebhookConfiguration
-metadata:
-  name: pod-annotations-injector
-  annotations:
-    cert-manager.io/inject-ca-from: operators/webhook-cert
-webhooks:
-- name: inject.example.com
-  clientConfig:
-    service:
-      name: webhook-service
-      namespace: operators
-      port: 443
-    # caBundle removed — cert-manager injects it automatically
+```bash
+CA=$(kubectl -n k8smissions get secret policy-guard-tls-reissued -o jsonpath='{.data.ca\.crt}')
+kubectl patch validatingwebhookconfiguration policy-guard --type=json -p "[{\"op\":\"replace\",\"path\":\"/webhooks/0/clientConfig/caBundle\",\"value\":\"$CA\"}]"
+kubectl -n k8smissions patch deployment policy-guard --type=json -p '[{"op":"replace","path":"/spec/template/spec/volumes/2/secret/secretName","value":"policy-guard-tls-reissued"}]'
 ```
 
-## Why this matters
-
-Hardcoded `caBundle` values are a maintenance trap: every time the cert rotates, the webhook config must be manually updated or webhook calls fail cluster-wide. cert-manager's CA injector watches for the annotation and keeps the `caBundle` current whenever the cert is rotated. This is the standard pattern for production webhook certificate management. Without it, cert expiry becomes a production incident.
+Pointing the Deployment at the other Secret restarts the pod. If you edit the Secret's data in place instead, delete the pod yourself. Keep `failurePolicy: Fail`: removing or loosening the webhook admits `nginx:latest`.

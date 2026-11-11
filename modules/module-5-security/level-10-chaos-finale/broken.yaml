@@ -1,94 +1,214 @@
-# BROKEN: The Perfect Storm - EVERYTHING is broken!
-# Multiple simultaneous failures across all Module 5 concepts
-
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: k8smissions
+  name: settle
   labels:
     pod-security.kubernetes.io/enforce: restricted
-
+    pod-security.kubernetes.io/enforce-version: latest
 ---
-# ResourceQuota - very restrictive
 apiVersion: v1
-kind: ResourceQuota
+kind: ConfigMap
 metadata:
-  name: chaos-quota
-  namespace: k8smissions
-spec:
-  hard:
-    requests.cpu: "1"
-    requests.memory: "1Gi"
-    pods: "5"
-
+  name: settle-config
+  namespace: settle
+data:
+  region: eu-west-1
+  batch_window: "15m"
 ---
-# ServiceAccount exists but NO RBAC!
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settlement-app
+  namespace: settle
+data:
+  app.py: |
+    import json, socket, ssl, sys, urllib.request, urllib.error
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    token = open(SA + "/token").read()
+    ns = open(SA + "/namespace").read()
+    ctx = ssl.create_default_context(cafile=SA + "/ca.crt")
+    req = urllib.request.Request(
+        "https://kubernetes.default.svc/api/v1/namespaces/%s/configmaps/settle-config" % ns,
+        headers={"Authorization": "Bearer " + token})
+    try:
+        cfg = json.load(urllib.request.urlopen(req, context=ctx, timeout=5))["data"]
+    except urllib.error.HTTPError as e:
+        print("cannot load config: HTTP %d %s" % (e.code, json.load(e).get("message")), flush=True)
+        sys.exit(1)
+    print("config loaded: region=%s" % cfg["region"], flush=True)
+
+    class H(BaseHTTPRequestHandler):
+        def do_GET(self):
+            try:
+                socket.create_connection(("settle-db", 5432), timeout=2).close()
+                code, body = 200, "ready config=%s db=ok\n" % cfg["region"]
+            except OSError as e:
+                code, body = 503, "not ready: db unreachable (%s)\n" % e
+            self.send_response(code)
+            self.end_headers()
+            self.wfile.write(body.encode())
+        def log_message(self, *a):
+            pass
+    HTTPServer(("", 8080), H).serve_forever()
+---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: app-sa
-  namespace: k8smissions
-
+  name: settlement
+  namespace: settle
 ---
-# NetworkPolicy - DENY ALL
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
 metadata:
-  name: deny-all
-  namespace: k8smissions
-spec:
-  podSelector: {}
-  policyTypes: [Ingress, Egress]
-
+  name: settle-config-reader
+  namespace: settle
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: ["settle-config"]
+  verbs: ["list", "watch"]
 ---
-# Deployment with EVERY problem
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: settle-config-reader
+  namespace: settle
+subjects:
+- kind: ServiceAccount
+  name: settlement
+  namespace: settle
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: settle-config-reader
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chaos-app
-  namespace: k8smissions
+  name: settle-db
+  namespace: settle
 spec:
-  replicas: 3
+  replicas: 1
   selector:
-    matchLabels:
-      app: chaos
+    matchLabels: {app: settle-db}
   template:
     metadata:
-      labels:
-        app: chaos
+      labels: {app: settle-db}
     spec:
-      serviceAccountName: app-sa
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+      - name: db
+        image: python:3.12-alpine
+        command: ["python", "-m", "http.server", "5432", "--directory", "/tmp"]
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities: {drop: ["ALL"]}
+        resources:
+          limits: {cpu: 100m, memory: 128Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: settle-db
+  namespace: settle
+spec:
+  selector: {app: settle-db}
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rogue
+  namespace: settle
+  labels: {app: rogue}
+spec:
+  terminationGracePeriodSeconds: 0
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    seccompProfile: {type: RuntimeDefault}
+  containers:
+  - name: sh
+    image: busybox:1.36
+    command: ["sleep", "86400"]
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities: {drop: ["ALL"]}
+    resources:
+      limits: {cpu: 50m, memory: 64Mi}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-clients
+  namespace: settle
+spec:
+  podSelector:
+    matchLabels: {app: settle-db}
+  policyTypes: ["Ingress"]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels: {app: settlement-api}
+    ports:
+    - {port: 5432, protocol: TCP}
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: settle-quota
+  namespace: settle
+spec:
+  hard:
+    limits.cpu: "2"
+    limits.memory: 2Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: settlement
+  namespace: settle
+spec:
+  selector: {app: settlement}
+  ports:
+  - port: 8080
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: settlement
+  namespace: settle
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: settlement}
+  template:
+    metadata:
+      labels: {app: settlement}
+    spec:
+      serviceAccountName: settlement
+      terminationGracePeriodSeconds: 0
+      securityContext:
+        runAsUser: 1000
       containers:
       - name: app
-        image: nginx:latest
-        resources:
-          requests:
-            cpu: "1"
-            memory: "512Mi"
-        securityContext:
-          runAsUser: 0
-          allowPrivilegeEscalation: true
-
----
-# PDB impossible to satisfy
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: chaos-pdb
-  namespace: k8smissions
-spec:
-  minAvailable: 5
-  selector:
-    matchLabels:
-      app: chaos
-
-# RESULT: TOTAL CHAOS!
-# - Pods can't schedule (quota)
-# - Pods can't schedule (security policy)
-# - Pods can't schedule (taints)
-# - Pods can't communicate (network policy)
-# - Pods can't access API (RBAC)
-# - Can't drain nodes (PDB)
-# - Low priority (no preemption)
-#
-# EVERYTHING IS BROKEN! Fix it all! 🔥
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: app, mountPath: /app}
+      volumes:
+      - name: app
+        configMap: {name: settlement-app}

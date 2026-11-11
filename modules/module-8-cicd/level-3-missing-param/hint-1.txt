@@ -1,1 +1,1 @@
-Check the TaskRun status for the validation error: `kubectl describe taskrun push-run -n k8smissions`
+`kubectl get pipelinerun notify-prod-9 -o jsonpath='{.status.conditions[0].message}'` says what the run was rejected for, and `kubectl get pipeline deploy-notify -o yaml` shows what the Pipeline expects. A PipelineRun spec cannot be edited after creation, so you will create a new run.

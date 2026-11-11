@@ -1,5 +1,1 @@
-Both blue and green Deployments are healthy. The issue is in how the Service decides which pods to send traffic to. Check the Service:
-
-  kubectl describe service app-service -n k8smissions
-
-Look at the Selector section.
+Compare what the Service selects with what the green pods carry: `kubectl -n k8smissions get svc shop -o yaml` (the `selector`) and `kubectl -n k8smissions get pods --show-labels`. `kubectl -n k8smissions get endpoints shop` shows who receives traffic right now.

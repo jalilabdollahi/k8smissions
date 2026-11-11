@@ -1,13 +1,15 @@
-# Common Mistakes — Lost in Transit
+## Switching the Service to `Cluster`
 
-## Mistake 1: Assuming packet loss is a network provider issue
+Both nodes answer, so it looks fixed, but the caller address becomes a node address. The audit log is exactly why `Local` was chosen; this fails the source-address check.
 
-**Wrong approach:** Filing infrastructure tickets before checking externalTrafficPolicy
+## Scaling the Deployment up
 
-**Correct approach:** Check Service YAML for externalTrafficPolicy: Local before escalating
+The extra pods obey the same affinity and land on the same worker. More replicas on one node do not help the other node.
 
-## Mistake 2: Using Local everywhere for client IP
+## Using required `podAntiAffinity`
 
-**Wrong approach:** Setting Local on services with sparse pod distribution — causes silent drops
+It separates the pods, but during the rolling update the old pods still match the label, so the second new pod can stay Pending and the rollout stalls. A topology spread constraint avoids this; otherwise you must delete the old pods yourself.
 
-**Correct approach:** Use Local only when pods are on every node OR when paired with a load balancer that checks pod presence
+## Pinning pods to nodes by name
+
+It would work today and break the next time a node is replaced. Express the intent (one per node) with spread constraints instead.

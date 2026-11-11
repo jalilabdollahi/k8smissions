@@ -1,22 +1,4 @@
-## What went wrong
-
-Setting both `maxSurge: 0` and `maxUnavailable: 0` is a logical deadlock:
-- Kubernetes cannot scale up (maxSurge: 0 → no extra pods allowed)
-- Kubernetes cannot scale down (maxUnavailable: 0 → cannot remove any running pod)
-- Therefore nothing can change
-
-## Fix
-
-In manifest.yaml, allow at least one direction of movement:
-
-```yaml
-strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxSurge: 1         # Can create 1 extra pod to start the update
-    maxUnavailable: 0   # Keep all 3 running until new ones are ready
-```
-
-## Why this matters
-
-This is a subtle but catastrophic misconfiguration. The Deployment appears healthy (pods are running), but it can never be updated. You might discover this only during an incident when you need to push a hotfix — and nothing happens.
+1. `kubectl -n k8smissions describe pod <pending pod>` says `didn't have free ports for the requested pod ports`: both nodes already run a pod holding hostPort 9000.
+2. The default strategy is `maxSurge: 25%` (rounds up to 1) and `maxUnavailable: 25%` (rounds down to 0), so the Deployment must start a third pod before it may stop an old one.
+3. `kubectl -n k8smissions patch deployment api-server --type=merge -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":0,"maxUnavailable":1}}}}'` lets the controller stop one old pod first, which frees the port for its replacement.
+4. `kubectl -n k8smissions rollout status deployment/api-server` completes; one pod serves at all times.

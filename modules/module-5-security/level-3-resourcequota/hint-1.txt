@@ -1,1 +1,1 @@
-Look at the pending pod's events for the quota violation message: `kubectl describe pod resource-hungry-app -n k8smissions`
+`kubectl get pods` is empty, so the pods are being refused before they exist. Ask the controller that creates them: `kubectl -n k8smissions describe rs` (look at its Events) and `kubectl -n k8smissions describe quota`.

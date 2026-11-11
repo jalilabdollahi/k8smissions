@@ -1,5 +1,1 @@
-Intermittent failures depending on which node you hit point to `externalTrafficPolicy`. Check the full Service spec:
-
-  kubectl describe service nodeport-svc -n k8smissions
-
-Look for the External Traffic Policy line.
+Which node answers and which hangs? Compare `kubectl -n k8smissions get pods -l app=audit-gw -o wide` with `kubectl -n k8smissions get svc audit-gw -o yaml`. Try both worker addresses from `gw-client` with `kubectl -n k8smissions exec gw-client -- curl -s --max-time 4 http://<node IP>:<nodePort>/`.

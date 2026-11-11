@@ -1,17 +1,26 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: critical-app
+  name: session-cache
   namespace: k8smissions
 spec:
-  # this pod will be immediately evicted with no grace window.
-  containers:
-  - name: app
-    image: nginx:1.25
-    resources:
-      requests:
-        cpu: 50m
-        memory: 32Mi
-      limits:
-        cpu: 100m
-        memory: 64Mi
+  replicas: 2
+  selector:
+    matchLabels: {app: session-cache}
+  template:
+    metadata:
+      labels: {app: session-cache}
+    spec:
+      nodeSelector:
+        disktype: nvme
+      tolerations:
+      - key: maintenance
+        operator: Equal
+        value: nightly
+        effect: NoExecute
+        tolerationSeconds: 20
+      containers:
+      - name: cache
+        image: registry.k8s.io/pause:3.10
+        resources:
+          requests: {cpu: 10m, memory: 16Mi}

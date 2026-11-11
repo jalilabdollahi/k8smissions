@@ -1,1 +1,1 @@
-The `config-reader-sa` ServiceAccount has no Role and no RoleBinding. Kubernetes ServiceAccounts have zero API access by default — every permission must be explicitly granted.
+Point the pod template at the account: `kubectl -n k8smissions patch deploy feature-flags --type=merge -p '{"spec":{"template":{"spec":{"serviceAccountName":"<account>"}}}}'`. If the token is then missing, the pod needs `automountServiceAccountToken: true` in its own spec (the pod value wins over the ServiceAccount's), or the ServiceAccount's setting must change.

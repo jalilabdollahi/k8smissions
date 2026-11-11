@@ -1,1 +1,1 @@
-The pod's `args` field references `/missing.sh` which does not exist inside the busybox image. Every time the container starts, the shell fails immediately with a 'not found' error and exits.
+Two processes cannot listen on the same port in one pod. Move one of them to a free port through its environment variable, for example `kubectl -n k8smissions set env deploy/quote-service -c <container> <VAR>=<port>`. If you move the app instead, the Service's `targetPort` has to follow.

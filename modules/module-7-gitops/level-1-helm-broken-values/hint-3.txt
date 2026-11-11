@@ -1,1 +1,2 @@
-The container's `image` field uses the `:latest` tag. This is not a specific version — update it to a pinned tag like `nginx:1.27.4` so the deployment is reproducible and auditable.
+helm -n k8smissions get values ledger-api --revision <good revision> > prod.yaml
+helm -n k8smissions upgrade ledger-api <chart dir> -f prod.yaml --set image.tag=<the tag CI wanted> --wait

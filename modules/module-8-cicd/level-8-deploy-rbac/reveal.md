@@ -1,38 +1,6 @@
-## What went wrong
+`deploy-sa` is bound in the wrong namespace, and the Role it is bound to does not cover Services.
 
-Kubernetes denies every API call made by `deploy-sa` because it has no RBAC permissions. The `kubectl apply` inside the Task pod is rejected with 403 Forbidden before any resource is created or updated.
-
-## Fix
-
-```yaml
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: deploy-role
-  namespace: k8smissions
-rules:
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "list", "create", "update", "patch", "delete"]
-- apiGroups: [""]
-  resources: ["services", "configmaps"]
-  verbs: ["get", "list", "create", "update", "patch", "delete"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: deploy-rb
-  namespace: k8smissions
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: deploy-role
-subjects:
-- kind: ServiceAccount
-  name: deploy-sa
-  namespace: k8smissions
-```
-
-## Why this matters
-
-CI/CD pipelines that deploy to Kubernetes must authenticate as a ServiceAccount with explicit RBAC permissions. The principle of least privilege applies: grant only the verbs and resource types the pipeline actually deploys. Avoid using `cluster-admin` for pipeline SAs — if a pipeline is compromised, a scoped Role limits the blast radius to the specific namespace and resource types the pipeline manages.
+1. The step log: `deployments.apps is forbidden: User "system:serviceaccount:k8smissions:deploy-sa" cannot get resource "deployments" ... in the namespace "shop-staging"`.
+2. The Role and RoleBinding exist in `k8smissions`; they have no effect in `shop-staging`.
+3. Create a Role in `shop-staging` with `get/list/watch/create/update/patch` on `deployments` (apiGroup `apps`) and on `services` (core group), and a RoleBinding to ServiceAccount `deploy-sa` of namespace `k8smissions`.
+4. Start a new run as `deploy-sa`: Deployment and Service are applied and the rollout completes.

@@ -1,15 +1,74 @@
-apiVersion: apiextensions.k8s.io/v1
-kind: CustomResourceDefinition
+apiVersion: v1
+kind: ServiceAccount
 metadata:
-  name: configs.example.com
+  name: crd-sync
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: crd-sync-k8smissions
+rules:
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  resourceNames: ["configs.settings.acme.io"]
+  verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: crd-sync-k8smissions
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: crd-sync-k8smissions}
+subjects:
+- {kind: ServiceAccount, name: crd-sync, namespace: k8smissions}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crd-sync-code
+  namespace: k8smissions
+data:
+  sync.py: |
+    # Rolls out the final Config CRD: only v1 is served, and it is the storage version.
+    import sys, time
+    from kapi import api, log
+
+    PATH = "/apis/apiextensions.k8s.io/v1/customresourcedefinitions/configs.settings.acme.io"
+    V1 = {"name": "v1", "served": True, "storage": True, "schema": {"openAPIV3Schema": {
+        "type": "object", "properties": {"spec": {"type": "object", "properties": {
+            "service": {"type": "string"}, "value": {"type": "string"}}}}}}}
+
+    while True:
+        code, crd = api("GET", PATH)
+        if code == 200:
+            crd["spec"]["versions"] = [V1]
+            code, res = api("PUT", PATH, crd)
+            if code == 200:
+                log("final CRD applied: only v1 is served")
+                sys.exit(0)
+        log("crd-sync: update rejected (%s): %s" % (code, res.get("message", "")))
+        time.sleep(5)
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: crd-sync
+  namespace: k8smissions
 spec:
-  group: example.com
-  versions:
-  - name: v1
-    served: true
-    storage: true
-  scope: Namespaced
-  names:
-    plural: configs
-    singular: config
-    kind: Config
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: crd-sync
+      containers:
+      - name: sync
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/sync.py"]
+        env:
+        - {name: PYTHONPATH, value: /kapi}
+        volumeMounts:
+        - {name: app, mountPath: /app}
+        - {name: lib, mountPath: /kapi}
+      volumes:
+      - {name: app, configMap: {name: crd-sync-code}}
+      - {name: lib, configMap: {name: kapi-lib}}

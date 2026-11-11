@@ -1,34 +1,111 @@
-# Only the app-server Deployment remains. Its readinessProbe checks nc -z db-service 5432
-# which fails immediately because there are no endpoints — all 3 pods become NotReady.
-# The container loops forever trying to connect, never reaching sleep 3600.
+# The ledger application tier, its Service, and the network policy that guards the database.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledger-app-src
+  namespace: k8smissions
+data:
+  app.py: |
+    import json, os, urllib.request
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    DB = os.environ["DB_URL"]
+    def db(method, key, data=None):
+        r = urllib.request.Request(f"{DB}/kv/{key}", data=data, method=method)
+        return urllib.request.urlopen(r, timeout=3)
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, fmt, *a):
+            print("%s %s" % (self.command, self.path), flush=True)
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def handle_db(self, method):
+            key = self.path.rsplit("/", 1)[-1]
+            data = None
+            if method == "PUT":
+                data = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+            try:
+                with db(method, key, data) as r:
+                    return self.reply(201 if method == "PUT" else 200, r.read().decode())
+            except urllib.error.HTTPError as e:
+                return self.reply(e.code, e.read().decode())
+            except Exception as e:
+                print("database error:", e, flush=True)
+                return self.reply(500, "ledger-app: database unavailable (%s)\n" % e)
+        def do_GET(self):
+            if self.path == "/healthz": return self.reply(200, "ok")
+            if self.path.startswith("/entries/"): return self.handle_db("GET")
+            self.reply(404, "not found")
+        def do_POST(self):
+            if self.path.startswith("/entries/"): return self.handle_db("PUT")
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-server
+  name: ledger-app
   namespace: k8smissions
 spec:
-  replicas: 3
+  replicas: 2
   selector:
-    matchLabels:
-      app: app-server
+    matchLabels: {app: ledger-app}
   template:
     metadata:
       labels:
-        app: app-server
+        app: ledger-app
+        tier: backend
     spec:
       containers:
-      - name: app-server
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - until nc -z db-service 5432; do echo waiting; sleep 2; done; sleep 3600
+      - name: app
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/app.py"]
+        env:
+        - {name: DB_URL, value: "http://ledger-db:5000"}
+        ports:
+        - {containerPort: 8080}
         readinessProbe:
-          exec:
-            command:
-            - nc
-            - -z
-            - db-service
-            - '5432'
-          initialDelaySeconds: 3
-          periodSeconds: 5
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: ledger-app-src}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-app
+  namespace: k8smissions
+spec:
+  selector: {app: ledger-app}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-db
+  namespace: k8smissions
+spec:
+  selector:
+    app: ledger-db
+    role: primary
+  ports:
+  - {port: 5000, targetPort: 5000}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ledger-db-ingress
+  namespace: k8smissions
+spec:
+  podSelector:
+    matchLabels: {app: ledger-db}
+  policyTypes: [Ingress]
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels: {tier: app}
+    ports:
+    - {protocol: TCP, port: 5000}

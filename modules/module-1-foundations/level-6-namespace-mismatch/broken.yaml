@@ -1,24 +1,104 @@
 apiVersion: v1
-kind: Pod
+kind: Namespace
 metadata:
-  name: client-app
-  namespace: default
-  labels:
-    app: client
+  name: orders-staging
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orders-api
+  namespace: orders-staging
+data:
+  index.html: "orders-api: 42 open orders\n"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+  namespace: orders-staging
 spec:
-  containers:
-  - name: client
-    image: busybox:latest
-    command: ['sh', '-c', 'while true; do sleep 3600; done']
+  replicas: 1
+  selector:
+    matchLabels: {app: orders-api}
+  template:
+    metadata:
+      labels: {app: orders-api}
+    spec:
+      containers:
+      - name: api
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - {name: payload, mountPath: /usr/share/nginx/html}
+      volumes:
+      - name: payload
+        configMap: {name: orders-api}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
-  namespace: default
+  name: orders-api
+  namespace: orders-staging
 spec:
   selector:
-    app: backend
+    app: orders-api
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-web
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: orders-web}
+  template:
+    metadata:
+      labels: {app: orders-web}
+    spec:
+      containers:
+      - name: web
+        image: python:3.12-alpine
+        env:
+        - name: UPSTREAM
+          value: http://orders-api
+        command:
+        - python
+        - -u
+        - -c
+        - |
+          import os, urllib.request
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  try:
+                      body = urllib.request.urlopen(os.environ["UPSTREAM"], timeout=3).read()
+                      code = 200
+                  except Exception as e:
+                      body = ("upstream error: %s\n" % e).encode()
+                      code = 502
+                  self.send_response(code)
+                  self.end_headers()
+                  self.wfile.write(body)
+          HTTPServer(("", 8080), H).serve_forever()
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          tcpSocket: {port: 8080}
+          periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-web
+  namespace: k8smissions
+spec:
+  selector:
+    app: orders-web
   ports:
   - port: 80
     targetPort: 8080

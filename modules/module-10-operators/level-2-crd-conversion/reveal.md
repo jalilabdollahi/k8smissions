@@ -1,28 +1,13 @@
-## What went wrong
+The CRD has two versions but `spec.conversion.strategy: None`, so `v1alpha1` objects are only relabelled `v1` and `maxMemoryMB` is pruned away. The working converter `cache-converter` just needs to be wired in:
 
-`conversion.strategy: None` tells Kubernetes: 'never convert between versions'. With two served versions, the API server needs to convert stored v1alpha1 objects when someone requests them as v1beta1. Without a conversion webhook, the conversion fails and objects are invisible.
-
-## Fix
-
-```yaml
-versions:
-- name: v1alpha1
-  served: true
-  storage: false
-- name: v1beta1
-  served: true
-  storage: true
-conversion:
-  strategy: Webhook
-  webhook:
-    conversionReviewVersions: [v1]
-    clientConfig:
-      service:
-        name: db-operator-webhook
-        namespace: operators
-        port: 443
+```bash
+CA=$(kubectl -n k8smissions get secret converter-ca -o jsonpath='{.data.ca\.crt}')
+kubectl patch crd caches.cache.acme.io --type=merge -p "{\"spec\":{\"conversion\":{\"strategy\":\"Webhook\",\"webhook\":{\"conversionReviewVersions\":[\"v1\"],\"clientConfig\":{\"caBundle\":\"$CA\",\"service\":{\"namespace\":\"k8smissions\",\"name\":\"cache-converter\",\"path\":\"/convert\",\"port\":443}}}}}}"
 ```
 
-## Why this matters
+- `strategy: Webhook` turns conversion on.
+- `service` plus `path: /convert` is where the API server posts a ConversionReview (the server only has a `/convert` route).
+- `caBundle` is the CA that signed the converter's certificate; the Secret already holds it base64-encoded.
+- `conversionReviewVersions: ["v1"]` lists the review versions the API server may use.
 
-CRD multi-versioning requires a conversion webhook to translate between schema versions. The 'hub' pattern: pick one version as the internal hub (usually the latest stable), convert all others to/from it. Only one version can be `storage: true` — all objects are stored in this version. Objects stored in old versions are served via on-the-fly conversion. Never remove a version from the CRD until all stored objects have been migrated to the new storage version.
+`cache-controller` re-reads the caches every few seconds, so its ConfigMaps (`cache-sessions` and the others) correct themselves.

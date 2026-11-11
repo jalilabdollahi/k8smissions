@@ -1,16 +1,14 @@
-# The Drift
+**What was broken.** The client-side timeout towards the ledger upstream was 200 ms, but the upstream takes about 600 ms, so `/ping` answered 504. The on-call engineer raised the value in the live ConfigMap, which worked for twenty seconds. The Application has automated sync with self-heal, and the value in Git was still 200, so Argo CD treated the edit as drift and wrote the Git version back. Three attempts, three reverts.
 
-## What Was Broken
-ArgoCD Application had `selfHeal: true`. This is the GitOps golden path — live cluster state that diverges from git is automatically corrected. Manual `kubectl scale` directly is treated as a drift and reverted.
+**The evidence.** The Application's `syncPolicy.automated.selfHeal: true`, the sync history with a new operation after every edit, and `managedFields` on the ConfigMap showing the Argo CD controller as the last writer.
 
-## The Fix
-Disable `selfHeal: false` for Applications that legitimately need manual overrides. Or better: commit the desired replica count to git and let ArgoCD sync it.
+**Why Argo behaved that way.** With self-heal, Argo compares the live state with Git whenever a watched resource changes, and re-applies Git when they differ. That is the feature working, not a malfunction: Git is declared to be the single source of truth.
 
-## Why It Matters
-GitOps drift detection is a feature, not a bug. It ensures the cluster always reflects what's in git. If you need temporary scale changes (e.g., incident response), disable self-heal during the incident then re-enable. Consider an emergency `kubectl annotate` escape hatch in your ArgoCD config.
+**The fix.** Change the value in Git, push, and let Argo apply it. Because the app reads the ConfigMap on each request, the fix is effective as soon as the sync finishes. Self-heal stays on, so real drift is still reverted.
 
-## Pro Tip
-ArgoCD `prune: true` deletes resources not in git. `selfHeal: true` restores resources that differ from git. These are separate — you can have prune without selfHeal. Understand both before enabling.
+**In production.** Break-glass edits happen. The sound way is a commit (even an emergency one, with review afterwards), or pausing automation for that one Application for a short, announced window and reverting through Git. Do not leave self-heal off.
 
-## Concepts
-ArgoCD, selfHeal, GitOps, drift detection, syncPolicy, automated sync
+**Commands worth remembering.**
+- `kubectl -n argocd get app NAME -o jsonpath='{.status.history}'`
+- `kubectl get cm NAME -o yaml --show-managed-fields`
+- `kubectl -n argocd annotate app NAME argocd.argoproj.io/refresh=hard --overwrite`

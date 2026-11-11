@@ -1,17 +1,15 @@
 {
-  "name": "Webhook Ignored",
-  "description": "Git pushes are not triggering pipeline runs. The Tekton Trigger EventListener is receiving webhook events from GitHub, but the pipeline runs it creates are failing silently — because the TriggerBinding is extracting data from the wrong field in the webhook payload.",
-  "objective": "The TriggerBinding body field name doesn't match the webhook payload — fix the field reference",
-  "xp": 325,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "Tekton Triggers",
-    "TriggerBinding",
-    "EventListener",
-    "webhook",
-    "CEL filter"
-  ],
+  "name": "Webhook With No Revision",
+  "description": "Every push to `webhook-app` should start a PipelineRun of `clone-at`. Runs do appear, a few seconds after each push, but every one of them fails in its `clone` Task. Tekton Triggers is not installed in this cluster: the team runs a small receiver (Deployment and Service `hook`) that turns the push payload into a PipelineRun using a mapping file. The failed run `push-8f21` is still in the namespace.",
+  "objective": "A GitHub-style push payload POSTed to Service `hook` on port 8080 creates exactly one PipelineRun of `clone-at` whose param `revision` equals the pushed commit SHA and whose param `repo-url` equals the repository clone URL, and that run ends Succeeded with a `commit` result equal to the pushed SHA.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["webhook receiver", "payload field mapping", "ConfigMap volumes", "rollout restart", "PipelineRun params"],
   "module": "module-8-cicd",
-  "level": "level-10-trigger-binding"
+  "level": "level-10-trigger-binding",
+  "requires": ["tekton"],
+  "settle_seconds": 45,
+  "solve_timeout": 150,
+  "cleanup": []
 }

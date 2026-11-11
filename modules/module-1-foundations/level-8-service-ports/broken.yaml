@@ -1,25 +1,31 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: web-server
+  name: thumb-api
   namespace: k8smissions
-  labels:
-    app: web
 spec:
-  containers:
-  - name: nginx
-    image: nginx:latest
-    ports:
-    - containerPort: 80
+  replicas: 2
+  selector:
+    matchLabels: {app: thumb-api}
+  template:
+    metadata:
+      labels: {app: thumb-api}
+    spec:
+      containers:
+      - name: api
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=thumbnailer ready"]
+        ports:
+        - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-service
+  name: thumb-api
   namespace: k8smissions
 spec:
   selector:
-    app: web
+    app: thumb-api
   ports:
   - port: 80
-    targetPort: 8080
+    targetPort: 80

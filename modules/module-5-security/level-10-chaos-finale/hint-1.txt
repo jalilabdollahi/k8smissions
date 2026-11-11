@@ -1,1 +1,1 @@
-Start with a broad scan before fixing anything: `kubectl get all -n k8smissions` and `kubectl get events -n k8smissions --sort-by=.lastTimestamp | tail -20`. List every distinct failure type you observe before touching the manifest.
+There are no pods to look at yet, so start one level up: `kubectl -n settle describe rs -l app=settlement` and read the Events. Fix what it reports, wait a few seconds and read the Events again: each fix may reveal the next problem. Later, `kubectl -n settle logs deploy/settlement` and `kubectl -n settle get pods` take over.

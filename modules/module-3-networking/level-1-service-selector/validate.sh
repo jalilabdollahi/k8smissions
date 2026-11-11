@@ -1,20 +1,28 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-# Check if service has endpoints
-ENDPOINTS=$(kubectl get endpoints backend-service -n k8smissions -o jsonpath='{.subsets[*].addresses[*].ip}' 2>/dev/null)
-
-if [[ -z "$ENDPOINTS" ]]; then
-  echo "❌ Service has no endpoints. Check the selector!"
+ready=$(k get deploy cart -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+if [ "${ready:-0}" -ne 3 ]; then
+  echo "❌ Deployment cart: ${ready:-0} of 3 pods Ready"
   exit 1
 fi
+echo "✅ Deployment cart has 3 Ready pods"
 
-# Test connectivity from test-client pod
-RESPONSE=$(kubectl exec test-client -n k8smissions -- curl -s -o /dev/null -w "%{http_code}" http://backend-service 2>/dev/null)
-
-if [[ "$RESPONSE" == "200" ]]; then
-  echo "✅ Level complete! Service is routing traffic correctly"
-  exit 0
-else
-  echo "❌ Service unreachable. Response code: $RESPONSE"
+web=$(k get pods -l app=cart,tier=web --field-selector=status.phase=Running -o jsonpath='{.items[*].status.podIP}' 2>/dev/null | tr ' ' '\n' | sort | tr '\n' ' ')
+eps=$(k get endpointslices -l kubernetes.io/service-name=cart -o jsonpath='{range .items[*].endpoints[*]}{.addresses[0]}{"\n"}{end}' 2>/dev/null | sort | tr '\n' ' ')
+if [ "$web" != "$eps" ]; then
+  echo "❌ Service cart sends traffic to: [${eps:-nothing}] but the storefront pods are: [$web]"
   exit 1
 fi
+echo "✅ Service cart sends traffic to exactly the storefront pods"
+
+out=$(k exec probe -- sh -c 'for i in $(seq 40); do curl -s --max-time 2 http://cart; echo; done' 2>/dev/null)
+good=$(echo "$out" | grep -c '^storefront: cart page$')
+if [ "$good" -ne 40 ]; then
+  echo "❌ cart: only $good of 40 requests returned the cart page"
+  exit 1
+fi
+echo "✅ cart: 40 of 40 requests returned the cart page"
+exit 0
+exit 1

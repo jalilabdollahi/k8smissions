@@ -1,1 +1,1 @@
-Check why the deletion is blocked: `kubectl get database prod-db -n k8smissions -o yaml | grep -A5 finalizers`
+Read what the operator says when a Datastore is deleted: `kubectl -n k8smissions logs deploy/datastore-operator`. Create a throwaway Datastore (copy `orders` from `kubectl get datastore orders -o yaml`, new name), delete it, and watch the log and `kubectl get pods,cm` as you go.

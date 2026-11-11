@@ -1,1 +1,2 @@
-You should see `requests.cpu: 100m` and `limits.cpu: 100m`. When a traffic spike hits, the nginx process tries to use more than 100 millicores — but the Linux CFS throttle blocks it. The throttle continues for the rest of the 100ms scheduling window, causing latency spikes.
+A CPU limit is enforced in 100ms periods: a container may run for (limit x 100ms) of CPU time per period and is frozen for the rest, however idle the node is. A pod whose average is below the limit can still be frozen when its requests arrive in bursts. The request and the limit do different jobs, and only the limit throttles.
+See: kubectl explain pod.spec.containers.resources

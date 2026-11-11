@@ -1,19 +1,5 @@
-## What went wrong
+Port 30080 is already allocated to the decommissioned Service `legacy-status`, so the API server refuses to give it to `status-page`.
 
-No `nodePort` was specified. Kubernetes assigns a random available port in the 30000–32767 range. This changes if the Service is deleted and recreated, breaking any external configuration that expected a specific port.
-
-## Fix
-
-In manifest.yaml, add an explicit nodePort:
-
-```yaml
-ports:
-- protocol: TCP
-  port: 80
-  targetPort: 80
-  nodePort: 30080
-```
-
-## NodePort valid range
-
-NodePorts must be in the range 30000–32767. Below 30000 is reserved for system services. Above 32767 is not allocated for NodePorts. If you try to set a port outside this range, the API server will reject it with a validation error.
+1. `kubectl -n k8smissions get svc -o wide` shows `legacy-status` on `80:30080/TCP`; `describe` shows it has no endpoints.
+2. `kubectl -n k8smissions delete service legacy-status` releases the port.
+3. `kubectl -n k8smissions patch service status-page -p '{"spec":{"ports":[{"port":80,"targetPort":5678,"nodePort":30080}]}}'` claims it.

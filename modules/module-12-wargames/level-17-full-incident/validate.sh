@@ -1,31 +1,32 @@
 #!/bin/bash
-set -euo pipefail
-NS="k8smissions"
+NS=${NS:-k8smissions}
+. ../_fixtures/lib.sh
+CTRL=http://ingress-nginx-controller.ingress-nginx.svc
+fail=0
+ensure_probe || { bad "could not start the probe pod"; exit 1; }
 
-FAIL=0
+phase=$(kubectl -n "$NS" get pvc shop-data -o jsonpath='{.status.phase}' 2>/dev/null)
+if [ "$phase" = Bound ]; then ok "PVC shop-data is Bound"; else bad "PVC shop-data is ${phase:-missing}, not Bound"; fail=1; fi
 
-# Check 1: Secret p0-secret exists
-SECRET=$(kubectl get secret p0-secret -n "$NS" 2>/dev/null && echo "ok" || echo "missing")
-[ "$SECRET" != "ok" ] && echo "❌ Secret p0-secret missing" && FAIL=1
+if kubectl -n "$NS" wait --for=condition=complete job/db-migrate --timeout=5s >/dev/null 2>&1; then ok "Job db-migrate completed"; else bad "Job db-migrate has not completed"; fail=1; fi
 
-# Check 2: Deployment is scaled up with 2 ready replicas
-READY=$(kubectl get deployment p0-app -n "$NS" -o jsonpath='{.status.readyReplicas}' 2>/dev/null || true)
-[ "$READY" != "2" ] && echo "❌ Deployment not ready (readyReplicas=$READY, want 2)" && FAIL=1
+want=$(kubectl -n "$NS" get deploy shop-web -o jsonpath='{.spec.replicas}' 2>/dev/null)
+n=$(ready_count app=shop-web)
+if [ "${want:-0}" -ge 2 ] && [ "${n:-0}" -ge "$want" ]; then ok "shop-web: $n of $want pods Ready"; else bad "shop-web: ${n:-0} of ${want:-?} pods Ready (need 2)"; fail=1; fi
 
-# Check 3: DNS-allow NetworkPolicy exists
-DNS=$(kubectl get networkpolicy allow-dns -n "$NS" 2>/dev/null && echo "ok" || echo "missing")
-[ "$DNS" != "ok" ] && echo "❌ DNS-allow NetworkPolicy (allow-dns) is missing" && FAIL=1
+host=$(kubectl -n "$NS" get ingress shop -o jsonpath='{.spec.rules[0].host}' 2>/dev/null)
+[ "$host" = shop.local ] || { bad "Ingress shop must keep host shop.local"; fail=1; }
 
-# Check 4: PVC storage request is no longer 999Ti
-PVC=$(kubectl get pvc p0-pvc -n "$NS" -o jsonpath='{.spec.resources.requests.storage}' 2>/dev/null || true)
-[ "$PVC" = "999Ti" ] && echo "❌ PVC still has impossibly large storage request (999Ti)" && FAIL=1
-
-# Check 5: Deployment nodeSelector no longer points to non-existent node label
-NODE_SEL=$(kubectl get deployment p0-app -n "$NS" -o jsonpath='{.spec.template.spec.nodeSelector.environment}' 2>/dev/null || true)
-[ "$NODE_SEL" = "prod-zone-nonexistent" ] && echo "❌ Deployment still has invalid nodeSelector (environment=prod-zone-nonexistent)" && FAIL=1
-
-if [ "$FAIL" = "0" ]; then
-  echo "✅ PASS: All 5 issues resolved — P0 incident cleared"
+[ "$fail" = 0 ] || exit 1
+body=""
+for i in $(seq 1 10); do
+  body=$(pcurl -H 'Host: shop.local' "$CTRL/")
+  echo "$body" | grep -q 'database schema v7' && break
+  sleep 2
+done
+if echo "$body" | grep -q 'Winter Sale is open. database schema v7, served by shop-web-'; then
+  ok "http://shop.local/ through the ingress returns the shop page"
   exit 0
 fi
+bad "http://shop.local/ through the ingress returned: ${body:-no answer or an error page}"
 exit 1

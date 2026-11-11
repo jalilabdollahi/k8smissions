@@ -1,26 +1,30 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-echo "🔍 Checking resource namespaces..."
-
-# Check if resources exist in k8smissions namespace
-POD_EXISTS=$(kubectl get pod client-app -n k8smissions 2>/dev/null)
-SERVICE_EXISTS=$(kubectl get service backend-service -n k8smissions 2>/dev/null)
-
-# Check if they're in wrong namespace
-POD_IN_DEFAULT=$(kubectl get pod client-app -n default 2>/dev/null)
-SERVICE_IN_DEFAULT=$(kubectl get service backend-service -n default 2>/dev/null)
-
-if [[ -n "$POD_EXISTS" ]] && [[ -n "$SERVICE_EXISTS" ]]; then
-    echo "   Pod: ✅ Found in k8smissions namespace"
-    echo "   Service: ✅ Found in k8smissions namespace"
-    echo "✅ Resources correctly deployed to k8smissions namespace"
-    exit 0
-else
-    echo "❌ Resources not found in k8smissions namespace"
-    if [[ -n "$POD_IN_DEFAULT" ]] || [[ -n "$SERVICE_IN_DEFAULT" ]]; then
-        echo "💡 Found resources in 'default' namespace - they should be in 'k8smissions'"
-    fi
-    echo "💡 Check: kubectl get all -n k8smissions"
-    echo "💡 Check: kubectl get all -n default"
-    exit 1
+if [ "$(k get deploy orders-web -o jsonpath='{.status.readyReplicas}' 2>/dev/null)" != "1" ]; then
+  echo "❌ Deployment orders-web is not Ready"
+  exit 1
 fi
+echo "✅ orders-web is Ready"
+
+api=""
+for ns in "$NS" orders-staging; do
+  r=$(kubectl -n "$ns" get deploy orders-api -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+  if [ "${r:-0}" -ge 1 ]; then api="$ns"; break; fi
+done
+if [ -z "$api" ]; then
+  echo "❌ no ready orders-api Deployment found"
+  exit 1
+fi
+echo "✅ a ready orders-api backend runs in namespace $api"
+
+out=$(k exec probe -- sh -c 'for i in 1 2 3 4 5; do curl -s --max-time 4 -w "HTTP %{http_code}\n" http://orders-web; done' 2>/dev/null)
+if [ "$(echo "$out" | grep -c '42 open orders')" -ne 5 ] || [ "$(echo "$out" | grep -c '^HTTP 200$')" -ne 5 ]; then
+  echo "❌ Service orders-web did not return the orders payload 5 times out of 5"
+  echo "$out" | head -2 | sed 's/^/   /'
+  exit 1
+fi
+echo "✅ Service orders-web returns the orders-api payload"
+exit 0
+exit 1

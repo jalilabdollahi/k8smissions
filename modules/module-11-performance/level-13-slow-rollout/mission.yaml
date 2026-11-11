@@ -1,17 +1,15 @@
 {
-  "name": "Deployment Takes Hours",
-  "description": "Deploying a new image to a 100-replica deployment is taking over 30 minutes. The rolling update strategy has `maxSurge: 0` and `maxUnavailable: 1` — meaning only one pod is replaced at a time, sequentially. Each pod replacement takes 15–20 seconds, so 100 replacements take 25–33 minutes.",
-  "objective": "The rolling update strategy has maxSurge: 0 and maxUnavailable: 1 — increase maxSurge for faster rollout",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "rollingUpdate",
-    "maxSurge",
-    "maxUnavailable",
-    "deployment strategy",
-    "rollout speed"
-  ],
+  "name": "Fourteen Minutes to Ship",
+  "description": "image-resizer runs 40 replicas and a new image tag now takes several minutes to reach all of them, because the pods are replaced one at a time and each one waits before it counts as available. Peak traffic starts in 20 minutes and the team wants to ship a hotfix before it, without ever dropping below three quarters of its capacity and without errors for users.",
+  "objective": "A rollout of Deployment image-resizer (40 replicas) completes within 30 seconds, the number of available replicas never falls below 30 during it, and requests through Service image-resizer see no errors.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["rolling update", "maxSurge", "maxUnavailable", "minReadySeconds", "readiness probe delay"],
   "module": "module-11-performance",
-  "level": "level-13-slow-rollout"
+  "level": "level-13-slow-rollout",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

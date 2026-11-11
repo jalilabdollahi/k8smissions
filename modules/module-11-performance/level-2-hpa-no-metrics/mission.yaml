@@ -1,17 +1,15 @@
 {
-  "name": "HPA Can't Scale",
-  "description": "An HPA is scaling the deployment up under load — but after load drops, it scales back down too fast and too aggressively, causing a saw-tooth pattern of over-scaling and under-scaling. The HPA has no scale-down behavior configured, so it uses the Kubernetes default: remove as many replicas as possible as fast as possible.",
-  "objective": "The Metrics Server is not installed — HPA requires metrics-server to read CPU utilization from pods",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "HPA",
-    "HorizontalPodAutoscaler",
-    "metrics-server",
-    "CPU utilization",
-    "autoscaling"
-  ],
+  "name": "The Autoscaler That Sees Nothing",
+  "description": "The thumbnail queue has been growing since the morning campaign went out, and thumbnailer is pinned at 1 replica with its CPU high. Its HorizontalPodAutoscaler shows <unknown>/60% in the TARGETS column and never adds replicas. Someone already checked: metrics-server is healthy and kubectl top pod returns numbers for thumbnailer.",
+  "objective": "HorizontalPodAutoscaler thumbnailer reports a real CPU utilisation for Deployment thumbnailer and scales it above 1 replica under the current load, with the HPA and both containers (resizer and log-shipper) still in place.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["HPA", "resource requests", "sidecar containers", "metrics-server", "ContainerResource"],
   "module": "module-11-performance",
-  "level": "level-2-hpa-no-metrics"
+  "level": "level-2-hpa-no-metrics",
+  "requires": ["metrics-server"],
+  "settle_seconds": 20,
+  "solve_timeout": 240,
+  "cleanup": []
 }

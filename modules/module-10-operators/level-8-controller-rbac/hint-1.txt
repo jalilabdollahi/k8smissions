@@ -1,1 +1,1 @@
-Read the operator logs to see which resource it's being forbidden from: `kubectl logs -n operators -l app=my-operator | grep -i forbidden`
+Read the operator's log (`kubectl -n k8smissions logs deploy/report-operator`): each 403 names the verb, the resource and the ServiceAccount. Ask the API server the same question with `kubectl auth can-i list pods --as=system:serviceaccount:k8smissions:report-operator -n k8smissions`.

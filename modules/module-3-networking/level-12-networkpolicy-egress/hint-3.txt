@@ -1,3 +1,1 @@
-The `egress: []` field needs to be replaced with rules that allow DNS traffic. At minimum, you need to permit outbound UDP and TCP on port 53.
-
-Find the egress field in the NetworkPolicy in manifest.yaml.
+Add a second egress policy for `invoice` whose peer combines `namespaceSelector` (`kubernetes.io/metadata.name: kube-system`) and `podSelector` (the CoreDNS label, `k8s-app: kube-dns`) with ports 53 UDP and TCP, and fix the label in `allow-db`: `kubectl -n payments patch networkpolicy allow-db --type=json -p '[{"op":"replace","path":"/spec/egress/0/to/0/podSelector/matchLabels","value":{"<key>":"<value>"}}]'`.

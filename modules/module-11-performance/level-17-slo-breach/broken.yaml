@@ -1,37 +1,150 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledger-app
+  namespace: k8smissions
+data:
+  app.py: |
+    import http.server, os, threading, time
+
+    wedged = threading.Event()
+    live_calls = [0]
+    ME = os.environ.get("HOSTNAME", "ledger").encode()
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == "/debug/wedge":          # a deadlock somewhere in the ledger code
+                wedged.set()
+                self.send_response(200)
+                self.end_headers()
+                return
+            if wedged.is_set():
+                time.sleep(3600)                      # every other request hangs from now on
+            if self.path == "/live":
+                live_calls[0] += 1
+                if live_calls[0] % 8 == 0:
+                    time.sleep(1.3)                   # a slow GC pause: healthy, but slow once in a while
+            elif self.path.startswith("/work"):
+                time.sleep(0.005)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(ME)
+        def log_message(self, *a):
+            pass
+
+    srv = http.server.ThreadingHTTPServer(("", 8080), H)
+    srv.daemon_threads = True
+    srv.serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: slo-app
+  name: ledger-api
   namespace: k8smissions
-  annotations:
-    slo: availability=99.9%
-    error-budget: 43.8min/month
 spec:
-  replicas: 3
+  replicas: 4
   selector:
     matchLabels:
-      app: slo-app
+      app: ledger-api
   template:
     metadata:
       labels:
-        app: slo-app
+        app: ledger-api
     spec:
+      terminationGracePeriodSeconds: 2
       containers:
-      - name: app
-        image: nginx:1.25
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
         ports:
         - containerPort: 8080
         livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 8080
-          initialDelaySeconds: 5
+          httpGet: {path: /live, port: 8080}
           periodSeconds: 10
+          timeoutSeconds: 1
           failureThreshold: 10
         resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 256Mi
+          requests: {cpu: 20m, memory: 24Mi}
+          limits: {memory: 64Mi}
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: ledger-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-api
+  namespace: k8smissions
+spec:
+  selector:
+    app: ledger-api
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: ledger-client
+  namespace: k8smissions
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+  - name: client
+    image: python:3.12-alpine
+    command: ["python", "-u", "-c"]
+    args:
+    - |
+      import threading, time, urllib.request
+
+      res, lock = [], threading.Lock()
+
+      def run():
+          while True:
+              t = time.time()
+              ok = False
+              for _ in range(2):                       # one retry, like the real callers
+                  try:
+                      urllib.request.urlopen("http://ledger-api/work", timeout=1).read()
+                      ok = True
+                      break
+                  except Exception:
+                      pass
+              with lock:
+                  res.append(ok)
+              time.sleep(max(0, 0.2 - (time.time() - t)))
+
+      for _ in range(8):
+          threading.Thread(target=run, daemon=True).start()
+      while True:
+          time.sleep(10)
+          with lock:
+              rows, res[:] = list(res), []
+          if rows:
+              print("ledger requests: %d  failed: %d  success: %.1f%%" % (
+                  len(rows), rows.count(False), 100.0 * rows.count(True) / len(rows)), flush=True)
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wedge-once
+  namespace: k8smissions
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: wedge
+        image: python:3.12-alpine
+        command: ["python", "-c"]
+        args:
+        - |
+          import time, urllib.request
+          time.sleep(15)
+          urllib.request.urlopen("http://ledger-api/debug/wedge", timeout=3).read()

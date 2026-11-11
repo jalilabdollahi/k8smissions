@@ -1,17 +1,5 @@
-## What went wrong
+The Service selector is only `app: cart`. Both the `cart` pods (`tier=web`) and the leftover `cart-loadtest` pod (`tier=load`) carry that label, so the Service balances across four pods and one of them answers "load-test OK".
 
-The Service selector requires `app: backend-app` but the pod's label is `app: backend`. Labels are compared as exact string matches — `backend` and `backend-app` are different values. The Service has zero endpoints.
-
-## Fix
-
-In manifest.yaml, under the Service spec:
-
-```yaml
-selector:
-  app: backend
-  tier: api
-```
-
-## Why this matters
-
-Kubernetes does not warn you when a Service selector matches nothing — it just returns an empty endpoints list. Always verify with `kubectl get endpoints` after creating a Service. If the list is empty, compare selector to pod labels character by character.
+1. `kubectl -n k8smissions get pods --show-labels` shows which pod has `tier=load`.
+2. `kubectl -n k8smissions patch service cart -p '{"spec":{"selector":{"app":"cart","tier":"web"}}}'` narrows the selector to the storefront pods.
+3. Deleting the `cart-loadtest` Deployment also works; the Service would then only see the three web pods.

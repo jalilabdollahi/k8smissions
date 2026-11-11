@@ -1,1 +1,1 @@
-The `rules:` section is empty despite the source ClusterRole existing. Compare what the `aggregationRule.clusterRoleSelectors` requires against the label on `deployments-reader`: `kubectl get clusterrole deployments-reader -o yaml | grep -A5 labels`
+For an aggregated ClusterRole the controller owns `rules` and rebuilds them from every ClusterRole whose labels match the selector, so edits on the role itself are overwritten (`kubectl explain clusterrole.aggregationRule`). Compare each contributor's label key AND value, character by character, with the selector.

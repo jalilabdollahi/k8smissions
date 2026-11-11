@@ -1,1 +1,1 @@
-List the NetworkPolicies and read their specs: `kubectl get networkpolicy -n k8smissions -o yaml`. Look for a policy that selects all pods (`podSelector: {}`) but has `policyTypes: [Ingress, Egress]` with no actual rule blocks.
+NetworkPolicies are additive: a connection is allowed if ANY policy that selects the destination pod allows it, so a strict policy cannot take away what another policy grants. Find the policy that selects `payments-db` and admits more than `payments-api`. `kubectl explain networkpolicy.spec.ingress.from`.

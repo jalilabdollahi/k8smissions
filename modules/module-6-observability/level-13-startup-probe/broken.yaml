@@ -1,24 +1,70 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: slow-java-app
+  name: catalog-indexer-script
+  namespace: k8smissions
+data:
+  indexer.py: |
+    import http.server, time
+
+    SEGMENTS = 11
+    for i in range(1, SEGMENTS + 1):
+        print("catalog-indexer: loading index segment %d/%d" % (i, SEGMENTS), flush=True)
+        time.sleep(5)
+    print("catalog-indexer: index loaded, listening on :8080", flush=True)
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            body = b"ok" if self.path == "/healthz" else b"catalog-indexer: 48210 products indexed"
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, *args):
+            pass
+
+    http.server.ThreadingHTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-indexer
   namespace: k8smissions
 spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - sleep 120 && touch /tmp/ready && sleep 3600
-    livenessProbe:
-      exec:
-        command:
-        - test
-        - -f
-        - /tmp/ready
-      initialDelaySeconds: 10
-      periodSeconds: 10
-      failureThreshold: 3
-                                #         container after 40s total — but the app needs 120s to boot.
-                                #         No startupProbe exists to protect the slow startup window.
+  replicas: 2
+  selector:
+    matchLabels: {app: catalog-indexer}
+  template:
+    metadata:
+      labels: {app: catalog-indexer}
+    spec:
+      containers:
+      - name: indexer
+        image: python:3.12-alpine
+        command: ["python", "/app/indexer.py"]
+        ports:
+        - containerPort: 8080
+        livenessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 5
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap: {name: catalog-indexer-script}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-indexer
+  namespace: k8smissions
+spec:
+  selector: {app: catalog-indexer}
+  ports:
+  - {port: 80, targetPort: 8080}

@@ -1,1 +1,1 @@
-The quota output will show `requests.cpu` near its hard limit. Now check which pod is responsible: `kubectl describe pod quota-buster -n k8smissions` and look at the `resources.requests` section in the spec.
+`count/pods` counts every pod object in the namespace, including finished ones, until something deletes them. Finished Job pods are kept by their Job, and the CronJob decides how many Jobs it keeps: `kubectl explain cronjob.spec.successfulJobsHistoryLimit` and `kubectl explain cronjob.spec.jobTemplate.spec.ttlSecondsAfterFinished`.

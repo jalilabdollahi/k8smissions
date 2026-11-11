@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: payments-api
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: http://gitserver.gitops-git.svc.cluster.local:8080/cgi-bin/git/payments-api.git
+    targetRevision: main
+    path: deploy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: k8smissions
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

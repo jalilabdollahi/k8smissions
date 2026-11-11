@@ -1,1 +1,2 @@
-The `terminationGracePeriodSeconds: 5` gives pods only 5 seconds to finish requests before SIGKILL. Long-running requests (>5s) are killed mid-flight. There's also a race: when a pod gets SIGTERM, the load balancer may still route traffic to it for several seconds while endpoint updates propagate.
+Kubernetes sends SIGTERM to PID 1 of each container and waits terminationGracePeriodSeconds before SIGKILL. Two things decide whether a 20 second clip survives: whether the signal reaches the program that handles it (a shell as PID 1 does not forward signals), and whether the grace period is longer than the longest piece of work the worker may be doing.
+See: kubectl explain pod.spec.terminationGracePeriodSeconds and kubectl explain pod.spec.containers.command

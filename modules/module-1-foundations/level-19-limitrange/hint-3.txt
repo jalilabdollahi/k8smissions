@@ -1,3 +1,1 @@
-The LimitRange sets a default memory limit of 32Mi. The program allocates 64MB. Because there is no explicit limit in the pod spec, the LimitRange default is applied and the container gets OOMKilled.
-
-To override the default, add an explicit `resources` section to the pod in manifest.yaml.
+Keep the limit where the render needs it and raise the request until the ratio is within the rule: `kubectl -n k8smissions set resources deployment invoice-render --requests=memory=<size> --limits=memory=<size>`. Leave the LimitRange alone; it is the team's policy.

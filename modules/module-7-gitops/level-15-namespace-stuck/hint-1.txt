@@ -1,1 +1,1 @@
-Find what's blocking deletion inside the namespace: `kubectl get all,configmap -n zombie-ns` and look for resources with finalizers: `kubectl get configmap stuck-resource -n zombie-ns -o yaml | grep -A5 finalizers`
+Ask the namespace why it is stuck: `kubectl get ns payments-sandbox -o yaml` and read `.status.conditions`. Then check whether anything is left inside (`kubectl -n payments-sandbox get all,quota`), and look at the Application's finalizers (`kubectl -n argocd get application payments-sandbox -o yaml`). Which of these is actually blocking?

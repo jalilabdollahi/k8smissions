@@ -1,33 +1,5 @@
-## What went wrong
+Three independent faults, hidden behind each other:
 
-NTP sync stopped on one node, allowing its clock to drift 600 seconds (10 minutes) ahead. Kubernetes tolerates up to 5 minutes of clock skew (`--node-monitor-grace-period`). At 10 minutes, JWT token validation fails: the `iat` (issued-at) or `exp` (expiry) claims appear invalid because different cluster components disagree on what time it is.
-
-## Fix
-
-On the affected node:
-```bash
-sudo systemctl restart systemd-timesyncd
-# or: sudo ntpdate pool.ntp.org
-timedatectl status  # verify sync
-```
-
-Then update the ConfigMap:
-```yaml
-data:
-  ntp_sync: 'true'
-  skew_seconds: '0'
-  status: ok
-```
-
-## Why this matters
-
-Distributed systems depend on synchronized clocks for:
-- **JWT validation**: `iat`, `exp`, and `nbf` claims are timestamps
-- **TLS certificate validation**: cert validity windows use wall clock time
-- **Kubernetes lease expiry**: leader election uses time-based lease TTLs
-- **Log correlation**: debugging is impossible when logs have inconsistent timestamps
-
-Prevent clock drift:
-1. **Monitor skew**: `node_timex_offset_seconds` in Prometheus/node-exporter, alert on `|skew| > 1s`
-2. **Ensure NTP/chrony**: confirm `timedatectl status` shows `System clock synchronized: yes` on all nodes
-3. **Cloud VMs**: most hypervisors sync guest clocks via VMware tools, Amazon time sync, or GCP metadata — verify these are running
+1. `auth` runs with `TZ=PST8` and writes `iat`/`exp` as local wall-clock strings without a zone. `api` reads them as UTC, so every token looks 8 hours old. Remove the variable: `kubectl -n k8smissions set env deploy/auth TZ-`.
+2. `auth` issues tokens that live 5 seconds and `api` has `LEEWAY_SECONDS=0`. Raise the lifetime (`kubectl set env deploy/auth TOKEN_TTL_SECONDS=300`) and/or the leeway (`kubectl set env deploy/api LEEWAY_SECONDS=30`), but stay well below two hours.
+3. The signing key was rotated on `auth` (`auth-signing`, kid 2026-10) and not on `api` (`api-verify`, kid 2026-04). Copy the new key into `api-verify` and `kubectl rollout restart deploy/api` so the pods re-read it. This only shows up once the expiry errors are gone, because `api` checks expiry before the signature.

@@ -1,27 +1,6 @@
-## What went wrong
+1. `kubectl describe svc storefront-lb` shows no events: no controller owns the class `example.com/internal-lb`, and kind has no cloud provider, so `<pending>` will never resolve.
+2. Switch the Service to a type the cluster can serve by itself, clearing the two fields that are only valid for LoadBalancer (the API rejects the type change otherwise):
 
-`type: LoadBalancer` requires an external load balancer controller to respond to the Service creation and assign an IP. In cloud clusters (EKS, GKE, AKS), this happens automatically. In a local kind cluster, no such controller exists — the EXTERNAL-IP stays `<pending>` indefinitely.
+   `kubectl -n k8smissions patch svc storefront-lb -p '{"spec":{"type":"NodePort","loadBalancerClass":null,"allocateLoadBalancerNodePorts":null}}'`
 
-## Fix
-
-In manifest.yaml, change the Service:
-
-```yaml
-spec:
-  type: NodePort
-  selector:
-    app: web
-  ports:
-  - port: 80
-    targetPort: 80
-    nodePort: 30080
-```
-
-Access it at `http://<node-ip>:30080`.
-
-## When to use each type
-
-- `ClusterIP` — internal only (default)
-- `NodePort` — external access via node IP, works everywhere
-- `LoadBalancer` — external access via cloud load balancer (requires cloud provider or MetalLB)
-- `ExternalName` — maps to an external DNS name
+3. `kubectl get svc storefront-lb` now shows a node port; every worker answers on `<node InternalIP>:<that port>`.

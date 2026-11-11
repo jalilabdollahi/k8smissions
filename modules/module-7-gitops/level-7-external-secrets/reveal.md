@@ -1,45 +1,8 @@
-## What went wrong
+Git owns the Secret `ledger-db` (with the old password) and Argo has `selfHeal` and `prune` on, so every manual edit is reverted. The Secret has to be removed from Git and live outside Argo's control.
 
-The Secret manifest was committed to Git with `stringData` containing real credentials. Kubernetes Secrets are base64-encoded — anyone who runs `echo 'cGxhaW4tcGFzcw==' | base64 -d` gets the plaintext. In a GitOps workflow where Git is the source of truth, this means credentials are exposed to everyone with repo read access.
+1. Read the rotated password: `kubectl -n k8smissions get secret ledger-db-rotated -o jsonpath='{.data.password}' | base64 -d`.
+2. Clone the `ledger` repo (port-forward to `svc/gitserver` in `gitops-git`), `git rm deploy/secret.yaml`, commit, `git push origin main`. The old password stays in Git history; rotating it was the point.
+3. Argo prunes the Secret it owned. Wait until `kubectl get secret ledger-db` says NotFound, then create it again by hand: `kubectl create secret generic ledger-db --from-literal=password=<rotated>`. Created after the prune, Argo does not track it.
+4. Restart the pods, which read the Secret only at start: `kubectl rollout restart deploy/ledger-api`.
 
-## Fix
-
-Mark the Secret as externally managed:
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: app-secret
-  namespace: k8smissions
-  annotations:
-    managed-by: external-secrets
-type: Opaque
-stringData:
-  username: app-user
-  password: rotated-pass
-```
-
-In a real External Secrets Operator setup, you would replace the Secret with an `ExternalSecret` resource:
-```yaml
-apiVersion: external-secrets.io/v1beta1
-kind: ExternalSecret
-metadata:
-  name: app-secret
-spec:
-  refreshInterval: 1h
-  secretStoreRef:
-    name: vault-backend
-    kind: SecretStore
-  target:
-    name: app-secret
-  data:
-  - secretKey: password
-    remoteRef:
-      key: myapp/credentials
-      property: password
-```
-
-## Why this matters
-
-Never commit Secrets to Git, even encrypted ones. The correct GitOps approach: commit only `ExternalSecret` resources (which reference, not contain, the credential), and let the External Secrets Operator sync the actual values from a secure backend (Vault, AWS SSM, GCP Secret Manager). Credentials in a secure store can be rotated without a Git commit, audit-logged, and access-controlled per team.
+(Creating a differently named Secret and pointing the Deployment at it, in Git, is accepted as well.)

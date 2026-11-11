@@ -1,17 +1,15 @@
 {
-  "name": "Runbook: DB Migration Rollout",
-  "description": "A database migration must run before the application can serve traffic safely. The migration Job is failing immediately due to two separate problems: the container image tag doesn't exist and the command always exits with an error code. Both must be fixed before the migration can succeed.",
-  "objective": "Run the database migration safely: scale down the app, apply the migration job, verify it completes, then scale back up",
-  "xp": 450,
+  "name": "Migration Before Traffic",
+  "description": "`ledger-api` v3 needs its schema migration to run before any new pod may serve, and the release has not shipped. The Argo CD Application `ledger-api` (namespace `argocd`, automated sync) stays `Progressing`: its sync operation has been running since the release started, the new pods are all unready and nobody has seen the migration run. The schema service `schema-db` in the `k8smissions` namespace is healthy and reports the version it is at. The manifests are in the `ledger` repository on the in-cluster Git server. A pod `probe` with curl is available.",
+  "objective": "Application `ledger-api` is `Synced` and `Healthy` at the head of the repository, the schema reported by Service `schema-db` is version 3 and the migration was applied exactly once, and Service `ledger-api` answers `ledger-api v3 schema=3` from Ready pods.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "10m",
-  "concepts": [
-    "Kubernetes Jobs",
-    "initContainers for DB migration",
-    "runbook execution",
-    "ordered operations",
-    "Job completions/backoffLimit"
-  ],
+  "expected_time": "30m",
+  "concepts": ["Argo CD resource hooks", "PreSync", "hook-delete-policy", "sync phases and waves", "operationState"],
   "module": "module-7-gitops",
-  "level": "level-9-production-runbook"
+  "level": "level-9-production-runbook",
+  "requires": ["argocd"],
+  "settle_seconds": 60,
+  "solve_timeout": 240,
+  "cleanup": []
 }

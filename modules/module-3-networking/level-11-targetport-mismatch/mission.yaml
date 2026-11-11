@@ -1,16 +1,15 @@
 {
-  "name": "Connection Refused",
-  "description": "Pod web is Running and Service web-svc has endpoints. But every curl to the Service returns 'Connection refused'. Run kubectl get endpoints web-svc -n k8smissions to confirm endpoints are populated.",
-  "objective": "The Service targetPort does not match the actual container port — fix the targetPort so traffic reaches the pods",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Service",
-    "targetPort",
-    "containerPort",
-    "port mapping"
-  ],
+  "name": "Refused After Release 4.2",
+  "description": "Since release 4.2 went out, every request to Service `checkout` fails with \"connection refused\", although all three `checkout` pods are Running and Ready and `kubectl get endpoints checkout` lists three addresses. Release 4.1 worked. The release notes say the 4.2 build \"cleans up container port names\". A debug pod `probe` with curl is available.",
+  "objective": "Every request through Service `checkout` is answered by release 4.2 (body `checkout v4.2`), with all 3 `checkout` pods Ready. Rolling back to 4.1 is not acceptable: the release has to stay.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": ["targetPort", "named ports", "EndpointSlice", "rollout history"],
   "module": "module-3-networking",
-  "level": "level-11-targetport-mismatch"
+  "level": "level-11-targetport-mismatch",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 90,
+  "cleanup": []
 }

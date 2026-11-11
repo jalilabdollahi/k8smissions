@@ -1,16 +1,15 @@
 {
-  "name": "StorageClass Missing",
-  "description": "Pod data-processor is stuck in ContainerCreating. Run kubectl get pvc -n k8smissions and check whether the PVC has bound to any storage.",
-  "objective": "The PVC references a StorageClass that doesn't exist — change the storageClassName to one that is available",
-  "xp": 200,
+  "name": "A StorageClass From Another Cloud",
+  "description": "The reporter Deployment was moved over from the cloud cluster with its manifests untouched. Its pod has been Pending for an hour, and the claim it uses, reports-data, is Pending too. The nightly report job cannot run, and nobody on the team recognises the storage class named in the claim.",
+  "objective": "Deployment reporter runs Ready with a Bound PersistentVolumeClaim mounted at /reports, and the run log kept there survives replacing the pod.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "StorageClass",
-    "dynamic vs static provisioning",
-    "kubectl get storageclass",
-    "default storage class"
-  ],
+  "expected_time": "12m",
+  "concepts": ["StorageClass", "provisioner", "volumeBindingMode", "immutable PVC fields"],
   "module": "module-4-storage",
-  "level": "level-5-storageclass"
+  "level": "level-5-storageclass",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 120,
+  "cleanup": ["storageclass/gp3"]
 }

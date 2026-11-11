@@ -1,1 +1,5 @@
-Check NodeLocal DNSCache status: `kubectl get configmap node-local-dns -n kube-system -o yaml | grep enabled`
+Two layers are involved, and you can read both. Look at the query logs of the cache pods and of the upstream, and compare with what the gateway pods log about their own lookups:
+  kubectl logs -l app=dns-cache --tail=5
+  kubectl logs deploy/dns-upstream --tail=5
+  kubectl logs deploy/session-gw --tail=3
+If the cache is on the path, its log should be busy.

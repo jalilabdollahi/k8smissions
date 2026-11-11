@@ -1,16 +1,15 @@
 {
-  "name": "LoadBalancer Stuck Pending",
-  "description": "Service web-service was created as type LoadBalancer but EXTERNAL-IP has been showing as <pending> for several minutes. Run kubectl get service web-service -n k8smissions.",
-  "objective": "A LoadBalancer service has no external IP on a local cluster — use NodePort or port-forward as the correct local alternative",
-  "xp": 250,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Service types",
-    "cloud provider integration",
-    "MetalLB for on-prem",
-    "kind limitations"
-  ],
+  "name": "Pending for Three Days",
+  "description": "Partner integrations need a stable entry point to the storefront on the cluster network. Service `storefront-lb` was created for that three days ago as a LoadBalancer with a class from the platform team, and `kubectl get svc` still shows `<pending>` under EXTERNAL-IP. Both `storefront` pods are Running and Ready. A debug pod `probe` with curl is available.",
+  "objective": "A probe pod can reach the storefront through `storefront-lb` on each worker node's InternalIP and the port the Service publishes, both `storefront` pods stay Ready, and no Service of type LoadBalancer is left pending in the namespace.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": ["Service types", "LoadBalancer", "loadBalancerClass", "NodePort", "cloud controller"],
   "module": "module-3-networking",
-  "level": "level-9-loadbalancer"
+  "level": "level-9-loadbalancer",
+  "requires": [],
+  "settle_seconds": 12,
+  "solve_timeout": 60,
+  "cleanup": []
 }

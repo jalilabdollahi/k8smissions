@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 40
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: curlimages/curl:8.10.1
+        env:
+        - name: TARGET_VERSION
+          valueFrom:
+            configMapKeyRef: {name: migrations, key: target_version}
+        command: ["sh", "-c"]
+        args:
+        - |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST "http://schema-db/migrate/$TARGET_VERSION")
+          echo "migrate to $TARGET_VERSION: HTTP $code"
+          [ "$code" = 200 ] || [ "$code" = 409 ]

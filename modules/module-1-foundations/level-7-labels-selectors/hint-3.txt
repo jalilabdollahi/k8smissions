@@ -1,3 +1,1 @@
-The pod has label `app: backend`. The Service selector is looking for `app: frontend`. There is a mismatch — the Service cannot find the pod.
-
-Open manifest.yaml and find the `selector` field inside the Service spec.
+Fix the template so every future pod has the right label: `kubectl -n k8smissions patch deployment blog -p '{"spec":{"template":{"metadata":{"labels":{"tier":"<value>"}}}}}'`. Leave `spec.selector` alone, it is immutable and already correct.

@@ -1,5 +1,1 @@
-A resource stuck in Terminating means `kubectl delete` was called but Kubernetes cannot finish deleting it. Something is blocking removal. Get the details:
-
-  kubectl describe configmap stuck-config -n k8smissions
-
-Look at the Finalizers field.
+Look at the whole object, not just the list line: `kubectl -n k8smissions get configmap export-lock -o yaml`. Two fields under `metadata` tell the story of a deletion that has not finished.

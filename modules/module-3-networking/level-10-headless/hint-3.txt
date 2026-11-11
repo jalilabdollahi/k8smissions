@@ -1,7 +1,1 @@
-The Service needs `clusterIP: None` in its spec. Since you cannot change clusterIP in-place, you need to delete the existing Service and let your updated manifest.yaml recreate it as headless.
-
-Delete first:
-
-  kubectl delete service web-cluster -n k8smissions
-
-Then fix the manifest and apply.
+Change the Service, not the pods or the probe: `kubectl -n k8smissions patch svc quorum -p '{"spec":{"<field>":<value>}}'`. Records show up within a few seconds, and the pods become Ready on their next probe.

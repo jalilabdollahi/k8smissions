@@ -1,23 +1,8 @@
-## What went wrong
+CI ran `helm upgrade ledger-api ./chart --set image.tag=1.0` without `--reuse-values`, so revision 2 was rendered from the chart defaults plus one override. Replicas, message and image repository went back to the dev defaults.
 
-The Helm `values.yaml` had `image.tag: ""` — an empty value. The chart template `image: {{ .Values.image.repository }}:{{ .Values.image.tag }}` resolved to `nginx:latest`. `latest` is a moving target: it changes whenever the upstream maintainer pushes a new image, making deployments non-deterministic.
+1. `helm history ledger-api -n k8smissions` shows revision 1 (install) and revision 2 (CI upgrade).
+2. `helm get values ledger-api -n k8smissions --revision 1 > prod.yaml` recovers the production overrides (they include the old tag `0.2.3`).
+3. Clone the `charts` repo (`kubectl -n gitops-git port-forward svc/gitserver 8080:8080`, then `git clone http://localhost:8080/cgi-bin/git/charts.git`).
+4. `helm upgrade ledger-api charts/ledger-api -n k8smissions -f prod.yaml --set image.tag=1.0 --wait` creates revision 3 with the production values and the new tag.
 
-## Fix
-
-```yaml
-spec:
-  containers:
-  - name: helm-app
-    image: nginx:1.27.4
-```
-
-In a real Helm workflow you would set this in `values.yaml`:
-```yaml
-image:
-  repository: nginx
-  tag: "1.27.4"
-```
-
-## Why this matters
-
-Pinning image tags is a foundational GitOps principle: the Git repository should contain everything needed to reproduce an exact cluster state. `latest` breaks this because two identical commits can produce different running software. Tools like Renovate or Dependabot automate tag updates while keeping them explicit and reviewed.
+`helm rollback ledger-api 1` would restore the overrides but also the old tag, which is not what CI wanted.

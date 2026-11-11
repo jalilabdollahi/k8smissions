@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shop-dev
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: http://gitserver.gitops-git.svc.cluster.local:8080/cgi-bin/git/shop.git
+    targetRevision: main
+    path: overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shop-dev
+  syncPolicy:
+    automated: {}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shop-prod
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: http://gitserver.gitops-git.svc.cluster.local:8080/cgi-bin/git/shop.git
+    targetRevision: main
+    path: overlays/dev
+    kustomize:
+      replicas:
+      - name: shop
+        count: 1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: shop-prod
+  syncPolicy:
+    automated: {}

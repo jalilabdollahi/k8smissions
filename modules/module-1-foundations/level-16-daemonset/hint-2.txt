@@ -1,5 +1,1 @@
-The control-plane node has a taint `node-role.kubernetes.io/control-plane:NoSchedule`. This taint repels any pod that does not explicitly tolerate it.
-
-Check whether the DaemonSet spec has any tolerations:
-
-  kubectl get daemonset log-collector -n k8smissions -o yaml | grep -A8 'tolerations'
+A taint tells the scheduler (and the DaemonSet controller) to keep pods away from a node unless the pod tolerates it. The control plane node carries one on purpose, so do not try to remove it. The pod template of the DaemonSet needs a matching toleration: `kubectl explain daemonset.spec.template.spec.tolerations`.

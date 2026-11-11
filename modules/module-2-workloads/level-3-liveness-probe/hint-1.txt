@@ -1,7 +1,1 @@
-The container starts successfully, then gets killed shortly after — this is a liveness probe failure pattern, not a CrashLoopBackOff from a bad command.
-
-Get the full picture:
-
-  kubectl describe pod -l app=api -n k8smissions
-
-Scroll to the Events section. Look for 'Liveness probe failed'.
+Read the events and the restart history: `kubectl -n k8smissions describe pod -l app=inventory` and `kubectl -n k8smissions logs <pod> --previous`. Compare the time the probe starts checking with the time the application says it is listening.

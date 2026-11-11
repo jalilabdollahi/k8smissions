@@ -1,17 +1,15 @@
 {
-  "name": "Handshake Refused",
-  "description": "New pods are being rejected with 'x509: certificate signed by unknown authority'. The admission webhook has a hardcoded `caBundle` in its configuration — but the certificate it references has either expired or was replaced. The API server's TLS handshake with the webhook service fails.",
-  "objective": "The admission webhook TLS certificate has expired or is self-signed without being trusted — update the caBundle in the webhook config",
-  "xp": 375,
+  "name": "Guard that nobody trusts",
+  "description": "Since Monday's platform rollout nobody can create a pod labelled `guarded=true` in `k8smissions`: the API server answers with an internal error about the `policy-guard` admission webhook, and the on-call has been told to \"just delete the webhook\". Pods without the label are fine. The platform team says the guard must stay in force and has already issued a replacement certificate.",
+  "objective": "A compliant pod labelled `guarded=true` is admitted, a guarded pod using `nginx:latest` is rejected with the policy-guard message, and the webhook configuration `policy-guard` still exists with `failurePolicy: Fail`.",
+  "xp": 200,
   "difficulty": "advanced",
   "expected_time": "15m",
-  "concepts": [
-    "admission webhook",
-    "TLS",
-    "caBundle",
-    "x509",
-    "cert-manager"
-  ],
+  "concepts": ["admission webhook", "caBundle", "x509", "certificate expiry", "failurePolicy"],
   "module": "module-10-operators",
-  "level": "level-5-webhook-cert"
+  "level": "level-5-webhook-cert",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

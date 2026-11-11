@@ -1,21 +1,5 @@
-## What went wrong
+The `indexer` sidecar is started with a flag its script does not know, so it exits with a usage error and never creates the file `/index/ready`. Without that file the API container fails its readiness probe and no pod is listed as an endpoint.
 
-No `readinessProbe` is defined on either pod. Kubernetes marks a container Ready immediately after it starts — it has no way to know whether the application inside is actually handling requests. Traffic is sent to pods before they are ready, causing intermittent failures during restarts or rolling updates.
-
-## Fix
-
-Add a readinessProbe to each pod in manifest.yaml:
-
-```yaml
-readinessProbe:
-  httpGet:
-    path: /
-    port: 8080
-  initialDelaySeconds: 5
-  periodSeconds: 5
-  failureThreshold: 1
-```
-
-## Why this matters
-
-Readiness probes are not optional for production workloads. Without one, every rolling update sends traffic to half-started pods. With one, Kubernetes waits for a passing health check before adding the pod to the Service endpoints.
+1. `kubectl -n k8smissions logs deploy/search-api -c indexer --previous` shows the usage error, which names the required `--output` flag.
+2. `kubectl -n k8smissions patch deployment search-api -p '{"spec":{"template":{"spec":{"containers":[{"name":"indexer","args":["--output","/index"]}]}}}}'` corrects the arguments.
+3. Keep the readiness probe: removing it adds pods to the Service while the API still answers 503 "index missing".

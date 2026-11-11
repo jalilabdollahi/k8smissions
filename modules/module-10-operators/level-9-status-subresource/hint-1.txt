@@ -1,1 +1,1 @@
-Try updating the status directly: `kubectl patch myapp my-app -n k8smissions --subresource=status --type=merge -p '{"status":{"phase":"Ready"}}'`
+Start with the 404s in `kubectl -n k8smissions logs deploy/backup-operator`: the path ends in `/status`. Does the API server know that path for Backups? Compare with `kubectl get crd backups.backup.acme.io -o yaml` (look under `spec.versions`).

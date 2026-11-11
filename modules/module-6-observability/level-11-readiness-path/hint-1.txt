@@ -1,1 +1,1 @@
-Check the readiness probe configuration: `kubectl describe pod -n k8smissions -l app=web-app | grep -A10 Readiness`
+Start with `kubectl -n k8smissions rollout status deploy/docs-site` and `kubectl -n k8smissions get pods -l app=docs-site`, then `describe` the pod that is `0/1` and read the Events for `Readiness probe failed`: the status code is in the message.

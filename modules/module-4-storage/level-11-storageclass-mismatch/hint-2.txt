@@ -1,3 +1,6 @@
-There is no StorageClass named `fast-nvme`. Dynamic provisioning works like a request: the PVC announces what StorageClass it needs, and the provisioner for that class creates a matching PV. If the StorageClass does not exist, no provisioner sees the request.
+A claim without storageClassName gets the cluster's default class, and that class provisioned a brand new empty volume. A static PV is only a candidate for claims that ask for its class by name.
 
-Note which classes DO exist and which one is the default (marked with `(default)`).
+  kubectl get pv archive-2023 -o jsonpath='{.spec.storageClassName}'
+  kubectl explain pvc.spec.storageClassName
+
+Think about whether the class of an existing claim can be edited.

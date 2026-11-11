@@ -1,1 +1,1 @@
-Verify that App resources exist: `kubectl get apps.example.com -n k8smissions`. Then run `kubectl get all -n k8smissions` and notice App resources are absent from the output.
+Ask kubectl how it knows what `all` means: `kubectl api-resources --categories=all`. Then look at how the CRD names itself, `kubectl get crd invoicebatches.billing.acme.io -o jsonpath='{.spec.names}'`, and at what the CRD says about printing (`kubectl get crd invoicebatches.billing.acme.io -o yaml`, look for `additionalPrinterColumns`).

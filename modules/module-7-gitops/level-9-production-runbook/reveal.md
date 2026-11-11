@@ -1,36 +1,5 @@
-## What went wrong
-
-The migration Job has `image: busybox:missing` — a tag that doesn't exist — and `command: ['exit 1']` — which always exits with failure code 1. With `restartPolicy: Never`, each failure creates a new pod attempt until `backoffLimit` is reached, at which point the Job enters `Failed` state.
-
-## Fix
-
-```yaml
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: db-migration
-  namespace: k8smissions
-spec:
-  template:
-    spec:
-      restartPolicy: Never
-      containers:
-      - name: db-migration
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - echo migration complete
-        env:
-        - name: DATABASE_URL
-          value: postgres://db/app
-```
-
-## Why this matters
-
-The safe production runbook for schema migrations:
-1. Scale down the Deployment to 0 replicas (`kubectl scale deployment runbook-app --replicas=0`)
-2. Apply and wait for the migration Job (`kubectl wait --for=condition=complete job/db-migration`)
-3. Scale the Deployment back up
-
-Skipping step 1 risks the old application code running against a partially migrated schema. Jobs with `restartPolicy: Never` and a reasonable `backoffLimit` (default: 6) are the standard pattern — each attempt gets a fresh pod, and the Job tracks completion vs. failure independently of pod restarts.
+1. `kubectl -n argocd get app ledger-api -o yaml` shows the operation waiting for `apps/Deployment/ledger-api` to become healthy. The pods can't be ready until the migration has run, and the migration Job is a `PostSync` hook, which Argo starts only after the Sync phase is healthy: a deadlock.
+2. Change the hook to `argocd.argoproj.io/hook: PreSync` in `deploy/migrate-job.yaml`, commit and push.
+3. The running operation never ends on its own. Terminate it: `kubectl -n argocd patch app ledger-api --type merge -p '{"status":{"operationState":{"phase":"Terminating"}}}'`, then start a new one: `kubectl -n argocd patch app ledger-api --type merge -p '{"operation":{"sync":{}}}'`.
+4. The Job's pod now stays in `CreateContainerConfigError`: it reads ConfigMap `migrations`, which is created in the Sync phase (wave 1), after PreSync. Make the ConfigMap a `PreSync` hook with `sync-wave: "-1"` and `hook-delete-policy: BeforeHookCreation`, commit, push, sync again.
+5. The hook runs once, `schema-db` reports version 3, the Deployment becomes Ready and the Application is `Synced` and `Healthy`.

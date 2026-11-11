@@ -1,16 +1,15 @@
 {
-  "name": "Dev Config in Production",
-  "description": "Production is running, but the configuration was never promoted from development settings. The log level is DEBUG, there is only 1 replica, and there are no resource limits — all hallmarks of the dev overlay being applied to production instead of the production overlay.",
-  "objective": "Production is running with dev config (debug logging, 1 replica, no limits) — apply the production Kustomize overlay",
-  "xp": 400,
+  "name": "Green and Wrong",
+  "description": "The Argo CD Application `shop-prod` is `Synced` and `Healthy`, the dashboard is all green, and still the platform team is unhappy with production: the `shop` Deployment in namespace `shop-prod` has one replica, logs at debug level and has no resource limits. The repository `shop` on the in-cluster Git server has `overlays/dev` and `overlays/prod` and nobody changed them recently. The dev Application `shop-dev` is correct and must stay as it is. A pod `probe` with curl is in the `k8smissions` namespace.",
+  "objective": "Application `shop-prod` is `Synced` and `Healthy` and production in `shop-prod` has 3 Ready replicas of `shop`, `/config` reports `log_level` `info`, and the container has CPU and memory limits. Application `shop-dev` and its workload in `shop-dev` are unchanged.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Environment promotion",
-    "config drift",
-    "GitOps single source of truth",
-    "Kustomize strategic merge patches"
-  ],
+  "expected_time": "15m",
+  "concepts": ["Argo CD source path", "kustomize overrides in Application", "Synced vs correct", "hard refresh"],
   "module": "module-7-gitops",
-  "level": "level-5-multi-env"
+  "level": "level-5-multi-env",
+  "requires": ["argocd"],
+  "settle_seconds": 35,
+  "solve_timeout": 150,
+  "cleanup": []
 }

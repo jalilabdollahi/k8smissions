@@ -1,5 +1,6 @@
-The logs show 'ERROR: Config file not found at /app/config/app.conf'. The container is looking for the file at a specific path. A volume IS mounted — but is it mounted at the right location?
+Find out where the app really writes and what is mounted there:
 
-Check where the volume is actually mounted:
+  kubectl exec -n k8smissions deploy/web-app -- wget -qO- localhost:8080/status
+  kubectl exec -n k8smissions deploy/web-app -- df -h
 
-  kubectl get pod web-app -n k8smissions -o yaml | grep -A5 'volumeMounts'
+Compare the directory the app reports with the mount points in the pod.

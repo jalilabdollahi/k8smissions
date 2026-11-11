@@ -1,1 +1,1 @@
-Check whether the metrics-server is actually running any pods: `kubectl get pods -n k8smissions -l app=metrics-server`
+`kubectl top` talking to the cluster proves the metrics server itself is healthy, so look at what the report pod asks for. Read its log (`kubectl -n k8smissions logs deploy/capacity-report`) and then ask the cluster what it actually serves: `kubectl get apiservices | grep metrics` and `kubectl api-versions | grep metrics`.

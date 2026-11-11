@@ -1,1 +1,1 @@
-Inspect the pod's scheduling events: `kubectl describe pod gpu-workload -n k8smissions`
+See where the pods run and which node has the label: `kubectl -n k8smissions get pods -l app=ledger-api -o wide` and `kubectl get nodes -L data-class`. Then read the Deployment's `affinity` block.

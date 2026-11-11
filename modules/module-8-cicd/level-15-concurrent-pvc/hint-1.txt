@@ -1,1 +1,1 @@
-Check how many PipelineRuns are running at once and what PVC they use: `kubectl get pipelinerun -n k8smissions` and `kubectl get pipelinerun ci-run-001 -n k8smissions -o yaml | grep claimName`
+Compare the logs of a failed `verify` TaskRun with the `package` log of the same run: the recorded checksum and the one `verify` computes differ. Then ask where the file `shop.tar` lives and who else writes there: `kubectl get taskrun -o wide`, `kubectl get pvc build-scratch`.

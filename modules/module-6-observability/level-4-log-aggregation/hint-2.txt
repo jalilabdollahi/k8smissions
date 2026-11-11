@@ -1,1 +1,1 @@
-The `--previous` flag returns logs from the last terminated container instance, not the currently running one. The output should show an error like 'exec: no such file or directory'. Now look at what the pod's `args` field tries to execute.
+The container that restarts has its own history. Use `kubectl -n k8smissions logs deploy/quote-service -c <container> --previous` to read the run that just ended. Containers of one pod share a single network namespace, which matters when you read what the previous run complained about.

@@ -1,1 +1,1 @@
-Delete all stale CI pods: `kubectl delete pod -l job=ci-test -n k8smissions`. This frees 20 quota slots. To prevent future occurrences, add `spec.ttlSecondsAfterFinished: 300` to all CI Job specs.
+`kubectl -n ci set env deploy/ci-retrier JOB_TTL_SECONDS=<seconds, at most 120>`; stop the run that is stuck with `kubectl -n ci delete job flaky-suite`; remove the completed retry Jobs by label, not the release ones: `kubectl -n ci delete job -l kind=retry` (check `--show-labels` first). Then watch `kubectl -n ci get jobs -w`.

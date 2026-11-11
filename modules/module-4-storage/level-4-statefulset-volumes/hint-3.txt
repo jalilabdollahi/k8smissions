@@ -1,5 +1,7 @@
-The StatefulSet references the shared PVC directly under `spec.template.spec.volumes`. This is wrong for StatefulSets.
+volumeClaimTemplates cannot be added by patching an existing StatefulSet, so the StatefulSet has to be recreated, and the shared claim removed so nothing mounts it any more:
 
-StatefulSets have a dedicated field for per-pod storage: `spec.volumeClaimTemplates`. When used, Kubernetes automatically creates one PVC per pod named `<template-name>-<pod-name>`.
+  kubectl delete statefulset postgres-cluster -n k8smissions
+  kubectl delete pvc <shared-claim> -n k8smissions
+  kubectl apply -f <statefulset with a volumeClaimTemplates entry named pgdata>
 
-Replace the volumes section with a volumeClaimTemplates section in manifest.yaml.
+Save the YAML first: kubectl get statefulset postgres-cluster -n k8smissions -o yaml > sts.yaml

@@ -1,17 +1,15 @@
 {
   "name": "Phantom Capacity",
-  "description": "A pod requests 5Gi of memory but can't schedule even though the node shows 6Gi total capacity. The scheduler doesn't use the raw capacity number — it uses allocatable memory, which is capacity minus what the kubelet and system processes have reserved. The pod's request exceeds the allocatable amount.",
-  "objective": "Node capacity includes system and kubelet reserved resources — calculate actual allocatable memory to size pods correctly",
-  "xp": 325,
+  "description": "`ledger-batch`, the nightly ledger reconciliation worker, will not start. Its pod is Pending with `Insufficient memory` on both workers, yet `kubectl describe node` shows well over 900Mi unallocated on each of them, and the request is only 900Mi. Security requires this workload to run in the `sandboxed` RuntimeClass and that is not negotiable.",
+  "objective": "Deployment `ledger-batch` has its pod Running and Ready on a worker node, still under RuntimeClass `sandboxed` with that class's pod overhead applied, and the other teams' `tenant-*` Deployments are untouched.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "allocatable",
-    "capacity",
-    "reserved resources",
-    "kubelet",
-    "kube-reserved"
-  ],
+  "expected_time": "15m",
+  "concepts": ["pod overhead", "RuntimeClass", "allocatable", "effective requests", "FailedScheduling"],
   "module": "module-9-scheduling",
-  "level": "level-10-allocatable-vs-capacity"
+  "level": "level-10-allocatable-vs-capacity",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": ["runtimeclass/sandboxed"]
 }

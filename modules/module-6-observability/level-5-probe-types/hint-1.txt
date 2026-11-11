@@ -1,1 +1,1 @@
-Check the restart count and read the probe failure events: `kubectl describe pod -n k8smissions -l app=probe-app | grep -A15 Liveness`
+Read the probe failures the kubelet recorded, one per container: `kubectl -n k8smissions describe pod -l app=settlement-gateway` and look at the Events at the bottom and at the Liveness and Readiness lines of each container.

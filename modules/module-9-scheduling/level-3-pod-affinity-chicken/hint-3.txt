@@ -1,1 +1,1 @@
-The `podAffinity` rule uses `requiredDuringSchedulingIgnoredDuringExecution`. Change it to `preferredDuringSchedulingIgnoredDuringExecution` so the pod can still schedule even if no cache pod is present yet.
+Break the loop on exactly one side, so that one Deployment can be scheduled without waiting for the other, and keep the rule on the side that has to follow, for example `kubectl -n k8smissions patch deploy <the-deployment-that-goes-first> --type=json -p '[{"op":"remove","path":"/spec/template/spec/affinity"}]'`. Check `get pods -o wide` afterwards.

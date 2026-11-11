@@ -1,1 +1,1 @@
-The ConfigMap's `config.json` value has `DB_HOST` set to a hardcoded IP address. It should be set to the cluster DNS name of the database Service: `database.k8smissions.svc.cluster.local`.
+The change belongs in the Deployment's pod template, not in the Service: `kubectl -n k8smissions patch deploy quote-api --type=json -p='[{"op":"replace","path":"/spec/template/spec/containers/0/args/0","value":"-listen=<address>:5678"}]'`. Fill in an address that is reachable from other pods.

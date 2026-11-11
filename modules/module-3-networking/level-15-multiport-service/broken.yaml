@@ -1,31 +1,89 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gateway-conf
+  namespace: k8smissions
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      location / {
+        default_type text/plain;
+        return 200 "gateway: ok\n";
+      }
+    }
+    server {
+      listen 9090;
+      location /metrics {
+        default_type text/plain;
+        return 200 "requests_total 48213\nerrors_total 7\n";
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: gateway}
+  template:
+    metadata:
+      labels: {app: gateway}
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: metrics
+          containerPort: 9090
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/nginx/conf.d
+      volumes:
+      - name: conf
+        configMap:
+          name: gateway-conf
+---
+apiVersion: v1
 kind: Service
 metadata:
-  name: dual-svc
+  name: gateway
   namespace: k8smissions
 spec:
   selector:
-    app: dual
+    app: gateway
   ports:
-  - port: 80
-    targetPort: 80
-  - port: 443
-    targetPort: 443
+  - name: http
+    port: 80
+    targetPort: http
+  - name: metrics
+    port: 9090
+    targetPort: metrics
+    protocol: UDP
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dual-ingress
+  name: gateway
   namespace: k8smissions
 spec:
+  ingressClassName: nginx
   rules:
-  - host: dual.example.com
+  - host: gateway.k8sm.local
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: dual-svc
+            name: gateway
             port:
-              name: http
+              name: web

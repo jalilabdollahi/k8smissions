@@ -1,1 +1,1 @@
-Look at the current Secret: `kubectl get secret app-secret -n k8smissions -o yaml`. Note that `stringData` contains readable credentials that are also stored in Git.
+Look at what Argo does when you change the live Secret: `kubectl -n argocd get app ledger-api -o yaml` (resource status, `operationState`, the sync policy) and `kubectl -n k8smissions get secret ledger-db -o yaml` (annotations and labels Argo adds). Then clone the `ledger` repo from the Git server and see where the password comes from.

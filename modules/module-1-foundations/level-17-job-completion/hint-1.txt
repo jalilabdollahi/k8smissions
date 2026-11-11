@@ -1,5 +1,1 @@
-BackoffLimitExceeded means the Job tried to complete and failed every time, hitting the maximum number of retries. Find the pods the Job created:
-
-  kubectl get pods -n k8smissions -l job-name=db-init
-
-What is the status of those pods?
+The pods say `Completed`, so look at the Job instead of the pods: `kubectl -n k8smissions describe job nightly-import` and read the Conditions and Events. The reason for the failure is written there.

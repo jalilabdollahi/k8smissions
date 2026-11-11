@@ -1,124 +1,77 @@
 #!/bin/bash
+S=settle
+k() { kubectl -n "$S" "$@"; }
+can() { kubectl auth can-i "$@" -n "$S" --as="system:serviceaccount:$S:settlement" 2>/dev/null; }
 
-NAMESPACE="k8smissions"
-DEPLOYMENT="chaos-app"
-
-echo "🔥 CHAOS FINALE VALIDATION 🔥"
-echo "Checking ALL Module 5 concepts..."
-echo ""
-
-ERRORS=0
-
-# 1. RBAC
-echo "🔍 1/9: Checking RBAC (ServiceAccount, Role, RoleBinding)..."
-if ! kubectl get serviceaccount app-sa -n $NAMESPACE &>/dev/null; then
-    echo "❌ ServiceAccount missing"; ((ERRORS++))
-elif ! kubectl get role app-role -n $NAMESPACE &>/dev/null; then
-    echo "❌ Role missing"; ((ERRORS++))
-elif ! kubectl get rolebinding app-binding -n $NAMESPACE &>/dev/null; then
-    echo "❌ RoleBinding missing"; ((ERRORS++))
-else
-    echo "✅ RBAC configured"
+if ! kubectl get ns "$S" >/dev/null 2>&1; then
+  echo "❌ namespace $S does not exist"
+  exit 1
 fi
 
-# 2. ResourceQuota
-echo "🔍 2/9: Checking ResourceQuota..."
-QUOTA_CPU=$(kubectl get resourcequota chaos-quota -n $NAMESPACE -o jsonpath='{.spec.hard.requests\.cpu}' 2>/dev/null)
-if [ -z "$QUOTA_CPU" ]; then
-    echo "❌ ResourceQuota missing"; ((ERRORS++))
-else
-    echo "✅ ResourceQuota: $QUOTA_CPU CPU"
+# 1. the guard rails stay
+if [ "$(kubectl get ns "$S" -o jsonpath='{.metadata.labels.pod-security\.kubernetes\.io/enforce}')" != "restricted" ]; then
+  echo "❌ namespace $S no longer enforces the restricted Pod Security level"
+  exit 1
 fi
-
-# 3. NetworkPolicy
-echo "🔍 3/9: Checking NetworkPolicy..."
-if ! kubectl get networkpolicy -n $NAMESPACE | grep -q "allow"; then
-    echo "❌ Allow NetworkPolicy missing"; ((ERRORS++))
-else
-    echo "✅ NetworkPolicy configured"
+out=$(k run priv-check --image=busybox:1.36 --privileged --dry-run=server -- sleep 1 2>&1)
+if ! echo "$out" | grep -q "violates PodSecurity"; then
+  echo "❌ a privileged pod is no longer rejected in $S"
+  exit 1
 fi
-
-# 4. PriorityClass
-echo "🔍 4/9: Checking PriorityClass..."
-if ! kubectl get priorityclass production-priority &>/dev/null; then
-    echo "❌ PriorityClass missing"; ((ERRORS++))
-else
-    echo "✅ PriorityClass exists"
+if ! k get quota settle-quota -o json 2>/dev/null | jq -e '.spec.hard["limits.cpu"]=="2" and .spec.hard["limits.memory"]=="2Gi"' >/dev/null; then
+  echo "❌ quota settle-quota is missing or its limits were changed"
+  exit 1
 fi
+echo "✅ restricted Pod Security and quota settle-quota are intact"
 
-# 5. PodDisruptionBudget
-echo "🔍 5/9: Checking PodDisruptionBudget..."
-if ! kubectl get pdb chaos-pdb -n $NAMESPACE &>/dev/null; then
-    echo "❌ PDB missing"; ((ERRORS++))
-else
-    MIN_AVAIL=$(kubectl get pdb chaos-pdb -n $NAMESPACE -o jsonpath='{.spec.minAvailable}')
-    echo "✅ PDB configured (minAvailable: $MIN_AVAIL)"
+# 2. RBAC: allowed and forbidden
+if [ "$(can get configmap/settle-config)" != "yes" ]; then
+  echo "❌ ServiceAccount settlement cannot get ConfigMap settle-config"
+  exit 1
 fi
-
-# 6. Deployment
-echo "🔍 6/9: Checking Deployment..."
-if ! kubectl get deployment $DEPLOYMENT -n $NAMESPACE &>/dev/null; then
-    echo "❌ Deployment missing"; ((ERRORS++))
+for no in "get secrets" "list secrets" "create pods" "delete configmaps" "update configmaps" "create rolebindings"; do
+  if [ "$(can $no)" = "yes" ]; then
+    echo "❌ settlement is too powerful: it can $no"
     exit 1
+  fi
+done
+if [ "$(kubectl auth can-i get configmaps -n kube-system --as="system:serviceaccount:$S:settlement" 2>/dev/null)" = "yes" ] || \
+   [ "$(kubectl auth can-i '*' '*' --as="system:serviceaccount:$S:settlement" 2>/dev/null)" = "yes" ]; then
+  echo "❌ settlement has access outside its namespace"
+  exit 1
 fi
-echo "✅ Deployment exists"
+echo "✅ settlement reads its ConfigMap and nothing sensitive"
 
-# 7. SecurityContext
-echo "🔍 7/9: Checking SecurityContext (runAsNonRoot, allowPrivilegeEscalation)..."
-RUN_AS_NON_ROOT=$(kubectl get deployment $DEPLOYMENT -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].securityContext.runAsNonRoot}')
-ALLOW_PRIV=$(kubectl get deployment $DEPLOYMENT -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation}')
-if [ "$RUN_AS_NON_ROOT" != "true" ]; then
-    echo "❌ runAsNonRoot not true"; ((ERRORS++))
-elif [ "$ALLOW_PRIV" != "false" ]; then
-    echo "❌ allowPrivilegeEscalation not false"; ((ERRORS++))
-else
-    echo "✅ SecurityContext configured securely"
+# 3. the workload
+if [ "$(k get deploy settlement -o jsonpath='{.spec.replicas}' 2>/dev/null)" != "2" ]; then
+  echo "❌ Deployment settlement must exist with 2 replicas"
+  exit 1
 fi
-
-# 8. Resources within quota
-echo "🔍 8/9: Checking resource requests fit quota..."
-CPU_REQUEST=$(kubectl get deployment $DEPLOYMENT -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}')
-REPLICAS=$(kubectl get deployment $DEPLOYMENT -n $NAMESPACE -o jsonpath='{.spec.replicas}')
-echo "   CPU per pod: $CPU_REQUEST, Replicas: $REPLICAS"
-echo "✅ Resource requests checked"
-
-# 9. Pod status
-echo "🔍 9/9: Checking pod status..."
-READY=$(kubectl get deployment $DEPLOYMENT -n $NAMESPACE -o jsonpath='{.status.readyReplicas}' 2>/dev/null || echo "0")
-if [ "$READY" = "0" ] || [ -z "$READY" ]; then
-    echo "⚠️  Pods not ready yet (may need time to start)"
-else
-    echo "✅ $READY/$REPLICAS pods ready"
+if ! k rollout status deploy/settlement --timeout=50s >/dev/null 2>&1; then
+  ready=$(k get deploy settlement -o jsonpath='{.status.readyReplicas}')
+  echo "❌ settlement has ${ready:-0} of 2 pods Ready"
+  k get rs -l app=settlement -o jsonpath='{range .items[*]}{.status.conditions[?(@.type=="ReplicaFailure")].message}{"\n"}{end}' | head -c 300
+  exit 1
 fi
-
-echo ""
-echo "================================"
-if [ $ERRORS -eq 0 ]; then
-    echo "🎉🎉🎉 SUCCESS! 🎉🎉🎉"
-    echo ""
-    echo "YOU'VE CONQUERED THE CHAOS FINALE!"
-    echo ""
-    echo "All Module 5 concepts mastered:"
-    echo "  ✅ RBAC"
-    echo "  ✅ SecurityContext"
-    echo "  ✅ ResourceQuota"
-    echo "  ✅ NetworkPolicy"
-    echo "  ✅ Node Affinity"
-    echo "  ✅ Taints & Tolerations"
-    echo "  ✅ PodDisruptionBudget"
-    echo "  ✅ Pod Security Standards"
-    echo "  ✅ PriorityClass"
-    echo ""
-    echo "🏆 KUBERNETES MASTER! 🏆"
-    echo ""
-    echo "You've completed ALL 50 LEVELS!"
-    echo "Total XP earned: 10,200 XP!"
-    echo ""
-    echo "THE STORM HAS PASSED! 🌈"
-    echo "================================"
-else
-    echo "❌ $ERRORS issue(s) found"
-    echo "Keep fixing! You're almost there!"
-    echo "================================"
+pods=$(k get pods -l app=settlement --field-selector=status.phase=Running -o jsonpath='{.items[*].metadata.name}')
+for p in $pods; do
+  if [ "$(k get pod "$p" -o jsonpath='{.status.containerStatuses[0].restartCount}')" != "0" ]; then
+    echo "❌ $p has restarted"
     exit 1
+  fi
+done
+body=$(kubectl get --raw "/api/v1/namespaces/$S/services/settlement:8080/proxy/ready" 2>&1)
+if ! echo "$body" | grep -q "db=ok"; then
+  echo "❌ /ready does not answer 200: $(echo "$body" | head -c 160)"
+  exit 1
 fi
+echo "✅ settlement /ready answers 200: $(echo "$body" | head -1)"
+
+# 4. the database is closed to everyone else
+if k exec rogue -- wget -q -T 3 -O /dev/null http://settle-db:5432/ >/dev/null 2>&1; then
+  echo "❌ pod rogue can still reach settle-db"
+  exit 1
+fi
+echo "✅ settle-db answers settlement and still refuses rogue"
+exit 0
+exit 1

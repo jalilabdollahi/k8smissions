@@ -1,5 +1,1 @@
-Pending means the scheduler could not find a node that fits this pod. Read the scheduler's explanation:
-
-  kubectl describe pod hungry-app -n k8smissions
-
-Look at the Events section — why did the scheduler skip every node?
+A Pending pod has no logs because nothing ever started. Ask the scheduler why: `kubectl -n k8smissions describe pod report-builder` and read the Events at the bottom.

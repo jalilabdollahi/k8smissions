@@ -1,1 +1,1 @@
-Test the validation by applying a CR with obviously wrong values: try `replicas: -999` or omitting required fields. If it succeeds, the schema is not enforcing anything.
+Look at what the API knows about a Workload: `kubectl explain workload.spec` and `kubectl get crd workloads.platform.acme.io -o yaml`. Then look at what the two live Workloads contain right now (`kubectl -n k8smissions get workload search-indexer -o yaml`) and keep a copy: you will want to compare after your change.

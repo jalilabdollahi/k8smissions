@@ -1,1 +1,6 @@
-The CR's `metadata.finalizers` list contains `database.example.com/cleanup`. Force-clear it by setting `finalizers: []` in the manifest, which removes the block and allows the deletion to complete.
+Swap the two calls in the delete branch so the cleanup runs while the object still exists and the finalizer is released last, then load the new script and restart the operator:
+
+kubectl -n k8smissions edit configmap datastore-operator-code
+kubectl -n k8smissions rollout restart deployment/<OPERATOR>
+
+Finish by deleting the leftovers yourself: kubectl -n k8smissions delete pod/<NAME> configmap/<NAME>

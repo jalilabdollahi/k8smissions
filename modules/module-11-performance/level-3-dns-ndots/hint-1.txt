@@ -1,1 +1,4 @@
-Count DNS queries per second on a pod: `kubectl exec dns-heavy-app -n k8smissions -- cat /etc/resolv.conf`. Look at the `ndots` and `search` values — each short lookup triggers a search through each of those domains.
+Read what the resolver is being asked, and what the client is configured with:
+  kubectl logs deploy/dns-lab --tail=20
+  kubectl exec deploy/rate-limiter -- cat /etc/resolv.conf
+Compare the names in the log with the name the app looks up.

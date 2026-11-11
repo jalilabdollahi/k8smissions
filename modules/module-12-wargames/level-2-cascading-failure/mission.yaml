@@ -1,16 +1,15 @@
 {
-  "name": "Domino Effect",
-  "description": "A cascading outage has taken down the entire API stack. The `auth-svc` was accidentally scaled to 0 replicas — possibly by a misconfigured HPA or an operator hitting `kubectl scale` with the wrong target. Every downstream call chain that touches authentication is now timing out, causing a blast radius far beyond just the auth service.",
-  "objective": "The auth-svc deployment has 0 replicas causing all downstream services to fail — scale it back up to restore the chain",
+  "name": "504 at the Top of the Stack",
+  "description": "Every request through `gateway` has been answering 504 or 503 since the last deploy. The `gateway` pods are NotReady, so the on-call restarted them twice and then scaled them up; nothing changed. The API stack behind `gateway` is `auth` and the `users-cache` it reads from.",
+  "objective": "A client can log in through Service `gateway` (`POST /login/<user>`), then fetch `/api/users/42` with the returned bearer token and get HTTP 200 with the user record, while a request without a token is still refused with 401. The `gateway` and `auth` Deployments run all their replicas Ready without restarting.",
   "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "cascading failures",
-    "circuit breakers",
-    "deployment replicas",
-    "service dependencies"
-  ],
+  "expected_time": "20m",
+  "concepts": ["dependency tracing", "readiness", "Secret volumes", "Service targetPort", "ConfigMap volumes"],
   "module": "module-12-wargames",
-  "level": "level-2-cascading-failure"
+  "level": "level-2-cascading-failure",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 180,
+  "cleanup": []
 }

@@ -1,17 +1,15 @@
 {
-  "name": "Sudden Eviction",
-  "description": "Running pods are being evicted unexpectedly from a node that just had a maintenance taint applied. The pod has no toleration for the taint — so when the `NoExecute` taint lands on the node, Kubernetes evicts it immediately with no grace window.",
-  "objective": "A NoExecute taint was added to the node — add a toleration with tolerationSeconds to allow a graceful drain window",
-  "xp": 275,
+  "name": "Maintenance Window Churn",
+  "description": "Platform started tonight's 30-minute maintenance window on the node with the local NVMe disks. Since then the two `session-cache` pods keep dying about every 20 seconds, the ReplicaSet keeps recreating them, and the hit ratio on the session store has collapsed. The pods are pinned to the NVMe node because that is where the cache files live, and the Deployment does carry a toleration for the maintenance taint.",
+  "objective": "Both `session-cache` pods stay Running on the NVMe node (the node labelled `disktype=nvme`) for the whole maintenance window without being evicted, while the maintenance taint stays on that node and Deployment `session-cache` keeps 2 replicas.",
+  "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "taints",
-    "NoExecute",
-    "tolerationSeconds",
-    "eviction",
-    "graceful shutdown"
-  ],
+  "concepts": ["taints", "NoExecute", "tolerationSeconds", "TaintManagerEviction"],
   "module": "module-9-scheduling",
-  "level": "level-1-taint-eviction"
+  "level": "level-1-taint-eviction",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,1 +1,3 @@
-The ConfigMap `stuck-resource` has a finalizer `some.controller.io/cleanup` that will never be cleared automatically. You need to patch the ConfigMap to set `finalizers: []`, which removes the block and allows the namespace deletion to complete.
+kubectl get apiservice | grep -v True
+kubectl delete apiservice <name of the unavailable one>
+Then watch the namespace and the Application disappear. There is no need to edit finalizers.

@@ -1,5 +1,1 @@
-The container declares `containerPort: 80`. Now look at the Service spec:
-
-  kubectl get service web-service -n k8smissions -o yaml | grep -A5 'ports'
-
-Pay attention to the difference between `port` and `targetPort`.
+Point the Service at the port from the container's log, leaving the clients' port 80 as it is: `kubectl -n k8smissions patch service thumb-api --type=json -p '[{"op":"replace","path":"/spec/ports/0/targetPort","value":<port>}]'`. No pod needs to restart.

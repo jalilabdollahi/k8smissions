@@ -1,15 +1,4 @@
-## What went wrong
-
-The metrics-server Deployment has `replicas: 0`. No metrics-server pod is running, so the Kubernetes Metrics API has no data to serve. The HPA checks that API every 15 seconds and gets nothing — it shows `<unknown>` and makes no scaling decisions.
-
-## Fix
-
-In manifest.yaml, change the metrics-server Deployment replicas:
-
-```yaml
-replicas: 1
-```
-
-## Why this matters
-
-In a real cluster, metrics-server is installed cluster-wide as an add-on (not in the application namespace). Here it is simulated. But the lesson is the same: before creating an HPA, always verify that `kubectl top pods` works — if it does, the Metrics API is available and the HPA will function.
+1. `kubectl -n k8smissions describe hpa web-backend` shows `FailedGetResourceMetric ... missing request for cpu in container log-forwarder`.
+2. For a `Resource` metric the HPA sums usage and requests across all containers in the pod, so one container without a request makes the whole metric unusable. `web` already has a request, `log-forwarder` does not.
+3. `kubectl -n k8smissions set resources deployment web-backend -c log-forwarder --requests=cpu=20m` adds it (this rolls out a new pod).
+4. After a minute the HPA shows a utilisation well over 50% and raises the replica count.

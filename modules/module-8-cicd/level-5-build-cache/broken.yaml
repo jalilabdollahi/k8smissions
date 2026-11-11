@@ -1,12 +1,72 @@
-apiVersion: tekton.dev/v1beta1
-kind: TaskRun
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: build-cache-run
   namespace: k8smissions
+  name: build-cache
 spec:
-  taskRef:
-    name: maven-build
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 100Mi
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  namespace: k8smissions
+  name: compile
+spec:
   workspaces:
-  - name: source
-    emptyDir: {}
-  # Maven downloads all dependencies from the internet on every run — builds take 15+ minutes
+  - name: cache
+    optional: true
+    description: dependency cache kept between builds
+  results:
+  - name: cache-hit
+  steps:
+  - name: resolve
+    image: busybox:1.36
+    script: |
+      #!/bin/sh
+      echo "cache workspace bound: $(workspaces.cache.bound)"
+      DEPS="$HOME/.inventory-deps"
+      if [ -f "$DEPS/.complete" ]; then
+        echo "dependencies restored from cache ($(ls "$DEPS" | wc -l) entries)"
+        printf true > $(results.cache-hit.path)
+      else
+        echo "cache miss: resolving dependencies..."
+        sleep 6
+        mkdir -p "$DEPS"
+        for i in 1 2 3; do echo "jar $i" > "$DEPS/dep-$i.jar"; done
+        touch "$DEPS/.complete"
+        printf false > $(results.cache-hit.path)
+      fi
+  - name: build
+    image: busybox:1.36
+    script: |
+      #!/bin/sh
+      echo "compiling inventory against $HOME/.inventory-deps"
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: inventory-build
+spec:
+  workspaces:
+  - name: cache
+  tasks:
+  - name: compile
+    taskRef:
+      name: compile
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: inventory-build-0905
+spec:
+  pipelineRef:
+    name: inventory-build
+  workspaces:
+  - name: cache
+    persistentVolumeClaim:
+      claimName: build-cache

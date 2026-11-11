@@ -1,25 +1,119 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quote-app
+  namespace: k8smissions
+data:
+  app.py: |
+    import http.server, time
+
+    COST_MS = 10            # CPU spent computing one quote
+
+    def burn(ms):
+        end = time.thread_time() + ms / 1000.0
+        while time.thread_time() < end:
+            pass
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path.startswith("/quote"):
+                burn(COST_MS)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'{"price": 41.17}')
+        def log_message(self, *a):
+            pass
+
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-server
+  name: quote-api
   namespace: k8smissions
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
-      app: api-server
+      app: quote-api
   template:
     metadata:
       labels:
-        app: api-server
+        app: quote-api
     spec:
       containers:
       - name: api
-        image: nginx:1.25
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 3
         resources:
           requests:
-            cpu: 100m
-            memory: 256Mi
+            cpu: 50m
+            memory: 32Mi
           limits:
             cpu: 100m
-            memory: 512Mi
+            memory: 96Mi
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: quote-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quote-api
+  namespace: k8smissions
+spec:
+  selector:
+    app: quote-api
+  ports:
+  - port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: quote-client
+  namespace: k8smissions
+spec:
+  terminationGracePeriodSeconds: 1
+  containers:
+  - name: client
+    image: python:3.12-alpine
+    command: ["python", "-u", "-c"]
+    args:
+    - |
+      import threading, time, urllib.request
+
+      lat, lock = [], threading.Lock()
+
+      def run():
+          while True:
+              t = time.time()
+              try:
+                  urllib.request.urlopen("http://quote-api/quote", timeout=3).read()
+                  ok = True
+              except Exception:
+                  ok = False
+              with lock:
+                  lat.append(((time.time() - t) * 1000, ok))
+              time.sleep(max(0, 0.285 - (time.time() - t)))      # 14 requests/s across 4 threads
+
+      for _ in range(4):
+          threading.Thread(target=run, daemon=True).start()
+      while True:
+          time.sleep(10)
+          with lock:
+              rows, lat[:] = sorted(lat), []
+          if rows:
+              print("quote requests: %d  failed: %d  p95: %d ms" % (
+                  len(rows), sum(1 for r in rows if not r[1]), rows[int(len(rows) * 0.95)][0]), flush=True)

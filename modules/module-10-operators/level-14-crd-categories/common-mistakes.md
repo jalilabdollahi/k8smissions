@@ -1,7 +1,11 @@
-# Common Mistakes — Not in List
+## Replacing the versions array with a merge patch
 
-## Mistake 1: Creating a separate API aggregation layer to improve discovery
+`kubectl patch crd --type=merge` with `versions: [...]` replaces the whole list, schema included; with the schema gone the status fields are pruned and the batches lose their state. A JSON patch that adds a single path touches nothing else.
 
-**Wrong approach:** Full API aggregation (APIService) is overkill just for kubectl get all visibility
+## Pointing a printer column at the wrong path
 
-**Correct approach:** Simply add categories: [all] to the CRD names — one line fix
+A column whose `jsonPath` does not exist (`.status.status`) is created and shows an empty cell. Compare each cell with `kubectl get invoicebatch <name> -o yaml`.
+
+## Believing the old output
+
+If your terminal still shows NAME and AGE after the patch, the discovery cache is stale, not the CRD. `kubectl api-resources` refreshes it, or use `--cache-dir=$(mktemp -d)` for a clean view.

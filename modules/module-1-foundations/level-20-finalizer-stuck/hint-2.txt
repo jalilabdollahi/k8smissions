@@ -1,7 +1,1 @@
-There is a finalizer: `custom.operator.io/cleanup`. A finalizer tells Kubernetes: 'before you delete this object, wait for an external process to signal that cleanup is done'.
-
-Check if that process exists anywhere in the cluster:
-
-  kubectl get pods --all-namespaces | grep operator
-
-Is there anything running that belongs to `custom.operator.io`?
+`deletionTimestamp` means a delete was requested; `finalizers` lists the controllers that must clean up and remove their entry before the API server removes the object. The controller for this finalizer no longer exists, so nobody will ever remove it. `--force` and `--grace-period=0` do not skip finalizers. `kubectl explain configmap.metadata.finalizers`.

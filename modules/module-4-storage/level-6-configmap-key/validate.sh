@@ -1,63 +1,39 @@
 #!/bin/bash
+# Level 6: web-app starts, stays up, and serves the mounted settings file.
+. ../_fixtures/lib.sh
 
-NAMESPACE="k8smissions"
-CONFIGMAP="app-config"
-POD_NAME="web-app"
-
-echo "🔍 Stage 1: Checking if ConfigMap exists..."
-if ! kubectl get configmap "$CONFIGMAP" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ ConfigMap '$CONFIGMAP' not found"
-    exit 1
+if ! kubectl get configmap app-config -n "$NS" >/dev/null 2>&1; then
+  bad "ConfigMap app-config does not exist"
+  exit 1
 fi
-echo "✅ ConfigMap exists"
-
-echo ""
-echo "🔍 Stage 2: Checking if database_host key exists in ConfigMap..."
-DB_HOST=$(kubectl get configmap "$CONFIGMAP" -n "$NAMESPACE" -o jsonpath='{.data.database_host}' 2>/dev/null)
-if [ -z "$DB_HOST" ]; then
-    echo "❌ Key 'database_host' not found in ConfigMap"
-    echo "💡 Hint: Add database_host key to ConfigMap data"
-    echo "💡 Current keys:"
-    kubectl get configmap "$CONFIGMAP" -n "$NAMESPACE" -o jsonpath='{.data}' | jq 'keys'
-    exit 1
+if ! kubectl get deployment web-app -n "$NS" >/dev/null 2>&1; then
+  bad "Deployment web-app does not exist"
+  exit 1
 fi
-echo "✅ database_host key exists: $DB_HOST"
-
-echo ""
-echo "🔍 Stage 3: Checking if pod exists..."
-if ! kubectl get pod "$POD_NAME" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ Pod '$POD_NAME' not found"
-    exit 1
+POD=$(kubectl get pods -n "$NS" -l app=web-app -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+PHASE=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null)
+if [ "$PHASE" != "Running" ] || \
+   [ "$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.status.containerStatuses[0].ready}')" != "true" ]; then
+  bad "web-app pod is not Ready (phase: ${PHASE:-none})"
+  exit 1
 fi
-echo "✅ Pod exists"
+ok "$POD is Ready"
 
-echo ""
-echo "🔍 Stage 4: Checking if pod is Running..."
-POD_STATUS=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.status.phase}')
-if [ "$POD_STATUS" != "Running" ]; then
-    echo "❌ Pod is in '$POD_STATUS' state (expected Running)"
-    echo "💡 Check pod events: kubectl describe pod $POD_NAME -n $NAMESPACE"
-    exit 1
+ensure_probe || { bad "could not start the test client pod"; exit 1; }
+BODY=$(pcurl http://web-app/)
+if ! echo "$BODY" | grep -q 'payments_url:'; then
+  bad "Service web-app does not serve the settings file (got: $(echo "$BODY" | head -c 80))"
+  exit 1
 fi
-echo "✅ Pod is Running"
+ok "web-app serves the settings from /etc/app/app.yaml"
 
-echo ""
-echo "🔍 Stage 5: Verifying DATABASE_HOST environment variable..."
-ENV_DB_HOST=$(kubectl exec "$POD_NAME" -n "$NAMESPACE" -- sh -c 'echo $DATABASE_HOST' 2>/dev/null)
-if [ -z "$ENV_DB_HOST" ]; then
-    echo "❌ DATABASE_HOST environment variable is not set in pod"
-    exit 1
+sleep 15
+R=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.status.containerStatuses[0].restartCount}')
+READY=$(kubectl get pod "$POD" -n "$NS" -o jsonpath='{.status.containerStatuses[0].ready}')
+if [ "$R" != "0" ] || [ "$READY" != "true" ]; then
+  bad "web-app is not stable (restarts: $R, ready: $READY)"
+  exit 1
 fi
-echo "✅ DATABASE_HOST is set: $ENV_DB_HOST"
-
-echo ""
-echo "🔍 Stage 6: Checking pod logs for success message..."
-if ! kubectl logs "$POD_NAME" -n "$NAMESPACE" 2>/dev/null | grep -q "App started successfully"; then
-    echo "❌ Pod did not start successfully"
-    echo "💡 Check logs: kubectl logs $POD_NAME -n $NAMESPACE"
-    exit 1
-fi
-echo "✅ App started successfully with config from ConfigMap"
-
-echo ""
-echo "🎉 SUCCESS! ConfigMap has all required keys and pod is running!"
+ok "still Ready with no restarts after 15s"
+exit 0
+exit 1

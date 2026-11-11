@@ -1,17 +1,15 @@
 {
-  "name": "DNS Latency Spike",
-  "description": "DNS resolution latency is high cluster-wide — even simple service lookups take 5–10ms. NodeLocal DNSCache is installed but not active. All DNS queries still travel from pods through the pod network to kube-dns, adding unnecessary network hops. The feature is installed but disabled by a flag.",
-  "objective": "Enable NodeLocal DNSCache to cache DNS responses on each node and reduce latency",
-  "xp": 350,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "NodeLocal DNSCache",
-    "DNS performance",
-    "DaemonSet",
-    "local cache",
-    "DNS latency"
-  ],
+  "name": "The Cache That Nobody Asks",
+  "description": "session-gw looks up about 200 session hostnames a second and every lookup takes around 85ms. Last sprint the platform team rolled out a per-node DNS cache (the dns-cache DaemonSet) to fix exactly this. The cache pods are Ready on both workers, yet the resolver upstream still sees almost every single query, and gateway latency has not moved.",
+  "objective": "Lookups from session-gw are fast (p95 under 40ms) because the per-node dns-cache answers them: dns-upstream sees less than 10% of the lookups, while the dns-cache DaemonSet stays Ready on every worker and dns-upstream stays the slow resolver it is.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["DNS caching", "dnsConfig", "CoreDNS cache plugin", "internalTrafficPolicy", "DaemonSet"],
   "module": "module-11-performance",
-  "level": "level-10-node-local-dns"
+  "level": "level-10-node-local-dns",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

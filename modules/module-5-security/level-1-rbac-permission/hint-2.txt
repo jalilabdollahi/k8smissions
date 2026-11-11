@@ -1,1 +1,1 @@
-You should see something like 'User cannot list resource pods'. Now check which RBAC objects exist for the ServiceAccount being used: `kubectl get role,rolebinding -n k8smissions`
+Pods have subresources (`pods/log`, `pods/exec`, `pods/status`) and RBAC treats each as its own resource: permission on `pods` says nothing about `pods/log`. See `kubectl describe role log-reader` and `kubectl explain role.rules.resources`.

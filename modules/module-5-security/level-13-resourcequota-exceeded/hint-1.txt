@@ -1,1 +1,1 @@
-Check how much of the namespace quota has been consumed: `kubectl describe resourcequota ns-quota -n k8smissions`
+Compare the quota's numbers with what you can see: `kubectl -n k8smissions describe quota object-counts`, `kubectl -n k8smissions get pods` and `kubectl -n k8smissions get pods --field-selector=status.phase=Succeeded`. The error text is in `kubectl -n k8smissions describe rs -l app=catalog-web`.

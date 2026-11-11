@@ -1,18 +1,15 @@
 {
-  "name": "Locked Down Too Hard",
-  "description": "After the security team applied a new NetworkPolicy, the backend service stopped reaching the database. Both pods are running, the Service exists, and DNS resolves correctly — but every connection attempt times out. The policy that was applied is too broad.",
-  "objective": "A default-deny NetworkPolicy blocks all traffic — add targeted allow rules to restore the required service connections",
-  "xp": 350,
-  "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "NetworkPolicy default-deny",
-    "ingress/egress",
-    "podSelector",
-    "namespaceSelector",
-    "port-specific rules",
-    "defense in depth"
-  ],
+  "name": "Audit Finding: Open Database",
+  "description": "A PCI audit found that `payments-db` accepts connections from workloads that have nothing to do with payments. The auditor connected from `batch-exporter` and from a leftover `debug-shell` pod and got an answer from port 8080 both times. The namespace already has a default-deny policy and the platform team added a strict policy for the database last week, so the finding makes no sense to the team.",
+  "objective": "Only `payments-api` can reach `payments-db` on port 8080. `batch-exporter` and `debug-shell` are blocked, `payments-api` still works by service name, and all four workloads keep running.",
+  "xp": 150,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": ["NetworkPolicy", "additive policies", "podSelector", "least privilege"],
   "module": "module-5-security",
-  "level": "level-4-networkpolicy-security"
+  "level": "level-4-networkpolicy-security",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

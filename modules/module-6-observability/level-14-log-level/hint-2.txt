@@ -1,1 +1,1 @@
-You should see `LOG_LEVEL: DEBUG` in the environment variables. DEBUG logging emits every internal state change and is appropriate only during active development. Look at the manifest's `env` block to find where to change this.
+The startup of the noisy service tells you how it read its configuration. Compare the exact value its `LOG_LEVEL` has with the one in the quiet Deployment (`kubectl get deploy -o yaml`, section `env`). Applications often accept only a fixed list of spellings.

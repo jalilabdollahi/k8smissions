@@ -1,7 +1,1 @@
-A rolling update should replace pods one at a time, keeping most of them running. Something in the update strategy allowed all pods to be terminated simultaneously.
-
-Read the Deployment strategy:
-
-  kubectl describe deployment critical-api -n k8smissions
-
-Look at the RollingUpdateStrategy section.
+The damage only happens during a rollout. Trigger one and watch what happens to the pods: `kubectl -n k8smissions set env deployment/critical-api RELEASE=test` and `kubectl -n k8smissions get pods -w` in another terminal. Also read `kubectl -n k8smissions get deployment critical-api -o yaml` for `strategy`.

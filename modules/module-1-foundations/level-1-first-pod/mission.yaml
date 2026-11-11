@@ -1,16 +1,15 @@
 {
-  "name": "Hello, Kubernetes!",
-  "description": "Pod nginx-broken exits immediately after creation. Run kubectl get pods -n k8smissions and check the STATUS and RESTARTS columns.",
-  "objective": "The pod has a command field that overrides the image entrypoint and causes it to fail — fix the command so nginx starts normally",
+  "name": "Welcome to Acme",
+  "description": "The intern's first deployment, the Acme welcome page, is not serving. `kubectl get pods` shows `welcome-page` as `Completed`, then `CrashLoopBackOff`, and the Service `welcome-page` in front of it refuses connections. Nobody can reproduce an error message from the pod itself.",
+  "objective": "Pod `welcome-page` is Running and Ready without restarting, and Service `welcome-page` answers 200 with the nginx welcome page.",
   "xp": 100,
   "difficulty": "beginner",
-  "expected_time": "5m",
-  "concepts": [
-    "pod",
-    "command",
-    "entrypoint",
-    "CrashLoopBackOff"
-  ],
+  "expected_time": "6m",
+  "concepts": ["pod", "command", "image entrypoint", "exit code", "restartPolicy"],
   "module": "module-1-foundations",
-  "level": "level-1-first-pod"
+  "level": "level-1-first-pod",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 90,
+  "cleanup": []
 }

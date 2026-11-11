@@ -1,1 +1,1 @@
-Check the clock status: `kubectl get configmap node-clock-status -n k8smissions -o yaml`. Look at the `skew_seconds` and `ntp_sync` values.
+Start with what each side says: `kubectl -n k8smissions logs deploy/auth` shows the timestamps it writes into the tokens, `kubectl -n k8smissions logs deploy/api` shows why it refuses them. Then compare the wall clock inside the two pods, for example `kubectl -n k8smissions exec deploy/auth -- date` and the same for `deploy/api`. Look at the pod environment too: `kubectl -n k8smissions get deploy auth api -o yaml | grep -A12 env:`.

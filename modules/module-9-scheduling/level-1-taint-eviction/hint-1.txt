@@ -1,1 +1,1 @@
-Check the node's current taints: `kubectl describe node kind-control-plane | grep -A5 Taints`
+The pods are not crashing, they are being deleted. Look at why: `kubectl -n k8smissions get events --sort-by=.lastTimestamp` and `kubectl describe node <the nvme node>` (the Taints line).

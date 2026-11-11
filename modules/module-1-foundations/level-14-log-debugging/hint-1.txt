@@ -1,9 +1,1 @@
-When an application crashes at startup without an obvious Kubernetes error, the answer is almost always in the application logs. Read them:
-
-  kubectl logs database-app -n k8smissions
-
-If the container already restarted:
-
-  kubectl logs database-app -n k8smissions --previous
-
-Read the PostgreSQL output carefully.
+The pod restarts, so look at what the last run printed: `kubectl -n k8smissions logs <pod> --previous`. It is long. Filter it (`| grep -i error`) and note the file name and the line number it mentions.

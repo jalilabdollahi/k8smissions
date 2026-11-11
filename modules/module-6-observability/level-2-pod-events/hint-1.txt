@@ -1,1 +1,1 @@
-Since logs are empty, read the pod's events instead: `kubectl describe pod events-pod -n k8smissions`. Scroll to the Events section at the bottom.
+With no pod there is nothing to `describe` or `logs`, but Kubernetes still recorded what went wrong. Read the namespace's events in order: `kubectl -n k8smissions get events --sort-by=.lastTimestamp`, and look at which object each event is about.

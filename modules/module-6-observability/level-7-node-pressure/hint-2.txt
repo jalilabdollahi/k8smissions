@@ -1,1 +1,1 @@
-You should see `MemoryPressure: True`. Now find which pod is responsible: `kubectl top pods -n k8smissions`. Then inspect the memory-hog Deployment to see how many replicas are running and what each container does.
+The kubelet evicts for two kinds of reasons: node pressure, or a single pod exceeding a local-storage limit such as an emptyDir `sizeLimit`. The conditions say it is the second. The real question is what keeps filling the volume; read the app's startup line with `kubectl -n k8smissions logs deploy/audit-spooler` and `kubectl explain pod.spec.volumes.emptyDir`.

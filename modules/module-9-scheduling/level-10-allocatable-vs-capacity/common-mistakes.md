@@ -1,7 +1,11 @@
-# Common Mistakes — Phantom Capacity
+## Editing the RuntimeClass overhead down to zero
 
-## Mistake 1: Adding more replicas to spread load
+Newly created pods would fit, but the sandbox really costs that memory and the security team's guarantee is gone. The validator keeps the 700Mi overhead for that reason. Size the workload, not the class.
 
-**Wrong approach:** Scaling the Deployment — 5Gi request on any single node still fails
+## Removing `runtimeClassName` from the Deployment
 
-**Correct approach:** Fix the request size first; scaling doesn't help if the individual pod request is too large
+The pod schedules at once and breaks the compliance requirement the mission names. A Pending pod that is allowed to run unsandboxed is not a fix.
+
+## Deleting a `tenant-*` Deployment to free memory
+
+It frees room, but those pods belong to other teams, and the request was inflated to begin with. Look at what the process actually needs before taking someone else's capacity.

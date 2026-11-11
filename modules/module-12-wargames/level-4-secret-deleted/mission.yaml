@@ -1,16 +1,15 @@
 {
-  "name": "Credential Void",
-  "description": "Someone deleted the `db-credentials` Secret during a credential rotation — possibly intending to recreate it with new values, but the Deployment was not scaled down first. All pods immediately transitioned from Running to `CreateContainerConfigError` because Kubernetes cannot inject the missing secret as environment variables.",
-  "objective": "The db-credentials Secret was deleted causing pods to fail — recreate the Secret with valid credentials",
+  "name": "The Secret That Vanished",
+  "description": "A credentials rotation for `billing-api` was started yesterday and never finished: someone deleted Secret `db-credentials` and went off shift. Two of the three `billing-api` pods are still serving, but the rollout that was started alongside is stuck, and `kubectl get pods` shows pods that never start. The nightly `invoice-export` CronJob reads the same Secret and runs in a few hours.",
+  "objective": "Deployment `billing-api` finishes its rollout with all 3 replicas Ready, an invoice written through Service `billing-api` is stored by the database and can be read back, and a Job started from CronJob `invoice-export` completes. The database password must not be changed.",
   "xp": 300,
   "difficulty": "expert",
-  "expected_time": "12m",
-  "concepts": [
-    "Secrets",
-    "pod recovery",
-    "CreateContainerConfigError",
-    "secret rotation"
-  ],
+  "expected_time": "20m",
+  "concepts": ["Secret", "CreateContainerConfigError", "secretKeyRef", "CronJob", "recovering values from running pods"],
   "module": "module-12-wargames",
-  "level": "level-4-secret-deleted"
+  "level": "level-4-secret-deleted",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 180,
+  "cleanup": []
 }

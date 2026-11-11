@@ -1,7 +1,5 @@
-# Common Mistakes — Webhook Ignored
+**Editing the ConfigMap and stopping there.** The receiver loads `binding.json` when it starts. The new pod-visible file is ignored until the process restarts, so the next push still produces an empty revision. Restart the Deployment and check the `binding loaded` log line.
 
-## Mistake 1: Using both commits[0].sha and head_commit.id
+**Fixing the symptom in the Pipeline.** Giving `revision` a default such as `main` makes the empty param disappear, but the run then clones the branch tip instead of the pushed commit. The validator pushes an older commit on purpose.
 
-**Wrong approach:** Including both fields hoping one works — one will be empty and may cause race conditions
-
-**Correct approach:** Identify the correct field by inspecting actual webhook payloads
+**Hand-creating a run with the right SHA.** `kubectl create` of a PipelineRun proves the Pipeline works, not the webhook. The check posts a payload to the Service and inspects the run the receiver creates.

@@ -1,17 +1,21 @@
 {
-  "name": "One-Shot Task",
-  "description": "Job db-init has reached BackoffLimitExceeded. Run kubectl get jobs -n k8smissions to see its current state.",
-  "objective": "The Job container command exits non-zero — fix the command so the Job completes successfully",
+  "name": "Out of Time",
+  "description": "Job `nightly-import` should load three shards into the finance ledger, one after the other. This morning two of its pods show `Completed`, the third shard never ran, and `kubectl get job` says the Job is `Failed`. Finance cannot close the books until all three shards are imported, and the pods that did run look perfectly healthy.",
+  "objective": "Job `nightly-import` finishes as `Complete` with 3 successful completions, its logs show shard 1, 2 and 3 imported, and no `Failed` condition is left on it.",
   "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "8m",
+  "expected_time": "10m",
   "concepts": [
     "Job",
-    "backoffLimit",
-    "exit codes",
-    "completions",
-    "batch"
+    "activeDeadlineSeconds",
+    "DeadlineExceeded",
+    "Job conditions",
+    "immutable fields"
   ],
   "module": "module-1-foundations",
-  "level": "level-17-job-completion"
+  "level": "level-17-job-completion",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 120,
+  "cleanup": []
 }

@@ -1,1 +1,1 @@
-The pod spec has no `schedulerName` field. Without it, Kubernetes always uses `default-scheduler`. Add `schedulerName: ml-scheduler` to the pod spec to route it to the correct scheduler.
+Change the Deployment's pod template so it names the team's scheduler exactly as its profile spells it, for example `kubectl -n k8smissions patch deploy trainer --type=merge -p '{"spec":{"template":{"spec":{"schedulerName":"<profile name>"}}}}'`, then watch the rollout. Do not edit the scheduler's configuration.

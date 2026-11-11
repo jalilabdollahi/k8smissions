@@ -1,1 +1,2 @@
-The VirtualService has `timeout: 15s`. Check the backend logs to see if requests are completing: `kubectl logs -n k8smissions -l app=backend --tail=50`. You should see successful responses after 30–60 seconds — but the VirtualService is canceling them at 15 seconds.
+A route has its own `timeout`: how long Envoy waits for the whole response before it answers 504 itself. It must be above the slowest legitimate request but still finite, so a stuck backend is cut off. The proxy reads its configuration file when it starts; changing the ConfigMap changes the file in the pod but the running process keeps what it loaded.
+See: the `route.timeout` field of Envoy's RouteAction.

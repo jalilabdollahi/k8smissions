@@ -1,13 +1,7 @@
-# Common Mistakes — Zombie Namespace
+**Removing the namespace's finalizers with `kubectl replace --raw`.** The namespace disappears, but the APIService stays broken and the next namespace deletion hangs in the same way. The objective checks that no API service is unavailable.
 
-## Mistake 1: Deleting the namespace again
+**Looking for a stuck object inside the namespace.** Nothing in it holds the deletion: pods, PVCs and custom resources are gone or have no finalizers. The blocker is outside the namespace.
 
-**Wrong approach:** Re-running kubectl delete namespace — has no effect on an already-Terminating namespace
+**Deleting the Application again or stripping its finalizer.** The Application is only waiting for its namespace. Removing its finalizer leaves the namespace stuck and the quota counted.
 
-**Correct approach:** Find and clear the finalizers on objects inside the namespace
-
-## Mistake 2: Removing the namespace finalizer directly without clearing object finalizers
-
-**Wrong approach:** Patching namespace finalizers to null — may leave orphaned objects in etcd
-
-**Correct approach:** Clear object finalizers first, then the namespace finalizer resolves naturally
+**Deleting `keep-me` or other namespaces while looking around.** It must stay as it is, and the same pod must keep running.

@@ -1,17 +1,15 @@
 {
-  "name": "Gate Blocks Deploy",
-  "description": "The deploy stage in a CI pipeline never runs. A test Task sits before the deploy stage and acts as a gate — but the test script has `exit 1` hardcoded, which means the gate always fails regardless of whether the actual tests pass. The deploy stage is permanently blocked.",
-  "objective": "The test Task has a wrong test command exit code — fix the command so successful tests return exit 0",
-  "xp": 275,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Tekton",
-    "Task",
-    "exit codes",
-    "pipeline gates",
-    "test stage"
-  ],
+  "name": "Green Means Go",
+  "description": "Last night `ship-ledger` deployed a build whose regression suite fails two tests, and the rounding bug is now live in the ledger. The pipeline run, `ship-ledger-0612`, is green. The `unit-tests` Task has been green on every run for weeks, including runs where people know the suite was red. The team still wants the test summary to be archived on every run, passing or failing.",
+  "objective": "A run of `ship-ledger` with param `suite=regression` ends Failed at `unit-tests` with `deploy` never started, and a run with `suite=smoke` Succeeds with `deploy` run. The test summary written by the `report` step must still appear in the failing run's logs.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["step onError", "$(steps.NAME.exitCode.path)", "Task failure propagation", "runAfter", "step status"],
   "module": "module-8-cicd",
-  "level": "level-6-test-gate"
+  "level": "level-6-test-gate",
+  "requires": ["tekton"],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

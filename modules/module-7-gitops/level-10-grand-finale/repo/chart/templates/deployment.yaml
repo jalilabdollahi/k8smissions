@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: web
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        args: ["-listen=:5678", "-text={{ .Values.message }}"]
+        ports:
+        - containerPort: 5678
+        readinessProbe:
+          httpGet: {path: /, port: 5678}
+          periodSeconds: 2
+        resources:
+{{ toYaml .Values.resources | indent 10 }}

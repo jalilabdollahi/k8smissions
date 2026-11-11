@@ -1,7 +1,5 @@
-The value inside the container does not look like a valid API token — it looks like another base64 string. This is the classic sign of double-encoding.
+Compare the value the pod holds with the value in the Secret, and look at how the Secret is mounted:
 
-Decode the Secret value manually to check:
-
-  kubectl get secret api-secret -n k8smissions -o jsonpath='{.data.token}' | base64 -d
-
-Does the output look like a real token, or like another encoded string?
+  kubectl get secret api-token -n k8smissions -o jsonpath='{.data.token}' | base64 -d; echo
+  kubectl exec -n k8smissions deploy/api-consumer -- cat /etc/api/token; echo
+  kubectl get deployment api-consumer -n k8smissions -o yaml

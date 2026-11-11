@@ -1,1 +1,1 @@
-Check the pod's events and the ResourceClaim status: `kubectl describe pod -n k8smissions | grep -A5 Events` and `kubectl get resourceclaim my-fpga-claim -n k8smissions -o yaml`
+`kubectl -n k8smissions describe pod -l app=lab-notebook` names what the scheduler is missing. After that, compare what the pod's claim asks for (`kubectl -n k8smissions get resourceclaimtemplate -o yaml`, `kubectl get deviceclass`) with what the cluster actually publishes (`kubectl get resourceslice -o yaml`).

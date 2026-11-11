@@ -1,1 +1,1 @@
-The events should say 'didn't match Pod's node affinity/selector'. Now check what labels your nodes actually carry: `kubectl get nodes --show-labels`. Compare those labels against what the affinity rule requires.
+`preferredDuringScheduling...` is a scoring hint the scheduler may ignore; only `requiredDuringSchedulingIgnoredDuringExecution` is a hard filter. Also remember `IgnoredDuringExecution`: pods that already run are never moved by a node rule, they move only when new pods replace them. `kubectl explain pod.spec.affinity.nodeAffinity`.

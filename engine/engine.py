@@ -206,18 +206,13 @@ def show_debrief(level_path: Path) -> None:
 
 
 def show_guide(level_path: Path) -> None:
+    """Free walkthrough of how to investigate. The answer itself costs XP (reveal)."""
     guide_path = level_path / "solution-guide.md"
     if guide_path.exists():
         render_markdown("Walkthrough", guide_path.read_text(encoding="utf-8"), "bright_yellow")
         return
-
-    solution_path = level_path / "solution.yaml"
-    if not solution_path.exists():
-        console.print("[yellow]No guide available for this level.[/yellow]")
-        return
-
-    syntax = Syntax(solution_path.read_text(encoding="utf-8"), "yaml", theme="ansi_dark", line_numbers=False)
-    console.print(syntax)
+    console.print("[yellow]No walkthrough for this level. Use [bold]hint[/bold] (free) or "
+                  "[bold]reveal[/bold] (the full answer, -50% XP).[/yellow]")
 
 
 def run_validator(level_path: Path) -> subprocess.CompletedProcess[str] | None:
@@ -225,7 +220,11 @@ def run_validator(level_path: Path) -> subprocess.CompletedProcess[str] | None:
     if not validator.exists():
         console.print(f"[red]validate.sh missing in {level_path}[/red]")
         return None
-    return subprocess.run(["bash", str(validator)], cwd=level_path, capture_output=True, text=True, check=False)
+    try:
+        return subprocess.run(["bash", str(validator)], cwd=level_path, capture_output=True, text=True,
+                              check=False, timeout=90, env={**os.environ, "NS": "k8smissions"})
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(validator, 1, "❌ The check took longer than 90s; try again.", "")
 
 
 def run_kubectl(raw_command: str) -> None:

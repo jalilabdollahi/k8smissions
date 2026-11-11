@@ -1,17 +1,15 @@
 {
-  "name": "Traffic to Cold Pods",
-  "description": "After deploying a new version of a Java application, users experience 502 errors for 30–60 seconds. The rolling update is replacing pods, and new pods are immediately marked Ready and receive traffic — but the JVM is still warming up and the application hasn't finished loading its caches yet. Requests hit a pod that isn't truly ready.",
-  "objective": "Add a readiness probe with initialDelaySeconds to prevent traffic routing to pods before they're ready",
+  "name": "Ready, But Not Warm",
+  "description": "After the catalog-web deploy, the Deployment shows 0 of 3 available and the rollout never completes, yet every container in every pod is Ready and the app answers when you curl a pod directly. The team added a readiness gate last month so that customers never reach a cold cache (cold pods answer 503), fed by the warmup-gate controller. Before the gate existed, users got 503s for several seconds after every deploy.",
+  "objective": "Deployment catalog-web has 3 Ready pods, and a full rollout restart completes while a probe sending 10 requests per second through Service catalog-web sees no failed request (cold pods never receive traffic).",
   "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "readiness probe",
-    "initialDelaySeconds",
-    "traffic routing",
-    "rolling deployment",
-    "graceful startup"
-  ],
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["readinessGates", "pod conditions", "ContainersReady vs Ready", "rollout", "controllers"],
   "module": "module-11-performance",
-  "level": "level-6-readiness-gate"
+  "level": "level-6-readiness-gate",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

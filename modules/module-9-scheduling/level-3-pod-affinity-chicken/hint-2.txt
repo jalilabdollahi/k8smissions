@@ -1,1 +1,1 @@
-The events say 'didn't match pod affinity rules'. Look at the `affinity.podAffinity` block — it uses `requiredDuringSchedulingIgnoredDuringExecution`, which is a hard constraint. If no pod with `tier: cache` exists, this pod can never schedule.
+A required pod-affinity rule needs a matching pod to already be running in the same topology domain. If the web pods need cache pods and the cache pods need web pods, nobody can be first. `kubectl explain pod.spec.affinity.podAffinity`.

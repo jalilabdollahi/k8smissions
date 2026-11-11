@@ -1,17 +1,15 @@
 {
-  "name": "Manual Block",
-  "description": "A release pipeline has been stuck for two days waiting for a manual approval that will never come — the approver left the company. The pipeline has a Task that loops forever polling for an approval file. It needs to be overridden so the pipeline can proceed.",
-  "objective": "A pipeline run is stuck pending approval — configure the approval step to auto-approve or override it",
-  "xp": 275,
-  "difficulty": "intermediate",
-  "expected_time": "8m",
-  "concepts": [
-    "pipeline approval",
-    "manual gate",
-    "Tekton",
-    "runAfter",
-    "override"
-  ],
+  "name": "Waiting For Someone Who Left",
+  "description": "Release run `release-2041` has been waiting for a sign-off for two days. Its `wait-approval` Task polls for an approval ConfigMap and only accepts people listed in `release-approvers`; the one listed approver, Maria, left the company in the spring, and the gate has no expiry, so the pod keeps polling and the release train queues up behind it. Nobody wants to rubber-stamp it in her name.",
+  "objective": "Run `release-2041` is cancelled (not deleted) and has no running pod. A new run of `release` with a short `approval-timeout` and no approval ends Failed at `wait-approval` on its own, a run approved by a listed approver Succeeds, and a run approved by someone who is not on the list still ends Failed.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["PipelineRun cancellation", "spec.status", "pipeline params", "gate expiry", "approval ConfigMap"],
   "module": "module-8-cicd",
-  "level": "level-13-approval-gate"
+  "level": "level-13-approval-gate",
+  "requires": ["tekton"],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

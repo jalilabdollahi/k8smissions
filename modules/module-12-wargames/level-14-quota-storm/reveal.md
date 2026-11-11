@@ -1,23 +1,7 @@
-## What went wrong
+Three faults:
 
-Completed Kubernetes pods (phase `Succeeded` or `Failed`) continue to count against `ResourceQuota.spec.hard.pods` until they are explicitly deleted. A CI retry bug created 20 pods — each completing in seconds but never being cleaned up. The accumulated completed pods exhausted the namespace pod quota, blocking all new pod creations.
+1. 17 finished `retry-old-*` Jobs plus 2 releases and the stuck run fill `count/jobs.batch` (20 of 20). Delete the finished retry Jobs by label and keep the `release=true` ones: `kubectl -n ci delete job -l kind=retry`.
+2. `ci-retrier` creates Jobs without `ttlSecondsAfterFinished` (`JOB_TTL_SECONDS` is empty), so the namespace refills in minutes. `kubectl -n ci set env deploy/ci-retrier JOB_TTL_SECONDS=60`.
+3. `flaky-suite` has been sleeping for hours and holds 600m of the 1 CPU `requests.cpu` quota (plus one Job slot). Once `release-v42` is created its pod (600m) is refused by the quota until the stuck run is gone: `kubectl -n ci delete job flaky-suite`.
 
-## Fix
-
-```bash
-kubectl delete pod -l job=ci-test -n k8smissions
-```
-
-Prevention (add to all CI Job specs):
-```yaml
-spec:
-  ttlSecondsAfterFinished: 300  # auto-delete 5 minutes after completion
-```
-
-## Why this matters
-
-ResourceQuota counts all pods regardless of phase — Running, Pending, Succeeded, Failed, and even Terminating. This surprises many teams who expect completed pods to be 'free'. Cleanup strategies:
-1. **TTL controller**: `spec.ttlSecondsAfterFinished` on Jobs auto-deletes the Job and its pods after completion
-2. **Admission webhook**: reject Jobs without `ttlSecondsAfterFinished` set
-3. **Periodic cleanup CronJob**: `kubectl delete pods --field-selector=status.phase==Succeeded -n k8smissions`
-4. **Limit pod count quota**: set a quota slightly below 'all theoretical pods at once' to catch accumulation before it blocks real workloads
+Do the TTL before the cleanup, otherwise the retrier takes the slots back.

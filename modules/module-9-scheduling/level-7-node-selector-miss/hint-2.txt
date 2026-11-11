@@ -1,1 +1,1 @@
-The events say 'didn't match node selector'. Check what labels your nodes actually have: `kubectl get nodes --show-labels`. Compare against what the pod's `nodeSelector` requires.
+Inside one `matchExpressions` list every expression must hold (AND); separate `nodeSelectorTerms` entries are alternatives (OR). One of the expressions rules out the SSD node because of a label that does not describe the node any more. `kubectl explain pod.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution`.

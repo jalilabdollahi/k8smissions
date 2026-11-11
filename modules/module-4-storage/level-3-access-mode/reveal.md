@@ -1,25 +1,13 @@
-## What went wrong
+# Reveal
 
-`ReadWriteOnce` (RWO) restricts the volume to a single node writer. With 3 replicas potentially spreading across nodes, pods on the second and third node are blocked from mounting the volume.
+The claim `site-content` is ReadWriteOnce and backed by a node-local volume, so every pod that mounts it must run on that one node. The Deployment also has a hard topology spread constraint (`maxSkew: 1`, `DoNotSchedule`) that forbids more than one replica on a node while other nodes are empty. The second and third replica satisfy neither rule.
 
-## Fix
+1. See it: `kubectl get pods -o wide` shows one Running pod; `kubectl describe pod` on a Pending one lists `didn't match pod topology spread constraints` and `volume node affinity conflict`.
+2. Make the spread rule soft, so replicas may share the volume's node:
 
-In manifest.yaml, change both resources:
-
-```yaml
-# PersistentVolume
-accessModes:
-  - ReadWriteMany
-
-# PersistentVolumeClaim
-accessModes:
-  - ReadWriteMany
-```
-
-## Access mode summary
-
-- `ReadWriteOnce` (RWO) — one node mounts read-write (most common; fine for single-pod workloads)
-- `ReadOnlyMany` (ROX) — many nodes mount read-only
-- `ReadWriteMany` (RWX) — many nodes mount read-write (requires NFS, CephFS, or similar shared storage)
-
-Note: hostPath volumes in kind support RWX only because it is a single-node cluster. In production, RWX requires network-attached storage.
+   ```bash
+   kubectl patch deployment web-servers -n k8smissions --type=json \
+     -p '[{"op":"replace","path":"/spec/template/spec/topologySpreadConstraints/0/whenUnsatisfiable","value":"ScheduleAnyway"}]'
+   ```
+   (Removing the constraint also works.)
+3. The three replicas now start on the node that owns the volume.

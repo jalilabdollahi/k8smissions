@@ -1,16 +1,15 @@
 {
-  "name": "No Workspace",
-  "description": "A Tekton PipelineRun fails immediately at startup — not during any Task execution. The Pipeline declares a workspace named `source` for sharing files between Tasks, but the PipelineRun provides no binding for it. Tekton validates workspace bindings at admission time and rejects the run before it starts.",
-  "objective": "The Pipeline workspace is declared but no PVC or emptyDir is provided in the PipelineRun — bind a workspace",
-  "xp": 275,
+  "name": "Nowhere to Put the Files",
+  "description": "The nightly ingest of partner exports, run `ingest-2210`, ended Failed within a second of being created and nothing was imported. The on-call who looked at it last night started a second run with a quick workaround; it got further, but the verification step reported there was nothing to verify.",
+  "objective": "A new PipelineRun of Pipeline `ingest` (not `ingest-2210`) finishes Succeeded, and its `verify` Task reports result `files` = 3, the three export files the `fetch` Task downloaded.",
+  "xp": 150,
   "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "Tekton",
-    "workspace",
-    "PipelineRun",
-    "volumes"
-  ],
+  "concepts": ["Tekton workspaces", "PipelineRun spec.workspaces", "volumeClaimTemplate", "emptyDir", "one pod per TaskRun"],
   "module": "module-8-cicd",
-  "level": "level-2-workspace-missing"
+  "level": "level-2-workspace-missing",
+  "requires": ["tekton"],
+  "settle_seconds": 10,
+  "solve_timeout": 120,
+  "cleanup": []
 }

@@ -1,5 +1,1 @@
-The nslookup fails. For StatefulSet pods to get individual DNS entries, the governing Service must be headless.
-
-Check the current Service type:
-
-  kubectl get service web-cluster -n k8smissions -o yaml | grep 'clusterIP'
+The pods are Running but NotReady, so start from what a pod needs in order to become Ready and where it gets that from. From the `probe` pod, run `nslookup quorum` and compare with `kubectl get pods -l app=quorum -o wide`. What does the answer contain?

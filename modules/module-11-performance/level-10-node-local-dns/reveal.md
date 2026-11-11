@@ -1,20 +1,12 @@
-## What went wrong
+**Fault 1: the gateways bypass the cache.** `session-gw` has `dnsConfig.nameservers: [10.96.150.110]`, which is the ClusterIP of `dns-upstream`. Point it at the ClusterIP of the `dns-cache` Service (`10.96.150.111`, `internalTrafficPolicy: Local`, so every pod reaches the cache on its own node):
 
-NodeLocal DNSCache is installed (the DaemonSet and ConfigMap exist) but the `enabled: 'false'` flag keeps it inactive. Without it, every DNS query travels over the pod network to a kube-dns pod — adding a network round-trip and making DNS a shared bottleneck across all pods.
+    kubectl patch deployment session-gw -n k8smissions --type=json \
+      -p '[{"op":"replace","path":"/spec/template/spec/dnsConfig/nameservers/0","value":"10.96.150.111"}]'
 
-## Fix
+**Fault 2: the cache forgets after one second.** The cache block is `success 9984 1`: the second number is a maximum TTL in seconds. Raise it (300 is plenty here, the upstream hands out 300s answers) in the ConfigMap `dns-cache-corefile`:
 
-```yaml
-data:
-  enabled: 'true'
-```
+    cache {
+        success 9984 300
+    }
 
-## Why this matters
-
-NodeLocal DNSCache (node-local-dns) runs CoreDNS as a DaemonSet on every node, listening on a link-local IP (169.254.20.10). Pods that use this IP for DNS bypass the pod network entirely — responses come from a local process on the same node. Benefits:
-1. **Latency**: sub-millisecond for cached responses vs. 1–10ms for network round-trips
-2. **Scale**: eliminates kube-dns as a centralized bottleneck; each node serves its own pods
-3. **Reliability**: DNS continues working if kube-dns pods are briefly unavailable (cache serves stale responses)
-4. **Connection tracking**: avoids conntrack race conditions that cause DNS packet drops under high query rates
-
-Node-local DNS caches become especially critical when combined with low ndots values (level 3).
+**Restart the cache.** CoreDNS reads its Corefile at start, so the edited ConfigMap changes nothing until `kubectl rollout restart daemonset/dns-cache`.

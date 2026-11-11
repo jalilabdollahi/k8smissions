@@ -1,25 +1,7 @@
-## What went wrong
+Revision 3 renamed the ConfigMap key from `payload` to `body`, but the container still reads `/cfg/payload`, so its pods crash-loop. Revision 4 tried to add a CPU request of 500 cores on top and timed out. Revision 2 is the last one that served traffic.
 
-A Helm upgrade was run with a bad `image.tag` value — `broken-tag` doesn't exist in Docker Hub. Every pod in the Deployment enters `ImagePullBackOff` simultaneously.
+1. `helm history webapp -n k8smissions` shows four revisions; 3 is `superseded`, 4 is `failed`.
+2. `helm get manifest webapp --revision 3` shows the key `body`; revision 2 shows `payload`.
+3. `helm rollback webapp 2 -n k8smissions --wait` creates revision 5 with revision 2's manifest and values.
 
-## Fix
-
-```yaml
-spec:
-  containers:
-  - name: webapp
-    image: nginx:1.27.4
-```
-
-In a real Helm environment, the recovery would be:
-```bash
-# See revision history
-helm history webapp -n k8smissions
-
-# Roll back to the last working revision
-helm rollback webapp 1 -n k8smissions
-```
-
-## Why this matters
-
-`helm rollback` is one of Helm's most valuable features. Each `helm upgrade` stores a versioned snapshot of the rendered manifests (as a Kubernetes Secret in the release namespace). A rollback atomically re-applies a previous snapshot. For zero-downtime safety, use `--atomic` on upgrades: if any pod fails to become ready within the timeout, Helm rolls back automatically without operator intervention.
+A bare `helm rollback webapp` goes to revision 3, which is also broken.

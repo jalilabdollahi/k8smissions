@@ -1,1 +1,2 @@
-Both pods may be on the same node — or at best on two out of many available nodes. With only 2 replicas, one node failure eliminates at least half the capacity. The deployment has no constraints forcing pods to spread across nodes.
+A pod anti-affinity term says "do not schedule onto a node (topologyKey) that already runs a pod matching this labelSelector". If the selector matches no pod, the term is valid, accepted without any warning, and does nothing. Compare every key and value in the selector with the labels the pods really carry.
+See: kubectl explain pod.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution

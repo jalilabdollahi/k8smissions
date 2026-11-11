@@ -1,17 +1,15 @@
 {
-  "name": "Bad Release — Roll Back Helm",
-  "description": "All pods crashed immediately after a Helm upgrade. The upgrade pushed a broken image tag (`nginx:broken-tag`) to production. In a real environment the recovery is `helm rollback` — here you need to fix the manifest directly to restore the last known good state.",
-  "objective": "A Helm upgrade deployed a broken image — roll back the release to the previous working revision",
-  "xp": 350,
+  "name": "Four Revisions Deep",
+  "description": "Checkout has been returning 503 since this morning. Helm release `webapp` is at revision 4 and `helm status` reports `failed` after an upgrade timed out. The on-call engineer ran `helm rollback webapp` an hour ago and that did not help either: the pods are still not serving. Nobody remembers which revision was the last one that worked. A pod `probe` with curl is in the namespace.",
+  "objective": "Helm release `webapp` is `deployed` at a new revision with its history intact (revisions 1 to 4 still listed), 2 pods Ready and not restarting, and Service `webapp` answers with the payload of the last working revision, `webapp v2: checkout ready`.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "helm history",
-    "helm rollback",
-    "helm get manifest",
-    "revision history",
-    "atomic deploys"
-  ],
+  "expected_time": "15m",
+  "concepts": ["helm history", "helm rollback", "helm get manifest --revision", "release revisions"],
   "module": "module-7-gitops",
-  "level": "level-2-helm-rollback"
+  "level": "level-2-helm-rollback",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 120,
+  "cleanup": []
 }

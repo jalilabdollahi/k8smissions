@@ -1,1 +1,1 @@
-Check the status of the migration Job: `kubectl get job db-migration -n k8smissions` and read its logs: `kubectl logs -n k8smissions -l job-name=db-migration`
+Start with the Application's operation: `kubectl -n argocd get app ledger-api -o jsonpath='{.status.operationState.message}'`, and `kubectl -n k8smissions get pods,jobs`. Which task is the sync waiting for, and has the migration Job even been created? Then read `deploy/migrate-job.yaml` in the repository.

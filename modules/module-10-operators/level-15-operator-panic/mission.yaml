@@ -1,17 +1,15 @@
 {
-  "name": "Controller Crash Loop",
-  "description": "The operator pod is in CrashLoopBackOff and crashes every 30 seconds. The logs show a nil pointer dereference panic at startup. The operator's controller tries to register a reconciler for the `workloads.example.com` CRD — but the CRD hasn't been installed yet, so the type registration fails and the process panics.",
-  "objective": "The operator is panicking on nil pointer dereference because the CRD is not yet installed — add a CRD presence check in startup",
-  "xp": 350,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "operator crash",
-    "CrashLoopBackOff",
-    "startup ordering",
-    "CRD dependency",
-    "controller startup"
-  ],
+  "name": "Operator in a crash loop",
+  "description": "The Helm-style install of `workload-operator` finished without complaint, yet its pod is in CrashLoopBackOff with a Python traceback. The platform team's rendered release files are still in ConfigMap `release-manifests`. Three `Workload` resources (`api`, `worker`, `legacy-sync`) should exist and be managed by the operator, and a new Workload without `spec.options` must not be able to take the operator down again.",
+  "objective": "The `Workload` CRD is `Established`, `workload-operator` stays Running without restarting, `api`, `worker` and `legacy-sync` each have a `status.phase`, and a new Workload that has no `spec.options` is reconciled without a restart of the operator.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["CrashLoopBackOff", "kubectl logs --previous", "CRD install order", "defensive controller code", "Helm crds/"],
   "module": "module-10-operators",
-  "level": "level-15-operator-panic"
+  "level": "level-15-operator-panic",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": ["crd/workloads.platform.acme.io"]
 }

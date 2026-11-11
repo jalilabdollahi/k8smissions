@@ -1,1 +1,1 @@
-The events should say 'exceeded quota: compute-quota, requested: requests.cpu=2500m'. Now check what the namespace quota allows in total: `kubectl describe resourcequota compute-quota -n k8smissions`
+A ResourceQuota that limits `limits.cpu` and `limits.memory` forces every container to declare those limits, otherwise the pod is rejected. Raising the quota is not allowed here; the pods must fit under it: three containers share 2 CPU and 2Gi in total. `kubectl explain pod.spec.containers.resources`.

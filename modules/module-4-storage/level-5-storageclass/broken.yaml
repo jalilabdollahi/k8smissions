@@ -1,31 +1,49 @@
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: app-storage
+  name: reports-data
   namespace: k8smissions
 spec:
-  accessModes:
-    - ReadWriteOnce
+  accessModes: ["ReadWriteOnce"]
+  storageClassName: gp3
   resources:
     requests:
-      storage: 10Gi
-  storageClassName: premium-ssd
+      storage: 2Gi
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: data-processor
+  name: reporter
   namespace: k8smissions
 spec:
-  containers:
-  - name: processor
-    image: busybox:1.36
-    command: ['sh', '-c', 'echo "Processing data..." && sleep 3600']
-    volumeMounts:
-    - name: data
-      mountPath: /data
-  volumes:
-  - name: data
-    persistentVolumeClaim:
-      claimName: app-storage
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reporter
+  template:
+    metadata:
+      labels:
+        app: reporter
+    spec:
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: reporter
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "$(date -u +%FT%TZ) reporter start" >> /reports/runs.log
+              trap 'exit 0' TERM
+              while :; do sleep 1; done
+          readinessProbe:
+            exec:
+              command: ["test", "-s", "/reports/runs.log"]
+            periodSeconds: 2
+          volumeMounts:
+            - name: reports
+              mountPath: /reports
+      volumes:
+        - name: reports
+          persistentVolumeClaim:
+            claimName: reports-data

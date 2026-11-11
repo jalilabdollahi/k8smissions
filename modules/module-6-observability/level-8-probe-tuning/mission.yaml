@@ -1,18 +1,15 @@
 {
-  "name": "App Takes 60s to Start",
-  "description": "A slow-starting application pod keeps restarting before it finishes initializing. The liveness probe is correctly written for the steady-state running condition, but nothing is protecting the startup window. The probe fires too soon and kills the container before the app is ready.",
-  "objective": "The liveness probe fires before the slow-starting app is ready — add a startupProbe to give the app time to initialise",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "startupProbe",
-    "initialDelaySeconds",
-    "failureThreshold",
-    "periodSeconds",
-    "probe math",
-    "slow-start applications"
-  ],
+  "name": "Flapping Under Load",
+  "description": "`search-api` answers happily at night. Since the `search-load` traffic generator started at 14:00, both search-api pods flap between `0/1` and `1/1` and get restarted every minute or so. The events say the health check failed with a client timeout, yet the application logs show no errors at all and it still answers searches when you ask it politely.",
+  "objective": "Deployment `search-api` has 2 Ready pods that do not restart for 50 seconds while `search-load` keeps hammering Service `search-api` at its current rate, both its liveness and readiness probes remain in place with a timeout of at most 30 seconds, and searches through the Service still return results.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["timeoutSeconds", "probe latency", "liveness vs readiness", "single-threaded servers"],
   "module": "module-6-observability",
-  "level": "level-8-probe-tuning"
+  "level": "level-8-probe-tuning",
+  "requires": [],
+  "settle_seconds": 35,
+  "solve_timeout": 150,
+  "cleanup": []
 }

@@ -1,17 +1,15 @@
 {
-  "name": "Root Rejected",
-  "description": "A pod is rejected at admission and never starts. The manifest has no explicit security settings — the container has no securityContext at all. Without one, the image runs as its default user, which is root, and this namespace's admission controller forbids root containers.",
-  "objective": "The pod security context requires running as non-root — set runAsNonRoot and a non-zero runAsUser UID",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "securityContext",
-    "runAsNonRoot",
-    "runAsUser",
-    "pod security",
-    "admission"
-  ],
+  "name": "Root Not Welcome",
+  "description": "The platform team turned on an admission policy that refuses pods which are not required to run as non-root. `invoice-render` (an unprivileged nginx with a small `log-tail` sidecar) has produced no pods since the policy went live, and the rollout that was supposed to ship this morning is stuck at 0/2.",
+  "objective": "`invoice-render` runs 2 Ready replicas with no restarts, and both of its containers really run with a non-zero UID. The admission policy and its binding stay in place: pods that do not require non-root must still be rejected in this namespace.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": ["ValidatingAdmissionPolicy", "runAsNonRoot", "runAsUser", "securityContext", "CreateContainerConfigError"],
   "module": "module-5-security",
-  "level": "level-12-non-root-enforcement"
+  "level": "level-12-non-root-enforcement",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

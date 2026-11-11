@@ -1,23 +1,12 @@
-## What went wrong
+# Reveal
 
-Someone ran `echo 'supersecret-api-token-12345' | base64 | base64` (encoding twice) and pasted the result into the Secret's `data` field. The Secret stores double-encoded base64. When injected into the container, Kubernetes decodes it once — leaving behind the inner base64 string, not the real token.
+`api-consumer` mounts the Secret key as a single file with `subPath: token`. The kubelet bind-mounts that one file into the container and never updates it, so the pod keeps the value from when it started. Restarting the pod would show the new value once and fail at the next rotation.
 
-## Fix
+1. Compare: the Secret decodes to `tok-2025-11-7be204...`, `kubectl exec ... cat /etc/api/token` shows the older `tok-2025-11-a91f3c`.
+2. Mount the whole volume as a directory (no `subPath`):
 
-In manifest.yaml, replace the token value with a single base64 encoding:
-
-```yaml
-data:
-  token: c3VwZXJzZWNyZXQtYXBpLXRva2VuLTEyMzQ1
-```
-
-Or use `stringData` to avoid manual encoding entirely:
-
-```yaml
-stringData:
-  token: supersecret-api-token-12345
-```
-
-## Why stringData is safer
-
-With `stringData`, you write the plain value and Kubernetes base64-encodes it for storage. No manual encoding, no double-encoding risk. The `data` field requires you to encode manually — one extra `| base64` in your pipeline corrupts the value.
+   ```bash
+   kubectl patch deployment api-consumer -n k8smissions --type=json \
+     -p '[{"op":"replace","path":"/spec/template/spec/containers/0/volumeMounts/1","value":{"name":"token","mountPath":"/etc/api","readOnly":true}}]'
+   ```
+3. `/etc/api/token` is now a link into a directory the kubelet swaps atomically on every rotation (it takes up to about a minute).

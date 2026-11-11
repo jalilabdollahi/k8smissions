@@ -1,1 +1,5 @@
-The `leaky-app` container has no `limits` defined. Add `limits.memory: 512Mi` to cap the container's memory usage. When it hits the limit, the OOM killer restarts only this container, not neighboring pods.
+Opposite fixes for the two services:
+  kubectl set env deployment/profile-api CACHE_MAX_MB=<a bound well below the 128Mi limit>
+  kubectl set resources deployment/render-svc --requests=memory=<observed working set> --limits=memory=<working set plus headroom>
+Then sample memory twice, a few seconds apart, from the cgroup:
+  kubectl exec deploy/profile-api -- cat /sys/fs/cgroup/memory.current

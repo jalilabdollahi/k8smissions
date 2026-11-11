@@ -1,25 +1,7 @@
-## What went wrong
+**Cause.** The anti-affinity term uses `labelSelector: {matchLabels: {app: checkout-api}}`, but the pods are labelled `app.kubernetes.io/name: checkout-api`. The selector matches nothing, so the rule never excludes any node and both replicas were free to land together (here: scheduled while the second worker was cordoned). Restarting the pods does not help while the selector is wrong: with nothing to avoid, the scheduler can put them together again.
 
-With 2 replicas and no spread constraints, the scheduler can place both pods on the same node (or place them badly balanced). A single node failure can eliminate all replicas. Even with both pods on different nodes, losing one node loses 50% capacity.
+**Fix.** Select the pods' real label:
 
-## Fix
+    kubectl patch deployment checkout-api -n k8smissions --type=json -p '[{"op":"replace","path":"/spec/template/spec/affinity/podAntiAffinity/requiredDuringSchedulingIgnoredDuringExecution/0/labelSelector","value":{"matchLabels":{"app.kubernetes.io/name":"checkout-api"}}}]'
 
-```yaml
-spec:
-  replicas: 5
-  template:
-    spec:
-      topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: DoNotSchedule
-        labelSelector:
-          matchLabels:
-            app: resilient
-```
-
-## Why this matters
-
-`topologySpreadConstraints` tells the scheduler to distribute pods across topology domains (nodes, zones, regions) such that the count difference between any two domains (`maxSkew`) is at most the configured value. With 5 pods across 5 nodes, `maxSkew: 1` means no node has more than 1 more pod than any other — a single node failure leaves 4/5 capacity intact.
-
-`whenUnsatisfiable: DoNotSchedule` refuses to place pods that would violate the constraint. Use `ScheduleAnyway` to prefer spreading without hard enforcement. For zone-level HA (surviving AZ failures), use `topologyKey: topology.kubernetes.io/zone` instead.
+Changing the template rolls the Deployment, and the new pods are placed one per node. Check with `kubectl get pods -o wide`.

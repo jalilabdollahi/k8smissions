@@ -1,17 +1,15 @@
 {
-  "name": "Database Stampede",
-  "description": "A web application with 10 replicas is causing 'too many connections' errors on the database. Each pod has `DB_POOL_SIZE: 1`, so each pod maintains exactly one database connection — but with only 1 connection per pod and no overflow capacity, concurrent requests queue up and time out during traffic spikes.",
-  "objective": "The app creates a new DB connection per request — implement connection pooling via environment variable config",
-  "xp": 325,
+  "name": "Thirty Connections for a Database That Takes Twenty",
+  "description": "cart-api pods log \"too many connections\" while talking to session-db, and only some of the 6 replicas ever become Ready, so the cart page is slow and erratic. Last week the pool size was set to 5 per pod. People who tried a smaller number say it looked fine until the next deploy, when the errors came right back.",
+  "objective": "All 6 cart-api replicas are Ready and serving, and a full rolling restart of cart-api completes without session-db rejecting a single connection (session-db keeps its limit of 20).",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "12m",
-  "concepts": [
-    "connection pooling",
-    "database connections",
-    "maxConnections",
-    "pgBouncer",
-    "connection storm"
-  ],
+  "expected_time": "15m",
+  "concepts": ["connection pools", "rolling update surge", "maxSurge", "env vars", "capacity math"],
   "module": "module-11-performance",
-  "level": "level-5-connection-pool"
+  "level": "level-5-connection-pool",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 180,
+  "cleanup": []
 }

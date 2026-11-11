@@ -1,7 +1,1 @@
-The pod responds fine when accessed directly. So the problem is in how the Service forwards traffic to the pod. Check what port the Service is routing to:
-
-  kubectl get service web-svc -n k8smissions -o yaml | grep -A5 'ports'
-
-Then check what port the container actually listens on:
-
-  kubectl get pod web -n k8smissions -o yaml | grep 'containerPort'
+`targetPort` can be a number or the name of a container port, and a name is looked up in each pod's own `containerPort` list. Compare the name in the Service (`kubectl get svc checkout -o yaml`) with the port names in the pods (`kubectl get pod <pod> -o jsonpath='{.spec.containers[0].ports}'`). See `kubectl explain svc.spec.ports.targetPort`.

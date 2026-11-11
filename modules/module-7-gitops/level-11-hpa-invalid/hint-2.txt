@@ -1,1 +1,1 @@
-The status should show an error condition referencing the invalid replica range. Look specifically at the `minReplicas` and `maxReplicas` fields — a valid HPA requires `minReplicas <= maxReplicas`.
+The API server rejected one manifest, and Argo applies a sync as a whole: one invalid object and none of the others in the commit roll out. `kubectl explain hpa.spec` documents the rule for the replica range. After that is fixed, read the HPA's conditions with `kubectl -n k8smissions describe hpa reports` (`AbleToScale`, `ScalingActive`) and check what `scaleTargetRef` points at.

@@ -1,23 +1,6 @@
-## What went wrong
+Two defects, one in the Pipeline and one on the Deployment:
 
-The Rollout pushed `nginx:bad-tag` as the new canary image. The canary pods entered `ErrImagePull`. Argo Rollouts detected that the canary pods were unhealthy, aborted the rollout, and shifted traffic back to the stable revision. The Rollout enters `Degraded` state — it knows something is wrong and stops retrying automatically.
+1. `rollback` has `when: input: $(tasks.status) operator: in values: ["Error"]`. The aggregate status is never `Error`: after a failed Task it is `Failed`. The Task was skipped every time. Change the value to `Failed`.
+2. `ledger-api` has `revisionHistoryLimit: 0`, so Kubernetes deletes every old ReplicaSet and `kubectl rollout undo` answers "no rollout history found". Set it to 1 or more (`kubectl patch deployment ledger-api --type=merge -p '{"spec":{"revisionHistoryLimit":5}}'`).
 
-## Fix
-
-```yaml
-spec:
-  template:
-    spec:
-      containers:
-      - name: web
-        image: nginx:1.25
-```
-
-After fixing the image, retry the rollout:
-```bash
-kubectl argo rollouts retry rollout web-rollout -n k8smissions
-```
-
-## Why this matters
-
-Argo Rollouts' automatic abort is a safety feature: when a canary fails, traffic is automatically shifted back to the stable version and the Rollout enters `Degraded` to signal that human attention is needed. The `Degraded` state is sticky — it does not auto-recover — so the on-call engineer must diagnose the root cause, fix the manifest, and explicitly retry. This prevents a broken release from being silently retried in a loop.
+A new release with a bad tag now ends Failed at `deploy`, `rollback` runs and the previous image returns.

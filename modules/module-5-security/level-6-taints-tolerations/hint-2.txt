@@ -1,1 +1,1 @@
-Look for 'node(s) had untolerated taint' in the events output. Then inspect the node's taints directly: `kubectl describe node kind-control-plane | grep -A5 Taints`
+A taint repels every pod that does not carry a matching toleration, and the scheduler's message names only the first taint it hits. Check the node for ALL of its taints and match each one (key, value and effect). `kubectl explain pod.spec.tolerations`. Removing the taints would open the pool to everyone.

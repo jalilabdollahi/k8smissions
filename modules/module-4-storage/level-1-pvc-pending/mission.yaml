@@ -1,16 +1,15 @@
 {
-  "name": "PVC Won't Bind",
-  "description": "Pod database-pod is stuck in ContainerCreating. Run kubectl get pvc -n k8smissions and check the STATUS column of the PVC it depends on.",
-  "objective": "The PVC requests more storage than any available PV provides — adjust the PVC size to match what the PV offers",
-  "xp": 250,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "PV/PVC binding",
-    "capacity matching",
-    "StorageClass",
-    "kubectl get pv pvc"
-  ],
+  "name": "The Database That Never Started",
+  "description": "Deployment orders-db has had 0 of 1 pods available since this morning's release. The pod just sits in Pending. The team looked at the namespace, saw a PersistentVolumeClaim called orders-data stuck in Pending, and has been arguing that the storage provisioner is broken. The orders service cannot take new orders until the database is back.",
+  "objective": "Deployment orders-db runs 1/1 with a Bound PersistentVolumeClaim mounted at /var/lib/orders-db, and data written there survives deleting the pod.",
+  "xp": 100,
+  "difficulty": "beginner",
+  "expected_time": "8m",
+  "concepts": ["PersistentVolumeClaim", "WaitForFirstConsumer", "kubectl describe pod", "events"],
   "module": "module-4-storage",
-  "level": "level-1-pvc-pending"
+  "level": "level-1-pvc-pending",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 90,
+  "cleanup": []
 }

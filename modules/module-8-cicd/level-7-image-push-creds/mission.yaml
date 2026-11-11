@@ -1,17 +1,15 @@
 {
-  "name": "Push Denied",
-  "description": "The CI pipeline's image push step fails with '401 Unauthorized' from the container registry. The pipeline ServiceAccount exists and Tasks are running, but no registry credentials are attached — so when the Task tries to push an image, the registry rejects the request.",
-  "objective": "The Task is missing registry credentials — create a registry secret and bind it to the pipeline ServiceAccount",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "Tekton",
-    "registry credentials",
-    "docker-registry secret",
-    "image push",
-    "ServiceAccount"
-  ],
+  "name": "Pushed Out",
+  "description": "Pipeline `build-and-push` ends in Task `push` with `UNAUTHORIZED: authentication required` from the in-cluster registry, run after run (the last is `push-0301`). The registry credentials Secret `registry-creds` exists, has the right type and is attached to the build ServiceAccount, and the registry team confirms the `ci-push` account itself works. No new `ledger/api` image has been published for two days.",
+  "objective": "A fresh run of Pipeline `build-and-push` as ServiceAccount `builder` Succeeds, repository `ledger/api` in the registry lists the pushed tag, and the run's `digest` result equals the digest the registry reports for it. The registry must keep refusing anonymous pushes.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["dockerconfigjson Secret", "registry auth", "base64 pitfalls", "ServiceAccount secrets", "crane"],
   "module": "module-8-cicd",
-  "level": "level-7-image-push-creds"
+  "level": "level-7-image-push-creds",
+  "requires": ["tekton"],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

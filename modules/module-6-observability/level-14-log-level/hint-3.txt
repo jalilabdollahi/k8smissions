@@ -1,1 +1,1 @@
-The `env` block sets the `LOG_LEVEL` environment variable to `DEBUG`. Changing this value to `INFO` will reduce log volume to only meaningful operational events while keeping errors and warnings visible.
+Change the variable on the noisy Deployment with `kubectl -n k8smissions set env deploy/<name> LOG_LEVEL=<value>` to a value the app lists as valid and that still lets WARN and ERROR through. Do not go above ERROR.

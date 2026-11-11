@@ -1,29 +1,5 @@
-## What went wrong
+1. **Stale release Secrets.** 24 releases of about 330 KiB each; `status=superseded` revisions 1..23. Delete the old ones but keep `v24` (`status=deployed`) and `v23` (the previous release). A selector like `-l status=superseded` also removes `v23`: delete by name.
+2. **Unlimited history in the deployer.** `MAX_REVISIONS=0` means "keep everything", so the pile grows again at every deploy. `kubectl set env cronjob/release-deployer MAX_REVISIONS=5` (any small number of at least 2).
+3. **The syncer lists every Secret every 250 ms.** `kubectl set env deploy/config-syncer SYNC_INTERVAL_MS=10000` restarts it with a polite interval; with the small history its list calls now take a few milliseconds.
 
-CI/CD pipelines create per-run ConfigMaps to pass build metadata but never clean them up. 20 ConfigMaps simulate what becomes thousands in a busy cluster — each object is a key in etcd, and list operations (LIST configmaps) scan all keys matching the prefix. Thousands of CI artifacts bloat etcd and slow down every `kubectl get` and controller list call.
-
-## Fix
-
-```bash
-kubectl delete configmap -n k8smissions \
-  $(kubectl get cm -n k8smissions --no-headers | awk '/^ci-run-/{print $1}')
-```
-
-Prevention for CI Jobs:
-```yaml
-spec:
-  ttlSecondsAfterFinished: 300
-```
-
-## Why this matters
-
-etcd stores all Kubernetes objects as key-value pairs. Object count matters:
-- **List latency**: listing all ConfigMaps scans all keys with the prefix — more objects = longer scans
-- **Watch cost**: each object change broadcasts to all watchers — more objects = more events
-- **Storage quota**: hitting etcd's quota (default 2GB, recommended 8GB) makes the cluster read-only
-
-Cleanup strategies:
-1. **TTL controllers**: `Job.spec.ttlSecondsAfterFinished` auto-deletes jobs and their pods
-2. **Label-based cleanup**: label CI objects at creation (`pipeline=ci`) then delete by label
-3. **CronJob cleanup**: run a periodic job that deletes old artifacts
-4. **Admission webhooks**: reject CI object creation without a TTL label set
+Pruning without fixing the syncer leaves the hammering; fixing the syncer without pruning leaves the payload and the next deploy adding to it.

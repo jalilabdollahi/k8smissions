@@ -1,16 +1,14 @@
-# Deployment Stuck
+**What was broken.** Both workloads had a PodDisruptionBudget whose minimum equals the number of replicas: `minAvailable: 3` for 3 API pods, `minAvailable: 1` for the single cache pod. A budget like that says "never evict anything", and a node drain is a series of evictions.
 
-## What Was Broken
-PDB required all 3 replicas available (minAvailable: 3). A 3-replica Deployment = 0 allowed disruptions. Rolling update evicts one pod at a time — each eviction was blocked by the PDB.
+**The evidence.** `kubectl get pdb` showed `ALLOWED DISRUPTIONS 0` for both budgets, and the drain printed `Cannot evict pod as it would violate the pod's disruption budget` on repeat. Allowed disruptions is simply (currently healthy pods) minus (pods the budget wants to keep), so any budget whose minimum equals the replica count is a drain-blocker.
 
-## The Fix
-Lower minAvailable to 2 (or use maxUnavailable: 1) to allow rolling updates while still ensuring high availability.
+**Why Kubernetes behaved this way.** `kubectl drain` does not delete pods, it asks the API server to evict them. The eviction API checks the budget and answers 429 if the eviction would break it, and drain keeps retrying. Budgets only apply to voluntary disruptions like drains and upgrades, which is exactly why this surfaces during maintenance rather than during normal operation.
 
-## Why It Matters
-PDB sizing rule: minAvailable should be replicas - maxUnavailable (from rolling update strategy). If rollingUpdate maxUnavailable: 1, then PDB minAvailable: replicas-1. They should be consistent to allow updates to proceed.
+**The fix.** The two workloads need different answers. The API has three pods: `maxUnavailable: 1` (or `minAvailable: 2`) still protects it, because two pods keep serving while one moves. The cache has one pod, so a budget alone cannot keep it up while the node is drained: either run two replicas with `minAvailable: 1`, or accept that the single pod is briefly unavailable with a budget that allows one disruption.
 
-## Pro Tip
-Use percentage-based PDB for large Deployments: minAvailable: 75% means at least 75% of pods must be available. Scales automatically as replica count changes.
+**In production.** Prefer `maxUnavailable` over `minAvailable` because it keeps working when the replica count changes (HPA). Never set a budget equal to the replica count; alert on `ALLOWED DISRUPTIONS = 0`. Anything with a single replica and a strict budget will block your next cluster upgrade.
 
-## Concepts
-PodDisruptionBudget, minAvailable, maxUnavailable, rolling update, disruption budget
+**Worth remembering.**
+- `kubectl get pdb`
+- `kubectl describe pdb <name>`
+- `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data`

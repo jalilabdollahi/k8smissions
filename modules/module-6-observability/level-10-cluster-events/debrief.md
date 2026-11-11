@@ -1,16 +1,25 @@
-# The Timeline of Failure
+## What was broken
 
-## Situation
-A 15-minute production incident happened. Multiple events logged across namespaces. Player must reconstruct the incident timeline from events and logs + write a brief post-mortem.
+The visible failure was `inventory-sync` crash-looping with `cache: connection failed`. The cause was in another namespace: `inventory-cache` mounts Secret `cache-auth`, which was missing from `cache-tier`, so its pod sat in ContainerCreating and the Service had no endpoints. The cache also needs the same password the app sends, and the only copy was in the app's own Secret under a different name and key.
 
-## Successful Fix
-kubectl get events -A --sort-by='.lastTimestamp' | tee timeline.txt Identify root cause event and chain
+## The evidence
 
-## What To Validate
-Use the validator to confirm the repaired state.
+`kubectl get events -n k8smissions` only showed the app's restarts. `kubectl get events -A --sort-by=.lastTimestamp` (or `--field-selector type=Warning`) put the `FailedMount` event of the cache pod at the start of the timeline. Reading it, you learn the object, the namespace and the Secret name. The sync log said "connection failed" without a reason, which is typical for a client that only reports its own symptom.
 
-## Why It Matters
-Review how the fix changed the cluster behavior for The Timeline of Failure.
+## Why Kubernetes behaves this way
 
-## Concepts
-Event timeline, incident post-mortem, MTTD (Mean Time to Detect), observability → actionability, SRE principles
+Events are namespaced objects with a short life, attached to the object they describe. A volume that cannot be set up blocks the pod before any container starts, so there is nothing to log. Secrets are namespaced and a pod can only reference Secrets from its own namespace; Kubernetes never copies them for you. The kubelet retries failed mounts with a back-off that grows to about two minutes, so even after fixing the cause the pod may wait.
+
+## The fix
+
+Create `cache-auth` in `cache-tier` holding the same password the app uses, with the key the volume expects (`password`). Then restart the cache pod, and the sync pod to skip its own back-off.
+
+## In production
+
+Copying a secret by hand drifts. Use an external secrets operator or one source of truth, and alert on `FailedMount` events cluster-wide.
+
+## Commands worth remembering
+
+- `kubectl get events -A --sort-by=.lastTimestamp`
+- `kubectl get events -A --field-selector type=Warning,involvedObject.kind=Pod`
+- `kubectl get secret <name> -o jsonpath='{.data.<key>}' | base64 -d`

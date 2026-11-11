@@ -1,1 +1,6 @@
-The webhook has no `namespaceSelector`. Add one that excludes `kube-system`, `kube-public`, and `kube-node-lease` so system pods are never sent through the webhook.
+Add an exclusion for the server's namespace to the selector, then nudge the stuck Deployment:
+
+kubectl patch mutatingwebhookconfiguration pod-labeler --type=json -p '[{"op":"add","path":"/webhooks/0/namespaceSelector/matchExpressions","value":[{"key":"kubernetes.io/metadata.name","operator":"NotIn","values":["<NAMESPACE>"]}]}]'
+kubectl -n labeler-system rollout restart deploy/pod-labeler
+
+The ReplicaSet backs off between failed attempts, so the restart saves you the wait.

@@ -1,5 +1,6 @@
-The logs print 'ERROR: Permission denied writing to /data'. The container is running as a non-root user and the mounted volume directory is owned by root.
+Read the crash, then check who owns the file and who the process is:
 
-Check what user the container runs as:
+  kubectl logs deploy/writer-app -n k8smissions --previous
+  kubectl get pod -l app=writer-app -n k8smissions -o yaml | grep -A4 securityContext
 
-  kubectl get pod writer-app -n k8smissions -o yaml | grep -A5 'securityContext'
+The pod is crash-looping, so exec may not work; reason from the manifest: which user runs the app, and what are the file's owner, group and mode?

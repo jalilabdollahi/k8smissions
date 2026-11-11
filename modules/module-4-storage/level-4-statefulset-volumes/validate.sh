@@ -1,77 +1,49 @@
 #!/bin/bash
+# Level 4: three members, three claims, each member's data is its own and persists.
+. ../_fixtures/lib.sh
+STS=postgres-cluster
 
-NAMESPACE="k8smissions"
-STATEFULSET="postgres-cluster"
-
-echo "🔍 Stage 1: Checking if StatefulSet exists..."
-if ! kubectl get statefulset "$STATEFULSET" -n "$NAMESPACE" &>/dev/null; then
-    echo "❌ StatefulSet '$STATEFULSET' not found"
-    exit 1
+if ! kubectl get statefulset $STS -n "$NS" >/dev/null 2>&1; then
+  bad "StatefulSet $STS does not exist"
+  exit 1
 fi
-echo "✅ StatefulSet exists"
-
-echo ""
-echo "🔍 Stage 2: Checking if volumeClaimTemplates is configured..."
-VOLUME_CLAIM_TEMPLATES=$(kubectl get statefulset "$STATEFULSET" -n "$NAMESPACE" -o jsonpath='{.spec.volumeClaimTemplates}')
-if [ "$VOLUME_CLAIM_TEMPLATES" == "null" ] || [ -z "$VOLUME_CLAIM_TEMPLATES" ]; then
-    echo "❌ volumeClaimTemplates is not configured in StatefulSet"
-    echo "💡 Hint: StatefulSets should use volumeClaimTemplates for per-pod storage"
-    exit 1
+SPEC=$(kubectl get statefulset $STS -n "$NS" -o jsonpath='{.spec.replicas}')
+READY=$(kubectl get statefulset $STS -n "$NS" -o jsonpath='{.status.readyReplicas}')
+if [ "${SPEC:-0}" -lt 3 ] || [ "${READY:-0}" -lt 3 ]; then
+  bad "$STS has ${READY:-0} of ${SPEC:-0} members Ready (3 required)"
+  exit 1
 fi
-echo "✅ volumeClaimTemplates is configured"
+ok "$READY of $SPEC members are Ready"
 
-echo ""
-echo "🔍 Stage 3: Checking if 3 pods are ready..."
-READY_PODS=$(kubectl get statefulset "$STATEFULSET" -n "$NAMESPACE" -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
-if [ "$READY_PODS" != "3" ]; then
-    echo "❌ Only $READY_PODS out of 3 pods are ready"
-    echo "💡 Check: kubectl get pods -n $NAMESPACE -l app=postgres"
-    exit 1
-fi
-echo "✅ All 3 pods are ready"
-
-echo ""
-echo "🔍 Stage 4: Checking if each pod has its own PVC..."
-PVC_COUNT=$(kubectl get pvc -n "$NAMESPACE" -l app=postgres 2>/dev/null | grep -c "database-storage")
-if [ "$PVC_COUNT" -lt "3" ]; then
-    echo "❌ Found only $PVC_COUNT PVCs (expected 3, one per pod)"
-    echo "💡 Each StatefulSet pod should have its own PVC"
-    exit 1
-fi
-echo "✅ Found $PVC_COUNT PVCs (one per pod)"
-
-echo ""
-echo "🔍 Stage 5: Verifying PVC naming pattern..."
-# StatefulSet PVCs should follow pattern: <template-name>-<statefulset-name>-<ordinal>
-if ! kubectl get pvc -n "$NAMESPACE" | grep -q "database-storage-postgres-cluster-0"; then
-    echo "❌ PVCs don't follow StatefulSet naming pattern"
-    echo "💡 Expected: database-storage-postgres-cluster-0, database-storage-postgres-cluster-1, etc."
-    exit 1
-fi
-echo "✅ PVCs follow correct naming pattern"
-
-echo ""
-echo "🔍 Stage 6: Checking if all PVCs are Bound..."
-UNBOUND_PVCS=$(kubectl get pvc -n "$NAMESPACE" -l app=postgres -o jsonpath='{.items[?(@.status.phase!="Bound")].metadata.name}')
-if [ -n "$UNBOUND_PVCS" ]; then
-    echo "❌ Some PVCs are not Bound: $UNBOUND_PVCS"
-    exit 1
-fi
-echo "✅ All PVCs are Bound"
-
-echo ""
-echo "🔍 Stage 7: Verifying pod-to-PVC mapping..."
 for i in 0 1 2; do
-    POD_NAME="postgres-cluster-$i"
-    EXPECTED_PVC="database-storage-postgres-cluster-$i"
-    ACTUAL_PVC=$(kubectl get pod "$POD_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.volumes[?(@.name=="database-storage")].persistentVolumeClaim.claimName}' 2>/dev/null)
-    
-    if [ "$ACTUAL_PVC" != "$EXPECTED_PVC" ]; then
-        echo "❌ Pod $POD_NAME is using PVC '$ACTUAL_PVC' instead of '$EXPECTED_PVC'"
-        exit 1
-    fi
+  phase=$(kubectl get pvc pgdata-$STS-$i -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null)
+  if [ "$phase" != "Bound" ]; then
+    bad "PVC pgdata-$STS-$i is ${phase:-missing}"
+    exit 1
+  fi
 done
-echo "✅ Each pod is correctly mapped to its own PVC"
+ok "pgdata-$STS-0, -1 and -2 are all Bound"
 
-echo ""
-echo "🎉 SUCCESS! StatefulSet configured with per-pod persistent storage!"
+for i in 0 1 2; do
+  id=$(kubectl exec -n "$NS" $STS-$i -- cat /var/lib/pgdata/node-id 2>/dev/null)
+  if [ "$id" != "$STS-$i" ]; then
+    bad "member $STS-$i sees data directory owner '${id:-none}'"
+    exit 1
+  fi
+  kubectl exec -n "$NS" $STS-$i -- sh -c "echo mark-$i-$$ > /var/lib/pgdata/marker" >/dev/null 2>&1
+done
+ok "each member's data directory is its own"
+
+kubectl delete pod $STS-0 $STS-1 $STS-2 -n "$NS" --wait=false >/dev/null 2>&1
+sleep 3
+kubectl wait pod/$STS-2 -n "$NS" --for=condition=Ready --timeout=90s >/dev/null 2>&1
+for i in 0 1 2; do
+  got=$(kubectl exec -n "$NS" $STS-$i -- cat /var/lib/pgdata/marker 2>/dev/null)
+  if [ "$got" != "mark-$i-$$" ]; then
+    bad "member $STS-$i lost its data after its pod was deleted"
+    exit 1
+  fi
+done
+ok "every member found its data again after its pod was replaced"
+exit 0
+exit 1

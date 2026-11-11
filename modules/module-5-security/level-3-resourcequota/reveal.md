@@ -1,21 +1,8 @@
-## What went wrong
+**Fix**
 
-The ResourceQuota caps the namespace at 2 CPUs total (`requests.cpu: "2"`). The pod asks for 2500m (2.5 CPUs) — 25% more than the whole namespace is allowed. Kubernetes never even tries to find a node; the quota check fails at the API server before scheduling begins.
+1. `kubectl -n k8smissions describe rs -l app=invoice-api`: `failed quota: team-quota: must specify limits.cpu,limits.memory`.
+2. The quota caps `limits.*` for the namespace, so each pod must declare limits, and 3 pods together must stay at or under 2 CPU / 2Gi.
+3. `kubectl -n k8smissions set resources deployment invoice-api --limits=cpu=500m,memory=512Mi` (any values up to about 600m / 640Mi per pod fit).
+4. The Deployment rolls out and the ReplicaSet creates the 3 pods.
 
-## Fix
-
-Reduce the pod's resource requests to fit within the quota:
-
-```yaml
-resources:
-  requests:
-    cpu: "500m"
-    memory: "512Mi"
-  limits:
-    cpu: "1"
-    memory: "1Gi"
-```
-
-## Why this matters
-
-ResourceQuotas are a namespace-level governance tool: they prevent any single team or workload from starving others. When a pod's requests exceed the quota, it is rejected at admission — `kubectl apply` succeeds but the pod never schedules. Always check `kubectl describe resourcequota` before setting large resource requests, and size requests to what the application actually needs, not its theoretical maximum.
+Alternative on the platform side: a `LimitRange` with `default` limits in the namespace gives containers limits automatically.

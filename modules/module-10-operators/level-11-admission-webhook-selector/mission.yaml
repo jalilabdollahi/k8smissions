@@ -1,17 +1,15 @@
 {
-  "name": "System Pod Blocked",
-  "description": "After installing a MutatingWebhookConfiguration, kube-dns pods fail to start and cluster DNS breaks. The webhook applies to all namespaces including `kube-system` — when the webhook service is restarted or slow, DNS pods can't be created, which breaks DNS, which breaks the webhook service itself. It's a deadlock.",
-  "objective": "The MutatingWebhookConfiguration applies to all namespaces including kube-system — add a namespaceSelector to exclude system namespaces",
-  "xp": 350,
-  "difficulty": "advanced",
+  "name": "The labeler that cannot be born",
+  "description": "After last night's rollout the `pod-labeler` Deployment in `labeler-system` has 0 of 1 pods, and nothing in `kubectl get pods` explains it. The ReplicaSet events complain about the admission webhook. Meanwhile the `storefront` Deployment in `shop` is stuck halfway through its own rollout: its new pods never appear either. Both namespaces carry the lab label that scopes the webhook.",
+  "objective": "The `pod-labeler` server pod is Running again in `labeler-system`. A pod created in `shop` is mutated and carries `labeler/injected=true`. A pod created in `labeler-system` is admitted untouched, without that label. The webhook configuration `pod-labeler` still exists with `failurePolicy: Fail`.",
+  "xp": 300,
+  "difficulty": "expert",
   "expected_time": "15m",
-  "concepts": [
-    "MutatingWebhook",
-    "namespaceSelector",
-    "kube-system",
-    "DNS",
-    "webhook scope"
-  ],
+  "concepts": ["mutating webhook", "namespaceSelector", "matchExpressions", "failurePolicy", "bootstrap deadlock"],
   "module": "module-10-operators",
-  "level": "level-11-admission-webhook-selector"
+  "level": "level-11-admission-webhook-selector",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

@@ -1,1 +1,5 @@
-Measure latency before and after the NetworkPolicy: `kubectl exec -n k8smissions <frontend-pod> -- time curl http://my-app:8080/ping`. Check what network plugin is running: `kubectl get pods -n kube-system | grep cilium`
+Compare a small name with the big one from inside a price-feed pod, and read the application's own log and the resolver's log:
+  kubectl logs deploy/price-feed --tail=9
+  kubectl logs deploy/catalog-dns --tail=10
+  kubectl exec deploy/price-feed -- python -c "import socket;print(len(socket.getaddrinfo('sku-history.catalog.internal.',None)))"
+What is different about this one answer?

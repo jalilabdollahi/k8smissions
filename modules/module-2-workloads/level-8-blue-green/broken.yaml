@@ -1,61 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-green
+  name: shop-blue
   namespace: k8smissions
 spec:
   replicas: 3
   selector:
-    matchLabels:
-      app: myapp
-      version: green
+    matchLabels: {app: shop, release: blue}
   template:
     metadata:
-      labels:
-        app: myapp
-        version: green
+      labels: {app: shop, release: blue, version: blue}
     spec:
       containers:
-      - name: app
-        image: hashicorp/http-echo:latest
-        args: ["-text=Version GREEN (NEW)", "-listen=:8080"]
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=shop v1 (blue)"]
         ports:
-        - containerPort: 8080
+        - containerPort: 5678
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-blue
+  name: shop-green
   namespace: k8smissions
 spec:
   replicas: 3
   selector:
-    matchLabels:
-      app: myapp
-      version: blue
+    matchLabels: {app: shop, release: green}
   template:
     metadata:
-      labels:
-        app: myapp
-        version: blue
+      labels: {app: shop, release: green}
     spec:
       containers:
-      - name: app
-        image: hashicorp/http-echo:latest
-        args: ["-text=Version BLUE (OLD)", "-listen=:8080"]
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=shop v2 (green)"]
         ports:
-        - containerPort: 8080
+        - containerPort: 5678
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-service
+  name: shop
   namespace: k8smissions
 spec:
   selector:
-    app: myapp
-    version: blue  # PROBLEM! Still pointing to OLD version!
+    app: shop
+    version: blue
   ports:
   - port: 80
-    targetPort: 8080
-  type: ClusterIP
+    targetPort: 5678

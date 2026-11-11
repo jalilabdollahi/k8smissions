@@ -1,1 +1,2 @@
-The PDB shows `minAvailable: 3` and the deployment has `replicas: 3`. With 3 pods required minimum and 3 total, evicting any single pod would drop below 3 — so the PDB blocks all evictions. `kubectl describe pdb my-pdb -n k8smissions` should show `ALLOWED DISRUPTIONS: 0`.
+The number of voluntary disruptions a budget allows is (healthy pods) minus (what it wants to keep). `minAvailable: 3` on 3 replicas allows zero evictions, so no node can ever be drained; the same is true for 1 and 1. A budget that allows exactly one disruption protects the service and lets drains through. The two workloads need different treatment because one has three pods and the other has one.
+See: kubectl explain pdb.spec

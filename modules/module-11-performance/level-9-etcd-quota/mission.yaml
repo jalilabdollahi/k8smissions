@@ -1,17 +1,15 @@
 {
-  "name": "API Server Writes Fail",
-  "description": "The API server is returning 'etcdserver: mvcc: database space exceeded' errors and all write operations are failing. etcd's storage backend has hit its quota limit of 2GB. The cluster has been running long enough that accumulated key/value data (ConfigMaps, Secrets, events, old object revisions) has filled the quota.",
-  "objective": "etcd has hit its storage quota (default 2GB) — defragment etcd and raise the quota",
-  "xp": 375,
+  "name": "Out of ConfigMaps",
+  "description": "The deploy bot has started failing with `exceeded quota: object-counts, requested: count/configmaps=1, used: 100, limited: 100`: it creates one ConfigMap per release and there is no room for the next one. Nobody remembers creating 100 ConfigMaps. The namespace has an object-count quota on purpose (thousands of objects slow the API server and its datastore down), and platform has said the quota stays as it is. A nightly exporter has been running for weeks.",
+  "objective": "A new ConfigMap can be created in the namespace again, and a fresh run of the exporter CronJob no longer leaves a net new ConfigMap behind. The quota object-counts, ConfigMap current-release and everything billing-web mounts must be untouched.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "18m",
-  "concepts": [
-    "etcd",
-    "storage quota",
-    "defragmentation",
-    "ETCD_QUOTA_BACKEND_BYTES",
-    "compaction"
-  ],
+  "expected_time": "15m",
+  "concepts": ["ResourceQuota", "count/configmaps", "label selectors", "CronJob", "object leaks"],
   "module": "module-11-performance",
-  "level": "level-9-etcd-quota"
+  "level": "level-9-etcd-quota",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

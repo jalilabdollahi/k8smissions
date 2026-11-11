@@ -1,41 +1,60 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-# Check if it's a StatefulSet (not Deployment)
-if kubectl get statefulset database -n k8smissions &>/dev/null; then
-    READY=$(kubectl get statefulset database -n k8smissions -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
-    DESIRED=$(kubectl get statefulset database -n k8smissions -o jsonpath='{.spec.replicas}' 2>/dev/null)
-    
-    if [ "$READY" = "$DESIRED" ]; then
-        echo "✅ StatefulSet is correctly configured"
-        echo "   Ready: $READY/$DESIRED"
-        
-        # Verify pod names are stable (database-0, database-1, database-2)
-        POD_NAMES=$(kubectl get pods -n k8smissions -l app=database -o jsonpath='{.items[*].metadata.name}' 2>/dev/null)
-        echo "   Pod names: $POD_NAMES"
-        
-        # Check if pods have stable names (should contain "-0", "-1", "-2")
-        if echo "$POD_NAMES" | grep -q "database-[0-2]"; then
-            echo "   ✅ Pods have stable ordinal names"
-        fi
-        
-        exit 0
-    else
-        echo "⏳ Waiting for StatefulSet to be ready"
-        echo "   Ready: $READY/$DESIRED"
-        exit 1
-    fi
-else
-    # Check if it's still a Deployment
-    if kubectl get deployment database -n k8smissions &>/dev/null; then
-        echo "❌ Still using Deployment (should be StatefulSet)"
-        echo "   Deployments are for stateless apps"
-        echo "   Databases need StatefulSets for:"
-        echo "   - Stable pod identities"
-        echo "   - Persistent storage"
-        echo "   - Ordered startup/shutdown"
-        exit 1
-    else
-        echo "❌ database resource not found"
-        exit 1
-    fi
+if ! k get statefulset ledger-db >/dev/null 2>&1; then
+  echo "❌ there is no StatefulSet named ledger-db"
+  exit 1
 fi
+if ! k get svc ledger-db >/dev/null 2>&1; then
+  echo "❌ Service ledger-db does not exist"
+  exit 1
+fi
+
+# Pods that still belong to a ReplicaSet (the old Deployment) and match the app.
+old=$(k get pods -l app=ledger-db -o jsonpath='{range .items[*]}{.metadata.ownerReferences[0].kind}{"\n"}{end}' | grep -c '^ReplicaSet$')
+if [ "$old" -ne 0 ]; then
+  echo "❌ $old pod(s) from the old Deployment are still running behind Service ledger-db"
+  exit 1
+fi
+echo "✅ no Deployment pods are left"
+
+if ! k wait --for=condition=Ready pod/ledger-db-0 pod/ledger-db-1 pod/ledger-db-2 --timeout=45s >/dev/null 2>&1; then
+  echo "❌ pods ledger-db-0, ledger-db-1 and ledger-db-2 are not all Ready"
+  exit 1
+fi
+echo "✅ ledger-db-0, ledger-db-1 and ledger-db-2 are Ready"
+
+resolve() {  # member -> body served at <member>.ledger-db, retrying for DNS to catch up
+  for _ in 1 2 3 4 5 6 7 8; do
+    b=$(k exec probe -- curl -s --max-time 2 "http://$1.ledger-db:8080" 2>/dev/null | tr -d '[:space:]')
+    [ -n "$b" ] && { echo "$b"; return 0; }
+    sleep 2
+  done
+  return 1
+}
+
+for i in 0 1 2; do
+  b=$(resolve "ledger-db-$i")
+  if [ "$b" != "ledger-db-$i" ]; then
+    echo "❌ ledger-db-$i.ledger-db did not answer as ledger-db-$i (got '${b:-nothing}')"
+    exit 1
+  fi
+done
+echo "✅ every member answers at <pod>.ledger-db"
+
+uid_before=$(k get pod ledger-db-1 -o jsonpath='{.metadata.uid}')
+k delete pod ledger-db-1 --wait=true >/dev/null 2>&1
+if ! k wait --for=condition=Ready pod/ledger-db-1 --timeout=45s >/dev/null 2>&1; then
+  echo "❌ ledger-db-1 did not come back after being deleted"
+  exit 1
+fi
+uid_after=$(k get pod ledger-db-1 -o jsonpath='{.metadata.uid}')
+b=$(resolve ledger-db-1)
+if [ "$uid_before" = "$uid_after" ] || [ "$b" != "ledger-db-1" ]; then
+  echo "❌ the replacement for ledger-db-1 does not keep its name and DNS identity"
+  exit 1
+fi
+echo "✅ a deleted member returns as ledger-db-1 at ledger-db-1.ledger-db"
+exit 0
+exit 1

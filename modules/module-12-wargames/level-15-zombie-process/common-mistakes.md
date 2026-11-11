@@ -1,7 +1,5 @@
-# Common Mistakes — Zombie Pod
+**Adding only probes.** The wedged pod is restarted and the incident seems closed, but the leak is still there: every pod wedges again after a minute or so, and the validator counts zombies under traffic. Probes are a safety net, not a repair.
 
-## ❌ Only adding liveness probe
-Liveness restarts the pod, but between the liveness failure and restart, traffic still goes to the zombie. Add readiness too.
+**Fixing only the reaping.** The zombies disappear and the next wedge, whatever its cause, again goes unnoticed: nothing removes the pod from the Service or restarts it. The validator injects a wedge on purpose.
 
-## ❌ Too aggressive probe settings
-initialDelaySeconds too low causes healthy pods to be killed during startup.
+**Probes that are too lazy.** A liveness probe with a 30 second period and five failures takes minutes to react, and a readiness probe with a long period keeps sending traffic to the stuck pod. Keep the detection time short enough that the Service recovers within the window.

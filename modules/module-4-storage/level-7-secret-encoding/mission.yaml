@@ -1,18 +1,15 @@
 {
-  "name": "False Security",
-  "description": "Pod database-client is running and connecting successfully. But a security audit has flagged the db-credentials Secret as a potential vulnerability. Run kubectl get secret db-credentials -n k8smissions -o yaml and read what you see.",
-  "objective": "The secret is only base64-encoded, not encrypted — demonstrate it is readable and add RBAC to restrict access",
-  "xp": 250,
+  "name": "Right Password, Wrong Bytes",
+  "description": "Since last night's credential rotation the db-client service reports auth failed for user ledger. The new password was generated and pasted into the Secret by a teammate, who confirms by eye that the value decodes to the right password. The app has not changed, and the database team says the password is correct on their side.",
+  "objective": "db-client reports auth=ok on its /status endpoint, continuously for 20 seconds, using the password from Secret db-credentials mounted into its pod.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "base64 vs encryption",
-    "Secrets at rest",
-    "RBAC for secrets",
-    "Vault",
-    "Sealed Secrets",
-    "External Secrets Operator"
-  ],
+  "expected_time": "12m",
+  "concepts": ["Secret", "base64", "od -c", "kubectl create secret"],
   "module": "module-4-storage",
-  "level": "level-7-secret-encoding"
+  "level": "level-7-secret-encoding",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 150,
+  "cleanup": []
 }

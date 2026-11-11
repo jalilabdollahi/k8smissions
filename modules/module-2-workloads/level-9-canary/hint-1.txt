@@ -1,5 +1,1 @@
-Kubernetes routes traffic proportionally by pod count, not by percentage. If there are 5 stable pods and 5 canary pods, traffic splits 50/50.
-
-Count the pods per version:
-
-  kubectl get pods -n k8smissions -l app=myapp --show-labels
+Look at what Service `app` actually points at: `kubectl -n k8smissions get endpoints app` and `kubectl -n k8smissions get pods --show-labels`. Count the pods behind it.

@@ -1,66 +1,11 @@
-# Common Mistakes - Level 10: The Timeline of Failure
+## Debugging only the failing app
 
-## Fastest First Checks
-```bash
-kubectl get events -n k8smissions --sort-by=.lastTimestamp
-kubectl top pods -n k8smissions
-kubectl logs <pod> -n k8smissions --previous
-```
+Logs and events in `k8smissions` describe the symptom: the app cannot reach its cache. Restarting it or reading its code leads nowhere. Follow the dependency and look at events in its namespace, or at all namespaces at once.
 
-## ❌ Mistake #1: Relying on one signal only
+## Creating the Secret with the wrong key or value
 
-**What players try:**
-Players use just one command in The Timeline of Failure, such as logs or `kubectl top`, and stop there.
+The volume exposes each key as a file, and the cache reads `password`. A Secret with another key name mounts fine but the server cannot read the file; a Secret with a made-up password mounts fine too, and then the app's log says `invalid password` instead of `PONG ok`. Copy the value the app already holds.
 
-**Why it fails:**
-Observability works best when you correlate signals. Events tell you what Kubernetes decided, metrics show pressure, and logs show app behavior.
+## Creating the Secret in the app's namespace
 
-**Correct approach:**
-Combine at least two signals before concluding the root cause.
-
-**Key learning:**
-The fastest diagnosis usually comes from signal correlation, not a single favorite command.
-## ❌ Mistake #2: Reading the wrong time window
-
-**What players try:**
-Players inspect current state only and miss what happened seconds earlier.
-
-**Why it fails:**
-Restarts, probe failures, and eviction events are easy to miss if you do not look at previous logs or sorted event history.
-
-**Correct approach:**
-Build a timeline for events, logs, and metrics correlation using events, previous logs, and current status together.
-
-**Key learning:**
-Incidents are stories over time. A static snapshot is rarely enough.
-## ❌ Mistake #3: Debugging the symptom at the wrong layer
-
-**What players try:**
-Players jump into a shell before deciding whether the problem is application, probe, node pressure, or missing metrics infrastructure.
-
-**Why it fails:**
-That creates noise and wastes time when the cluster already exposes the answer through events, conditions, or controller state.
-
-**Correct approach:**
-Start with the cheapest cluster-level evidence, then drill into the container only if the evidence tells you to.
-
-**Key learning:**
-Good debugging narrows the layer first, then the exact bug.
-## ❌ Mistake #4: Fixing the symptom without updating the mental model
-
-**What players try:**
-Players patch the manifest until validation passes but cannot explain why the signal changed.
-
-**Why it fails:**
-That makes the next incident feel new even when it is the same class of failure.
-
-**Correct approach:**
-After the fix, explain what the signal should look like in a healthy cluster. Success target: Use the validator to confirm the repaired state.
-
-**Key learning:**
-Observability is valuable when you can predict healthy vs unhealthy telemetry afterward.
-
-## What To Prove Before You Move On
-- You used more than one signal: events, logs, metrics, or probe state.
-- You can explain why the chosen signal was the fastest one for this failure.
-- Use the validator to confirm the repaired state.
+`cache-auth` in `k8smissions` is invisible to a pod in `cache-tier`. The cache pod stays in ContainerCreating and the validator rejects the stray copy.

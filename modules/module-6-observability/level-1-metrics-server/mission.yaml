@@ -1,17 +1,15 @@
 {
-  "name": "Flying Blind",
-  "description": "Running `kubectl top pods` returns an error and all metrics are unavailable across the cluster. There is a metrics-server Deployment in the namespace, but something about its configuration means it is not actually running any pods.",
-  "objective": "kubectl top returns an error because metrics-server is not installed — deploy or enable metrics-server",
-  "xp": 200,
+  "name": "The Empty Dashboard",
+  "description": "`kubectl top pods` works fine in this cluster, yet the on-call capacity dashboard has been empty since the report job was rolled out. The `capacity-report` pod is Running and its service account has the RBAC it needs, but its log prints the same error line every 15 seconds and never a single usage number.",
+  "objective": "The `capacity-report` pod is Running with no restarts and its log shows real CPU and memory usage lines for the pods of the `ledger-api` Deployment, fetched from the cluster's Metrics API with its own service account.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Metrics API",
-    "metrics-server",
-    "Resource Metrics Pipeline",
-    "Custom Metrics API",
-    "Prometheus Adapter"
-  ],
+  "expected_time": "12m",
+  "concepts": ["metrics-server", "API discovery", "apiservices", "metrics.k8s.io"],
   "module": "module-6-observability",
-  "level": "level-1-metrics-server"
+  "level": "level-1-metrics-server",
+  "requires": ["metrics-server"],
+  "settle_seconds": 20,
+  "solve_timeout": 240,
+  "cleanup": []
 }

@@ -1,5 +1,71 @@
 apiVersion: v1
+kind: Secret
+metadata:
+  namespace: k8smissions
+  name: registry-creds
+type: kubernetes.io/dockerconfigjson
+data:
+  .dockerconfigjson: eyJhdXRocyI6eyJyZWdpc3RyeTo1MDAwIjp7ImF1dGgiOiJZMmt0Y0hWemFEcHphR2x3TFdsMExUUTNNVEVLIn19fQ==
+---
+apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ci-sa
   namespace: k8smissions
+  name: builder
+secrets:
+- name: registry-creds
+---
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  namespace: k8smissions
+  name: build-and-push
+spec:
+  params:
+  - name: tag
+    type: string
+    default: "1.4.0"
+  tasks:
+  - name: push
+    params:
+    - name: tag
+      value: $(params.tag)
+    taskSpec:
+      params:
+      - name: tag
+        type: string
+      results:
+      - name: digest
+      steps:
+      - name: layer
+        image: busybox:1.36
+        script: |
+          #!/bin/sh
+          set -e
+          mkdir -p /workspace/app
+          echo "ledger-api $(params.tag)" > /workspace/app/VERSION
+          tar -C /workspace/app -czf /workspace/layer.tar.gz .
+          echo "built layer for $(params.tag)"
+      - name: push
+        image: gcr.io/go-containerregistry/crane:debug@sha256:e78770b31258a3846f878036d9c1f63fbe4c871f9f56990bf77fd95c013e3c1b
+        env:
+        - name: DOCKER_CONFIG
+          value: /tekton/creds/.docker
+        script: |
+          #!/busybox/sh
+          set -e
+          ref=registry.k8smissions.svc.cluster.local:5000/ledger/api:$(params.tag)
+          out=$(crane append --insecure -f /workspace/layer.tar.gz -t "$ref")
+          printf '%s' "${out##*@}" > $(results.digest.path)
+          echo "pushed $ref"
+---
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  namespace: k8smissions
+  name: push-0301
+spec:
+  pipelineRef:
+    name: build-and-push
+  taskRunTemplate:
+    serviceAccountName: builder

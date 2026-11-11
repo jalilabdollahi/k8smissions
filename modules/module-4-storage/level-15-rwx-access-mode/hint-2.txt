@@ -1,5 +1,5 @@
-`ReadWriteOnce` means only one node can have the volume mounted read-write at a time. In a multi-node cluster, the second pod on a different node cannot mount an RWO volume that is already mounted elsewhere.
+1. What the cluster's storage can provide: check the provisioner of the default class and what access modes it supports. This cluster has no shared (many-writer) filesystem, so a claim cannot ask for one.
+2. How a pod holding a single-writer volume gets replaced: ingest-data is ReadWriteOncePod, so only one pod in the whole cluster may use it at a time, and the default rolling update starts the new pod before stopping the old one.
 
-For shared access across multiple pods, you need `ReadWriteMany`.
-
-Note: you cannot edit the accessMode of an existing bound PVC — the PVC must be deleted and recreated with the new mode.
+  kubectl explain pvc.spec.accessModes
+  kubectl explain deployment.spec.strategy

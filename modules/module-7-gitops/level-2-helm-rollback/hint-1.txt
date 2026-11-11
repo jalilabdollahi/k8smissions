@@ -1,1 +1,1 @@
-Check what image the failing pods are trying to use: `kubectl describe pod -n k8smissions -l app=webapp | grep -A3 Image`
+`helm -n k8smissions history webapp` lists every revision with its status. A status of `superseded` only means "replaced by a later revision", not "worked". Look at what the cluster says about the pods too (`kubectl get pods`, `kubectl logs`).

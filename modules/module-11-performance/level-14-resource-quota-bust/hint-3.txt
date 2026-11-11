@@ -1,1 +1,5 @@
-The ResourceQuota has `requests.cpu: 4` which is too low for the current workload. Increase it to `requests.cpu: 8` and `requests.memory: 16Gi` (and the corresponding limits) to give the namespace room to grow.
+Pick one lever and apply it, for example:
+  kubectl set resources deployment/payments-web --requests=cpu=<a bit above kubectl top>
+or
+  kubectl patch deployment payments-web --type=merge -p '{"spec":{"strategy":{"rollingUpdate":{"maxSurge":<n>,"maxUnavailable":<n>}}}}'
+Then run kubectl rollout restart deployment/payments-web and watch it finish.

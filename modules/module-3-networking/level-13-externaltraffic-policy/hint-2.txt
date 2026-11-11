@@ -1,7 +1,1 @@
-The policy shows `Local`. With `externalTrafficPolicy: Local`, the node only serves traffic if a matching pod is running on that same node. If you hit a node with no backend pod, the request is silently dropped — no error, just timeout.
-
-Check which nodes have backend pods:
-
-  kubectl get pods -n k8smissions -l app=backend -o wide
-
-Are they on every node?
+With `externalTrafficPolicy: Local`, a node only forwards NodePort traffic to pods on that same node, and drops it when it has none; that is the price of keeping the caller address. So the Service is not the problem: get pods onto both workers. Look at the Deployment's pod template for what keeps the pods together, and see `kubectl explain pod.spec.topologySpreadConstraints`.

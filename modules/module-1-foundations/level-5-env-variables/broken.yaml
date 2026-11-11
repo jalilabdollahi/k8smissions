@@ -1,16 +1,70 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: env-pod
+  name: smtp-relay
   namespace: k8smissions
-  labels:
-    app: env-pod
 spec:
-  containers:
-  - name: env-pod
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - if [ -z "$DATABASE_URL" ]; then echo "DATABASE_URL not set, exiting"; exit 1;
-      fi; sleep 3600
+  replicas: 1
+  selector:
+    matchLabels: {app: smtp-relay}
+  template:
+    metadata:
+      labels: {app: smtp-relay}
+    spec:
+      containers:
+      - name: relay
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=queued"]
+        ports:
+        - containerPort: 5678
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: smtp-relay
+  namespace: k8smissions
+spec:
+  selector:
+    app: smtp-relay
+  ports:
+  - port: 2525
+    targetPort: 5678
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: invoice-mailer
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: invoice-mailer}
+  template:
+    metadata:
+      labels: {app: invoice-mailer}
+    spec:
+      containers:
+      - name: mailer
+        image: python:3.12-alpine
+        env:
+        - name: SMTP_URL
+          value: "http://$(SMTP_HOST):$(SMTP_PORT)/send"
+        - name: SMTP_HOST
+          value: smtp-relay
+        - name: SMTP_PORT
+          value: "2525"
+        command:
+        - python
+        - -u
+        - -c
+        - |
+          import os, time, urllib.request
+          while True:
+              url = os.environ["SMTP_URL"]
+              print("calling", url)
+              try:
+                  r = urllib.request.urlopen(url, data=b"invoice", timeout=3)
+                  print("send status", r.status)
+              except Exception as e:
+                  print("send failed:", e)
+              time.sleep(3)

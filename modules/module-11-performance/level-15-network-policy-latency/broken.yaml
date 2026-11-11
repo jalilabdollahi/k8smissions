@@ -1,31 +1,219 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalog-dns-corefile
+  namespace: k8smissions
+data:
+  Corefile: |
+    catalog.internal:53 {
+        log
+        hosts /etc/coredns/catalog.hosts {
+            ttl 60
+        }
+    }
+  catalog.hosts: |
+    10.30.0.1 sku-history.catalog.internal
+    10.30.0.2 sku-history.catalog.internal
+    10.30.0.3 sku-history.catalog.internal
+    10.30.0.4 sku-history.catalog.internal
+    10.30.0.5 sku-history.catalog.internal
+    10.30.0.6 sku-history.catalog.internal
+    10.30.0.7 sku-history.catalog.internal
+    10.30.0.8 sku-history.catalog.internal
+    10.30.0.9 sku-history.catalog.internal
+    10.30.0.10 sku-history.catalog.internal
+    10.30.0.11 sku-history.catalog.internal
+    10.30.0.12 sku-history.catalog.internal
+    10.30.0.13 sku-history.catalog.internal
+    10.30.0.14 sku-history.catalog.internal
+    10.30.0.15 sku-history.catalog.internal
+    10.30.0.16 sku-history.catalog.internal
+    10.30.0.17 sku-history.catalog.internal
+    10.30.0.18 sku-history.catalog.internal
+    10.30.0.19 sku-history.catalog.internal
+    10.30.0.20 sku-history.catalog.internal
+    10.30.0.21 sku-history.catalog.internal
+    10.30.0.22 sku-history.catalog.internal
+    10.30.0.23 sku-history.catalog.internal
+    10.30.0.24 sku-history.catalog.internal
+    10.30.0.25 sku-history.catalog.internal
+    10.30.0.26 sku-history.catalog.internal
+    10.30.0.27 sku-history.catalog.internal
+    10.30.0.28 sku-history.catalog.internal
+    10.30.0.29 sku-history.catalog.internal
+    10.30.0.30 sku-history.catalog.internal
+    10.30.0.31 sku-history.catalog.internal
+    10.30.0.32 sku-history.catalog.internal
+    10.30.0.33 sku-history.catalog.internal
+    10.30.0.34 sku-history.catalog.internal
+    10.30.0.35 sku-history.catalog.internal
+    10.30.0.36 sku-history.catalog.internal
+    10.30.0.37 sku-history.catalog.internal
+    10.30.0.38 sku-history.catalog.internal
+    10.30.0.39 sku-history.catalog.internal
+    10.30.0.40 sku-history.catalog.internal
+    10.30.0.41 sku-history.catalog.internal
+    10.30.0.42 sku-history.catalog.internal
+    10.30.0.43 sku-history.catalog.internal
+    10.30.0.44 sku-history.catalog.internal
+    10.30.0.45 sku-history.catalog.internal
+    10.30.0.46 sku-history.catalog.internal
+    10.30.0.47 sku-history.catalog.internal
+    10.30.0.48 sku-history.catalog.internal
+    10.30.0.49 sku-history.catalog.internal
+    10.30.0.50 sku-history.catalog.internal
+    10.30.0.51 sku-history.catalog.internal
+    10.30.0.52 sku-history.catalog.internal
+    10.30.0.53 sku-history.catalog.internal
+    10.30.0.54 sku-history.catalog.internal
+    10.30.0.55 sku-history.catalog.internal
+    10.30.0.56 sku-history.catalog.internal
+    10.30.0.57 sku-history.catalog.internal
+    10.30.0.58 sku-history.catalog.internal
+    10.30.0.59 sku-history.catalog.internal
+    10.30.0.60 sku-history.catalog.internal
+    10.30.9.10 quotes.catalog.internal
+    10.30.9.11 currency.catalog.internal
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-dns
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-dns
+  template:
+    metadata:
+      labels:
+        app: catalog-dns
+    spec:
+      containers:
+      - name: coredns
+        image: registry.k8s.io/coredns/coredns:v1.14.2
+        args: ["-conf", "/etc/coredns/Corefile"]
+        ports:
+        - {containerPort: 53, protocol: UDP}
+        - {containerPort: 53, protocol: TCP}
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/coredns
+      volumes:
+      - name: conf
+        configMap:
+          name: catalog-dns-corefile
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-dns
+  namespace: k8smissions
+spec:
+  clusterIP: 10.96.150.115
+  selector:
+    app: catalog-dns
+  ports:
+  - {name: dns, port: 53, protocol: UDP}
+  - {name: dns-tcp, port: 53, protocol: TCP}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: price-feed-app
+  namespace: k8smissions
+data:
+  feed.py: |
+    import socket, time
+
+    NAMES = ["quotes.catalog.internal.", "currency.catalog.internal.", "sku-history.catalog.internal."]
+
+    while True:
+        for name in NAMES:
+            t = time.time()
+            try:
+                n = len({a[4][0] for a in socket.getaddrinfo(name, None, socket.AF_INET)})
+                print("lookup %-32s ok     %5d ms  %d addresses" % (name, (time.time() - t) * 1000, n), flush=True)
+            except Exception as e:
+                print("lookup %-32s FAILED %5d ms  %s" % (name, (time.time() - t) * 1000, e), flush=True)
+            time.sleep(0.5)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: price-feed
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: price-feed
+  template:
+    metadata:
+      labels:
+        app: price-feed
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers: ["10.96.150.115"]
+        options:
+        - {name: ndots, value: "1"}
+      containers:
+      - name: feed
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/feed.py"]
+        resources:
+          requests: {cpu: 10m, memory: 16Mi}
+          limits: {memory: 64Mi}
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: price-feed-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-sink
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ledger-sink
+  template:
+    metadata:
+      labels:
+        app: ledger-sink
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+      - name: sink
+        image: python:3.12-alpine
+        command: ["python", "-m", "http.server", "8080"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: restrictive-policy
+  name: price-feed-egress
   namespace: k8smissions
 spec:
   podSelector:
     matchLabels:
-      app: my-app
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: frontend
-    ports:
-    - protocol: TCP
-      port: 8080
+      app: price-feed
+  policyTypes: ["Egress"]
   egress:
   - to:
     - podSelector:
         matchLabels:
-          app: database
+          app: catalog-dns
     ports:
-    - protocol: TCP
-      port: 5432
-  - ports:
-    - protocol: UDP
-      port: 53
+    - {protocol: UDP, port: 53}

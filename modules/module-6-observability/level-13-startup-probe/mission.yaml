@@ -1,16 +1,15 @@
 {
-  "name": "The Slow Starter",
-  "description": "An application pod keeps restarting during container startup. The app takes 120 seconds to complete initialization before it signals readiness, but the liveness probe is configured with timing that kills the container after only 40 seconds — long before initialization can finish.",
-  "objective": "The liveness probe fires before the app finishes starting — add a startupProbe to give the app time to boot",
+  "name": "Killed Before It Wakes",
+  "description": "`catalog-indexer` has been deployed twice with two replicas and neither pod has ever been Ready. Each one starts, prints progress for about half a minute, then restarts, and the restart counter keeps climbing. The team swears the indexer works: it just takes a while to load before it answers anything.",
+  "objective": "Deployment `catalog-indexer` has 2 Ready pods that have not restarted, the indexer is allowed at least 60 seconds to start before the liveness check can kill it, and once running a hung indexer is still detected within 60 seconds (liveness period times failure threshold).",
   "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "startupProbe",
-    "liveness probe",
-    "slow start",
-    "initialDelaySeconds"
-  ],
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["startupProbe", "livenessProbe", "initialDelaySeconds", "slow-starting apps"],
   "module": "module-6-observability",
-  "level": "level-13-startup-probe"
+  "level": "level-13-startup-probe",
+  "requires": [],
+  "settle_seconds": 40,
+  "solve_timeout": 180,
+  "cleanup": []
 }

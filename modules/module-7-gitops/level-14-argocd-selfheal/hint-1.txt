@@ -1,1 +1,1 @@
-Read the ArgoCD Application's sync policy to understand the behavior: `kubectl get application my-app -n argocd -o yaml | grep -A10 syncPolicy`
+Find out what is writing to the ConfigMap and why the value returns: `kubectl -n argocd get app payments-api -o yaml` (look at `.spec.syncPolicy` and `.status.history`), and `kubectl -n k8smissions get cm payments-config -o yaml` (look at `managedFields`). Where is the value `200` defined?

@@ -1,1 +1,1 @@
-The pod spec has no `securityContext` block at all. The namespace policy requires `runAsNonRoot: true` and a non-zero `runAsUser`. Both must be added to make the pod compliant.
+Set `runAsNonRoot: true` in the pod template's `securityContext` (`kubectl -n k8smissions patch deploy invoice-render --type=merge -p ...`), then give the container whose image runs as root a numeric `runAsUser` (use a non-zero UID such as 101) with a strategic patch on `containers` keyed by the container `name`.

@@ -1,32 +1,205 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: session-db-app
+  namespace: k8smissions
+data:
+  db.py: |
+    import http.server, json, os, socket, threading
+
+    MAX = int(os.environ.get("MAX_CONNECTIONS", "20"))
+    st = {"active": 0, "peak": 0, "rejected": 0, "accepted": 0, "max": MAX}
+    lock = threading.Lock()
+
+    def serve(conn):
+        with lock:
+            full = st["active"] >= MAX
+            if full:
+                st["rejected"] += 1
+            else:
+                st["active"] += 1
+                st["accepted"] += 1
+                st["peak"] = max(st["peak"], st["active"])
+        if full:
+            conn.sendall(b"ERR too many connections\n")
+            conn.close()
+            return
+        conn.sendall(b"OK\n")
+        try:
+            while conn.recv(1024):
+                pass
+        except OSError:
+            pass
+        with lock:
+            st["active"] -= 1
+        conn.close()
+
+    def listen():
+        s = socket.socket()
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind(("", 5432))
+        s.listen(64)
+        while True:
+            c, _ = s.accept()
+            threading.Thread(target=serve, args=(c,), daemon=True).start()
+
+    class Stats(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            with lock:
+                body = json.dumps(st)
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(body.encode())
+        def log_message(self, *a):
+            pass
+
+    threading.Thread(target=listen, daemon=True).start()
+    http.server.ThreadingHTTPServer(("", 8081), Stats).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web-app
+  name: session-db
   namespace: k8smissions
 spec:
-  replicas: 10
+  replicas: 1
   selector:
     matchLabels:
-      app: web-app
+      app: session-db
   template:
     metadata:
       labels:
-        app: web-app
+        app: session-db
     spec:
       containers:
-      - name: web
-        image: my-web-app:v1
+      - name: db
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/db.py"]
         env:
-        - name: DB_URL
-          value: postgres://db.k8smissions.svc.cluster.local:5432/mydb
-        - name: DB_MAX_CONNECTIONS
-          value: '100'
+        - name: MAX_CONNECTIONS
+          value: "20"
+        ports:
+        - containerPort: 5432
+        - containerPort: 8081
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8081
+          periodSeconds: 2
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: session-db-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: session-db
+  namespace: k8smissions
+spec:
+  selector:
+    app: session-db
+  ports:
+  - {name: db, port: 5432, targetPort: 5432}
+  - {name: stats, port: 8081, targetPort: 8081}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart-api-app
+  namespace: k8smissions
+data:
+  app.py: |
+    import http.server, os, signal, socket, threading, time
+
+    HOST = os.environ.get("DB_HOST", "session-db")
+    POOL = int(os.environ.get("DB_POOL_SIZE", "5"))
+    conns = []
+    signal.signal(signal.SIGTERM, lambda *a: os._exit(0))
+
+    def fill_pool():
+        while True:
+            if len(conns) >= POOL:
+                time.sleep(1)
+                continue
+            try:
+                s = socket.create_connection((HOST, 5432), timeout=3)
+                if s.makefile().readline().startswith("OK"):
+                    conns.append(s)
+                else:
+                    print("db: too many connections (pool %d/%d)" % (len(conns), POOL), flush=True)
+                    s.close()
+                    time.sleep(2)
+            except OSError as e:
+                print("db: %s" % e, flush=True)
+                time.sleep(2)
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def do_GET(self):
+            ready = len(conns) >= POOL
+            self.send_response(200 if ready else 503)
+            self.end_headers()
+            self.wfile.write(b"cart ok" if ready else b"pool not full")
+        def log_message(self, *a):
+            pass
+
+    threading.Thread(target=fill_pool, daemon=True).start()
+    http.server.ThreadingHTTPServer(("", 8080), H).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-api
+  namespace: k8smissions
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 2
+      maxUnavailable: 3
+  selector:
+    matchLabels:
+      app: cart-api
+  template:
+    metadata:
+      labels:
+        app: cart-api
+    spec:
+      terminationGracePeriodSeconds: 2
+      containers:
+      - name: api
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/app.py"]
+        env:
         - name: DB_POOL_SIZE
-          value: '1'
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 500m
-            memory: 256Mi
+          value: "5"
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 2
+        volumeMounts:
+        - name: app
+          mountPath: /app
+      volumes:
+      - name: app
+        configMap:
+          name: cart-api-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-api
+  namespace: k8smissions
+spec:
+  selector:
+    app: cart-api
+  ports:
+  - port: 80
+    targetPort: 8080

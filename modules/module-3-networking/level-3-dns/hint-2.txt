@@ -1,5 +1,1 @@
-There is a pod named `database` and a Service named `database-service`. CoreDNS creates DNS records for **Services**, not for individual pods. So `database` (pod name) does not resolve — but `database-service` (service name) does.
-
-Verify DNS resolution from inside the cluster:
-
-  kubectl exec app-client -n k8smissions -- nslookup database-service
+The nameserver and search domains in a pod's `/etc/resolv.conf` come from `spec.dnsPolicy` and `spec.dnsConfig`. Read `kubectl explain pod.spec.dnsPolicy` and look at the pod template of the Deployment. Note that a pod's DNS settings cannot be changed in place, only through its controller.

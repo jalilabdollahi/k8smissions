@@ -1,27 +1,5 @@
-## What went wrong
+`quotas.payments.internal` has two dots and the pod's resolv.conf says `ndots:5`, so the resolver treats it as relative and tries `.k8smissions.svc.cluster.local`, `.svc.cluster.local` and `.cluster.local` first (three NXDOMAIN answers) before asking for the real name: 4 queries per lookup.
 
-`ndots: 5` means: if the hostname has fewer than 5 dots, try each search domain before attempting the name as-is. A lookup for `db` has 0 dots — so Kubernetes tries `db.k8smissions.svc.cluster.local`, `db.svc.cluster.local`, `db.cluster.local`, `db.default.svc.cluster.local` (etc.) before resolving. 100 lookups/second becomes 500+ DNS queries/second, overwhelming kube-dns.
-
-## Fix
-
-```yaml
-spec:
-  dnsConfig:
-    options:
-    - name: ndots
-      value: '2'
-  containers:
-  - name: app
-    command:
-    - /bin/sh
-    - -c
-    - while true; do nslookup db.k8smissions.svc.cluster.local; sleep 0.1; done
-```
-
-## Why this matters
-
-Two strategies reduce DNS overhead:
-1. **Lower ndots**: `ndots: 2` means names with 2+ dots are treated as FQDNs and bypass the search list entirely. `db.k8smissions` has 1 dot — still searches. `db.k8smissions.svc` has 2 dots — tries as-is first.
-2. **Use FQDNs**: always append `.svc.cluster.local` in service URLs to bypass all search path lookups.
-
-For extreme DNS traffic, enable NodeLocal DNSCache (level 10) which caches responses at the node level, eliminating round-trips to kube-dns for repeated lookups.
+1. `kubectl logs deploy/dns-lab` shows the four queries for each lookup; `kubectl exec deploy/rate-limiter -- cat /etc/resolv.conf` shows `ndots:5` and the three search domains.
+2. Lower `ndots` to 2 (`kubectl patch deployment rate-limiter --type=json -p '[{"op":"replace","path":"/spec/template/spec/dnsConfig/options/0/value","value":"2"}]'`), or set `QUOTAS_HOST=quotas.payments.internal.` with a trailing dot.
+3. Do not empty the search list: `session-cache` is a short name and needs it.

@@ -1,5 +1,1 @@
-When a Service exists but traffic does not arrive, the first thing to check is whether the Service has any Endpoints:
-
-  kubectl get endpoints backend-service -n k8smissions
-
-If the Endpoints column shows `<none>`, the Service cannot find any matching pod. Services select pods using labels.
+The pods are healthy, so look at what connects them to the Service: `kubectl -n k8smissions get endpoints blog` and `kubectl -n k8smissions get pods --show-labels`. Compare with `kubectl -n k8smissions describe service blog`.

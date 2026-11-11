@@ -1,7 +1,6 @@
-The volume is `emptyDir: {}`. An emptyDir volume is created when the pod starts and destroyed when the pod is deleted or rescheduled — its lifecycle is tied to the pod, not to the data.
+An emptyDir is created when the pod is assigned to a node and removed when the pod leaves it; it survives container restarts only. Data that must outlive the pod needs a claim:
 
-Verify by deleting and recreating the pod:
+  kubectl explain pod.spec.volumes.persistentVolumeClaim
+  kubectl explain pvc.spec
 
-  kubectl delete pod data-app -n k8smissions
-
-After it restarts, check if the file is still there.
+Only the uploads belong on durable storage. /scratch is meant to be thrown away.

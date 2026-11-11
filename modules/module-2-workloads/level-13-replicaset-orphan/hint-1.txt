@@ -1,5 +1,1 @@
-Pods that survive after their parent Deployment is deleted are usually kept alive by a ReplicaSet that was never cleaned up. Check if any ReplicaSets exist:
-
-  kubectl get replicasets -n k8smissions
-
-Is there a ReplicaSet with no owner?
+The pods you cannot kill belong to something. `kubectl -n k8smissions get pods -o yaml` shows each pod's `ownerReferences`: follow it to the ReplicaSet, then ask who owns that ReplicaSet (`kubectl -n k8smissions get rs -o yaml`).

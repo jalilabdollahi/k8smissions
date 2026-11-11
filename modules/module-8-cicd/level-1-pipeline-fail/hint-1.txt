@@ -1,1 +1,1 @@
-Check the TaskRun pod's events to see why it failed: `kubectl describe pod -n k8smissions -l tekton.dev/task=build-task | grep -A10 Events`
+The failed run is `notes-0714`. Start at `kubectl get pipelinerun,taskrun`, find the TaskRun that failed, and read the log of the step that failed: its pod is in `.status.podName` and each step is a container named `step-<name>`. Compare the logs of both steps.

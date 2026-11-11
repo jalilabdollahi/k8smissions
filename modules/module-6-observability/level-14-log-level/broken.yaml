@@ -1,18 +1,89 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: logger-app
+  name: ledger-logger
+  namespace: k8smissions
+data:
+  app.py: |
+    import os, sys, time
+
+    LEVELS = {"DEBUG": 10, "INFO": 20, "WARN": 30, "ERROR": 40, "CRITICAL": 50}
+    name = os.environ.get("SERVICE", "ledger")
+    raw = os.environ.get("LOG_LEVEL", "INFO")
+
+    def log(level, msg):
+        if LEVELS[level] >= threshold:
+            print("%s %-5s %s" % (time.strftime("%H:%M:%S"), level, msg), flush=True)
+
+    if raw in LEVELS:
+        threshold = LEVELS[raw]
+    else:
+        threshold = LEVELS["DEBUG"]
+        print("%s WARN  %s: unknown LOG_LEVEL '%s' (valid: %s), using DEBUG"
+              % (time.strftime("%H:%M:%S"), name, raw, ", ".join(LEVELS)), flush=True)
+    print("%s       %s: started" % (time.strftime("%H:%M:%S"), name), flush=True)
+
+    tick = 0
+    while True:
+        tick += 1
+        seconds = tick * 0.04
+        log("DEBUG", "lookup account=%d cache=hit" % (tick % 997))
+        if tick % 375 == 0:
+            log("INFO", "posted %d entries" % (tick // 3))
+        if tick % 300 == 0:
+            log("WARN", "upstream rate-limiter slow (%.0f ms), retrying" % (400 + tick % 90))
+        if tick % 500 == 0:
+            log("ERROR", "entry %d rejected: duplicate idempotency key" % tick)
+        time.sleep(0.04)
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-api
   namespace: k8smissions
 spec:
-  containers:
-  - name: app
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - while true; do echo "[$LOG_LEVEL] log line"; sleep 0.1; done
-    env:
-    - name: LOG_LEVEL
-      value: DEBUG
-                    # This floods the logging pipeline, consuming excessive storage and
-                    # making it impossible to find meaningful log entries.
+  replicas: 2
+  selector:
+    matchLabels: {app: ledger-api}
+  template:
+    metadata:
+      labels: {app: ledger-api, tier: ledger}
+    spec:
+      containers:
+      - name: app
+        image: python:3.12-alpine
+        command: ["python", "/app/app.py"]
+        env:
+        - {name: SERVICE, value: ledger-api}
+        - {name: LOG_LEVEL, value: info}
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap: {name: ledger-logger}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-batch
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: ledger-batch}
+  template:
+    metadata:
+      labels: {app: ledger-batch, tier: ledger}
+    spec:
+      containers:
+      - name: app
+        image: python:3.12-alpine
+        command: ["python", "/app/app.py"]
+        env:
+        - {name: SERVICE, value: ledger-batch}
+        - {name: LOG_LEVEL, value: INFO}
+        volumeMounts:
+        - {name: script, mountPath: /app}
+      volumes:
+      - name: script
+        configMap: {name: ledger-logger}

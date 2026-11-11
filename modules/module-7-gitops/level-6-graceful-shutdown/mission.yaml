@@ -1,16 +1,15 @@
 {
-  "name": "Requests Dropped During Rollout",
-  "description": "Users experience connection reset errors during rolling updates. Pods are being killed while they still have active connections. There is nothing telling Kubernetes to wait before sending SIGTERM or to give the application time to drain — so in-flight requests are dropped the moment the pod is removed from the endpoints list.",
-  "objective": "Pods are terminated mid-request during rollouts — add a preStop hook and set terminationGracePeriodSeconds",
-  "xp": 350,
+  "name": "Dropped During Deploys",
+  "description": "Every rollout of `catalog` (4 replicas) drops a few percent of requests with connection refused or connection reset, for a few seconds, and the dashboards recover on their own afterwards. Between deploys it is flawless. The rollout settings in Git were recently changed to `maxUnavailable: 50%` so deploys finish faster, and that is when the drops started. Someone already added a `sleep 10` pre-stop hook, but the errors did not change. The image is `hashicorp/http-echo`, a single static binary. A pod `probe` with curl is in the namespace.",
+  "objective": "A rollout restart of Deployment `catalog` completes with zero failed requests to Service `catalog`, measured continuously from the `probe` pod across the whole rollout, and the Deployment keeps 4 replicas.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "10m",
-  "concepts": [
-    "Pod termination lifecycle (SIGTERM → grace period → SIGKILL)",
-    "preStop hooks",
-    "connection draining",
-    "zero-downtime deploys"
-  ],
+  "expected_time": "15m",
+  "concepts": ["preStop hook", "endpoint removal race", "terminationGracePeriodSeconds", "FailedPreStopHook"],
   "module": "module-7-gitops",
-  "level": "level-6-graceful-shutdown"
+  "level": "level-6-graceful-shutdown",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

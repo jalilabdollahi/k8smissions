@@ -1,3 +1,1 @@
-The problem is `rollingUpdate.maxUnavailable: 100%` in manifest.yaml. For a zero-downtime rolling update, this value must be low enough to keep pods serving traffic while new ones come up.
-
-Find this field under spec.strategy.rollingUpdate.
+Switch the strategy type with `kubectl -n k8smissions patch deployment critical-api -p '{"spec":{"strategy":{"type":"<type>"}}}'`. The default numbers for the new type are fine for 4 replicas; the next release will use them.

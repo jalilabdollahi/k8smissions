@@ -1,13 +1,6 @@
-# Common Mistakes — Suspended Schedule
+## Common mistakes
 
-## Mistake 1: Deleting and recreating
-
-**Wrong approach:** Deleting the CronJob to fix it — this also deletes job history and LAST SCHEDULE time
-
-**Correct approach:** Use kubectl patch or kubectl edit to change just the suspend field
-
-## Mistake 2: Expecting immediate execution after unsuspend
-
-**Wrong approach:** Setting suspend:false then expecting a Job in seconds
-
-**Correct approach:** CronJob waits for the next schedule tick. Use kubectl create job --from=cronjob/<name> to trigger immediately
+- **Fixing `suspend` and waiting.** The schedule fires at minute 1 of the hour, so nothing happens for up to an hour. Read the cron expression too.
+- **Using `kubectl create job --from=cronjob/close-report`.** It proves the pod template works, but the Job is marked as a manual run and does not show that the schedule works.
+- **Treating `* 1 * * *` as "every minute".** The first field is the minute, the second the hour; `* 1 * * *` runs every minute only during hour 1. Count the fields.
+- **Deleting and recreating the CronJob without checking the cause.** The new object needs the same two corrections, or it stays silent too.

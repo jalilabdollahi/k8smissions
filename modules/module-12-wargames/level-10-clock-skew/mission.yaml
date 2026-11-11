@@ -1,16 +1,15 @@
 {
   "name": "Time Drift",
-  "description": "Authentication is broken cluster-wide. JWT tokens are being rejected with 'token expired' — but the tokens are freshly issued. The root cause is a 10-minute clock skew on a cluster node: NTP is not syncing, the node's clock is 10 minutes ahead, and when it issues or validates tokens, the timestamps appear far in the future compared to other components.",
-  "objective": "A ConfigMap marks a node as having severe clock skew — update it to show the clock is synced and skew is resolved",
-  "xp": 350,
+  "description": "Since this morning's identity-provider release, every call to the `api` service fails with `401 token expired`, even with a token issued one second earlier by `auth`. The on-call engineer is convinced a node has an NTP problem and wants to cordon workers. Two `api` replicas and one `auth` replica are Running and Ready.",
+  "objective": "A token issued by Service `auth` (`/login?user=<name>`) is accepted by Service `api` (`/orders`, header `Authorization: Bearer <token>`) when used immediately and when used about ten seconds later, while a token issued two hours ago and a token with a tampered signature are still rejected.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "15m",
-  "concepts": [
-    "clock skew",
-    "JWT validation",
-    "NTP sync",
-    "node conditions"
-  ],
+  "expected_time": "25m",
+  "concepts": ["time zones", "TZ env", "token TTL and leeway", "Secret rotation", "rollout restart"],
   "module": "module-12-wargames",
-  "level": "level-10-clock-skew"
+  "level": "level-10-clock-skew",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 150,
+  "cleanup": []
 }

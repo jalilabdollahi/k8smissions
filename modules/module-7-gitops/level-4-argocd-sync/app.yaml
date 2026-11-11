@@ -1,0 +1,23 @@
+# The Application is created with a first sync request (operation), which fails:
+# its destination namespace does not exist.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ledger-api
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: http://gitserver.gitops-git.svc.cluster.local:8080/cgi-bin/git/ledger.git
+    targetRevision: main
+    path: deploy
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ledger-prod
+  syncPolicy:
+    managedNamespaceMetadata:
+      labels:
+        team: payments
+        k8smissions/managed: "true"
+operation:
+  sync: {}

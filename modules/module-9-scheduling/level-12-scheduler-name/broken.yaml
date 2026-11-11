@@ -1,22 +1,107 @@
 apiVersion: v1
-kind: Pod
+kind: ServiceAccount
 metadata:
-  name: ml-pod
+  name: ml-scheduler
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ml-scheduler-kube-scheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:kube-scheduler
+subjects:
+- kind: ServiceAccount
+  name: ml-scheduler
+  namespace: k8smissions
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ml-scheduler-volume-scheduler
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: system:volume-scheduler
+subjects:
+- kind: ServiceAccount
+  name: ml-scheduler
+  namespace: k8smissions
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ml-scheduler-config
+  namespace: k8smissions
+data:
+  config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    leaderElection:
+      leaderElect: false
+    profiles:
+    - schedulerName: ml-scheduler
+      plugins:
+        score:
+          disabled:
+          - name: "*"
+          enabled:
+          - name: NodeResourcesFit
+            weight: 1
+      pluginConfig:
+      - name: NodeResourcesFit
+        args:
+          scoringStrategy:
+            type: MostAllocated
+            resources:
+            - {name: cpu, weight: 1}
+            - {name: memory, weight: 1}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-scheduler
   namespace: k8smissions
 spec:
-  # The ML-aware custom scheduler ('ml-scheduler') never processes this pod,
-  # so GPU-topology and ML-specific placement logic is bypassed.
-  containers:
-  - name: trainer
-    image: busybox:1.36
-    command:
-    - /bin/sh
-    - -c
-    - sleep 3600
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
-      limits:
-        cpu: 200m
-        memory: 256Mi
+  replicas: 1
+  selector:
+    matchLabels: {app: ml-scheduler}
+  template:
+    metadata:
+      labels: {app: ml-scheduler}
+    spec:
+      serviceAccountName: ml-scheduler
+      containers:
+      - name: scheduler
+        image: registry.k8s.io/kube-scheduler:v1.36.1
+        command: ["kube-scheduler", "--config=/etc/scheduler/config.yaml", "--authentication-skip-lookup=true", "--v=2"]
+        volumeMounts:
+        - {name: config, mountPath: /etc/scheduler}
+        resources:
+          requests: {cpu: 50m, memory: 64Mi}
+      volumes:
+      - name: config
+        configMap: {name: ml-scheduler-config}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trainer
+  namespace: k8smissions
+spec:
+  replicas: 4
+  selector:
+    matchLabels: {app: trainer}
+  template:
+    metadata:
+      labels: {app: trainer}
+    spec:
+      schedulerName: ml-sheduler
+      containers:
+      - name: train
+        image: busybox:1.37
+        command: ["sh", "-c", "echo training shard started; while true; do sleep 30; done"]
+        resources:
+          requests: {cpu: 100m, memory: 64Mi}

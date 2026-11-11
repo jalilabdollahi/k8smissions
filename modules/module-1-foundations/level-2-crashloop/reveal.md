@@ -1,18 +1,4 @@
-## What went wrong
-
-`args: [/scripts/start.sh]` tells the container to execute a script that does not exist inside the image. The container exits with code 127 (command not found). Kubernetes restarts it, the same thing happens, and the loop continues.
-
-## Fix
-
-Remove `args` and add a valid `command` that keeps the container alive:
-
-```yaml
-command:
-- /bin/sh
-- -c
-- sleep 3600
-```
-
-## Why this matters
-
-If you only remove `args` without adding `command`, busybox has no default process to run — it exits with code 0 immediately, which also causes restarts. A container must have a long-running foreground process to stay alive.
+1. `kubectl logs <pod> -c edge` shows `bind() to 0.0.0.0:80 failed (98: Address in use)`; `-c app` is healthy and listening.
+2. The `app` container serves on port 80 and so does nginx. All containers in a pod share one network namespace, so only one can have port 80.
+3. nginx already proxies to `127.0.0.1:8080`, so change the app's start command to `python -m http.server 8080`.
+4. Edit the Deployment; the rollout replaces the pods with fresh ones that start without back-off.

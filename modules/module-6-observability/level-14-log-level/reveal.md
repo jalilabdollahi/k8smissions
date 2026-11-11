@@ -1,15 +1,5 @@
-## What went wrong
+`ledger-api` has `LOG_LEVEL=info` in lower case. The app only knows upper-case names, so it logs `unknown LOG_LEVEL 'info' ... using DEBUG` and writes a debug line 25 times a second. `ledger-batch` uses `INFO` and is quiet.
 
-The container runs with `LOG_LEVEL: DEBUG`, emitting approximately one log line every 100ms (~600 lines/minute, ~864,000 lines/day). At this volume, important log entries (errors, warnings) are hidden in noise and log storage costs become significant.
-
-## Fix
-
-```yaml
-env:
-- name: LOG_LEVEL
-  value: INFO
-```
-
-## Why this matters
-
-Log levels define the minimum severity of events to emit. The conventional hierarchy: `DEBUG < INFO < WARN < ERROR < FATAL`. In production, `INFO` is the standard — it captures application lifecycle events and errors without debug noise. Use a `ConfigMap` to manage the log level value so you can change it across deployments without rebuilding the image. Some teams implement dynamic log level changes via an API endpoint, allowing temporary DEBUG logging during incident investigation without a pod restart.
+1. `kubectl logs -l tier=ledger --prefix --since=1m | awk '{print $1}' | sort | uniq -c` shows ledger-api pods with about 1500 lines each.
+2. The first line of a ledger-api log is the warning about the unknown level.
+3. `kubectl set env deploy/ledger-api LOG_LEVEL=INFO`, then wait for the rollout. `CRITICAL` would silence the noise too, but also hide the WARN and ERROR lines that operations needs.

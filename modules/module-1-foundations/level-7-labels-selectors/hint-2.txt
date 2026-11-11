@@ -1,9 +1,1 @@
-Check the labels on the pod:
-
-  kubectl get pod backend-app -n k8smissions --show-labels
-
-Now check the selector the Service uses to find pods:
-
-  kubectl get service backend-service -n k8smissions -o yaml | grep -A5 'selector'
-
-Do these match?
+A Service sends traffic to Ready pods whose labels contain every key/value of its selector. The pods here come from a Deployment, which stamps them from `spec.template.metadata.labels`, so labels added to a single pod by hand disappear with that pod. `kubectl explain deployment.spec.template.metadata.labels`.

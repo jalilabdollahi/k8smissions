@@ -1,1 +1,1 @@
-All 4 pods should show the same NODE. Look at the Deployment's pod spec — there are no `topologySpreadConstraints` defined. Without them, the scheduler is free to place all replicas on a single node.
+A topology spread constraint only counts pods that match its own `labelSelector`. If that selector matches nothing, every node counts zero and any placement looks perfectly balanced. `kubectl explain pod.spec.topologySpreadConstraints.labelSelector`.

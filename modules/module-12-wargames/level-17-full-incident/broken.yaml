@@ -1,66 +1,136 @@
-# 1. Secret p0-secret is missing (pod cannot start without it)
-# 2. ServiceAccount p0-sa is missing (pod spec references it)
-# 3. Deployment has replicas:0 AND nodeSelector pointing to non-existent label
-# 4. NetworkPolicy blocks DNS egress (UDP/TCP port 53 not allowed)
-# 5. PVC requests 999Ti storage — no storage class can provision this
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shop-src
+  namespace: k8smissions
+data:
+  migrate.sh: |
+    #!/bin/sh
+    # usage: migrate.sh --schema=<version>
+    schema="${1#--schema=}"
+    case "$schema" in
+      v6|v7) ;;
+      *) echo "migrate: unknown schema '$schema' (known: v6 v7)"; exit 2;;
+    esac
+    echo "migrate: applying $schema"
+    sleep 2
+    echo "$schema" > /data/.migrated
+    echo "migrate: done"
+  shop.py: |
+    import os, socket
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    def schema():
+        try:
+            return open("/data/.migrated").read().strip()
+        except OSError:
+            return "unknown"
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def do_GET(self):
+            body = ("Winter Sale is open. database schema %s, served by %s\n" % (schema(), socket.gethostname())).encode()
+            code = 200 if self.path in ("/", "/healthz") else 404
+            self.send_response(code); self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shop-data
+  namespace: k8smissions
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast-ssd
+  resources:
+    requests: {storage: 1Gi}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  namespace: k8smissions
+spec:
+  backoffLimit: 1
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: busybox:1.36
+        command: ["sh", "/src/migrate.sh", "--schema=v9"]
+        volumeMounts:
+        - {name: data, mountPath: /data}
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: data
+        persistentVolumeClaim: {claimName: shop-data}
+      - name: src
+        configMap: {name: shop-src}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: p0-app
+  name: shop-web
   namespace: k8smissions
 spec:
-  replicas: 0
+  replicas: 2
   selector:
-    matchLabels:
-      app: p0-app
+    matchLabels: {app: shop-web}
   template:
     metadata:
-      labels:
-        app: p0-app
+      labels: {app: shop-web}
     spec:
-      serviceAccountName: p0-sa
-      nodeSelector:
-        environment: prod-zone-nonexistent
-      containers:
-      - name: p0-app
+      serviceAccountName: shop-runner
+      initContainers:
+      - name: wait-migration
         image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+        command: ["sh", "-c", "until grep -qx \"$EXPECT_SCHEMA\" /data/.migrated 2>/dev/null; do echo \"waiting for schema $EXPECT_SCHEMA, found: $(cat /data/.migrated 2>/dev/null || echo none)\"; sleep 3; done; echo schema ok"]
         env:
-        - name: DB_PASS
-          valueFrom:
-            secretKeyRef:
-              name: p0-secret
-              key: password
+        - {name: EXPECT_SCHEMA, value: v7}
+        volumeMounts:
+        - {name: data, mountPath: /data, readOnly: true}
+      containers:
+      - name: web
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/shop.py"]
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /healthz, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: data, mountPath: /data, readOnly: true}
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: data
+        persistentVolumeClaim: {claimName: shop-data}
+      - name: src
+        configMap: {name: shop-src}
 ---
-# Pods cannot resolve any service names — all DNS lookups fail.
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: block-dns
-  namespace: k8smissions
-spec:
-  podSelector: {}
-  policyTypes:
-  - Egress
-  egress:
-  - ports:
-    - port: 80
-      protocol: TCP
----
-# PVC will remain Pending forever, blocking any pod that mounts it.
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: Service
 metadata:
-  name: p0-pvc
+  name: shop-web
   namespace: k8smissions
 spec:
-  accessModes:
-  - ReadWriteOnce
-  resources:
-    requests:
-      storage: 999Ti
-  storageClassName: standard
+  selector: {app: shop-web}
+  ports:
+  - {name: web, port: 80, targetPort: 8080}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: shop
+  namespace: k8smissions
+  annotations: {deploy/changed: "release 2026.11 ingress retargeting"}
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: shop.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: shop-web
+            port: {name: http}

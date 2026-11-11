@@ -1,1 +1,1 @@
-The cpu-hog pod will show extremely high CPU usage. Inspect its resource configuration: `kubectl describe pod -n k8smissions -l app=cpu-hog | grep -A10 Resource`
+A pod can hold several containers and each has its own `resources.limits`. A container with only a CPU request can burn as much idle CPU as the node has. Check which container is the heavy one and what its resources section says: `kubectl explain pod.spec.containers.resources.limits`.

@@ -1,1 +1,4 @@
-The `timeout: 15s` is too short for operations that take up to 120 seconds. Increase it to `timeout: 120s` and add a `retries` block with `attempts: 3`, `perTryTimeout: 30s`, and `retryOn: 5xx,reset,connect-failure` to handle transient failures.
+Edit the route timeout in the envoy-config ConfigMap to a value above 9s and below the point where a hang would take too long to cut off, then make Envoy load it:
+  kubectl edit configmap envoy-config
+  kubectl rollout restart deployment/invoice-render
+Afterwards check upstream_rq_timeout stops increasing.

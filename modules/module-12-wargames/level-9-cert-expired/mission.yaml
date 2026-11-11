@@ -1,16 +1,15 @@
 {
-  "name": "Mass Cert Expiry",
-  "description": "All kubectl commands are failing with `x509: certificate has expired or is not yet valid`. Cluster certificates expired on 2024-01-01 — over two years ago. The kubeconfig auth, API server TLS, and mutual TLS between cluster components are all broken. Until certs are renewed, the cluster is completely inaccessible.",
-  "objective": "A kubeconfig Secret contains an expired certificate annotation — update the annotation to mark it as renewed",
-  "xp": 400,
+  "name": "Certificates Past Their Date",
+  "description": "Calls from `gateway` to `ledger` fail with `x509: certificate has expired` and customers see HTTP 502 on `/balance`. The two services talk mutual TLS with certificates issued from the namespace's internal CA (Secret `internal-ca`) about a year ago for 90 days. The CA itself is fine.",
+  "objective": "`GET /balance` through Service `gateway` returns HTTP 200 from the ledger on every request, using mutual TLS with certificates that verify against the internal CA (verification stays on), and a client that presents no certificate is still refused by `ledger`.",
+  "xp": 300,
   "difficulty": "expert",
-  "expected_time": "20m",
-  "concepts": [
-    "TLS certificates",
-    "certificate rotation",
-    "kubeadm certs",
-    "mTLS"
-  ],
+  "expected_time": "25m",
+  "concepts": ["x509 expiry", "mutual TLS", "openssl x509 -req", "kubernetes.io/tls Secret", "subPath mounts"],
   "module": "module-12-wargames",
-  "level": "level-9-cert-expired"
+  "level": "level-9-cert-expired",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 200,
+  "cleanup": []
 }

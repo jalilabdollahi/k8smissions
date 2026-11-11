@@ -1,15 +1,101 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: web-with-init
+  name: ledger-db
+  namespace: k8smissions
+  annotations:
+    cost-saver/last-action: "scaled to 0 on Thursday 02:00"
+spec:
+  replicas: 0
+  selector:
+    matchLabels: {app: ledger-db}
+  template:
+    metadata:
+      labels: {app: ledger-db}
+    spec:
+      containers:
+      - name: db
+        image: busybox:1.36
+        command: ["sh", "-c", "echo ledger-db listening on 5432; exec nc -lk -p 5432 -e /bin/true"]
+        ports:
+        - containerPort: 5432
+        readinessProbe:
+          tcpSocket: {port: 5432}
+          periodSeconds: 2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-db
   namespace: k8smissions
 spec:
-  initContainers:
-  - name: wait-for-service
-    image: busybox:latest
-    command: ['sh', '-c', 'until nslookup backend-service.k8smissions.svc.cluster.local; do echo waiting; sleep 2; done']
-  containers:
-  - name: web
-    image: nginx:latest
-    ports:
-    - containerPort: 80
+  selector:
+    app: ledger-db
+  ports:
+  - port: 5432
+    targetPort: 5432
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ledger-web
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: ledger-web}
+  template:
+    metadata:
+      labels: {app: ledger-web}
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - |
+          until nc -z ledger-db 5432; do
+            echo "waiting for ledger-db:5432"
+            sleep 2
+          done
+          echo "ledger-db is up"
+      containers:
+      - name: web
+        image: python:3.12-alpine
+        command:
+        - python
+        - -c
+        - |
+          import socket
+          from http.server import BaseHTTPRequestHandler, HTTPServer
+          class H(BaseHTTPRequestHandler):
+              def do_GET(self):
+                  try:
+                      socket.create_connection(("ledger-db", 5432), timeout=2).close()
+                      body, code = b"ledger page\ndb: reachable\n", 200
+                  except OSError:
+                      body, code = b"ledger page\ndb: unreachable\n", 503
+                  self.send_response(code)
+                  self.end_headers()
+                  self.wfile.write(body)
+              def log_message(self, *a):
+                  pass
+          HTTPServer(("", 8080), H).serve_forever()
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ledger-web
+  namespace: k8smissions
+spec:
+  selector:
+    app: ledger-web
+  ports:
+  - port: 80
+    targetPort: 8080

@@ -1,1 +1,4 @@
-Check the app's database connection environment variables: `kubectl get deployment web-app -n k8smissions -o yaml | grep -A10 env`. Count the total possible connections: replicas × pool size.
+Compare what the pods ask for with what the database allows:
+  kubectl logs deploy/cart-api --tail=5
+  kubectl exec deploy/session-db -- python -c "import urllib.request as u;print(u.urlopen('http://127.0.0.1:8081/').read().decode())"
+Then check how a rolling update changes the number of pods that exist at once: kubectl get deploy cart-api -o jsonpath='{.spec.strategy}'

@@ -1,19 +1,14 @@
-## What went wrong
+# Reveal
 
-The init container mounts the volume at `/data` and writes the config file there. The main container also mounts at `/data` — but looks for the file at `/app/config/app.conf`. The file exists at `/data/app.conf`, not where the app expects it.
+The claim `uploads` is mounted at `/var/uploads`, but the app is configured with `DATA_DIR=/srv/uploads`, so uploads go to the container's own writable layer and disappear with the pod.
 
-## Fix
+1. Show the mismatch: `kubectl exec deploy/web-app -n k8smissions -- wget -qO- localhost:8080/status` reports `/srv/uploads`; `df` shows the volume only at `/var/uploads`.
+2. Make them agree, for example by moving the mount to the app's directory:
 
-In manifest.yaml, change mountPath in both the init container and the main container:
+   ```bash
+   kubectl patch deployment web-app -n k8smissions --type=json \
+     -p '[{"op":"replace","path":"/spec/template/spec/containers/0/volumeMounts/1/mountPath","value":"/srv/uploads"}]'
+   ```
 
-```yaml
-volumeMount:
-  name: config-volume
-  mountPath: /app/config
-```
-
-Apply this to both the initContainer and the main container's volumeMounts.
-
-## Why this matters
-
-A volume is just a directory that Kubernetes mounts at a path you choose. If the mount path does not match what the application expects, the files are invisible to the app — even though they are right there on the same volume.
+   (`kubectl set env deployment/web-app DATA_DIR=/var/uploads` works too.)
+3. Wait for the rollout, then upload a file, delete the pod and download it again.

@@ -1,1 +1,1 @@
-If you see no pods (or 0/0 ready), inspect the Deployment directly: `kubectl get deployment metrics-server -n k8smissions -o yaml | grep replicas`
+An API is addressed by group and version, and a 404 from the API server means the path does not exist. Compare the version the script puts in its URL (the script lives in ConfigMap `capacity-report`) with the version listed by `kubectl get apiservices`. `kubectl get --raw /apis/metrics.k8s.io` shows the versions the group offers.

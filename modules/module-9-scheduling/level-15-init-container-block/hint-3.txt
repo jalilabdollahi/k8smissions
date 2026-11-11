@@ -1,1 +1,1 @@
-The init container's command polls `non-existent-db-host` which doesn't exist. Change the command to `echo 'DB check skipped'; exit 0` to let the init phase complete successfully and unblock the main container.
+Lower the init container's own memory request so that it fits, but keep enough room for the migration: it holds roughly 550Mi in memory, so a limit under that will get it OOMKilled. A JSON patch on `/spec/template/spec/initContainers/0/resources/requests/memory` with `kubectl -n k8smissions patch deploy payments-migrator --type=json -p '[...]'` is enough.

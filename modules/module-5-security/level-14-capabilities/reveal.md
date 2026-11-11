@@ -1,22 +1,8 @@
-## What went wrong
+**Fix**
 
-Linux capabilities are fine-grained permissions that grant specific kernel-level privileges. `NET_BIND_SERVICE` is the one that allows binding to privileged ports (ports < 1024). When you drop ALL capabilities, you drop this one too. A non-root process without it gets `EACCES` (permission denied) when calling `bind(80)`.
+1. `kubectl -n k8smissions logs deploy/edge-nginx` shows the first failing operation; each partial fix shows the next (`chown`, `setgid(101)`, `bind() to 0.0.0.0:80 ... Permission denied`).
+2. Give back exactly the capabilities nginx uses as root: `CHOWN` (hand its temp directories to the worker user), `SETUID` and `SETGID` (drop to user `nginx`), `NET_BIND_SERVICE` (port 80).
+   `kubectl -n k8smissions patch deploy edge-nginx --type=json -p '[{"op":"add","path":"/spec/template/spec/containers/0/securityContext/capabilities/add","value":["CHOWN","SETUID","SETGID","NET_BIND_SERVICE"]}]'`
+3. `kubectl -n k8smissions rollout status deploy/edge-nginx`, then `kubectl -n k8smissions exec deploy/edge-nginx -- grep CapEff /proc/1/status` shows a small mask.
 
-## Fix
-
-Drop everything and add back only what's needed:
-
-```yaml
-securityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  capabilities:
-    drop:
-    - ALL
-    add:
-    - NET_BIND_SERVICE
-```
-
-## Why this matters
-
-This is the principle of least privilege applied to Linux capabilities. Rather than running as root (which implicitly has all capabilities), you: (1) drop all capabilities first, then (2) add back only the specific ones the process requires. This limits blast radius if the process is ever compromised — the attacker gets `NET_BIND_SERVICE` but not `SYS_ADMIN`, `CAP_NET_RAW`, `SYS_PTRACE`, and all the other dangerous capabilities. You can list available capabilities with `man 7 capabilities`.
+Keep `drop: ["ALL"]`; do not use `privileged: true`, and do not add `SYS_ADMIN`, `NET_ADMIN`, `NET_RAW` or `DAC_OVERRIDE`.

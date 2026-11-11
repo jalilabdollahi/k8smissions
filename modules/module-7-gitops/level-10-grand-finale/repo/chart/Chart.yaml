@@ -1,0 +1,5 @@
+apiVersion: v2
+name: grand-finale
+description: Customer-facing greeting service
+version: 2.3.0
+appVersion: "2.3.0"

@@ -1,1 +1,2 @@
-With 10 replicas and `DB_POOL_SIZE: 1`, the app has a maximum of 10 simultaneous database queries across the entire deployment. Any traffic spike beyond 10 concurrent DB operations causes requests to queue. No `DB_POOL_TIMEOUT` means queued requests wait indefinitely.
+Total connections = pods x pool size, and during a rolling update the Deployment briefly runs more pods than `replicas` (maxSurge), each opening its own pool before the old ones close theirs. The budget has to hold at the peak, not only in steady state. You can lower the pool, or change how many extra pods exist during an update, but the replica count is not up for discussion.
+See: kubectl explain deployment.spec.strategy.rollingUpdate

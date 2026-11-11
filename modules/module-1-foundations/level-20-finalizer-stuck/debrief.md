@@ -1,16 +1,25 @@
-# The Undeletable Object
+## What was broken
 
-## What Was Broken
-The ConfigMap had a custom finalizer `custom.operator.io/cleanup`. Kubernetes deletion is two-phase: mark with `deletionTimestamp`, then wait for all finalizers to be cleared. If the owning controller is gone, the object is stuck forever.
+ConfigMap `export-lock` had been deleted, but carried a finalizer, `backup.acme.io/release`, placed by a backup operator. The operator was uninstalled, so the cleanup it was supposed to perform, and the removal of its finalizer, never happened. The object stayed in `Terminating` with its old data, and its name stayed taken, so creating a new `export-lock` failed.
 
-## The Fix
-Manually patch the finalizers to empty: `kubectl patch configmap stuck-config -n k8smissions -p '{"metadata":{"finalizers":[]}}' --type=merge`. Kubernetes then completes the deletion.
+## The evidence
 
-## Why It Matters
-Finalizers prevent accidental deletion of objects with downstream dependencies. Common examples: `kubernetes.io/pvc-protection` on PVCs prevents deletion while pods still mount them. Stuck namespaces (Terminating forever) are almost always caused by finalizers on objects inside them.
+`kubectl get configmap export-lock -o yaml` showed `metadata.deletionTimestamp` (the delete was requested) and `metadata.finalizers` with the operator's key. `kubectl delete` and `kubectl delete --force --grace-period=0` printed success and changed nothing, and `kubectl create` said the object already exists or is being deleted.
 
-## Pro Tip
-A stuck namespace is hard to debug with `kubectl get all`. Use: `kubectl api-resources --verbs=list --namespaced -o name | xargs -I{} kubectl get {} -n <ns> 2>/dev/null` to list every object type.
+## Why Kubernetes behaved this way
 
-## Concepts
-finalizers, deletionTimestamp, garbage collection, object lifecycle, kubectl patch
+Deleting an object that has finalizers only sets `deletionTimestamp`. The object is kept until every finalizer has been removed, which is how controllers get a chance to release external resources first. Force and grace period concern pods and the kubelet; they do not bypass finalizers. If the controller is gone, the object waits forever.
+
+## The fix
+
+Confirm the finalizer's owner no longer exists and that nothing external needs releasing, then clear it: `kubectl patch configmap export-lock --type=merge -p '{"metadata":{"finalizers":null}}'`. The object vanishes immediately and a new `export-lock` with `owner=billing` can be created.
+
+## In production
+
+Removing a finalizer by hand is a last resort: whatever the controller would have cleaned up (volumes, DNS records, cloud resources) is left behind. Uninstall operators in the right order: delete their custom resources first, then the operator. The same pattern explains namespaces stuck in `Terminating`.
+
+## Commands worth remembering
+
+- `kubectl get <kind> <name> -o jsonpath='{.metadata.finalizers}'`
+- `kubectl patch <kind> <name> --type=merge -p '{"metadata":{"finalizers":null}}'`
+- `kubectl get all,cm -A | grep Terminating`

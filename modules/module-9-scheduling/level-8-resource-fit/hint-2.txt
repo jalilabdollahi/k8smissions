@@ -1,1 +1,1 @@
-The events should say 'Insufficient memory' on all nodes. Check each node's allocatable memory: `kubectl describe node | grep -E 'Name:|memory'`. Compare against the pod's `resources.requests.memory`.
+The scheduler places a pod on one node, so it needs a single node with enough unreserved CPU, not enough in total across the cluster. It also counts requests, never real usage. Work out how many replicas of this size one worker can hold. `kubectl explain pod.spec.containers.resources.requests`.

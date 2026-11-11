@@ -1,7 +1,11 @@
-# Common Mistakes — Label Not Found
+## Searching only the Deployment
 
-## Mistake 1: Adding a wrong label to a node
+The manifest is internally consistent: the pod is asking for something reasonable. The mismatch is between the manifest and a node label, so look at both sides.
 
-**Wrong approach:** Labeling node with accelerator-type=nvidia-a100 when pod wants v100 — still no match
+## Relabelling the HDD node as `ssd`
 
-**Correct approach:** Labels must match exactly including the value; check both key AND value
+Both nodes then match, pods spread across them, and half of the model weights end up on a slow disk. The check requires the disk labels to describe the real hardware.
+
+## Deleting the whole affinity block
+
+Pods schedule anywhere, including the HDD worker, and the disk requirement is lost. If you edit the pod side, keep the disk requirement and drop only what is not true any more.

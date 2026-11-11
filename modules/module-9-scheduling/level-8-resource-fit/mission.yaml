@@ -1,17 +1,15 @@
 {
-  "name": "No Room",
-  "description": "A pod is stuck in Pending despite the cluster appearing to have capacity. The resource request is the problem — the pod asks for 100Gi of memory, which exceeds what any single node can provide. Kubernetes must schedule a pod entirely on one node; it cannot split a pod across nodes.",
-  "objective": "The pod requests more memory than any single node can provide — reduce requests to fit within available node capacity",
-  "xp": 275,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "resource requests",
-    "node capacity",
-    "allocatable",
-    "scheduling",
-    "bin packing"
-  ],
+  "name": "Room for Two and a Half",
+  "description": "`video-encoder` was scaled to 3 replicas for tonight's premiere, but one replica is stuck Pending with `Insufficient cpu`. The capacity dashboard shows the two workers well under half used and the team's spreadsheet says three pods fit with room to spare, so the on-call suspects a scheduler bug.",
+  "objective": "All 3 `video-encoder` replicas are Running, spread over both worker nodes and none on the control plane, and each still requests a meaningful amount of CPU (not zero or a token amount).",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "12m",
+  "concepts": ["resource requests", "allocatable", "bin packing", "fragmentation", "kubectl set resources"],
   "module": "module-9-scheduling",
-  "level": "level-8-resource-fit"
+  "level": "level-8-resource-fit",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 150,
+  "cleanup": []
 }

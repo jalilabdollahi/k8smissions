@@ -1,72 +1,75 @@
 #!/bin/bash
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
 
-NAMESPACE="k8smissions"
-POD_NAME="regular-app"
-NODE_NAME="kind-control-plane"
-
-echo "🔍 VALIDATION STAGE 1: Checking if node is tainted..."
-NODE_TAINTS=$(kubectl get node $NODE_NAME -o jsonpath='{.spec.taints[?(@.key=="dedicated")]}')
-if [ -z "$NODE_TAINTS" ]; then
-    echo "⚠️  Node not tainted yet. Applying taint..."
-    kubectl taint nodes $NODE_NAME dedicated=gpu:NoSchedule --overwrite
-    echo "✅ Node tainted: dedicated=gpu:NoSchedule"
-else
-    echo "✅ Node has taint: dedicated=gpu"
+pool=$(kubectl get nodes -l pool=etl -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+if [ -z "$pool" ]; then
+  echo "❌ no node carries the label pool=etl"
+  exit 1
 fi
 
-echo ""
-echo "🔍 VALIDATION STAGE 2: Checking if pod exists..."
-if ! kubectl get pod $POD_NAME -n $NAMESPACE &>/dev/null; then
-    echo "❌ FAILED: Pod '$POD_NAME' not found"
+# the fence must stay: both taints, effect NoSchedule
+taints=$(kubectl get node "$pool" -o jsonpath='{range .spec.taints[*]}{.key}={.value}:{.effect}{" "}{end}')
+for t in dedicated=etl:NoSchedule team=data:NoSchedule; do
+  if ! echo " $taints " | grep -q " $t "; then
+    echo "❌ the pool node lost its taint $t"
     exit 1
-fi
-echo "✅ Pod exists"
+  fi
+done
+echo "✅ the pool node keeps both of its taints"
 
-echo ""
-echo "🔍 VALIDATION STAGE 3: Checking if pod is Running (not Pending)..."
-POD_STATUS=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.status.phase}')
-if [ "$POD_STATUS" = "Pending" ]; then
-    echo "❌ FAILED: Pod is still Pending"
-    echo "💡 Hint: Check pod events: kubectl describe pod $POD_NAME -n $NAMESPACE"
-    echo "💡 Hint: Pod needs toleration matching node taint"
-    exit 1
+# no blanket tolerations
+if k get deploy etl-runner -o jsonpath='{range .spec.template.spec.tolerations[*]}{.key}{"|"}{.operator}{"\n"}{end}' | grep -q -e '^|Exists$' -e '^|$'; then
+  echo "❌ etl-runner tolerates every taint; tolerate only the two that fence the pool"
+  exit 1
 fi
-if [ "$POD_STATUS" != "Running" ]; then
-    echo "❌ FAILED: Pod is in '$POD_STATUS' state"
-    exit 1
+
+if [ "$(k get deploy etl-runner -o jsonpath='{.spec.replicas}' 2>/dev/null)" != "2" ] || \
+   [ "$(k get deploy web-frontend -o jsonpath='{.spec.replicas}' 2>/dev/null)" != "2" ]; then
+  echo "❌ etl-runner and web-frontend must keep 2 replicas each"
+  exit 1
 fi
-echo "✅ Pod is Running"
-
-echo ""
-echo "🔍 VALIDATION STAGE 4: Verifying pod has tolerations configured..."
-TOLERATIONS=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.tolerations}')
-if [ -z "$TOLERATIONS" ] || [ "$TOLERATIONS" = "null" ]; then
-    echo "❌ FAILED: No tolerations configured on pod"
-    echo "💡 Hint: Add tolerations to spec.tolerations"
-    exit 1
+if ! k rollout status deploy/etl-runner --timeout=40s >/dev/null 2>&1; then
+  echo "❌ etl-runner: $(k get deploy etl-runner -o jsonpath='{.status.readyReplicas}')/2 pods Ready"
+  exit 1
 fi
-echo "✅ Tolerations are configured"
-
-echo ""
-echo "🔍 VALIDATION STAGE 5: Checking toleration matches taint..."
-TOLERATION_KEY=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.tolerations[?(@.key=="dedicated")].key}')
-if [ "$TOLERATION_KEY" != "dedicated" ]; then
-    echo "❌ FAILED: Toleration key doesn't match taint key 'dedicated'"
-    echo "💡 Hint: Toleration key must match taint key exactly"
-    exit 1
+on_pool=$(k get pods -l app=etl-runner --field-selector=status.phase=Running -o jsonpath='{range .items[*]}{.spec.nodeName}{"\n"}{end}' | grep -c "^$pool\$")
+if [ "$on_pool" -ne 2 ]; then
+  echo "❌ only $on_pool of 2 etl-runner pods run on the pool node"
+  exit 1
 fi
-echo "✅ Toleration key matches taint"
+echo "✅ both etl-runner pods run on the pool node"
 
-echo ""
-echo "🔍 VALIDATION STAGE 6: Verifying pod scheduled on tainted node..."
-SCHEDULED_NODE=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.nodeName}')
-echo "✅ Pod scheduled on node: $SCHEDULED_NODE"
+if ! k rollout status deploy/web-frontend --timeout=30s >/dev/null 2>&1; then
+  echo "❌ web-frontend is not fully rolled out"
+  exit 1
+fi
+if k get pods -l app=web-frontend -o jsonpath='{range .items[*]}{.spec.nodeName}{"\n"}{end}' | grep -q "^$pool\$"; then
+  echo "❌ a web-frontend pod runs on the pool node"
+  exit 1
+fi
 
-echo ""
-echo "🎉 SUCCESS! Pod tolerates node taint and is running!"
-echo ""
-echo "Taint details:"
-kubectl get node $SCHEDULED_NODE -o jsonpath='{.spec.taints[?(@.key=="dedicated")]}' | jq '.'
-echo ""
-echo "Toleration details:"
-kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.tolerations[?(@.key=="dedicated")]}' | jq '.'
+# the fence still works for newcomers: a pod pinned to the pool without tolerations must stay Pending
+k delete pod fence-check --ignore-not-found --wait=true >/dev/null 2>&1
+k apply -f - >/dev/null <<EOP
+apiVersion: v1
+kind: Pod
+metadata:
+  name: fence-check
+spec:
+  terminationGracePeriodSeconds: 0
+  nodeSelector: {pool: etl}
+  containers:
+  - name: c
+    image: registry.k8s.io/pause:3.9
+EOP
+sleep 6
+sched=$(k get pod fence-check -o jsonpath='{.status.conditions[?(@.type=="PodScheduled")].status}')
+k delete pod fence-check --wait=false >/dev/null 2>&1
+if [ "$sched" = "True" ]; then
+  echo "❌ an untolerating pod was scheduled onto the pool: the fence is gone"
+  exit 1
+fi
+echo "✅ web-frontend stays off the pool and untolerating pods are still refused"
+exit 0
+exit 1

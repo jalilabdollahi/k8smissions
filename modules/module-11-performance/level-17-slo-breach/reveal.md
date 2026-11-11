@@ -1,25 +1,7 @@
-## What went wrong
+**Cause.** The Deployment has only a liveness probe (`/live`, every 10s, `failureThreshold: 10`), so a wedged pod is restarted after about 100 seconds, and there is no readiness probe, so for those 100 seconds the pod stays in the Service endpoints and takes a quarter of the traffic, which hangs.
 
-`failureThreshold: 10` × `periodSeconds: 10` = 100 seconds before the container is restarted. At 99.9% availability, the monthly error budget is 43.8 minutes. Even a single incident consuming 100 seconds of downtime eats ~3.8% of the monthly budget. Multiple incidents per month quickly exhaust it.
+**Fix.** Add readiness (removes the pod from the endpoints within a couple of seconds) and shorten liveness (restarts it soon after), but not to a single failure: the app's `/live` is slow about one time in eight, so `failureThreshold: 1` restarts healthy pods.
 
-## Fix
-
-```yaml
-livenessProbe:
-  httpGet:
-    path: /health/live
-    port: 8080
-  initialDelaySeconds: 5
-  periodSeconds: 10
-  failureThreshold: 3
-```
-
-Detection-to-restart time: 3 × 10s = 30 seconds maximum.
-
-## Why this matters
-
-Liveness probe tuning directly impacts availability SLO compliance:
-- `failureThreshold: 3, periodSeconds: 10` → max 30s to detect and restart
-- `failureThreshold: 10, periodSeconds: 10` → max 100s to detect and restart
-
-The right `failureThreshold` depends on your workload. Too low (1–2) causes false-positive restarts on transient GC pauses or slow responses. Too high (10+) delays recovery from real crashes. Three is a common production default: it tolerates a single missed check without restarting, but acts quickly on sustained failures. Remember: liveness probes kill and restart containers — readiness probes (level 6) stop traffic routing. Use both together.
+    kubectl patch deployment ledger-api -n k8smissions --type=json -p '[
+      {"op":"add","path":"/spec/template/spec/containers/0/readinessProbe","value":{"httpGet":{"path":"/ready","port":8080},"periodSeconds":1,"timeoutSeconds":1,"failureThreshold":2}},
+      {"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe","value":{"httpGet":{"path":"/live","port":8080},"periodSeconds":5,"timeoutSeconds":1,"failureThreshold":3}}]'

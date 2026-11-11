@@ -1,1 +1,1 @@
-Check what's missing: `kubectl get pods,services -n k8smissions`. Then look at why the app pods are NotReady: `kubectl describe pod -n k8smissions -l app=app-server | grep -A10 Readiness`
+The app blames the database, but check whether the database pod exists in a usable state first: `kubectl -n k8smissions get pods -o wide` and `kubectl -n k8smissions describe pod ledger-db-0` (read the Events at the bottom). Then follow a request from `ledger-app` to the data: Service, endpoints, policy.

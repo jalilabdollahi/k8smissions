@@ -1,7 +1,1 @@
-The init container is running `nslookup backend-service.k8smissions.svc.cluster.local` in a loop. It will only exit when that DNS name resolves.
-
-Check if that Service exists:
-
-  kubectl get services -n k8smissions
-
-Is `backend-service` there?
+The init container is waiting for something that is not the pod's own business: another Service. Check whether that Service has anything behind it with `kubectl get endpoints <name>`, then look at the workload that should be providing it (`kubectl get deployment`, and `kubectl describe` on it).

@@ -1,34 +1,7 @@
-## What went wrong
+Three faults, each hiding the next:
 
-A `deny-all` NetworkPolicy with `podSelector: {}` and `policyTypes: [Ingress, Egress]` but no `ingress` or `egress` rules blocks all traffic for all pods in the namespace. This includes DNS queries (UDP port 53) — without DNS, even internal service names can't resolve. The namespace is completely isolated.
+1. Egress is restricted to peers on 8080 with no DNS rule, so members cannot resolve `kv-N.kv-peers...`. Add an egress rule to the `kube-dns` pods in `kube-system` on port 53 (UDP and TCP).
+2. Members gossip on 9000 but the policy only admits 8080 in both directions. Add port 9000 to the ingress rule from `app: kv` and to the egress rule to `app: kv`. Do not open 9000 to clients.
+3. A Ready pod is one that sees a quorum, and a headless Service only publishes Ready pods in DNS, so no member can ever see another: a bootstrap deadlock. `kubectl patch svc kv-peers --type=merge -p '{"spec":{"publishNotReadyAddresses":true}}'`.
 
-## Fix
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: allow-frontend-to-backend
-  namespace: k8smissions
-spec:
-  podSelector:
-    matchLabels:
-      app: backend
-  policyTypes:
-  - Ingress
-  ingress:
-  - from:
-    - podSelector:
-        matchLabels:
-          app: frontend
-```
-
-Note: you may also need to add an egress allow rule for DNS (port 53 UDP/TCP) to the deny-all or a separate policy.
-
-## Why this matters
-
-NetworkPolicy rules are additive: multiple policies apply with OR logic. The `deny-all` baseline is the right starting point (zero-trust network posture), but it must be followed immediately by targeted allow rules for legitimate traffic. Key patterns:
-1. **DNS egress**: always allow egress on UDP/TCP port 53 to kube-dns, or pods can't resolve any names
-2. **Namespace-scoped**: NetworkPolicies apply only within their namespace
-3. **No 'deny' rules**: NetworkPolicy is whitelist-only — once any policy applies to a pod, all non-matched traffic is denied
-4. **Test with netpol-editor or Cilium editor** before applying to production
+Deleting the policy restores quorum, but the `intruder` pod could then reach the store; the validator keeps that closed.

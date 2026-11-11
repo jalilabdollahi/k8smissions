@@ -1,1 +1,1 @@
-Check what image is currently running: `kubectl get pods -n k8smissions -o yaml | grep image`. Then look at the values file structure in the manifest, specifically the `image` block.
+Look at the image the new pods try to pull: `kubectl -n k8smissions describe pod -l app=search | grep -i image`. Then compare it with the tag written in `values-prod.yaml` (clone the `search` repository from the Git server) and with what Helm stored: `helm -n k8smissions get manifest search | grep image:`.

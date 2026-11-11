@@ -1,23 +1,5 @@
-## What went wrong
+1. **Dead backend address.** The `config-guard` Service has no selector and a hand-written Endpoints object pointing at `192.0.2.10`, an address nobody answers on, so every ConfigMap create waits for the 10 s webhook timeout and then fails (`failurePolicy: Fail`). Add `selector: app=config-guard` to the Service and delete the stale Endpoints.
+2. **Wrong caBundle.** Once the backend is reachable, creates fail fast with `x509: certificate signed by unknown authority`: the webhook's `caBundle` is another CA's certificate. The right one is key `ca.crt` of Secret `config-guard-tls`; patch the webhook with that base64.
+3. **A noisy client.** `inventory-sync` polls every 10 ms (about 200 API requests a second). `kubectl set env deploy/inventory-sync POLL_INTERVAL_MS=30000`.
 
-The `api-watcher` Deployment was accidentally scaled to 50 replicas. Each pod maintains a persistent HTTP/2 watch stream to the API server. 50 concurrent watch connections from a single application, combined with controllers, operators, and monitoring tools, overwhelms the API server's connection queue. All operations slow down or time out.
-
-## Fix
-
-```yaml
-spec:
-  replicas: 2
-```
-
-## Why this matters
-
-The Kubernetes API server is a centralized bottleneck — every kubectl command, every controller reconciliation, and every watch connection goes through it. API server load is dominated by:
-- **Watch connections**: each connection holds an HTTP/2 stream open, consuming memory and goroutines
-- **List operations**: full list scans are expensive — prefer watches
-- **Admission webhooks**: each mutating/validating webhook adds an API server outbound call
-
-Protections:
-1. **ResourceQuota `count/pods`**: cap maximum pod count per namespace
-2. **HPA maxReplicas**: prevent accidental scale-out beyond sensible limits
-3. **API priority and fairness (APF)**: Kubernetes APF queues and rate-limits requests by priority class, preventing one actor from starving others
-4. **Monitoring**: alert on `apiserver_request_duration_seconds_p99 > 1s`
+Deleting the webhook makes creates fast but removes the policy: the validator creates a ConfigMap labelled `unreviewed=true` and expects `config-guard`'s refusal.

@@ -1,1 +1,1 @@
-Use `kubectl top` to see which pod is consuming the most CPU right now: `kubectl top pods -n k8smissions`
+`kubectl top pod` reports one number for the whole pod. Ask for a finer view: `kubectl -n k8smissions top pod --sort-by=cpu --containers` (metrics take about a minute to appear on a fresh cluster, so retry if it says metrics are not available).

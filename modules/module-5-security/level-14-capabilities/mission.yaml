@@ -1,17 +1,15 @@
 {
-  "name": "Capability Gap",
-  "description": "A network utility pod needs to listen on port 80, but it exits immediately with 'permission denied' when trying to bind to the socket. The pod correctly runs as a non-root user — but in dropping all Linux capabilities for security, it also dropped the one capability that non-root processes need to bind to ports below 1024.",
-  "objective": "The container lacks the NET_BIND_SERVICE capability — add it to the container securityContext",
+  "name": "Drop All, Break All",
+  "description": "A hardening sweep added `capabilities: drop: [\"ALL\"]` to `edge-nginx`, the public entry point of the shop. Since the rollout the pod crash-loops. The security team wants `drop: [\"ALL\"]` kept, because it is the baseline for every workload, and the last two engineers who tried a quick fix each got a different error from nginx.",
+  "objective": "`edge-nginx` is Ready and answers on Service `edge-nginx` without restarts, while its container still drops ALL capabilities and runs unprivileged: the process holds only a few capabilities and none of the dangerous ones.",
   "xp": 200,
   "difficulty": "advanced",
   "expected_time": "12m",
-  "concepts": [
-    "securityContext",
-    "capabilities",
-    "NET_BIND_SERVICE",
-    "privileged ports",
-    "Linux capabilities"
-  ],
+  "concepts": ["Linux capabilities", "securityContext.capabilities", "drop ALL", "CapEff", "privileged"],
   "module": "module-5-security",
-  "level": "level-14-capabilities"
+  "level": "level-14-capabilities",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 120,
+  "cleanup": []
 }

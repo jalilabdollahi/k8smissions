@@ -1,13 +1,11 @@
-# Common Mistakes — The Orphan
+## Deleting the v1 pods
 
-## Mistake 1: Deleting pods individually
+The ownerless ReplicaSet still wants three replicas and creates new `v1` pods at once. You are removing the symptom, not the controller.
 
-**Wrong approach:** Deleting each pod one by one — the ReplicaSet immediately recreates them
+## Scaling the old ReplicaSet to zero
 
-**Correct approach:** Delete the ReplicaSet itself; it cascades and removes pods
+The traffic stops, but the ReplicaSet stays behind with no owner, ready to be scaled up again by mistake. The check requires the clutter to be gone.
 
-## Mistake 2: Scaling RS to 0 instead of deleting
+## Deleting the new Deployment's ReplicaSet
 
-**Wrong approach:** kubectl scale rs legacy-app-7d8f9 --replicas=0 hides the problem but keeps the RS
-
-**Correct approach:** Delete the RS entirely to truly remove it from the cluster
+Deployment `checkout` simply recreates it. Check the `OWNER` column first: the one without an owner is the ghost.

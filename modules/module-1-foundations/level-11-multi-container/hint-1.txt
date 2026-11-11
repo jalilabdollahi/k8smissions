@@ -1,5 +1,1 @@
-READY shows something like 1/2 — one container is running, the other keeps crashing. Find out which one:
-
-  kubectl describe pod app-with-logging -n k8smissions
-
-In the Containers section, which container has Restart Count > 0?
+`1/2` means one container of each pod is not Ready. `kubectl -n k8smissions describe pod <pod>` shows a state per container, and `kubectl logs` needs `-c <container>` to pick one. Read what the failing container says before it exits.

@@ -1,1 +1,2 @@
-The value `2147483648` is 2GB. etcd is refusing writes because it has hit this hard limit. You can verify by checking etcd health: `kubectl exec -n kube-system etcd-<node> -- etcdctl endpoint status --write-out=table`
+Two jobs here, and only doing one leaves the problem to come back. First, the exporter already tries to delete its old results; compare the label it puts on the ConfigMaps it creates with the label it searches for when it cleans up. Second, the old pile has to go, but check which ConfigMaps pods still mount before you delete anything by label (`kubectl get pods -o yaml | grep -B2 -A3 configMap`).
+See: kubectl delete --help (selectors, --field-selector)

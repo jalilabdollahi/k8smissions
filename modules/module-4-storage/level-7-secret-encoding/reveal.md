@@ -1,27 +1,13 @@
-## What went wrong
+# Reveal
 
-Nothing is broken — the pod works. The issue is a common misconception: base64 is NOT encryption. The Secret value `c2VjcmV0cGFzczEyMw==` decodes instantly to `secretpass123`. Anyone with `kubectl get secret` access can read every Secret in the namespace.
+The Secret's `password` was generated with `echo`, which appends a newline, so the stored value is `Ledg3r-9fQ2x\n` (13 bytes). The app compares the exact bytes.
 
-## The safer way to write Secrets
+1. Show the stray byte: `kubectl get secret db-credentials -n k8smissions -o jsonpath='{.data.password}' | base64 -d | od -c` ends with `\n`.
+2. Rewrite the value without it (`--from-literal` never adds a newline):
 
-Use `stringData` so you do not manually base64-encode values:
-
-```yaml
-apiVersion: v1
-kind: Secret
-type: Opaque
-metadata:
-  name: db-credentials
-  namespace: k8smissions
-stringData:
-  username: admin
-  password: secretpass123
-```
-
-Kubernetes base64-encodes it for storage. The values are still readable by anyone with access.
-
-## Real security requires
-
-- RBAC that restricts which ServiceAccounts can `get` Secrets
-- Encryption at rest (enabled at the cluster level via EncryptionConfiguration)
-- External secrets managers (HashiCorp Vault, AWS Secrets Manager via External Secrets Operator)
+   ```bash
+   kubectl create secret generic db-credentials -n k8smissions \
+     --from-literal=username=ledger --from-literal=password=Ledg3r-9fQ2x \
+     --dry-run=client -o yaml | kubectl apply -f -
+   ```
+3. Restart the pod so it re-reads the file immediately (`kubectl rollout restart deployment/db-client -n k8smissions`); a mounted Secret would otherwise refresh on its own within about a minute.

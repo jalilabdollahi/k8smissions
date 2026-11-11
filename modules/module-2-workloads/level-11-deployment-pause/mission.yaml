@@ -1,16 +1,15 @@
 {
-  "name": "Frozen Rollout",
-  "description": "A new image was applied to Deployment frontend but no new pods are being created. The rollout appears completely frozen — kubectl get pods shows only old pods. Run kubectl rollout status deployment/frontend -n k8smissions.",
-  "objective": "The Deployment has spec.paused set to true — resume it so the rollout can proceed",
+  "name": "Three Days in the Queue",
+  "description": "Product says the new cart (build 2.4, behind `FEATURE_NEW_CART`) shipped on Monday. Customers still see the old cart. Deployment `frontend` shows the new settings when you read its spec, `rollout status` just sits there, and an attempt to roll anything back was refused. A debug pod `probe` with curl is available.",
+  "objective": "Deployment `frontend` has 3 of 3 replicas updated and available on its current spec, and Service `frontend` answers every request with the new build: `version=2.4 cart=on`.",
   "xp": 150,
-  "difficulty": "beginner",
-  "expected_time": "6m",
-  "concepts": [
-    "Deployment",
-    "rollout pause",
-    "resume",
-    "rolling update"
-  ],
+  "difficulty": "intermediate",
+  "expected_time": "10m",
+  "concepts": ["rollout pause", "rollout resume", "rollout undo", "pod template"],
   "module": "module-2-workloads",
-  "level": "level-11-deployment-pause"
+  "level": "level-11-deployment-pause",
+  "requires": [],
+  "settle_seconds": 10,
+  "solve_timeout": 120,
+  "cleanup": []
 }

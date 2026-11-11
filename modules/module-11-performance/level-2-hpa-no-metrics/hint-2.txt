@@ -1,1 +1,2 @@
-Check if the HPA has a `behavior` section: `kubectl get hpa my-hpa -n k8smissions -o yaml | grep -A20 behavior`. Without it, Kubernetes uses its default aggressive scale-down policy.
+CPU utilisation is a percentage of the CPU *request*, and for a pod with several containers the HPA adds up every container. Every container the HPA sums must have a request, or no percentage exists. `kubectl top` working only proves metrics-server works; it does not prove the pod can be averaged. There is also a metric type that looks at a single container.
+See: kubectl explain hpa.spec.metrics.containerResource

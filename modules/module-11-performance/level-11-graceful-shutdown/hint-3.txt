@@ -1,1 +1,5 @@
-Increase `terminationGracePeriodSeconds` to `60`. Add a `lifecycle.preStop.exec` hook that runs `sleep 10` — this delays SIGTERM for 10 seconds, giving the load balancer time to stop routing traffic to the pod before the app starts shutting down.
+Make the worker PID 1 and give it time to finish its longest clip:
+  kubectl patch deployment video-transcoder --type=json -p '[
+    {"op":"replace","path":"/spec/template/spec/containers/0/command","value":[<run the worker directly, no shell>]},
+    {"op":"replace","path":"/spec/template/spec/terminationGracePeriodSeconds","value":<longer than the longest clip>}]'
+(`exec <program>` inside a shell wrapper is the other way to get the same PID 1.)

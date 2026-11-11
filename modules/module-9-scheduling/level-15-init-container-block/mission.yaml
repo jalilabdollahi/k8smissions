@@ -1,16 +1,15 @@
 {
-  "name": "Init Loop",
-  "description": "The main application container never starts. The pod has been stuck in `Init` state for over an hour. An init container is polling a database host that doesn't exist — so the connectivity check loops forever, and the main container waits indefinitely for the init phase to complete.",
-  "objective": "An init container is failing and retrying — fix the init container command so it exits 0 and allows the main container to start",
-  "xp": 300,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "init containers",
-    "InitCrashLoopBackOff",
-    "pod phases",
-    "sequencing"
-  ],
+  "name": "The Init Container That Asks for Too Much",
+  "description": "`payments-migrator` applies the schema migration before the payments release. Its pod is Pending with `Insufficient memory` on both workers, yet the app container asks for only 200Mi and each worker has about 1Gi unreserved. Someone already halved the app container's request and nothing changed.",
+  "objective": "Deployment `payments-migrator` has its pod Running and Ready on a worker, the `db-migrate` init container has completed and logged `migrated 214 tables`, and the init container is still allowed enough memory to run the migration.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["init containers", "effective pod requests", "FailedScheduling", "OOMKilled", "pod.spec.initContainers.resources"],
   "module": "module-9-scheduling",
-  "level": "level-15-init-container-block"
+  "level": "level-15-init-container-block",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 180,
+  "cleanup": []
 }

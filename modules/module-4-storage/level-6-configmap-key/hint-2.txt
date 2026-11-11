@@ -1,5 +1,4 @@
-The Events say something like 'key database_host not found in configmap app-config'. Check what keys the ConfigMap actually has:
+The configMap volume only exposes the keys you select with items, each mapped to a file name (path). The kubelet fails the mount when a selected key is not in the ConfigMap.
 
   kubectl get configmap app-config -n k8smissions -o yaml
-
-Compare those keys with what the pod's env section references.
+  kubectl explain pod.spec.volumes.configMap.items

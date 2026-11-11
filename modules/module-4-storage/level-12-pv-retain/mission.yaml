@@ -1,17 +1,15 @@
 {
-  "name": "Deleted Data",
-  "description": "PV db-data-pv exists and is currently Available. A new team is about to bind a PVC to it, but a senior engineer noticed a dangerous setting before any data was written. Run kubectl get pv db-data-pv -o yaml.",
-  "objective": "The PV has reclaimPolicy: Delete — change it to Retain so data survives PVC deletion",
+  "name": "Billing Data Left Behind",
+  "description": "The old billing-v1 namespace was deleted during a cleanup, and the billing service has been redeployed in k8smissions. The 2024 ledger is still on disk: the platform team kept its PersistentVolume, billing-pv, on purpose. But the new claim billing-data has been Pending since the redeploy, billing-reader cannot start, and finance is waiting for the 2024 numbers.",
+  "objective": "PVC billing-data is Bound to the existing PersistentVolume billing-pv, which keeps its Retain policy, and Service billing-reader serves ledger-2024.db from it. The volume is never deleted.",
   "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "PersistentVolume",
-    "reclaimPolicy",
-    "Retain",
-    "Delete",
-    "data safety"
-  ],
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["PV Released phase", "claimRef", "Retain", "static binding"],
   "module": "module-4-storage",
-  "level": "level-12-pv-retain"
+  "level": "level-12-pv-retain",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

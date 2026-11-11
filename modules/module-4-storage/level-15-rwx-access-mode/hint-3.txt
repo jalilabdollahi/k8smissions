@@ -1,7 +1,8 @@
-Change `ReadWriteOnce` to `ReadWriteMany` in the PVC's accessModes in manifest.yaml.
+Replace the claim with a single-writer one (access modes cannot be edited on an existing claim), and change how the Deployment replaces pods so that the old one stops first:
 
-Since you cannot update accessModes on a bound PVC, you will need to delete the existing PVC first:
-
+  kubectl patch deployment ingest -n k8smissions --type=merge \
+    -p '{"spec":{"strategy":{"type":"<strategy>","rollingUpdate":null}}}'
   kubectl delete pvc shared-pvc -n k8smissions
+  # apply a claim named shared-pvc with accessModes: ["<single-writer mode>"]
 
-Then apply the updated manifest.
+Do not delete ingest-data: it holds v1's first batch. If deleting shared-pvc hangs, a Pending pod still references it.

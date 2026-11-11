@@ -7,13 +7,23 @@ spec:
   paused: true
   replicas: 3
   selector:
-    matchLabels:
-      app: frontend
+    matchLabels: {app: frontend}
   template:
     metadata:
-      labels:
-        app: frontend
+      labels: {app: frontend}
     spec:
       containers:
-      - name: frontend
-        image: nginx:1.25
+      - name: web
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - mkdir -p /www && echo "version=$APP_VERSION cart=$FEATURE_NEW_CART" > /www/index.html && exec httpd -f -p 8080 -h /www
+        env:
+        - {name: APP_VERSION, value: "2.4"}
+        - {name: FEATURE_NEW_CART, value: "on"}
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 2

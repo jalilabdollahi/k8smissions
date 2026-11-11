@@ -1,1 +1,1 @@
-The HPA has `minReplicas: 10` and `maxReplicas: 3`. This is logically impossible — the minimum cannot exceed the maximum. Kubernetes rejects this configuration and the HPA cannot reconcile.
+Edit `manifests/hpa.yaml` in a clone of the `reports` repository: `minReplicas` must not exceed `maxReplicas`, and `spec.scaleTargetRef.name` must be the exact name of the Deployment (`kubectl -n k8smissions get deploy`). Commit, push, then `kubectl -n argocd annotate app reports argocd.argoproj.io/refresh=hard --overwrite`.

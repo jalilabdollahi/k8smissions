@@ -1,315 +1,693 @@
-# In production this scales to hundreds. Each pod counts against the namespace
-# ResourceQuota (pods: 100). When quota is exhausted, legitimate Deployments
-# cannot create new pods — they show "forbidden: exceeded quota" in events.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ci
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ci-bot
+  namespace: ci
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: job-manager
+  namespace: ci
+rules:
+- apiGroups: ["batch"]
+  resources: ["jobs"]
+  verbs: ["get", "list", "create", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ci-bot-jobs
+  namespace: ci
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: Role, name: job-manager}
+subjects:
+- {kind: ServiceAccount, name: ci-bot, namespace: ci}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ci-src
+  namespace: ci
+data:
+  ci.py: |
+    import json, os, ssl, sys, time, urllib.request, urllib.error
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    MODE = os.environ["MODE"]
+    def call(method, path, body=None):
+        ctx = ssl.create_default_context(cafile=SA + "/ca.crt")
+        req = urllib.request.Request("https://kubernetes.default.svc" + path, method=method,
+                                     data=json.dumps(body).encode() if body else None,
+                                     headers={"Authorization": "Bearer " + open(SA + "/token").read().strip(), "Content-Type": "application/json"})
+        return urllib.request.urlopen(req, context=ctx, timeout=5).status
+    def job(name, labels, cpu, command, ttl=None):
+        spec = {"backoffLimit": 0, "template": {"metadata": {"labels": labels}, "spec": {"restartPolicy": "Never", "containers": [
+            {"name": "run", "image": "busybox:1.36", "command": ["sh", "-c", command], "resources": {"requests": {"cpu": cpu}}}]}}}
+        if ttl:
+            spec["ttlSecondsAfterFinished"] = int(ttl)
+        return {"apiVersion": "batch/v1", "kind": "Job", "metadata": {"name": name, "labels": labels}, "spec": spec}
+    def create(j):
+        try:
+            call("POST", "/apis/batch/v1/namespaces/ci/jobs", j)
+            print("created", j["metadata"]["name"], flush=True)
+            return True
+        except urllib.error.HTTPError as e:
+            if e.code == 409:
+                return True
+            print("create %s failed: HTTP %d %s" % (j["metadata"]["name"], e.code, json.loads(e.read()).get("message", "")), flush=True)
+        except Exception as e:
+            print("create failed:", e, flush=True)
+        return False
+    if MODE == "retrier":
+        # re-runs the flaky test suite on a schedule
+        every, ttl = int(os.environ["RETRY_EVERY"]), os.environ.get("JOB_TTL_SECONDS", "")
+        while True:
+            create(job("retry-%d" % time.time(), {"kind": "retry", "created-by": "ci-retrier"}, "10m", "echo rerunning flaky-suite; sleep 2", ttl or None))
+            time.sleep(every)
+    else:
+        # the release pipeline: start release-v42 once, retry until the API accepts it
+        done = False
+        while not done:
+            done = create(job("release-v42", {"release": "true"}, "600m", "echo publishing v42; sleep 5"))
+            time.sleep(3)
+        time.sleep(86400)
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-v40
+  namespace: ci
+  labels:
+    release: 'true'
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        release: 'true'
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: release-v41
+  namespace: ci
+  labels:
+    release: 'true'
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        release: 'true'
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-01
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-02
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-03
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-04
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-05
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-06
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-07
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-08
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-09
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-10
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-11
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-12
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-13
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-14
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-15
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-16
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: retry-old-17
+  namespace: ci
+  labels:
+    kind: retry
+    created-by: ci-retrier
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        kind: retry
+        created-by: ci-retrier
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command:
+        - sh
+        - -c
+        - echo done
+        resources:
+          requests:
+            cpu: 10m
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: flaky-suite
+  namespace: ci
+  labels: {kind: suite}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels: {kind: suite}
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: run
+        image: busybox:1.36
+        command: ["sh", "-c", "echo waiting for the integration database; sleep 86400"]
+        resources:
+          requests: {cpu: 600m}
+---
 apiVersion: v1
 kind: ResourceQuota
 metadata:
-  name: ns-quota
-  namespace: k8smissions
+  name: ci-quota
+  namespace: ci
 spec:
   hard:
-    pods: "100"
-    requests.cpu: "10"
-    requests.memory: 20Gi
+    count/jobs.batch: "20"
+    requests.cpu: "1"
 ---
-# that were never cleaned up. They waste quota slots and etcd storage.
-# Fix: kubectl delete pod -l job=ci-test -n k8smissions
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: ci-test-pod-001
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "1"
+  name: ci-retrier
+  namespace: ci
 spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
+  replicas: 1
+  selector:
+    matchLabels: {app: ci-retrier}
+  template:
+    metadata:
+      labels: {app: ci-retrier}
+    spec:
+      serviceAccountName: ci-bot
+      containers:
+      - name: ci
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/ci.py"]
+        env:
+        - {name: MODE, value: retrier}
+        - {name: RETRY_EVERY, value: "10"}
+        - {name: JOB_TTL_SECONDS, value: ""}
+        resources:
+          requests: {cpu: 50m}
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: ci-src}
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: ci-test-pod-002
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "2"
+  name: release-driver
+  namespace: ci
 spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-003
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "3"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-004
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "4"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-005
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "5"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-006
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "6"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-007
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "7"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-008
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "8"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-009
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "9"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-010
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "10"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-011
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "11"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-012
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "12"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-013
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "13"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-014
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "14"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-015
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "15"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-016
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "16"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-017
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "17"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-018
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "18"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-019
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "19"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: ci-test-pod-020
-  namespace: k8smissions
-  labels:
-    job: ci-test
-    run: "20"
-spec:
-  restartPolicy: Never
-  containers:
-  - name: test
-    image: busybox:1.36
-    command: ["/bin/sh", "-c", "exit 0"]
+  replicas: 1
+  selector:
+    matchLabels: {app: release-driver}
+  template:
+    metadata:
+      labels: {app: release-driver}
+    spec:
+      serviceAccountName: ci-bot
+      containers:
+      - name: ci
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/ci.py"]
+        env:
+        - {name: MODE, value: driver}
+        resources:
+          requests: {cpu: 50m}
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: ci-src}

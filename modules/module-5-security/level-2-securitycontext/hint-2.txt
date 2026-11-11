@@ -1,1 +1,1 @@
-The events should say 'container has runAsNonRoot and image will run as root'. The manifest enforces non-root but never specifies *which* non-root user ID to use, so Kubernetes falls back to the image's default — which is UID 0.
+The container root filesystem is read-only on purpose, so give nginx separate writable places for the paths it needs: a volume of type `emptyDir` mounted at each path. Errors come one at a time, so expect to read the log again after the first fix. `kubectl explain pod.spec.containers.volumeMounts`.

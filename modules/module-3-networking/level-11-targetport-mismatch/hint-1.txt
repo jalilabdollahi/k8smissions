@@ -1,9 +1,1 @@
-Endpoints exist — the Service found the pod by label. The problem is further down the routing path. Test the pod directly, bypassing the Service:
-
-  kubectl port-forward pod/web 8080:80 -n k8smissions
-
-Then in another terminal:
-
-  curl http://localhost:8080
-
-Does the pod respond?
+The pods are Ready, so the problem is on the path to them. Look at what the Service resolved: `kubectl -n k8smissions get endpointslices -l kubernetes.io/service-name=checkout -o yaml`. Are there addresses? Is there a `ports` section?

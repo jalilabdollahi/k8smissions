@@ -1,7 +1,11 @@
-# Common Mistakes — Queue Jumped
+## Raising the value of `payments-high`
 
-## Mistake 1: Using node affinity to reserve nodes
+The class fields are immutable (the API rejects the edit), and a bigger number would not help anyway: the problem is the policy, not the rank.
 
-**Wrong approach:** Dedicating nodes via affinity for critical pods — complex and inflexible
+## Deleting sandbox pods or scaling `dev-sandbox` down by hand
 
-**Correct approach:** PriorityClass with preemption is simpler and dynamic
+A freed slot lets the gateway start once, but the Deployment keeps its `Never` policy, and the sandbox controller recreates pods that then compete for the room. The incident returns on the next deploy. The sandbox must stay at 8 replicas.
+
+## Changing the class but not replacing the pods
+
+`preemptionPolicy` is copied into each pod at creation. Pods that already exist keep `Never`; a rollout (or deleting the pending pods) is needed for new ones to get the new policy.

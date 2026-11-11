@@ -1,17 +1,15 @@
 {
-  "name": "The Missing File",
-  "description": "Pod config-reader is Running but crashes because it cannot find a config file. Run kubectl logs config-reader -n k8smissions and read which file is missing.",
-  "objective": "The volume only projects a single key — add the missing key projection so all config files appear",
-  "xp": 175,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "ConfigMap",
-    "volume projection",
-    "items",
-    "key-to-path",
-    "volume mount"
-  ],
+  "name": "Half a Config Directory",
+  "description": "After the move of the database password into a Secret, config-reader starts normally and goes Ready, but its status page says the configuration is bad. The Secret db-secret holds the password and the ConfigMap db-config holds the connection URL, both are mounted into one directory, and a teammate has already checked that both objects look right.",
+  "objective": "In the config-reader pod, /etc/db/db.url holds the value from ConfigMap db-config and /etc/db/db.password holds the value from Secret db-secret, the Service config-reader reports config=ok, and the pod does not restart. The ConfigMap and the Secret keep their data.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["projected volume", "volume sources", "items", "key collisions"],
   "module": "module-4-storage",
-  "level": "level-13-configmap-projection"
+  "level": "level-13-configmap-projection",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 100,
+  "cleanup": []
 }

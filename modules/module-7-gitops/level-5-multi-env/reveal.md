@@ -1,33 +1,6 @@
-## What went wrong
+Two independent causes sit in `shop-prod`'s `spec.source`:
 
-The dev environment config was promoted to production without being replaced by the production overlay. Three production requirements are missing:
-1. Log level at `info` (not `debug`)
-2. Three replicas for redundancy
-3. Resource limits to protect other workloads
+1. `path: overlays/dev`: the production Application renders the dev overlay (1 replica, debug, no limits).
+2. `kustomize.replicas: [{name: shop, count: 1}]`: an inline override that forces 1 replica on top of any overlay, so correcting the path alone still leaves 1 replica.
 
-## Fix
-
-```yaml
-# ConfigMap
-data:
-  LOG_LEVEL: info
----
-# Deployment
-spec:
-  replicas: 3
-  template:
-    spec:
-      containers:
-      - name: multi-env-app
-        resources:
-          requests:
-            cpu: 100m
-            memory: 64Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-```
-
-## Why this matters
-
-Config drift — where production ends up running different settings than intended — is one of the most common causes of production incidents. GitOps solves this by making Git the single source of truth: the production overlay in the repository defines exactly what production should look like, and the CD pipeline enforces it. The pattern works only when promotion means applying the correct environment-specific overlay, not manually editing live cluster state.
+Fix both: `kubectl -n argocd patch app shop-prod --type json -p '[{"op":"replace","path":"/spec/source/path","value":"overlays/prod"},{"op":"remove","path":"/spec/source/kustomize"}]'`. With automated sync the change rolls out on its own (a hard refresh speeds it up).

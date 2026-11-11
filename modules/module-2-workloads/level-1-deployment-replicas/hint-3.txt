@@ -1,3 +1,1 @@
-The field `spec.replicas: 0` is why no pods exist. A Deployment with 0 replicas is valid in Kubernetes — it is used to 'park' a workload without deleting it.
-
-Open manifest.yaml and find the replicas field.
+Create the missing object with the exact name from the event: `kubectl -n k8smissions create serviceaccount <name>`. The ReplicaSet retries on its own, so no restart is needed, though it can take a few seconds because failed creations back off.

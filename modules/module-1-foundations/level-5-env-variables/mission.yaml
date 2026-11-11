@@ -1,15 +1,15 @@
 {
-  "name": "Missing the Key",
-  "description": "Pod env-pod starts but crashes almost immediately. Run kubectl logs env-pod -n k8smissions and read what the application says.",
-  "objective": "The application requires an environment variable that is missing from the pod spec — add the missing env var",
+  "name": "Mail That Never Leaves",
+  "description": "Customers have not received an invoice email since yesterday's release of `invoice-mailer`. Both pods are Running and Ready and nothing restarts, but the mail queue keeps growing. The relay behind Service `smtp-relay` was checked by the infrastructure team and answers fine.",
+  "objective": "Every pod of Deployment `invoice-mailer` (2 replicas) successfully delivers to Service `smtp-relay`: its recent log lines report a send status of 200.",
   "xp": 150,
-  "difficulty": "beginner",
+  "difficulty": "intermediate",
   "expected_time": "10m",
-  "concepts": [
-    "env",
-    "environment variables",
-    "application config"
-  ],
+  "concepts": ["env", "dependent environment variables", "$(VAR) expansion", "kubectl logs", "kubectl set env"],
   "module": "module-1-foundations",
-  "level": "level-5-env-variables"
+  "level": "level-5-env-variables",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 90,
+  "cleanup": []
 }

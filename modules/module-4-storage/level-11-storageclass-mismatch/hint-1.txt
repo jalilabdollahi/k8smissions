@@ -1,7 +1,4 @@
-The describe output should show in Events why no provisioner has responded. Look for messages about the StorageClass.
+A Bound claim and a Running pod do not prove it is the right volume. Compare what the claim is bound to with the volume that has the data:
 
-Then list what StorageClasses are installed in this cluster:
-
-  kubectl get storageclass
-
-Is `fast-nvme` in the list?
+  kubectl get pv,pvc -n k8smissions
+  kubectl describe pvc archive -n k8smissions

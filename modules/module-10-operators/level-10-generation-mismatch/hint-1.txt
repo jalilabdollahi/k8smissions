@@ -1,1 +1,1 @@
-Check the generation gap: `kubectl get myapp my-app -n k8smissions -o yaml | grep -E 'generation|observedGeneration'`
+Watch one object for half a minute: `kubectl -n k8smissions get inventories.stock.acme.io stock-eu -o jsonpath='{.metadata.resourceVersion} {.metadata.generation} {.status.observedGeneration}{"\n"}'`, repeated, or with `-w`. Then read what the operator logs on every pass and what it patches.

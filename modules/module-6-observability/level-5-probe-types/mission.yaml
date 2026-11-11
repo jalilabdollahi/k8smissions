@@ -1,15 +1,15 @@
 {
-  "name": "Wrong Probe, Wrong Job",
-  "description": "Pods in this Deployment restart in an infinite loop and never stabilize. The liveness probe is configured, but it is checking an endpoint that only becomes available late in the startup sequence — so the probe kills the container during startup before the app ever becomes ready.",
-  "objective": "The liveness probe is checking a readiness endpoint, killing the pod during startup — move that check to a readiness probe",
-  "xp": 250,
+  "name": "Probes Copied From the Web Template",
+  "description": "`settlement-gateway` runs two containers: `tcp-echo`, a raw line-protocol service, and `ticker`, a background worker that exposes no port. The pod never becomes Ready, and its containers are restarted every 15 to 20 seconds. The manifest was started from the team's web-service template.",
+  "objective": "Deployment `settlement-gateway` runs one pod that is Ready with both containers stable (no restarts over 45 seconds), every container keeps both a liveness and a readiness probe that check something real about it, and `tcp-echo` still answers a raw TCP request on port 7000.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Liveness vs readiness vs startup probe responsibilities",
-    "probe endpoints",
-    "startupProbe to delay liveness checks"
-  ],
+  "expected_time": "12m",
+  "concepts": ["httpGet probe", "tcpSocket probe", "exec probe", "probe failure events"],
   "module": "module-6-observability",
-  "level": "level-5-probe-types"
+  "level": "level-5-probe-types",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 120,
+  "cleanup": []
 }

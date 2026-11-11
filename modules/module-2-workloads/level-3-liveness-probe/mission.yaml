@@ -1,19 +1,15 @@
 {
-  "name": "The Restart Loop",
-  "description": "Pods in Deployment api-server keep restarting despite the container starting up cleanly. The RESTARTS column keeps climbing. Run kubectl get pods -n k8smissions.",
-  "objective": "The liveness probe path doesn't match any endpoint the app exposes — fix the probe path so it stops killing healthy pods",
-  "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "12m",
-  "concepts": [
-    "livenessProbe",
-    "httpGet",
-    "tcpSocket",
-    "exec",
-    "initialDelaySeconds",
-    "periodSeconds",
-    "failureThreshold"
-  ],
+  "name": "The Impatient Probe",
+  "description": "Deployment `inventory` (2 replicas) never settles. Every pod restarts about every ten seconds and `kubectl describe pod` shows `Liveness probe failed: connection refused`. The container logs look clean and the developers insist the application is healthy: it just loads its catalogue for a while after it starts. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "Both `inventory` pods are Ready and stay up without restarting, Service `inventory` answers 200, and the Deployment still has a liveness probe that can detect a hung application.",
+  "xp": 100,
+  "difficulty": "beginner",
+  "expected_time": "10m",
+  "concepts": ["livenessProbe", "initialDelaySeconds", "restarts", "kubectl patch"],
   "module": "module-2-workloads",
-  "level": "level-3-liveness-probe"
+  "level": "level-3-liveness-probe",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 150,
+  "cleanup": []
 }

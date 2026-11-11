@@ -1,7 +1,1 @@
-The Ingress status shows an error about the backend port. Read the Ingress spec:
-
-  kubectl get ingress dual-ingress -n k8smissions -o yaml
-
-The backend references port by `name: http`. Now check the Service ports:
-
-  kubectl get service dual-svc -n k8smissions -o yaml | grep -A5 'ports'
+There are two symptoms on two paths. For the 503, read what the Ingress thinks of its backend: `kubectl -n k8smissions describe ingress gateway`, then the controller logs in namespace `ingress-nginx`. For the scraper, `kubectl -n k8smissions get svc gateway -o yaml` and read every field of each port.

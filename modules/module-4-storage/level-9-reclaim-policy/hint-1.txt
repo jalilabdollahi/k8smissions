@@ -1,5 +1,6 @@
-The PV status shows Released or it may have already been deleted. When a PV's reclaimPolicy is Delete, deleting the bound PVC triggers automatic deletion of the PV and its underlying storage.
+The claim is only a request; the data lives on a PersistentVolume with a generated name. Find which one backs ledger-data and what the cluster will do with it later:
 
-Check the current policy:
+  kubectl get pvc -n k8smissions
+  kubectl get pv -o wide
 
-  kubectl get pv important-data -o yaml | grep 'persistentVolumeReclaimPolicy'
+Look at the RECLAIM POLICY column, and at the CLAIM column to tell the two volumes apart.

@@ -1,21 +1,9 @@
-## What went wrong
+In the operator's delete branch, `release(ds)` removes the finalizer first. The API server then deletes the Datastore at once, and the following `cleanup(name)` looks the Datastore up again to read the backend name from its annotation, gets a 404 and logs "nothing to clean up". Do the cleanup first and release last, and clean up the leftovers of `legacy-orders` by hand, since no code runs for objects that are already gone:
 
-Finalizers implement pre-deletion hooks: the operator adds the finalizer when the CR is created, runs cleanup when deletion is requested, then removes the finalizer to unblock deletion. If the operator is deleted before it can clear the finalizer, the CR is stuck forever.
-
-## Fix
-
-```yaml
-metadata:
-  finalizers: []
-```
-
-Or via kubectl:
 ```bash
-kubectl patch database prod-db -n k8smissions \
-  --type=json \
-  -p='[{"op":"remove","path":"/metadata/finalizers"}]'
+kubectl -n k8smissions edit configmap datastore-operator-code     # call cleanup(name) before release(ds)
+kubectl -n k8smissions rollout restart deployment/datastore-operator
+kubectl -n k8smissions delete pod/ds-legacy-orders configmap/ds-legacy-orders
 ```
 
-## Why this matters
-
-Finalizers are the mechanism operators use to clean up external resources (cloud databases, DNS records, S3 buckets) before the Kubernetes object is removed. The critical failure mode: uninstalling the operator without first deleting all its CRs leaves orphaned finalizers that prevent deletion forever. Best practice: always delete CRs before uninstalling an operator. Some operators support a `--delete-all` flag for this. If stuck, force-clearing finalizers works but leaves the external resources orphaned — manual cleanup is required.
+Setting an `ownerReference` from the backend Pod and ConfigMap to the Datastore when creating them would also work (the garbage collector removes dependants), but only for backends created after the change.

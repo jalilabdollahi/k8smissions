@@ -1,14 +1,6 @@
-## What went wrong
+The script requests `/apis/metrics.k8s.io/v1/...`, but metrics-server only registers `v1beta1`.
 
-The metrics-server Deployment has `replicas: 0`. This is a valid Kubernetes configuration — it means the Deployment exists but is scaled down to nothing. With no running pods, the Metrics API returns no data and `kubectl top` fails.
-
-## Fix
-
-```yaml
-spec:
-  replicas: 1
-```
-
-## Why this matters
-
-The Metrics API (`metrics.k8s.io`) is not built into Kubernetes — it requires a separately deployed metrics-server. Without it, `kubectl top`, Horizontal Pod Autoscaler, and Vertical Pod Autoscaler all stop working. In production, this is typically installed via the metrics-server Helm chart or a cluster addon. The `replicas: 0` pattern is commonly used to disable a component without deleting it — reversible by scaling back up.
+1. `kubectl get apiservices | grep metrics` shows `v1beta1.metrics.k8s.io` as the only metrics API (Available=True), so the server is fine.
+2. In ConfigMap `capacity-report`, change `METRICS_API = "metrics.k8s.io/v1"` to `"metrics.k8s.io/v1beta1"` (`kubectl -n k8smissions edit cm capacity-report`).
+3. Restart the pod so Python re-reads the script: `kubectl -n k8smissions rollout restart deploy/capacity-report`.
+4. Wait about a minute and read the log; usage lines for `ledger-api` appear.

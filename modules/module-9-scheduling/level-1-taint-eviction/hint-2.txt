@@ -1,1 +1,1 @@
-You should see a `NoExecute` taint like `maintenance=draining:NoExecute`. Look at the pod spec — it has no `tolerations` block at all. Without a toleration, a `NoExecute` taint causes instant eviction.
+A NoExecute taint evicts running pods unless they tolerate it, and a toleration can itself be time-limited. Compare the Deployment's toleration with the length of the maintenance window: `kubectl explain pod.spec.tolerations`.

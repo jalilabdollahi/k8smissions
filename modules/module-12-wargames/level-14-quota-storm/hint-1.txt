@@ -1,1 +1,1 @@
-Check quota usage: `kubectl describe resourcequota ns-quota -n k8smissions`. Look at `Used` vs `Hard` for `pods`. Then count the stale test pods: `kubectl get pods -l job=ci-test -n k8smissions | wc -l`
+Read the quota and the Jobs: `kubectl -n ci describe resourcequota ci-quota` shows two limits, not one. `kubectl -n ci get jobs --show-labels` shows who made which Job, and `kubectl -n ci logs deploy/release-driver` says what it is waiting for. Then look at what `ci-retrier` puts into the Jobs it creates (`kubectl -n ci get deploy ci-retrier -o yaml`).

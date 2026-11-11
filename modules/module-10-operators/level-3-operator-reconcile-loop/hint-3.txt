@@ -1,1 +1,4 @@
-The operator's `WATCH_NAMESPACE` env var is set to `operators`. Change it to an empty string (`value: ''`) to make the operator watch all namespaces cluster-wide.
+kubectl -n k8smissions patch configmap operator-config --type=merge -p '{"data":{"<KEY>":"<NAMESPACE>"}}'
+kubectl -n k8smissions rollout restart deployment/<OPERATOR>
+
+Then watch `kubectl -n k8smissions get webapps -w` and the operator's log.

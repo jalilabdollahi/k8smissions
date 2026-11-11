@@ -1,18 +1,15 @@
 {
-  "name": "Full Pipeline Down",
-  "description": "The production CI/CD pipeline is completely broken. Multiple independent failures prevent any run from succeeding: a Task step uses a non-existent image tag, a required parameter has no default making the TaskRun fail validation, and the pipeline's ServiceAccount lacks RBAC to create TaskRuns. All three must be fixed before any pipeline run can complete.",
-  "objective": "Fix all three pipeline issues: wrong image tag, missing workspace binding, and broken RBAC — to restore the pipeline",
-  "xp": 400,
-  "difficulty": "advanced",
-  "expected_time": "20m",
-  "concepts": [
-    "Tekton",
-    "pipeline debugging",
-    "multi-issue",
-    "image",
-    "workspace",
-    "RBAC"
-  ],
+  "name": "A Week Without a Release",
+  "description": "Pipeline `ship-payments` has not produced a release in a week. The last run, `ship-payments-0611`, failed at the very start and nobody has looked further since; the team suspects there is more than one problem behind it. The pipeline is meant to clone the private `payments-api` repository, push a build to the in-cluster registry and roll `payments-api` out in namespace `payments-prod`, all as ServiceAccount `deploy-sa`. Security insists that `deploy-sa` stays confined to that one job.",
+  "objective": "A run of `ship-payments` as `deploy-sa` ends Succeeded: the registry holds the pushed tag, Service `payments-api` in `payments-prod` answers with the pushed image digest, and `deploy-sa` still cannot read Secrets in `payments-prod` or change Deployments in `k8smissions`.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "30m",
+  "concepts": ["pipeline debugging", "git branches", "insecure registries", "RoleBinding subjects", "least privilege", "task results"],
   "module": "module-8-cicd",
-  "level": "level-18-pipeline-finale"
+  "level": "level-18-pipeline-finale",
+  "requires": ["tekton"],
+  "settle_seconds": 40,
+  "solve_timeout": 300,
+  "cleanup": []
 }

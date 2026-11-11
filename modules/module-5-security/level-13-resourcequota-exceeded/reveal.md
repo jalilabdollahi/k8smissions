@@ -1,21 +1,9 @@
-## What went wrong
+**Fix**
 
-The namespace quota caps the total CPU requests at 500m. A single pod (`quota-buster`) claims 400m — 80% of the total. Any new pod requesting more than 100m CPU will be rejected at the API server with a quota exceeded error, even if nodes have gigabytes of free CPU capacity.
+1. `kubectl -n k8smissions describe quota object-counts` shows `count/pods 10 / 10`; `get pods --field-selector=status.phase=Succeeded` shows 8 finished `price-sync` pods that count against it.
+2. The CronJob keeps 20 finished Jobs (`successfulJobsHistoryLimit: 20`). Bound it:
+   `kubectl -n k8smissions patch cronjob price-sync --type=merge -p '{"spec":{"successfulJobsHistoryLimit":2,"jobTemplate":{"spec":{"ttlSecondsAfterFinished":3600}}}}'`
+3. Free the room now: `kubectl -n k8smissions get jobs -o name | xargs kubectl -n k8smissions delete` (pods are removed with their Jobs; the CronJob controller would also prune down to the new limit by itself).
+4. The ReplicaSet backs off after repeated quota failures, so `kubectl -n k8smissions rollout restart deploy/catalog-web` gives it a fresh start; `rollout status` then shows 3 pods.
 
-## Fix
-
-Reduce the pod's resource requests to leave headroom for other pods:
-
-```yaml
-resources:
-  requests:
-    cpu: 100m
-    memory: 100Mi
-  limits:
-    cpu: 200m
-    memory: 200Mi
-```
-
-## Why this matters
-
-ResourceQuota enforces *namespace-level* aggregate limits, not per-pod limits. A single over-requesting pod can block the entire namespace. The right tool for per-pod ceilings is a `LimitRange`, which sets default and maximum request values per container. Together, ResourceQuota and LimitRange form a two-layer governance model: the quota controls the namespace total, the LimitRange prevents any single container from claiming an unreasonable share of it.
+Do not raise the quota: it is the team's guard rail.

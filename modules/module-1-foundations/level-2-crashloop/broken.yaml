@@ -1,13 +1,63 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: crashloop-pod
+  name: rates-proxy-edge
   namespace: k8smissions
-  labels:
-    app: crashloop-pod
+data:
+  default.conf: |
+    server {
+      listen 80;
+      add_header X-Edge rates-proxy always;
+      location / {
+        proxy_pass http://127.0.0.1:8080;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rates-proxy
+  namespace: k8smissions
 spec:
-  containers:
-  - name: crashloop-pod
-    image: busybox:1.36
-    args:
-    - /scripts/start.sh
+  replicas: 2
+  selector:
+    matchLabels: {app: rates-proxy}
+  template:
+    metadata:
+      labels: {app: rates-proxy}
+    spec:
+      containers:
+      - name: app
+        image: python:3.12-alpine
+        command:
+        - sh
+        - -c
+        - |
+          mkdir -p /srv/www
+          echo "rates: EUR/USD 1.08" > /srv/www/index.html
+          exec python -m http.server 80 --directory /srv/www
+      - name: edge
+        image: nginx:1.27-alpine
+        command:
+        - sh
+        - -c
+        - sleep 3 && exec nginx -g 'daemon off;'
+        volumeMounts:
+        - name: edge-conf
+          mountPath: /etc/nginx/conf.d
+      volumes:
+      - name: edge-conf
+        configMap:
+          name: rates-proxy-edge
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rates-proxy
+  namespace: k8smissions
+spec:
+  selector:
+    app: rates-proxy
+  ports:
+  - port: 80
+    targetPort: 80

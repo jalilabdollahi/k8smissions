@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payments-api-code
+data:
+  app.py: |
+    import json
+    import ssl
+    import urllib.request
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount/"
+    TOKEN = open(SA + "token").read()
+    NAMESPACE = open(SA + "namespace").read()
+    CTX = ssl.create_default_context(cafile=SA + "ca.crt")
+
+
+    def config():
+        req = urllib.request.Request(
+            "https://kubernetes.default.svc/api/v1/namespaces/%s/configmaps/payments-config" % NAMESPACE,
+            headers={"Authorization": "Bearer " + TOKEN})
+        return json.load(urllib.request.urlopen(req, context=CTX, timeout=2))["data"]
+
+
+    class Handler(BaseHTTPRequestHandler):
+        def reply(self, code, body):
+            data = body.encode()
+            self.send_response(code)
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+        def do_GET(self):
+            if self.path == "/healthz":
+                return self.reply(200, "ok")
+            cfg = config()
+            timeout_ms = int(cfg["UPSTREAM_TIMEOUT_MS"])
+            try:
+                urllib.request.urlopen(cfg["UPSTREAM_URL"], timeout=timeout_ms / 1000).read()
+            except Exception:
+                return self.reply(504, "payments-api: upstream timeout after %d ms" % timeout_ms)
+            self.reply(200, "payments-api: upstream ok within %d ms" % timeout_ms)
+
+        def log_message(self, *args):
+            pass
+
+
+    ThreadingHTTPServer(("", 8080), Handler).serve_forever()

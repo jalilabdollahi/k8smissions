@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: payments-api
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: payments-api-config
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: ["payments-config"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: payments-api-config
+subjects:
+- kind: ServiceAccount
+  name: payments-api
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: payments-api-config

@@ -1,1 +1,1 @@
-Check the webhook configuration's caBundle: `kubectl get mutatingwebhookconfiguration pod-annotations-injector -o yaml | grep caBundle`
+Reproduce the failure and read it closely: `kubectl -n k8smissions run t --image=nginx:1.27-alpine --labels=guarded=true --dry-run=server`. The error names a webhook and the reason the TLS handshake failed. After you fix it, run the same command again: the reason may change.

@@ -1,1 +1,1 @@
-Check what workspaces the TaskRun currently binds: `kubectl describe taskrun build-cache-run -n k8smissions | grep -A10 Workspace`
+Read the log of the `resolve` step of run `inventory-build-0905` (`kubectl get taskrun`, then `kubectl logs <pod> -c step-resolve`). The first line says whether the Task sees the cache workspace at all. Then compare what the Pipeline passes to the Task with what the Task declares.

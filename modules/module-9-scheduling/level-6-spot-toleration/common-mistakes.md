@@ -1,7 +1,11 @@
-# Common Mistakes — Spot Survivor
+## Tolerating every taint
 
-## Mistake 1: Running spot-only workloads without fallback
+`operator: Exists` with no key tolerates the reclaimed taint as well. Pods can then be placed on the dead spot node, which the check rejects: tolerate only the taint of the node you want.
 
-**Wrong approach:** Not tolerating on-demand taints — entire service goes down when spot nodes are reclaimed
+## Fixing only the toleration
 
-**Correct approach:** Always design for spot eviction with on-demand fallback for critical paths
+With the nodeSelector still asking for `lifecycle=spot`, the on-demand node is filtered out before taints even matter, and the spot node still has its taint. Both blockers have to go.
+
+## Removing the taint from the on-demand node
+
+The pods would start, but the taint exists to keep ordinary workloads off paid capacity. It is a policy of the node, and the check requires it to stay.

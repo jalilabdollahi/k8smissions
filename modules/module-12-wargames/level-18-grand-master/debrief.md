@@ -1,55 +1,11 @@
-# Grand Master Challenge
+**What was broken.** One "hardening" commit broke four layers, and each one hid the next. The namespace's `restricted` Pod Security level rejected a pod template with no security context, so no pods existed. Then a typo in the `nodeSelector` value and a leftover `dedicated=batch` taint on both workers left the pods Pending. Then a liveness probe that starts at 5 seconds killed an app that needs 25 seconds to warm up. And an HPA that watched memory, capped at two replicas, with a sidecar lacking a CPU request, could not scale on CPU.
 
-## Congratulations — You've Completed K8sMissions
+**The evidence.** `describe rs` listed `violates PodSecurity "restricted:latest"` with the exact fields. `describe pod` said `didn't match Pod's node affinity/selector`, then `had untolerated taint {dedicated: batch}`, then `Liveness probe failed ... Container app failed liveness probe, will be restarted`. `describe hpa` said first nothing useful (memory 30%/80%), then `missing request for cpu in container "log-shipper"`.
 
-You just resolved 12 simultaneous failures spanning every major Kubernetes domain — one from each module. This is what real Site Reliability Engineering looks like at 3am during a P0.
+**Why Kubernetes behaved this way.** Pod Security admission checks the pod spec when the pod is created, so a violation produces no pod at all. The scheduler filters on selectors and taints before it considers anything else. Liveness probes start counting after `initialDelaySeconds` unless a startup probe is defined, in which case liveness waits for it. The HPA computes utilisation as usage divided by the request, summed over all containers, so one container without a request makes the metric unavailable.
 
-## What You Fixed
+**The fix.** A compliant security context on every container, a correct selector and taint, a startup probe, and a CPU-based HPA with room to grow and requests everywhere. Do not relax the namespace: the validator checks the policy and the non-root user.
 
-| Module | Issue | Fix |
-|-------|-------|-----|
-| W1 Foundations | Bad image tag (doesnotexist99) | Fixed image reference to nginx:1.27.4 |
-| W2 Workloads | 0 replicas | Scaled deployment to 2 replicas |
-| W3 Networking | Wrong service selector (wrong-label) | Matched pod labels (app: w2) |
-| W4 Storage | Impossible PVC size (500Ti) | Reduced to realistic 1Gi |
-| W5 Security | Missing RoleBinding | Created w5-rb binding w5-sa to w5-role |
-| W6 Observability | No readiness probe | Added HTTP readiness check on port 80 |
-| W7 GitOps | Empty ConfigMap values | Populated ENV=production, REGION=us-east-1 |
-| W8 CI/CD | Missing pipeline Secret | Created w8-secret with pipeline token |
-| W9 Scheduling | 1Mi memory limit (OOMKill) | Set safe limit of 256Mi |
-| W10 Operators | Command always exits 1 (CrashLoop) | Fixed command to sleep 3600 |
-| W11 Performance | PDB minAvailable > replicas (drain blocked) | Fixed minAvailable to 0 |
-| W12 Wargames | Failover disabled, sync stale | Enabled failover, set sync-status synced |
+**In production.** Roll out policy changes with `warn` and `audit` modes first (`pod-security.kubernetes.io/warn`), dry-run Deployments against the namespace, and load-test the scaling path as a step of the release.
 
-## The SRE Mindset
-
-1. **Triage by impact** — what's causing the most user harm right now?
-2. **Fix dependencies first** — Secrets before Deployments, RoleBindings before service calls
-3. **Verify each fix** — run validate after every 2-3 fixes to track progress
-4. **Document as you go** — write the incident post-mortem while memory is fresh
-5. **Prevent recurrence** — add monitoring, alerts, and tests for each failure class
-
-## Fix Order (dependency-aware)
-
-```
-1. W8 Secret      (w8-pipeline can't start without it)
-2. W5 RoleBinding (w5-sa needs permissions)
-3. W2 Replicas    (scale up w2-deploy)
-4. W1 Image       (fix w1-pod image)
-5. W3 Selector    (fix w3-svc to point at w2)
-6. W4 PVC         (fix impossible storage request)
-7. W7 ConfigMap   (populate required values)
-8. W6 Probe       (add readiness probe)
-9. W9 Memory      (fix 1Mi limit)
-10. W10 Command   (fix crashing command)
-11. W11 PDB       (fix drain blocker)
-12. W12 Failover  (enable failover, mark synced)
-```
-
-## You Are Now a Kubernetes Expert
-
-You've completed all challenges across 12 modules. You understand the full Kubernetes operational surface from pods to production incidents.
-
-```
-ACHIEVEMENT UNLOCKED: Grand Master of K8sMissions
-```
+**Commands to remember.** `kubectl describe rs`, `kubectl label ns <name> pod-security.kubernetes.io/enforce=restricted --dry-run=server`, `kubectl taint nodes <node> <key>-`, `kubectl describe hpa`, `kubectl top pod --containers`.

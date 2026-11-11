@@ -1,16 +1,15 @@
 {
-  "name": "Maintenance is Stuck",
-  "description": "A node needs to be drained for maintenance but kubectl drain keeps failing. Run kubectl drain <node-name> --ignore-daemonsets and read the error.",
-  "objective": "The PodDisruptionBudget requires more available pods than the Deployment has replicas — reconcile the PDB with the actual replica count",
-  "xp": 250,
-  "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "PodDisruptionBudget",
-    "voluntary disruption",
-    "node drain",
-    "minAvailable vs maxUnavailable"
-  ],
+  "name": "The Drain That Never Ends",
+  "description": "The maintenance window is open and a worker node needs to be drained, but `kubectl drain <node> --ignore-daemonsets` loops forever on `Cannot evict pod ... would violate the pod's disruption budget`. The pods in question belong to `ledger-api` (2 replicas), which has a PodDisruptionBudget. The ledger must stay available during the drain. A debug Deployment `probe` (curl) is available in the namespace.",
+  "objective": "A worker node hosting `ledger-api` pods can be drained with `kubectl drain --ignore-daemonsets` within the timeout, Service `ledger-api` answers every request during the drain, the pods come back Ready on the other worker, and PDB `ledger-api-pdb` still exists and still protects the Deployment.",
+  "xp": 150,
+  "difficulty": "intermediate",
+  "expected_time": "12m",
+  "concepts": ["PodDisruptionBudget", "kubectl drain", "eviction", "disruptionsAllowed"],
   "module": "module-2-workloads",
-  "level": "level-7-pdb-eviction"
+  "level": "level-7-pdb-eviction",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 150,
+  "cleanup": []
 }

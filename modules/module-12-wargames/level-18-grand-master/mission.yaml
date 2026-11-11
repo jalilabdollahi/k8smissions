@@ -1,16 +1,15 @@
 {
-  "name": "Grand Master Challenge",
-  "description": "The Grand Master challenge: 12 simultaneous failures — one representative bug from each K8sMissions module. A broken image tag, a zero-replica deployment, a Service with a wrong selector, an impossible PVC, a missing RoleBinding, a deployment without readiness probes, an empty ConfigMap, a missing Secret, a too-low memory limit, a crash-loop command, a PDB that blocks all drains, and a failover ConfigMap in a stuck state. Fix all twelve.",
-  "objective": "Fix 12 simultaneous failures spanning all modules — one failure from each module, all active at the same time",
-  "xp": 500,
+  "name": "Grand Master: Black Friday",
+  "description": "`checkout` failed the Black Friday load test in four acts. First, after the Friday 'hardening' change of the `checkout` namespace, no pods exist at all. Then pods exist but stay Pending. Then they run but never serve. And finally, once someone got them serving by hand, the HorizontalPodAutoscaler did nothing under 4x load. The hardening change touched namespace labels, node labels and taints, probes and the HPA in one commit, and the author is on holiday. Black Friday starts in an hour.",
+  "objective": "In namespace `checkout`, Deployment `checkout` (containers `app` and `log-shipper`) runs at least 2 Ready pods with no restarts and answers through Service `checkout` as a non-root user; the namespace still enforces the `restricted` Pod Security level; and under load HorizontalPodAutoscaler `checkout` raises the replica count while at least 95% of requests succeed with a 95th percentile latency under one second.",
+  "xp": 300,
   "difficulty": "expert",
   "expected_time": "45m",
-  "concepts": [
-    "full-stack debugging",
-    "incident response",
-    "triage",
-    "Kubernetes mastery"
-  ],
+  "concepts": ["Pod Security admission", "securityContext", "nodeSelector and taints", "startupProbe", "HorizontalPodAutoscaler", "metrics-server"],
   "module": "module-12-wargames",
-  "level": "level-18-grand-master"
+  "level": "level-18-grand-master",
+  "requires": ["metrics-server"],
+  "settle_seconds": 30,
+  "solve_timeout": 240,
+  "cleanup": []
 }

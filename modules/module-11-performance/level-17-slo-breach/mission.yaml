@@ -1,17 +1,15 @@
 {
-  "name": "SLO Breach Alert",
-  "description": "An application with a 99.9% availability SLO is regularly breaching its error budget. Instances crash due to application bugs, but the liveness probe's `failureThreshold: 10` means Kubernetes waits 100 seconds (10 checks × 10 seconds) before restarting the container. Each crash consumes 100 seconds of the monthly error budget.",
-  "objective": "Investigate and fix the root cause: a misbehaving pod is not being restarted due to incorrect liveness probe configuration",
-  "xp": 375,
-  "difficulty": "advanced",
-  "expected_time": "18m",
-  "concepts": [
-    "SLO",
-    "SLA",
-    "error rate",
-    "liveness probe",
-    "availability"
-  ],
+  "name": "Burning the Error Budget",
+  "description": "ledger-api promises 98% of requests succeeding, and the on-call dashboard says the budget is burning at 8 times the allowed rate. The pattern is the same every time: one of the 4 pods stops answering (the process is alive, requests just hang), a quarter of all calls fail or time out, and about a minute and a half later the pod finally gets restarted and the errors vanish until the next one. Restarting pods by hand is how the team copes today.",
+  "objective": "When one ledger-api pod wedges, at least 98% of requests through Service ledger-api still succeed (clients retry once) and the wedged pod is restarted by its own probes within about 40 seconds, while the healthy pods are not restarted and 4 replicas keep running.",
+  "xp": 300,
+  "difficulty": "expert",
+  "expected_time": "20m",
+  "concepts": ["error budget", "readiness vs liveness", "probe tuning", "endpoints", "SLO"],
   "module": "module-11-performance",
-  "level": "level-17-slo-breach"
+  "level": "level-17-slo-breach",
+  "requires": [],
+  "settle_seconds": 35,
+  "solve_timeout": 120,
+  "cleanup": []
 }

@@ -1,43 +1,138 @@
-# account rotation. The ServiceAccount exists, the Role exists, but without the binding
-# the ServiceAccount has ZERO permissions. Every API call from app-sa returns 403 Forbidden.
-# RBAC requires all three: ServiceAccount + Role + RoleBinding.
 apiVersion: v1
-kind: ServiceAccount
+kind: Namespace
 metadata:
-  name: app-sa
-  namespace: k8smissions
+  name: platform-config
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ledger-settings
+  namespace: platform-config
+data:
+  rate_limit: "250"
+  region: eu-west
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: app-role
+  name: settings-reader
+  namespace: platform-config
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: ["ledger-settings"]
+  verbs: ["get"]
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ledger-sync-v2
+  namespace: k8smissions
+  annotations: {rotation/replaces: ledger-sync-v1}
+automountServiceAccountToken: false
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-reader
   namespace: k8smissions
 rules:
 - apiGroups: [""]
-  resources: ["pods", "configmaps"]
-  verbs: ["get", "list", "watch"]
+  resources: ["pods"]
+  verbs: ["get", "list"]
 ---
-# kubectl get rolebinding -n k8smissions will show no binding for app-sa.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: ledger-sync-pods
+  namespace: k8smissions
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: pod-reader
+subjects:
+- kind: ServiceAccount
+  name: ledger-sync-v1
+  namespace: k8smissions
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sync-src
+  namespace: k8smissions
+data:
+  sync.py: |
+    import json, os, ssl, threading, time, urllib.request, urllib.error
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    SA = "/var/run/secrets/kubernetes.io/serviceaccount"
+    NS = os.environ["MY_NAMESPACE"]
+    state = {"pods_listed": None, "pods_error": "not tried", "settings": None, "settings_error": "not tried"}
+    def api(path):
+        token = open(SA + "/token").read().strip()
+        ctx = ssl.create_default_context(cafile=SA + "/ca.crt")
+        req = urllib.request.Request("https://kubernetes.default.svc" + path, headers={"Authorization": "Bearer " + token})
+        return json.load(urllib.request.urlopen(req, context=ctx, timeout=4))
+    def attempt(path):
+        try:
+            return api(path), None
+        except FileNotFoundError:
+            return None, "no service account token mounted in this pod"
+        except urllib.error.HTTPError as e:
+            return None, "HTTP %d %s" % (e.code, e.reason)
+        except Exception as e:
+            return None, str(e)
+    def loop():
+        while True:
+            pods, err = attempt("/api/v1/namespaces/%s/pods" % NS)
+            state["pods_listed"] = len(pods["items"]) if pods else None
+            state["pods_error"] = err
+            cm, err = attempt("/api/v1/namespaces/platform-config/configmaps/ledger-settings")
+            state["settings"] = cm["data"] if cm else None
+            state["settings_error"] = err
+            print(json.dumps(state), flush=True)
+            time.sleep(5)
+    threading.Thread(target=loop, daemon=True).start()
+    class H(BaseHTTPRequestHandler):
+        def log_message(self, *a): pass
+        def reply(self, code, body):
+            b = body.encode()
+            self.send_response(code); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+        def do_GET(self):
+            if self.path == "/ready":
+                good = state["pods_listed"] is not None and state["settings"] is not None
+                return self.reply(200 if good else 503, "ok" if good else "not ready")
+            if self.path == "/status": return self.reply(200, json.dumps(state))
+            self.reply(404, "not found")
+    ThreadingHTTPServer(("0.0.0.0", 8080), H).serve_forever()
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-app
+  name: ledger-sync
   namespace: k8smissions
 spec:
-  replicas: 1
+  replicas: 2
   selector:
-    matchLabels:
-      app: api-app
+    matchLabels: {app: ledger-sync}
   template:
     metadata:
-      labels:
-        app: api-app
+      labels: {app: ledger-sync}
     spec:
-      serviceAccountName: app-sa
+      serviceAccountName: ledger-sync-v1
       containers:
-      - name: api-app
-        image: busybox:1.36
-        command:
-        - /bin/sh
-        - -c
-        - sleep 3600
+      - name: sync
+        image: python:3.12-alpine
+        command: ["python", "-u", "/src/sync.py"]
+        env:
+        - name: MY_NAMESPACE
+          valueFrom: {fieldRef: {fieldPath: metadata.namespace}}
+        ports:
+        - {containerPort: 8080}
+        readinessProbe:
+          httpGet: {path: /ready, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - {name: src, mountPath: /src}
+      volumes:
+      - name: src
+        configMap: {name: sync-src}

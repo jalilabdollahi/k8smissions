@@ -1,1 +1,1 @@
-The status message should say something like 'param IMAGE not set' or 'missing value for param'. Look at the `params` field in the TaskRun spec — it's an empty list.
+Compare the Pipeline's `spec.params` (name, `type`, `default`) with the `spec.params` of the run: every param without a default must be supplied, and the value must have the declared type. `kubectl explain pipelinerun.spec.params` shows the shapes a value can take. Fixing the first complaint may bring up a second one.
