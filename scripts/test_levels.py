@@ -81,7 +81,8 @@ def ensure_cluster(name: str, kubeconfig: Path, mirror: bool) -> None:
 
 
 HEAVY_ADDONS = {"tekton", "argocd"}
-LIGHT_POOL_MIN = 3  # what fits next to the cd cluster in 8 GB of Docker RAM
+LIGHT_POOL_MIN = 2  # 2 light + 2 heavy clusters fit in 8 GB of Docker RAM
+HEAVY_POOL = ["k8sm-pool-cd", "k8sm-pool-cd2"]
 
 
 def acquire_pool(names: list[str]):
@@ -216,7 +217,7 @@ def main() -> int:
                     help="share N clusters (k8sm-pool-1..N; levels needing tekton/argocd use k8sm-pool-cd) between authors")
     args = ap.parse_args()
     if args.repair_pool:
-        for name in [f"k8sm-pool-{i}" for i in range(1, (args.pool or 2) + 1)] + ["k8sm-pool-cd"]:
+        for name in [f"k8sm-pool-{i}" for i in range(1, 4)] + HEAVY_POOL:
             kc = Path.home() / ".k8smissions" / "test" / f"{name}.kubeconfig"
             if not kc.exists():
                 continue
@@ -232,7 +233,7 @@ def main() -> int:
         needs = {a for lv in select_levels(args.filters)
                  for a in json.loads((lv / "mission.yaml").read_text()).get("requires", [])}
         light = max(args.pool, LIGHT_POOL_MIN)
-        names = ["k8sm-pool-cd"] if needs & HEAVY_ADDONS else [f"k8sm-pool-{i}" for i in range(1, light + 1)]
+        names = HEAVY_POOL if needs & HEAVY_ADDONS else [f"k8sm-pool-{i}" for i in range(1, light + 1)]
         args.cluster, lock = acquire_pool(names)
         print(f"using pool cluster {args.cluster}", flush=True)
 
