@@ -1,16 +1,15 @@
 {
-  "name": "StatefulSet Can't Reach Itself",
-  "description": "StatefulSet web has 3 pods running, but pods cannot resolve each other by hostname. The application expects to reach web-0 at web-0.web-cluster.k8smissions.svc.cluster.local. Run kubectl exec web-0 -n k8smissions -- nslookup web-0.web-cluster.",
-  "objective": "The StatefulSet service has a ClusterIP — remove it to make the service headless and enable per-pod DNS records",
-  "xp": 250,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Headless service",
-    "clusterIP: None",
-    "StatefulSet DNS format",
-    "<pod>.<svc>.<ns>.svc.cluster.local"
-  ],
+  "name": "Chicken and Egg",
+  "description": "The `quorum` StatefulSet (3 pods, headless Service `quorum`) has been stuck at 0/3 Ready since the rollout. All three pods are Running and their logs show the server listening, but the readiness probe keeps failing with HTTP 503. The app reports itself ready only when it can find its two peers through the `quorum` service name. A debug pod `probe` with curl is available.",
+  "objective": "All 3 `quorum` pods are Ready with no restarts, `nslookup quorum` returns all three pod IPs, and every pod's `/peers` endpoint reports 3 members, with the readiness probe still in place.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["headless Service", "publishNotReadyAddresses", "StatefulSet", "DNS records", "readiness"],
   "module": "module-3-networking",
-  "level": "level-10-headless"
+  "level": "level-10-headless",
+  "requires": [],
+  "settle_seconds": 30,
+  "solve_timeout": 120,
+  "cleanup": []
 }

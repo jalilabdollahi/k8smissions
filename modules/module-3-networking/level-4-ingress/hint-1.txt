@@ -1,7 +1,1 @@
-A 404 from an Ingress controller usually means the request matched the host rule but not any path rule — so the Ingress has no rule for what was requested.
-
-See what paths are configured:
-
-  kubectl describe ingress web-ingress -n k8smissions
-
-Look at the Rules section — what path is the Ingress listening on?
+Who produced the 404? The body says "backend: no such path", so it is the storefront, not nginx. Check what path the backend receives: `kubectl -n ingress-nginx logs deploy/ingress-nginx-controller` shows the upstream request.

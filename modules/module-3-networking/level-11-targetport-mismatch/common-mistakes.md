@@ -1,13 +1,11 @@
-# Common Mistakes — Connection Refused
+## Rolling the Deployment back
 
-## Mistake 1: Checking only Service port, not targetPort
+`kubectl rollout undo` restores the `http` port name, so the Service works, but the pods answer with release 4.1. The release was supposed to ship; fix the Service side instead.
 
-**Wrong approach:** kubectl get svc shows port 80 and concluding everything is correct
+## Looking at pod readiness
 
-**Correct approach:** Always check both port (incoming to Service) AND targetPort (forwarded to pod)
+The pods are Ready because their probe checks the container directly on 8080. Readiness never tests the Service's port lookup, so green pods say nothing about this fault.
 
-## Mistake 2: Assuming readiness probe failure is the cause
+## Changing the Service `port` instead of `targetPort`
 
-**Wrong approach:** Editing the readiness probe when the real issue is targetPort mismatch
-
-**Correct approach:** Check endpoints first; if endpoints are empty, selector or targetPort is the problem
+`port` is what clients dial; `targetPort` is where the pod listens. Changing `port` leaves the broken lookup untouched and breaks every client URL on top.

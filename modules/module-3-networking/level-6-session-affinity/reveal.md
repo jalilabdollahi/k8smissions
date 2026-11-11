@@ -1,18 +1,5 @@
-## What went wrong
+The three pods keep sessions in their own memory, and the Service spreads requests across all of them, so most requests land on a pod that never saw the login.
 
-The Service uses the default `sessionAffinity: None`, which load-balances each request independently across all pods. A stateful app that stores sessions in memory requires the same client to always reach the same pod.
-
-## Fix
-
-In manifest.yaml, add to the Service spec:
-
-```yaml
-sessionAffinity: ClientIP
-sessionAffinityConfig:
-  clientIP:
-    timeoutSeconds: 10800
-```
-
-## The better long-term fix
-
-ClientIP affinity breaks if the client changes IP (mobile networks, proxies). The production solution is to store sessions outside the pods — in Redis or a database. Then any pod can serve any request and statelessness is preserved. This level shows why stateless applications are easier to scale.
+1. `kubectl -n k8smissions get svc portal -o yaml` shows `sessionAffinity: None`.
+2. `kubectl -n k8smissions patch service portal -p '{"spec":{"sessionAffinity":"ClientIP"}}'` makes kube-proxy send each client IP to the same pod.
+3. Keep 3 replicas: scaling down to one would hide the problem instead of fixing it.

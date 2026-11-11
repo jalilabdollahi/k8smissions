@@ -1,15 +1,15 @@
 {
-  "name": "NodePort Not Reachable",
-  "description": "A NodePort Service web-nodeport was created for external access, but nobody knows which port to connect to — and Kubernetes may assign a different one each time. Run kubectl get service web-nodeport -n k8smissions.",
-  "objective": "The nodePort value is in the reserved range below 30000 — change it to a valid nodePort number",
-  "xp": 200,
-  "difficulty": "intermediate",
+  "name": "Port 30080 or Nothing",
+  "description": "The on-call runbook and the office firewall only know port 30080 for the status page, but `status-page` is exposed on some random high port, so nobody outside the cluster can open it. An engineer tried to pin the port yesterday and gave up after an error. A debug pod `probe` with curl is available.",
+  "objective": "Service `status-page` is a NodePort Service reachable on port 30080 of every worker node's internal IP, returning the status page, with its 3 pods Ready.",
+  "xp": 100,
+  "difficulty": "beginner",
   "expected_time": "10m",
-  "concepts": [
-    "NodePort range 30000-32767",
-    "external access",
-    "port forwarding"
-  ],
+  "concepts": ["NodePort", "port allocation", "kubectl get svc -A", "kubectl patch"],
   "module": "module-3-networking",
-  "level": "level-2-nodeport"
+  "level": "level-2-nodeport",
+  "requires": [],
+  "settle_seconds": 12,
+  "solve_timeout": 60,
+  "cleanup": []
 }

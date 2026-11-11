@@ -1,15 +1,15 @@
 {
-  "name": "Cross-Namespace Dead End",
-  "description": "Pod frontend-app in k8smissions namespace is trying to reach an API in a different namespace. The connection always fails. Run kubectl logs frontend-app -n k8smissions.",
-  "objective": "The frontend uses a short service name that doesn't resolve in another namespace — use the full <service>.<namespace>.svc.cluster.local address",
-  "xp": 250,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Cross-namespace DNS",
-    "FQDN format",
-    "namespace isolation"
-  ],
+  "name": "Across the Fence",
+  "description": "The `storefront` pods in namespace `k8smissions` report `upstream: unreachable` for the inventory service, which lives in namespace `warehouse`. Their configuration points at `http://inventory:8080`. The warehouse team says their service is healthy and that they only admit traffic from approved teams. A debug pod `probe` with curl is available in `k8smissions`.",
+  "objective": "Both `storefront` pods report `upstream: ok` on port 8080, `warehouse` keeps its NetworkPolicy isolation, and the pod in namespace `contractors` is still unable to reach `inventory`.",
+  "xp": 200,
+  "difficulty": "advanced",
+  "expected_time": "18m",
+  "concepts": ["cluster DNS names", "namespaces", "NetworkPolicy namespaceSelector", "ExternalName"],
   "module": "module-3-networking",
-  "level": "level-7-cross-namespace"
+  "level": "level-7-cross-namespace",
+  "requires": [],
+  "settle_seconds": 15,
+  "solve_timeout": 120,
+  "cleanup": []
 }

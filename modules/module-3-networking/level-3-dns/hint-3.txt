@@ -1,3 +1,1 @@
-The client pod's command in manifest.yaml uses `-h database` (the pod name). It needs to use `-h database-service` (the Service name) instead.
-
-Find the args field in spec.containers[0] of the app-client pod in manifest.yaml.
+Edit the pod template, not the pods: `kubectl -n k8smissions edit deployment reporter` (or `patch --type=json`), make the pod use the cluster's DNS again, and remove the leftover `dnsConfig`. Pick the policy value that means "cluster DNS first".

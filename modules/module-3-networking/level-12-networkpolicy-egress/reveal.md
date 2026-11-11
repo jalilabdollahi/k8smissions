@@ -1,22 +1,9 @@
-## What went wrong
+1. `default-deny-egress` blocks everything `invoice` sends, including DNS queries to CoreDNS, so `ledger-db` does not resolve. Allow DNS to the CoreDNS pods by label, not by IP:
 
-`policyTypes: [Egress]` combined with `egress: []` is a total egress block. Every outbound packet from every pod is dropped — including DNS queries to kube-dns. Without DNS, service names cannot resolve, which breaks virtually every application.
+   `kubectl -n payments apply -f -` with a NetworkPolicy `allow-dns` selecting `app=invoice`, egress `to` a `namespaceSelector` (`kubernetes.io/metadata.name: kube-system`) and `podSelector` (`k8s-app: kube-dns`), ports 53 UDP and TCP.
 
-## Fix
+2. Once names resolve, the call still times out: `allow-db` permits peers labelled `role=db`, but the database pods carry `app=ledger-db`:
 
-In manifest.yaml, replace the empty egress list with rules that allow DNS and intra-namespace communication:
+   `kubectl -n payments patch networkpolicy allow-db --type=json -p '[{"op":"replace","path":"/spec/egress/0/to/0/podSelector/matchLabels","value":{"app":"ledger-db"}}]'`
 
-```yaml
-egress:
-- ports:
-  - protocol: UDP
-    port: 53
-  - protocol: TCP
-    port: 53
-- to:
-  - podSelector: {}
-```
-
-## The trap
-
-When you add an Egress policy to block external traffic, you almost always need to explicitly allow DNS (port 53) in the same policy — otherwise all name resolution stops. This is one of the most common NetworkPolicy mistakes in production.
+3. `audit-log` has no rule, so it stays blocked.

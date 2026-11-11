@@ -1,44 +1,93 @@
----
 apiVersion: v1
-kind: Namespace
+kind: ConfigMap
 metadata:
-  name: k8smissions
+  name: quorum-code
+  namespace: k8smissions
+data:
+  node.py: |
+    import os, socket
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    SVC = "quorum.k8smissions.svc.cluster.local."
+    ME = os.environ["POD_IP"]
+
+    def members():
+        try:
+            infos = socket.getaddrinfo(SVC, None, socket.AF_INET, socket.SOCK_STREAM)
+        except socket.gaierror:
+            return []
+        return sorted({i[4][0] for i in infos})
+
+    class H(BaseHTTPRequestHandler):
+        def reply(self, code, body):
+            self.send_response(code)
+            self.end_headers()
+            self.wfile.write((body + "\n").encode())
+
+        def do_GET(self):
+            m = members()
+            others = [ip for ip in m if ip != ME]
+            if self.path == "/peers":
+                return self.reply(200, "peers: %d" % len(m))
+            if self.path == "/ready":
+                if len(others) >= 2:
+                    return self.reply(200, "ready with %d peers" % len(others))
+                return self.reply(503, "waiting for peers: found %d of 2" % len(others))
+            self.reply(200, "quorum node")
+
+        def log_message(self, *a):
+            pass
+
+    HTTPServer(("", 8080), H).serve_forever()
 ---
-# StatefulSets need headless service (clusterIP: None) for stable pod identities
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-cluster
+  name: quorum
   namespace: k8smissions
 spec:
-  # This gives us: web-cluster.k8smissions.svc.cluster.local → random pod
-  # But NOT: web-0.web-cluster.k8smissions.svc.cluster.local → specific pod
-  clusterIP: 10.96.100.50  # Regular ClusterIP (not headless)
+  clusterIP: None
   selector:
-    app: web-cluster
+    app: quorum
   ports:
-  - port: 80
-    targetPort: 80
+  - name: http
+    port: 8080
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: web
+  name: quorum
   namespace: k8smissions
 spec:
-  serviceName: web-cluster  # References the service above
+  serviceName: quorum
   replicas: 3
+  podManagementPolicy: Parallel
   selector:
-    matchLabels:
-      app: web-cluster
+    matchLabels: {app: quorum}
   template:
     metadata:
-      labels:
-        app: web-cluster
+      labels: {app: quorum}
     spec:
+      terminationGracePeriodSeconds: 0
       containers:
-      - name: nginx
-        image: nginx:1.21
+      - name: node
+        image: python:3.12-alpine
+        command: ["python", "-u", "/app/node.py"]
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef: {fieldPath: status.podIP}
         ports:
-        - containerPort: 80
-          name: web
+        - name: http
+          containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /ready, port: 8080}
+          periodSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+        - name: code
+          mountPath: /app
+      volumes:
+      - name: code
+        configMap:
+          name: quorum-code

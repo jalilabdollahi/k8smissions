@@ -1,9 +1,1 @@
-Events are empty — no controller is watching. This is a local kind cluster with no cloud integration and no MetalLB installed.
-
-For local development, the alternatives are:
-- `type: NodePort` — exposes the service on a port on each node
-- `kubectl port-forward` — tunnels a local port to the pod
-
-Check which node IPs are available:
-
-  kubectl get nodes -o wide
+`type: LoadBalancer` is a request to a controller that talks to a cloud API; this cluster has no such controller for the class on the Service, so the request is never answered. What the cluster itself can do is publish a port on every node: see `kubectl explain svc.spec.type`. Be aware that a few fields only make sense for the LoadBalancer type (`kubectl explain svc.spec.loadBalancerClass`).

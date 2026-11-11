@@ -1,5 +1,1 @@
-Without an explicit `nodePort` field, Kubernetes assigns a random port from the 30000–32767 range each time the Service is recreated. This makes it impossible to set up consistent firewall rules or tell users where to connect.
-
-Check what the Service spec looks like:
-
-  kubectl get service web-nodeport -n k8smissions -o yaml | grep -A5 'ports'
+A node port can belong to only one Service in the whole cluster. `kubectl get svc -A -o wide` prints the PORT(S) column, where a NodePort shows as `80:<nodePort>/TCP`. Read what the other Service is and whether anything still uses it. `kubectl explain service.spec.ports.nodePort` covers the field.

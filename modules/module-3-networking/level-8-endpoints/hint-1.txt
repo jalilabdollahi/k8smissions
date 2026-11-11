@@ -1,7 +1,1 @@
-Endpoints exist, so the Service found the pods. But some requests still fail. This points to pods being added to the endpoint list before they are actually ready to serve traffic.
-
-Check the READY column for the pods:
-
-  kubectl get pods -n k8smissions -l app=web
-
-Are both pods showing 1/1 Ready?
+The Service looks empty, so ask why the pods are not counted: `kubectl -n k8smissions describe pod -l app=search-api` shows the readiness probe failing, and the restarts point at a second container. Read its log with `kubectl logs <pod> -c <container> --previous`.

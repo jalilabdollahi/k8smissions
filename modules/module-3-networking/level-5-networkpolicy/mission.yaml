@@ -1,17 +1,15 @@
 {
-  "name": "NetworkPolicy Too Strict",
-  "description": "Pod frontend is Running and trying to reach the backend API every 5 seconds. Pod backend is Running. But requests are being silently dropped. Run kubectl logs frontend -n k8smissions.",
-  "objective": "The NetworkPolicy blocks all ingress to the backend — add a rule that allows traffic from the frontend",
-  "xp": 250,
+  "name": "Locked Out Frontend",
+  "description": "The storefront pods can no longer reach `ledger-api` on port 8080: every call times out after the security team put `ledger-api` behind a default-deny policy plus an `allow-frontend` rule. The ledger pods are Ready and the Service has endpoints. The nightly `report-batch` pod must stay locked out.",
+  "objective": "The `storefront` pods get the ledger answer from Service `ledger-api` on port 8080, `report-batch` still cannot reach it, and `ledger-api` stays protected by NetworkPolicy.",
+  "xp": 150,
   "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "NetworkPolicy",
-    "default-deny",
-    "ingress rules",
-    "podSelector",
-    "namespaceSelector"
-  ],
+  "expected_time": "12m",
+  "concepts": ["NetworkPolicy", "podSelector", "ingress rules", "pod labels"],
   "module": "module-3-networking",
-  "level": "level-5-networkpolicy"
+  "level": "level-5-networkpolicy",
+  "requires": [],
+  "settle_seconds": 20,
+  "solve_timeout": 60,
+  "cleanup": []
 }

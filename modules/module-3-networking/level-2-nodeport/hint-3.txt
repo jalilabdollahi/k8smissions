@@ -1,3 +1,1 @@
-The Service spec has no `nodePort` field set — Kubernetes picked one at random. You need to pin it to a specific value in the 30000–32767 range.
-
-Find the ports section in manifest.yaml and add the explicit nodePort.
+Two steps: first free the port (delete or move the Service that holds it), then claim it: `kubectl -n k8smissions patch service status-page -p '{"spec":{"ports":[{"port":80,"targetPort":5678,"nodePort":<port>}]}}'`.

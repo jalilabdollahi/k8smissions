@@ -1,7 +1,1 @@
-Empty endpoints always mean the Service selector matched zero pods. Start there:
-
-  kubectl get endpoints backend-service -n k8smissions
-
-Then compare the Service selector with the pod labels:
-
-  kubectl get pod backend-pod -n k8smissions --show-labels
+Compare the IP addresses behind the Service with the pods that should be behind it: `kubectl -n k8smissions get endpointslices` and `kubectl -n k8smissions get pods -o wide --show-labels`.

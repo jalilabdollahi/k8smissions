@@ -1,3 +1,1 @@
-The pod responds at `/` but the Ingress only routes requests to `/api`. No traffic from the root path ever reaches the backend.
-
-Find `spec.rules[0].http.paths[0].path` in the Ingress in manifest.yaml.
+Add the annotation `nginx.ingress.kubernetes.io/rewrite-target: /$2` to Ingress `shop`, and change the path to a pattern with two groups that keeps `/shop` working: `/shop(/|$)(.*)` with `pathType: ImplementationSpecific`. Use `kubectl -n k8smissions edit ingress shop`.

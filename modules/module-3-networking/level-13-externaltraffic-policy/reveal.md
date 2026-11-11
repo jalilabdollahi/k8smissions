@@ -1,20 +1,7 @@
-## What went wrong
+1. Both `audit-gw` pods run on the same worker, held together by a `podAffinity` rule on the hostname. With `externalTrafficPolicy: Local`, the other worker has no local endpoint and drops NodePort traffic.
+2. Switching the Service to `Cluster` makes both nodes answer, but kube-proxy then masquerades the source, and the audit log records node addresses. Keep `Local`.
+3. Replace the affinity with a topology spread constraint so one pod lands on each worker:
 
-`externalTrafficPolicy: Local` tells kube-proxy: only forward traffic if a matching pod is running on this node. If no pod is here, drop the packet. This is by design — it preserves the original client IP and avoids an extra network hop.
+   `kubectl -n k8smissions patch deploy audit-gw --type=json -p '[{"op":"remove","path":"/spec/template/spec/affinity"},{"op":"add","path":"/spec/template/spec/topologySpreadConstraints","value":[{"maxSkew":1,"topologyKey":"kubernetes.io/hostname","whenUnsatisfiable":"DoNotSchedule","labelSelector":{"matchLabels":{"app":"audit-gw"}}}]}]'`
 
-But in this cluster, pods are not on every node, so some nodes silently drop all NodePort traffic.
-
-## Fix
-
-In manifest.yaml:
-
-```yaml
-externalTrafficPolicy: Cluster
-```
-
-With `Cluster`, any node receiving the traffic will forward it to a backend pod on another node if needed — no silent drops.
-
-## Local vs Cluster trade-off
-
-- `Cluster` — works everywhere, but loses original client IP and adds a network hop
-- `Local` — preserves client IP, no extra hop, but requires pods on every node that might receive traffic (common with DaemonSets)
+4. Wait for the rollout; both workers now answer with the real caller address.

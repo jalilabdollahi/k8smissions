@@ -1,3 +1,1 @@
-The Service needs to change from `type: LoadBalancer` to `type: NodePort` to work in this environment.
-
-Find the `type` field in the Service spec in manifest.yaml. Also add an explicit `nodePort` value so the port is predictable.
+Change the type with a patch and clear the fields that belong only to the old type: `kubectl -n k8smissions patch svc storefront-lb -p '{"spec":{"type":"<type>","loadBalancerClass":null,<the other LB-only field>:null}}'`. Then read the node port back with `kubectl get svc storefront-lb`.

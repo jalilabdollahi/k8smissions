@@ -1,3 +1,1 @@
-The Service has two ports (80 and 443) but neither has a `name` field. When an Ingress references a backend port by name (e.g. `name: http`), the Service port must have a matching name. Without names, the Ingress controller cannot find a port called `http`.
-
-Note: for a Service with multiple ports, all ports must be named — it is required by the Kubernetes API.
+An Ingress backend that names a port refers to a port *name* of the Service, so the name must exist there. Separately, every Service port has a protocol, and a TCP client cannot talk to a port published as another protocol. Check `kubectl explain ingress.spec.rules.http.paths.backend.service.port` and `kubectl explain svc.spec.ports.protocol`.

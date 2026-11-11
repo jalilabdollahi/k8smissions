@@ -1,22 +1,5 @@
-## What went wrong
+The allow rule has two mistakes: it admits pods labelled `role=frontend` (the storefront pods are `app=storefront`) and it opens port 80 (ledger-api listens on 8080).
 
-The NetworkPolicy has `podSelector: {app: admin-tool}` in its ingress rule. This allows traffic only from pods labelled `admin-tool`. The frontend pod has `app: frontend` — it does not match. Kubernetes silently drops all packets from frontend to backend.
-
-## Fix
-
-In manifest.yaml, change the NetworkPolicy ingress rule:
-
-```yaml
-ingress:
-- from:
-  - podSelector:
-      matchLabels:
-        app: frontend
-  ports:
-  - protocol: TCP
-    port: 8080
-```
-
-## Why packets are dropped silently
-
-NetworkPolicy drop is not a TCP RST (connection refused) — it is an iptables DROP. The sender sees a timeout, not a refusal. This makes NetworkPolicy misconfigurations harder to spot than port or selector errors.
+1. `kubectl -n k8smissions describe networkpolicy allow-frontend` shows the peer selector and port.
+2. `kubectl -n k8smissions get pods --show-labels` shows the storefront pods' real labels.
+3. Patch the policy: `kubectl -n k8smissions patch networkpolicy allow-frontend --type=json -p '[{"op":"replace","path":"/spec/ingress/0/from/0/podSelector/matchLabels","value":{"app":"storefront"}},{"op":"replace","path":"/spec/ingress/0/ports/0/port","value":8080}]'`.

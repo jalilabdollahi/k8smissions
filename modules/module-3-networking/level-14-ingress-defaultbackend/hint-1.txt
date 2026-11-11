@@ -1,5 +1,1 @@
-Read the Ingress rules output carefully:
-
-  kubectl describe ingress app-ingress -n k8smissions
-
-Look at the Backend column in the Rules section. Does the service name shown there match any Service that actually exists?
+The 404 page comes from nginx itself, so the controller either does not know your Ingress or has no rule for the request. Compare `kubectl get ingressclass` with `kubectl -n k8smissions get ingress docs -o yaml`.

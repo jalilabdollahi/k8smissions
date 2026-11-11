@@ -1,19 +1,11 @@
-## What went wrong
+1. `kubectl get ingressclass` lists only `nginx`; the Ingress asks for `nginx-internal`, which no controller owns, so ingress-nginx ignores it and answers everything with its built-in 404:
 
-The Ingress backend has `service.name: app-serv` but the Service is named `app-service`. The Ingress controller looked for `app-serv`, found nothing, and returned 404 for every request. Kubernetes does not warn you about this at creation time — it only becomes visible when traffic fails.
+   `kubectl -n k8smissions patch ingress docs --type=merge -p '{"spec":{"ingressClassName":"nginx"}}'`
 
-## Fix
+2. `Host: docs.k8sm.local` now returns the handbook. A `defaultBackend` added to `docs` itself does not catch unknown hosts, because that Ingress has rules. Put the fallback in its own Ingress with no rules:
 
-In manifest.yaml, correct the backend service name:
+   `kubectl -n k8smissions create ingress fallback --class=nginx --default-backend=maintenance:80`
 
-```yaml
-backend:
-  service:
-    name: app-service
-    port:
-      number: 80
-```
+   (A rule without a `host` that sends `/` to `maintenance` also works.)
 
-## Why Kubernetes doesn't reject it
-
-Ingress resources are intentionally not validated against existing Services at admission time — Services may be created later. This flexibility means typos in service names cause silent 404 failures at runtime, not rejection at apply time.
+3. Any other host now returns the maintenance page.

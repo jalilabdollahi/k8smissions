@@ -1,59 +1,91 @@
 apiVersion: v1
-kind: Pod
+kind: ConfigMap
 metadata:
-  name: web-app-1
+  name: search-code
   namespace: k8smissions
-  labels:
-    app: web
-spec:
-  containers:
-  - name: app
-    image: hashicorp/http-echo:0.2.3
-    args:
-      - "-text=Pod 1 ready"
-      - "-listen=:8080"
-    ports:
-    - containerPort: 8080
-    # Without readiness probe, pod is immediately added to endpoints
-    # Even if the app inside isn't ready yet!
+data:
+  api.py: |
+    import json, os
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    class H(BaseHTTPRequestHandler):
+        def do_GET(self):
+            try:
+                n = json.load(open("/index/index.json"))["docs"]
+            except OSError:
+                self.send_response(503)
+                self.end_headers()
+                self.wfile.write(b"index missing\n")
+                return
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(("index_docs: %d\n" % n).encode())
+        def log_message(self, *a):
+            pass
+
+    HTTPServer(("", 8080), H).serve_forever()
+  indexer.py: |
+    import argparse, json, os, time
+
+    ap = argparse.ArgumentParser(prog="indexer")
+    ap.add_argument("--output", required=True, help="directory shared with the API")
+    ap.add_argument("--docs", type=int, default=1200)
+    a = ap.parse_args()
+
+    with open(os.path.join(a.output, "index.json"), "w") as f:
+        json.dump({"docs": a.docs}, f)
+    open(os.path.join(a.output, "ready"), "w").close()
+    print("index built, %d documents" % a.docs, flush=True)
+    while True:
+        time.sleep(30)
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: web-app-2
+  name: search-api
   namespace: k8smissions
-  labels:
-    app: web
 spec:
-  containers:
-  - name: app
-    image: hashicorp/http-echo:0.2.3
-    args:
-      - "-text=Pod 2 ready"
-      - "-listen=:8080"
-    ports:
-    - containerPort: 8080
+  replicas: 4
+  selector:
+    matchLabels: {app: search-api}
+  template:
+    metadata:
+      labels: {app: search-api}
+    spec:
+      containers:
+      - name: search-api
+        image: python:3.12-alpine
+        command: ["python", "-u", "/code/api.py"]
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          exec:
+            command: ["test", "-f", "/index/ready"]
+          periodSeconds: 3
+        volumeMounts:
+        - {name: code, mountPath: /code}
+        - {name: index, mountPath: /index}
+      - name: indexer
+        image: python:3.12-alpine
+        command: ["python", "-u", "/code/indexer.py"]
+        args: ["--out-dir", "/index"]
+        volumeMounts:
+        - {name: code, mountPath: /code}
+        - {name: index, mountPath: /index}
+      volumes:
+      - name: code
+        configMap: {name: search-code}
+      - name: index
+        emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-service
+  name: search
   namespace: k8smissions
 spec:
   selector:
-    app: web
+    app: search-api
   ports:
-  - protocol: TCP
-    port: 80
+  - port: 80
     targetPort: 8080
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: client
-  namespace: k8smissions
-spec:
-  containers:
-  - name: client
-    image: busybox:1.36
-    command: ['sh', '-c', 'while true; do echo "Request:"; wget -q -O- --timeout=2 http://web-service 2>&1 || echo "Failed"; sleep 2; done']

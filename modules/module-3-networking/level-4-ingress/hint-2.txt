@@ -1,6 +1,1 @@
-The Ingress rule shows path `/api`. But nginx by default only serves content at `/` (and its subdirectories). A request to `http://myapp.local/` does not match the Ingress rule `/api` — so the Ingress returns 404.
-
-Check what paths nginx actually responds to:
-
-  kubectl port-forward pod/web-app 8080:80 -n k8smissions
-  curl http://localhost:8080/
+By default ingress-nginx forwards the path unchanged, so the backend sees `/shop/items`. The controller can rewrite the path before proxying: look up the `nginx.ingress.kubernetes.io/rewrite-target` annotation and capture groups. Then check which `pathType` allows a regular expression (`kubectl explain ingress.spec.rules.http.paths.pathType`).

@@ -1,17 +1,15 @@
 {
-  "name": "DNS Blackout",
-  "description": "All pods in the namespace suddenly cannot resolve any hostname. DNS lookups time out. Applications that used to work are now broken. Run kubectl exec <any-pod> -n k8smissions -- nslookup kubernetes.",
-  "objective": "A NetworkPolicy blocks all egress including DNS on port 53 — add an egress rule to allow DNS traffic",
-  "xp": 225,
+  "name": "Egress Lockdown",
+  "description": "In namespace `payments`, security rolled out an egress default-deny plus an `allow-db` policy for `invoice`. Since then `invoice` reports `dns=fail db=fail` on its `/status` endpoint and logs `bad address 'ledger-db'`. The `ledger-db` Service has two Ready pods and answers fine from other namespaces. The same lockdown must keep `invoice` from calling anything else, such as the `audit-log` Service next door.",
+  "objective": "In namespace `payments`, `invoice`'s `/status` reports `dns=ok db=ok`, `invoice` still cannot reach Service `audit-log`, and egress from `invoice` stays restricted by NetworkPolicy.",
+  "xp": 200,
   "difficulty": "advanced",
-  "expected_time": "15m",
-  "concepts": [
-    "NetworkPolicy",
-    "egress",
-    "DNS",
-    "port 53",
-    "kube-dns"
-  ],
+  "expected_time": "18m",
+  "concepts": ["NetworkPolicy egress", "DNS egress", "namespaceSelector", "podSelector", "policyTypes"],
   "module": "module-3-networking",
-  "level": "level-12-networkpolicy-egress"
+  "level": "level-12-networkpolicy-egress",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 90,
+  "cleanup": []
 }

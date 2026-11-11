@@ -1,13 +1,15 @@
-# Common Mistakes — DNS Blackout
+## Opening port 53 to everyone
 
-## Mistake 1: Allowing only specific pod egress but forgetting DNS
+An egress rule with only `ports: [{port: 53}]` and no `to` allows port 53 to any destination, which is wider than needed. Name the CoreDNS pods with `namespaceSelector` and `podSelector` in the same `to` entry.
 
-**Wrong approach:** Adding an egress rule for the database but forgetting port 53 — app still can't resolve hostnames
+## Allowing UDP 53 only
 
-**Correct approach:** DNS must always be in the egress allowlist; add port 53 as a baseline rule
+DNS falls back to TCP for large answers. Allow both protocols, or occasional lookups fail in ways that are hard to reproduce.
 
-## Mistake 2: Using namespaceSelector for kube-dns
+## Deleting the egress policies
 
-**Wrong approach:** Only allowing egress to kube-system namespace — DNS requires both namespace AND port match
+Everything works, but `invoice` can now call `audit-log` and anything else. The point of the lockdown stays: fix the rules, do not remove them.
 
-**Correct approach:** Add a separate ports-only rule for UDP/TCP 53 without a destination selector
+## Fixing DNS and stopping there
+
+The name resolves, but the call to `ledger-db` still times out until the peer label in `allow-db` is right.

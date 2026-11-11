@@ -1,41 +1,51 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: backend-pod
+  name: cart
   namespace: k8smissions
-  labels:
-    app: backend
-    tier: api
 spec:
-  containers:
-  - name: nginx
-    image: nginx:1.21
-    ports:
-    - containerPort: 80
+  replicas: 3
+  selector:
+    matchLabels: {app: cart, tier: web}
+  template:
+    metadata:
+      labels: {app: cart, tier: web}
+    spec:
+      containers:
+      - name: web
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=storefront: cart page"]
+        ports:
+        - containerPort: 5678
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-loadtest
+  namespace: k8smissions
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: cart, tier: load}
+  template:
+    metadata:
+      labels: {app: cart, tier: load}
+    spec:
+      containers:
+      - name: stub
+        image: hashicorp/http-echo:1.0
+        args: ["-listen=:5678", "-text=load-test OK"]
+        ports:
+        - containerPort: 5678
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend-service
+  name: cart
   namespace: k8smissions
 spec:
   selector:
-    app: backend-app
-    tier: api
+    app: cart
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 80
-  type: ClusterIP
----
-# Test pod to verify connectivity
-apiVersion: v1
-kind: Pod
-metadata:
-  name: test-client
-  namespace: k8smissions
-spec:
-  containers:
-  - name: curl
-    image: curlimages/curl:latest
-    command: ["sleep", "3600"]
+  - port: 80
+    targetPort: 5678

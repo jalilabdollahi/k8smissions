@@ -1,5 +1,1 @@
-The NetworkPolicy protects the backend pod and has an ingress rule that only allows traffic from pods with label `app: admin-tool`. Check the frontend pod's labels:
-
-  kubectl get pod frontend -n k8smissions --show-labels
-
-Does the frontend have that label?
+An ingress rule admits traffic only if the source pod matches `from` and the destination port is in `ports`. Compare both with reality: which labels do the storefront pods have, and which port does `ledger-api` listen on? Remember the policy sees the pod port, not the Service port. `kubectl explain networkpolicy.spec.ingress`.

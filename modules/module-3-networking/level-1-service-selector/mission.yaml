@@ -1,16 +1,15 @@
 {
-  "name": "No Endpoints",
-  "description": "Pod backend-pod is Running but the Service backend-service has no endpoints. Requests to the Service are failing. Run kubectl get endpoints backend-service -n k8smissions.",
-  "objective": "The service selector label value doesn't match the pod label — fix the mismatch so endpoints are populated",
-  "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "ClusterIP service",
-    "label selectors",
-    "endpoints",
-    "kubectl get ep"
-  ],
+  "name": "The Odd Response",
+  "description": "Since Tuesday's load test, about one shopper in four gets a page that just says \"load-test OK\" instead of the cart page. Both Deployments, `cart` and `cart-loadtest`, show every pod Running and Ready, and nothing is crash-looping. A debug pod `probe` with curl is available in the namespace.",
+  "objective": "Every request to Service `cart` returns the storefront cart page, and Deployment `cart` keeps its 3 Ready replicas.",
+  "xp": 100,
+  "difficulty": "beginner",
+  "expected_time": "8m",
+  "concepts": ["Service selector", "EndpointSlice", "labels", "kubectl get --show-labels"],
   "module": "module-3-networking",
-  "level": "level-1-service-selector"
+  "level": "level-1-service-selector",
+  "requires": [],
+  "settle_seconds": 12,
+  "solve_timeout": 60,
+  "cleanup": []
 }

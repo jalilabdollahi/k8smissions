@@ -1,3 +1,1 @@
-The frontend has label `app: frontend` — not `app: admin-tool`. The NetworkPolicy ingress rule allows `admin-tool` but the actual caller is `frontend`. The labels do not match.
-
-Find the podSelector inside the ingress rule in the NetworkPolicy in manifest.yaml.
+Fix the existing `allow-frontend` policy rather than removing protection: `kubectl -n k8smissions edit networkpolicy allow-frontend`, point `podSelector.matchLabels` at a label the storefront pods have, and set the port to the one `ledger-api` listens on. Keep `report-batch` out of the rule.

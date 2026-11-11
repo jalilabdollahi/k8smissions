@@ -1,19 +1,6 @@
-## What went wrong
+1. The EndpointSlice for `checkout` has three addresses but no ports: the Service asks for a container port named `http`, and the 4.2 pods call it `app-http`, so there is nothing to connect to.
+2. Point the Service at the name the pods now use (a number, 8080, also works):
 
-`targetPort: 8080` tells the Service to forward incoming traffic to port 8080 on the pod. But nginx listens on port 80. The kernel on the pod receives a connection on 8080, finds no listener, and sends TCP RST — connection refused.
+   `kubectl -n k8smissions patch svc checkout --type=json -p '[{"op":"replace","path":"/spec/ports/0/targetPort","value":"app-http"}]'`
 
-## Fix
-
-In manifest.yaml, align targetPort with the container's actual port:
-
-```yaml
-ports:
-- port: 80
-  targetPort: 80
-```
-
-## Port fields in a Service
-
-- `port` — what clients connect to on the Service's ClusterIP
-- `targetPort` — what port traffic is forwarded to on the pod (must match containerPort or the named port)
-- `nodePort` — (NodePort Services only) the port opened on every node's external interface
+3. Requests are answered by 4.2 again; no pod needs to restart. Rolling back with `kubectl rollout undo` would make the Service work but would bring back 4.1.

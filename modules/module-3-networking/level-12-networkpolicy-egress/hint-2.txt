@@ -1,3 +1,1 @@
-The NetworkPolicy selects all pods (`podSelector: {}`) and has policyType `Egress` with an empty `egress: []` list. In Kubernetes, when policyTypes includes Egress and egress rules are empty, ALL outbound traffic is blocked — including DNS queries to port 53.
-
-CoreDNS listens on UDP and TCP port 53 in the kube-system namespace. Without an egress rule allowing this, pods cannot resolve any name.
+Under an egress deny, DNS is traffic like any other: the pod must be allowed to reach the cluster DNS pods in `kube-system`, on port 53 over both UDP and TCP. After that, compare the peer selector in `allow-db` with the labels the database pods really carry (`kubectl -n payments get pods --show-labels`). See `kubectl explain networkpolicy.spec.egress.to`.

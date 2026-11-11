@@ -1,14 +1,63 @@
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: audit-gw-conf
+  namespace: k8smissions
+data:
+  default.conf: |
+    server {
+      listen 8080;
+      location / {
+        default_type text/plain;
+        return 200 "caller=$remote_addr\n";
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-gw
+  namespace: k8smissions
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: audit-gw}
+  template:
+    metadata:
+      labels: {app: audit-gw}
+    spec:
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels: {app: audit-gw}
+      containers:
+      - name: nginx
+        image: nginx:1.27-alpine
+        ports:
+        - containerPort: 8080
+        readinessProbe:
+          httpGet: {path: /, port: 8080}
+          periodSeconds: 3
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/nginx/conf.d
+      volumes:
+      - name: conf
+        configMap:
+          name: audit-gw-conf
+---
+apiVersion: v1
 kind: Service
 metadata:
-  name: nodeport-svc
+  name: audit-gw
   namespace: k8smissions
 spec:
   type: NodePort
   externalTrafficPolicy: Local
   selector:
-    app: backend
+    app: audit-gw
   ports:
   - port: 80
-    targetPort: 80
-    nodePort: 30080
+    targetPort: 8080

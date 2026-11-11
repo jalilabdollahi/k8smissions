@@ -1,3 +1,1 @@
-The Service is named `app-service` but the Ingress backend references `app-serv`. That is a typo — the Ingress controller cannot find the Service and returns 404 for every request.
-
-Find `spec.rules[0].http.paths[0].backend.service.name` in the Ingress in manifest.yaml.
+Fix the class with a patch: `kubectl -n k8smissions patch ingress docs --type=merge -p '{"spec":{"ingressClassName":"<an existing class>"}}'`. For the unknown hosts, a `defaultBackend` is honoured as the controller-wide fallback when it sits in an Ingress of its own with no rules: `kubectl -n k8smissions create ingress <name> --class=<class> --default-backend=<service>:<port>`.

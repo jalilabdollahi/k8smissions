@@ -1,11 +1,34 @@
 #!/bin/bash
-set -euo pipefail
-NS="k8smissions"
-HTTP_NAME=$(kubectl get service dual-svc -n "$NS" -o jsonpath='{.spec.ports[?(@.port==80)].name}' 2>/dev/null || true)
-HTTPS_NAME=$(kubectl get service dual-svc -n "$NS" -o jsonpath='{.spec.ports[?(@.port==443)].name}' 2>/dev/null || true)
-if [ -n "$HTTP_NAME" ] && [ -n "$HTTPS_NAME" ]; then
-  echo "PASS: Ports are named — http=$HTTP_NAME https=$HTTPS_NAME"
-  exit 0
+NS=${NS:-k8smissions}
+k() { kubectl -n "$NS" "$@"; }
+CTRL=http://ingress-nginx-controller.ingress-nginx.svc
+
+ready=$(k get deploy gateway -o jsonpath='{.status.readyReplicas}' 2>/dev/null)
+if [ "${ready:-0}" -ne 2 ] || ! k get ingress gateway >/dev/null 2>&1; then
+  echo "❌ Deployment gateway (2 Ready pods) or Ingress gateway is missing"
+  exit 1
 fi
-echo "FAIL: Missing port names (http=$HTTP_NAME, https=$HTTPS_NAME)"
+echo "✅ gateway pods and Ingress exist"
+
+names=$(k get svc gateway -o jsonpath='{range .spec.ports[*]}{.name}{" "}{end}' 2>/dev/null)
+if echo "$names" | grep -qw http && echo "$names" | grep -qw metrics; then
+  echo "✅ Service gateway still has ports http and metrics"
+else
+  echo "❌ Service gateway ports are [${names}], expected both http and metrics"
+  exit 1
+fi
+
+body=$(k exec probe -- curl -s --max-time 5 -H 'Host: gateway.k8sm.local' "$CTRL/" 2>/dev/null)
+if [ "$body" != "gateway: ok" ]; then
+  echo "❌ through the Ingress, / returned '${body:-no answer}'"
+  exit 1
+fi
+echo "✅ the Ingress serves the gateway page"
+
+m=$(k exec probe -- curl -s --max-time 4 http://gateway:9090/metrics 2>/dev/null)
+case "$m" in
+  requests_total*) echo "✅ gateway:9090/metrics returns metrics" ;;
+  *) echo "❌ gateway:9090/metrics returned '${m:-no answer}'"; exit 1 ;;
+esac
+exit 0
 exit 1

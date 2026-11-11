@@ -1,5 +1,1 @@
-The pod has label `app: backend`. Now check what the Service selector requires:
-
-  kubectl get service backend-service -n k8smissions -o yaml | grep -A5 'selector'
-
-Do the values match exactly — including spacing and capitalization?
+A Service sends traffic to every Ready pod whose labels contain all of the key/value pairs in `spec.selector`. Look at the selector (`kubectl get svc cart -o yaml`) and at the labels of both Deployments' pods. `kubectl explain service.spec.selector` describes the matching rule.

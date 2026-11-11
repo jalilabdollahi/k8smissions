@@ -1,16 +1,15 @@
 {
-  "name": "Dead Endpoints",
-  "description": "Service web-service shows endpoints, but the client pod is still logging failures on some requests. Run kubectl get endpoints web-service -n k8smissions and then kubectl logs client -n k8smissions.",
-  "objective": "Pods are Running but not Ready, so the Service has no valid endpoints — add a readiness probe so pods join endpoints only when ready",
+  "name": "Nobody Home",
+  "description": "The product search page is down: Service `search` has no endpoints at all, yet `kubectl get pods` shows four `search-api` pods in state Running, each with some restarts. Nothing changed in the Service this week. A debug pod `probe` with curl is available.",
+  "objective": "Service `search` answers `/query?q=a` with `index_docs: 1200` on every request, all 4 `search-api` pods are Ready with no restarts, and the readiness probe stays on the `search-api` container.",
   "xp": 200,
-  "difficulty": "intermediate",
-  "expected_time": "10m",
-  "concepts": [
-    "Readiness probe",
-    "endpoint slice",
-    "Not Ready pods",
-    "traffic routing only to Ready pods"
-  ],
+  "difficulty": "advanced",
+  "expected_time": "15m",
+  "concepts": ["EndpointSlice", "readiness", "sidecar containers", "kubectl logs --previous"],
   "module": "module-3-networking",
-  "level": "level-8-endpoints"
+  "level": "level-8-endpoints",
+  "requires": [],
+  "settle_seconds": 25,
+  "solve_timeout": 120,
+  "cleanup": []
 }
